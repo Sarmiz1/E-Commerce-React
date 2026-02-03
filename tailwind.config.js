@@ -10,6 +10,9 @@ export default {
         poppins: ["Poppins", "sans-serif"],
         roboto: ["Roboto", "sans-serif"],
       },
+      colors: {
+        darkGreen: 'rgb(8, 79, 45)',
+      },
     },
   },
   plugins: [],
