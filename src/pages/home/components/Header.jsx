@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 function Header() {
 
   return (
@@ -36,14 +38,14 @@ function Header() {
       </div>
 
       <div className="w-[180px] shrink-0 flex justify-end">
-        <a 
+        <Link 
           className="text-white flex items-center px-[13px]
           py-[6px] border-[2px] cursor-pointer decoration-none border-solid
           border-[rgba(0, 0, 0, 0)]" 
-          href="orders.html">
+          to="orders.html">
 
           <span className="orders-text block text-base font-bold">Orders</span>
-        </a>
+        </Link>
 
         <a 
           className="text-white flex items-center relative
