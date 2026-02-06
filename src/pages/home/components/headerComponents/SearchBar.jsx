@@ -1,19 +1,19 @@
 function SearchBar() {
 
   return (
-    <div className="flex-1 max-w-[850px] mx-[10px] 
-            flex"
+    <div className="flex-1  mx-8
+      flex w-[850px]"
       >
-      <input className="flex flex-1 w-0 text-base pl-[15px]
-        border-none border-tl-[5px] border-bl-[5px] border-tr-[0] border-br-[0]
-        font-roboto focus:outline-2 focus:outline focus:outline-[rgb(25, 135, 84)]" 
+      <input className="flex text-base pl-
+        [15px] px-4 rounded-s-md w-full
+        border-none font-roboto outline-none" 
         type="text" 
         placeholder="Search" />
 
       <button className="bg-limeGreen border-none w-11 h-10 cursor-pointer 
-        border-tr-[5px] border-br-[5px] shrink-0 text-[14px]">
+        border-tr-[5px] border-br-[5px] shrink-0 text-[14px] rounded-e-md">
         <img 
-          className="search-icon h-5 ml-0 mt-1" 
+          className="search-icon h-5 ml-3" 
           src="images/icons/search-icon.png" />
       </button>
     </div>

@@ -5,7 +5,7 @@ function CheckoutHeader() {
     <div className="checkout-header h-[60px] px-[30px] bg-white   
       flex justify-center fixed top-0 left-0 right-0 z-[1000]">
       <div className="header-content w-full max-w-[1100px] flex items-center">
-        <div className="checkout-header-left-section w-[200px] sm:w-auto">
+        <div className="checkout-header-left-section w-[100px] sm:w-auto  ml-2 lg:ml-4 mr-4">
           <Link to="/">
             <img className="logo h-[26px] mt-0 hidden sm:inline-block" 
               src="images/logo.png" />

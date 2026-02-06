@@ -5,11 +5,11 @@ function OrdersSection() {
   return(
     <Link 
       className="text-white flex items-center px-[13px]
-      py-[6px] border-[2px] cursor-pointer decoration-none border-solid
-      border-[rgba(0, 0, 0, 0)]" 
+      py-[6px] hover:outline-1 cursor-pointer decoration-none hover:outline rounded-md
+      hover:outline-[rgba(0, 0, 0, 0)]" 
       to="/orders">
 
-      <span className="orders-text block text-base font-bold">Orders</span>
+      <span className="orders-text block text-sm font-bold">Orders</span>
     </Link>
   )
 }

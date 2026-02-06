@@ -3,9 +3,9 @@ function ProductsGrid() {
 
   return (
     <>
-      <div className="products-grid grid grid-cols-1 max-2xl:grid-cols-7 
-        2xl:grid-cols-6 xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3s
-        sm:grid-cols-2">
+      <div className="products-grid grid grid-cols-2    
+        sm-min:grid-cols-3
+        sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 max-2xl:grid-cols-8">
 
         <ProductContainer
           product={{

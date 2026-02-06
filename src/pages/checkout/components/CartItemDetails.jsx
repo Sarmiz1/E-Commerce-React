@@ -27,11 +27,11 @@ function CartItemDetails({cartProduct, children}) {
               Quantity: <span className="quantity-label">{cartProduct.quantity}</span>
             </span>
             <span className="update-quantity-link link-primary    
-              ml-1 text-greenPry active:opacity-50 hover:opacity-75">
+              ml-1 text-greenPry active:opacity-50 cursor-pointer hover:opacity-75">
               Update
             </span>
             <span className="delete-quantity-link link-primary  
-              ml-1 text-greenPry active:opacity-50 hover:opacity-75">
+              ml-1 text-greenPry active:opacity-50 cursor-pointer hover:opacity-75">
               Delete
             </span>
           </div>

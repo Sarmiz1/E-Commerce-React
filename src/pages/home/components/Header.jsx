@@ -9,7 +9,7 @@ function Header() {
         justify-between fixed top-0 left-0 right-0 h-[60px]">
       <Logo />
       <SearchBar />
-      <div className="w-[180px] shrink-0 flex justify-end">
+      <div className="w-auto shrink-0 flex justify-end ">
         <OrdersSection />
         <Cart />
       </div>

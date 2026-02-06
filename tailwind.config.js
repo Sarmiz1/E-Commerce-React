@@ -19,7 +19,9 @@ export default {
         hover: 'rgba(25, 135, 84, 0.75)'
       },
       screens: {
-        'max-2xl': {'max': '2000px'},
+        'max-2xl': {'min': '2000px'},
+        'sm-min' : {'min': '500'},
+        'sm-max' : {'max': '500'}
       },
       boxShadow: {
         xxxl: {

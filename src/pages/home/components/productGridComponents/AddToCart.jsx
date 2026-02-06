@@ -1,3 +1,5 @@
+import ButtonPrimary from "../../../../components/ui/ButtonPrimary"
+
 function AddToCart() {
 
   return(
@@ -9,13 +11,13 @@ function AddToCart() {
         Added
       </div>
 
-      <button className="add-to-cart-button button-primary w-full h-8 p-2 mt-[1px]  
-        cursor-pointer text-[14px] text-white bg-greenPry border border-solid
-        border-transparent rounded-md [box-shadow: 0 2px 5px rgba(220, 220, 220, 0.5)] hover:bg-greenPy/75 hover:border hover:border-solid
-        hover:border-transparent active:bg-greenPy/50 active:border-transparent
-        active:shadow-none">
-        Add to Cart
-      </button>
+      <ButtonPrimary 
+      text={'Add to Cart'}
+      className={`text-base w-full mt-[1px]  border border-solid rounded-md 
+        [box-shadow: 0 2px 5px rgba(220, 220, 220, 0.5)] 
+        hover:bg-greenPy/75 hover:border hover:border-solid
+        hover:border-transparent`}
+      />
     </>
   )
 }
