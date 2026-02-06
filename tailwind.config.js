@@ -12,7 +12,7 @@ export default {
       },
       colors: {
         darkGreen: 'rgb(8, 79, 45)',
-        limeGreen: 'rgb(186, 255, 190',
+        limeGreen: 'rgb(186, 255, 190)',
         greenPry: 'rgb(25, 135, 84)',
       },
       screens: {
