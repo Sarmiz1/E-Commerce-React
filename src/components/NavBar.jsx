@@ -1,8 +1,8 @@
-import Logo from "./headerComponents/Logo";
-import SearchBar from "./headerComponents/SearchBar";
-import Cart from "./headerComponents/Cart";
-import OrdersSection from "./headerComponents/OrdersSection";
-function Header() {
+import Logo from "./navBarComponents/Logo";
+import SearchBar from "./navBarComponents/SearchBar";
+import Cart from "./navBarComponents/Cart";
+import OrdersSection from "./navBarComponents/OrdersSection";
+function NavBar() {
 
   return (
     <div className="bg-darkGreen text-white px-[15px] flex items-center  dark:text-slate-300
@@ -18,4 +18,4 @@ function Header() {
   )
 }
 
-export default Header
+export default NavBar

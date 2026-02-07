@@ -1,4 +1,4 @@
-import ButtonPrimary from "../../../components/ui/ButtonPrimary"
+import ButtonPrimary from "../../../components/ButtonPrimary"
 function PaymentSumary() {
 
   return (
