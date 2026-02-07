@@ -5,7 +5,7 @@ import OrdersSection from "./headerComponents/OrdersSection";
 function Header() {
 
   return (
-    <div className="bg-darkGreen text-white px-[15px] flex items-center 
+    <div className="bg-darkGreen text-white px-[15px] flex items-center  dark:text-slate-300
         justify-between fixed top-0 left-0 right-0 h-[60px]">
       <Logo />
       <SearchBar />

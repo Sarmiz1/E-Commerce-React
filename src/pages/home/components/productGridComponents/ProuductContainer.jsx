@@ -8,8 +8,9 @@ function ProductContainer({product}) {
 
   return (
     <div className="product-container pt-10 pb-6 px-6 border-r border-solid
-      border-b border-r-[rgb(240, 240, 240)] border-b-[rgb(240, 240, 240)]
-      flex flex-col">
+      border-b border-r-[rgb(240, 240, 240)] border-b-[rgb(240, 240, 240)] flex flex-col
+      dark:border-r-black dark:bg-slate-200
+      dark:border-b-black">
       
       <ProductImageContainer productImage={product.image}/>
       <ProductName productName={product.name}/>

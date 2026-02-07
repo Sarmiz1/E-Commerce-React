@@ -6,7 +6,7 @@ function SearchBar() {
       >
       <input className="flex text-base pl-
         [15px] px-4 rounded-s-md w-full
-        border-none font-roboto outline-none" 
+        border-none font-roboto outline-none dark:bg-slate-100 dark:text-black"  
         type="text" 
         placeholder="Search" />
 
