@@ -30,23 +30,24 @@ export default {
         },
       },
       gap: {
-        'column-gap': {
-          0:{
+        columnSm: {
             'column-gap': '0px'
           },
-          35: {
+        columnMd: {
             'column-gap': '35px'
-          }
-        },       
-        'row-gap': {
-          0 : {
+          },       
+        rowSm: {
             'row-gap': '0px'
           },
-          60: {
+        rowLg: {
             'row-gap': '60px'
           }
+      },
+      spacing: {
+        letterSpacingSm: {
+          'letter-spacing': '1.1px'
         },
-      }
+      },
     },
   },
   plugins: [],

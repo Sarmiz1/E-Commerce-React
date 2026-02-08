@@ -1,4 +1,4 @@
-function ButtonPrimary({text, className}){
+function ButtonPrimary({text, className, children}){
 
   return(
     <button className={`place-order-button button-primary 
@@ -6,6 +6,7 @@ function ButtonPrimary({text, className}){
         shadow-3xl hover:outline hover:outline-2 hover:border-solid p-4
         active:bg-greenPryTrans active:border-transparent active:shadow-none
         ${className}`}>
+        {children}
         {text}
     </button>
   )

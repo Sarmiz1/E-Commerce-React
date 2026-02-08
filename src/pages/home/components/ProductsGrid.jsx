@@ -1,36 +1,21 @@
 import ProductContainer from "./productGridComponents/ProuductContainer"
+import { products } from "../../../data/products"
 function ProductsGrid() {
 
   return (
     <>
-      <div className="products-grid grid grid-cols-2    
-        sm-min:grid-cols-3
-        sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 max-2xl:grid-cols-8">
+      <div className="grid grid-cols-2    
+        sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-2xl:grid-cols-7">
+        
+        {products?.map(product => {
+          return(
+            <ProductContainer
+            key={product.id}
+            product={product}
+            />
+          )
+        })}
 
-        <ProductContainer
-          product={{
-            name: 'Black and Gray Athletic Cotton Socks - 6 Pairs',
-            rating: '87',
-            price: '$10.90',
-            image: "images/products/athletic-cotton-socks-6-pairs.jpg"
-          }}
-        />
-        <ProductContainer
-          product={{
-            name: 'Intermediate Size Basketball',
-            rating: '127',
-            price: '$20.95',
-            image: "images/products/intermediate-composite-basketball.jpg"
-          }}
-        />
-        <ProductContainer
-          product={{
-            name: 'Adults Plain Cotton T-Shirt - 2 Pack',
-            rating: '56',
-            price: '$7.99',
-            image: "images/products/adults-plain-cotton-tshirt-2-pack-teal.jpg"
-          }}
-        />
       </div>
     </>
   )

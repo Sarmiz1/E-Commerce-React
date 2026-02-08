@@ -131,6 +131,10 @@
   margin-bottom: 3px;
 }
 
+.orders-page .product-delivery-date span{
+  letter-spacing: 1.1px;
+}
+
 .orders-page .product-quantity {
   margin-bottom: 8px;
 }

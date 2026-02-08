@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function Logo () {
 
   return(
     <div className="w-auto">
-      <Link 
+      <NavLink 
         to="/" 
         className="inline-block py-[6px] px-[9.5px]
         cursor-pointer rounded-md no-underline
@@ -15,7 +15,7 @@ function Logo () {
           src="images/logo-white.png" />
         <img className=" block sm:hidden h-[26px] mt-1"
           src="images/mobile-logo-white.png" />
-      </Link>
+      </NavLink>
     </div>
   )
 }

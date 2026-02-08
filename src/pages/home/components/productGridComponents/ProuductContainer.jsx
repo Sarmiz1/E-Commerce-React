@@ -15,7 +15,7 @@ function ProductContainer({product}) {
       <ProductImageContainer productImage={product.image}/>
       <ProductName productName={product.name}/>
       <ProductRating productRating={product.rating} />
-      <ProductPrice productPrice={product.price} />
+      <ProductPrice productPrice={product.priceCents} />
       <ProductQuantity />
 
       <div className="product-spacer flex-1"></div>

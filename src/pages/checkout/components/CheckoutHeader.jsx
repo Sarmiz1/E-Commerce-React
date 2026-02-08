@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { NavLink   } from "react-router-dom"
 function CheckoutHeader() {
 
   return (
@@ -6,21 +6,21 @@ function CheckoutHeader() {
       flex justify-center fixed top-0 left-0 right-0 z-[1000]">
       <div className="header-content w-full max-w-[1100px] flex items-center">
         <div className="checkout-header-left-section w-[100px] sm:w-auto  ml-2 lg:ml-4 mr-4">
-          <Link to="/">
+          <NavLink  to="/">
             <img className="logo h-[26px] mt-0 hidden sm:inline-block" 
               src="images/logo.png" />
             <img className="mobile-logo inline-block sm:hidden h-[26px]" 
               src="images/mobile-logo.png" />
-          </Link>
+          </NavLink >
         </div>
 
         <div className="checkout-header-middle-section flex-grow   
           shrink-0 text-center text-[22px] font-medium flex justify-center lg:text-xl mx-auto ">
 
-          Checkout (<Link className="return-to-home-link    
+          Checkout (<NavLink  className="return-to-home-NavLink     
             text-greenPry
             no-underline cursor-pointer lg:text-xl"
-            to="/"> 3 items</Link>)
+            to="/"> 3 items</NavLink >)
 
         </div>
 
