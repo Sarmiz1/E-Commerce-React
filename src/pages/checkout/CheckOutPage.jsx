@@ -3,6 +3,7 @@ import CartItemContainer from './components/CartItemContainer'
 import PaymentSumary from './components/PaymentSummary'
 import { useContext } from 'react'
 import dataContext from '../../context/dataContext'
+import { formatMoneyCents } from '../../utils/formatMoneyCents'
 
 function CheckOutPage() {
 
@@ -30,14 +31,14 @@ function CheckOutPage() {
 
               {cart.map(cartItem => {
                 return (
-                  <CartItemContainer key={cartItem.id}
+                  <CartItemContainer key={cartItem.productId}
                   cartProduct={
                 {
-                  name: cartItem.name,
-                  price: cartItem.price,
+                  name: cartItem.product.name,
+                  price: formatMoneyCents(cartItem.product.priceCents),
                   quantity: cartItem.quantity,
-                  deliveryDate: cartItem.deliveryDate,
-                  image: cartItem.image,
+                  deliveryDate: cartItem.product.deliveryDate,
+                  image: cartItem.product.image,
                 }
               } 
               />

@@ -1,9 +1,9 @@
-import { FormatMoneyCents } from "../../../../utils/FormatMoneyCents"
+import { formatMoneyCents } from "../../../../utils/formatMoneyCents"
 function ProductPrice({productPrice}) {
 
   return (
     <div className="product-price font-bold mb-[10px]">
-        {FormatMoneyCents(productPrice)}
+        {formatMoneyCents(productPrice)}
     </div>
   )
 }

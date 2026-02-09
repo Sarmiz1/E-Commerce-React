@@ -3,22 +3,15 @@ import ProductName from "./containerComponents/ProductName"
 import ProductRating from "./containerComponents/ProductRating"
 import ProductPrice from "./containerComponents/ProductPrice"
 import AddToCart from "./containerComponents/AddToCart"
-import { useContext, useState, useEffect } from "react"
+import { useContext } from "react"
 import dataContext from "../../../context/dataContext"
 
 
 function ProductContainer() {
 
-    const [quantity, setQuantity] = useState(1)
-
-
-  const {cart} = useContext(dataContext)
 
   const {products} = useContext(dataContext)
   
-  // useEffect(()=> {
-  //   console.log('Cart ', cart);
-  // },[cart])
 
 
   return (
