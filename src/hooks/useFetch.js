@@ -2,22 +2,29 @@ import axios from "axios"
 import { useEffect, useState } from "react"
 
 
-export const useFetchProducts = ()=> {
-  const [products, setProducts] = useState([])
+/* 
+=================================================================================
+              Fetching data from backEnd
+=================================================================================
+*/
+export const useFetchData = (url)=> {
+  const [fetchedData, setFetchedData] = useState([])
+  const [error, setError] = useState('')
 
-  const url = 'http://localhost:3000/api/products'
 
   useEffect(()=> {
-    axios.get(url)
+    try {
+      axios.get(url)
       .then((response)=> {
-        setProducts (response.data)
-        console.log(products);
-        console.log(response.data);
-        
+        setFetchedData (response.data)
     })
+    } catch (error) {
+      setError(error.message)
+    }
+    
   },[])
-
-  console.log(products);
   
-  return products
+  return {fetchedData, error}
 }
+
+

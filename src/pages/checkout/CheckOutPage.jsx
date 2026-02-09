@@ -1,12 +1,15 @@
 import CheckoutHeader from './components/CheckoutHeader'
 import CartItemContainer from './components/CartItemContainer'
 import PaymentSumary from './components/PaymentSummary'
-import { useContext, useEffect } from 'react'
+import { useContext } from 'react'
 import dataContext from '../../context/dataContext'
 
 function CheckOutPage() {
 
   const {cart} = useContext(dataContext)
+
+  console.log(cart);
+  
   
 
   return(
@@ -25,9 +28,10 @@ function CheckOutPage() {
             ">
             <div className="order-summary order-2 lg:order-1 lg:w-[80%]">
 
-              {cart?.map(cartItem => {
+              {cart.map(cartItem => {
                 return (
-                  <CartItemContainer cartProduct={
+                  <CartItemContainer key={cartItem.id}
+                  cartProduct={
                 {
                   name: cartItem.name,
                   price: cartItem.price,

@@ -30,7 +30,6 @@ function ProductContainer() {
         name,
         rating,
         priceCents,
-        keywords
       }) => {
         return(
           <div className="product-container pt-10 pb-6 px-6 border-r border-solid

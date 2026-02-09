@@ -1,9 +1,9 @@
-export const useLocalStorage = (data) => {
+export const useLocalStorage = (storageName,data) => {
 
-  const storedData = JSON.parse(localStorage.getItem('data'))
+  const storedData = JSON.parse(localStorage.getItem(storageName)) || []
 
     
-  localStorage.setItem('data', JSON.stringify(data))
+  localStorage.setItem(storageName, JSON.stringify(data))
 
   return storedData
 

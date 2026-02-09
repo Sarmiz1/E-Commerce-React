@@ -7,22 +7,40 @@ import NavBar from './components/NavBar'
 import { Routes, Route } from 'react-router-dom'
 import { useState } from 'react'
 import dataContext from './context/dataContext'
-import { useFetchProducts } from './hooks/useFetch' 
+import { useFetchData } from './hooks/useFetch' 
 import { useLocalStorage } from './hooks/useLocalStorage'
 
 function App() {
-  const [cart, setCart] = useState([])
 
-  const data = useFetchProducts()
-  const products = useLocalStorage(data)
+  const productUrl = 'http://localhost:3000/api/products'
+  const cartUrl = 'http://localhost:3000/api/cart-items'
+
+
+  const {fetchedData:fetchedProduct, error:productFetchError} = useFetchData(productUrl)
+  const products = useLocalStorage('products',fetchedProduct)
+
+  const {fetchedData:fetchedCart, error:cartFetchError} = useFetchData(cartUrl)
+  const cartFromLocalStorage = useLocalStorage('carts',fetchedCart)
+
+  const [cart, setCart] = useState(cartFromLocalStorage)
+
+  console.log(cart);
+  console.log(products);
+  
+
+
+
+
 
 
   return (
     <>
       <dataContext.Provider value={{
         products,
+        productFetchError,
         cart,
         setCart,
+        cartFetchError,
       }}>
         <NavBar />
         <Routes>
