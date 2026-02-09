@@ -5,13 +5,17 @@ import OrdersPage from './pages/orders/OrdersPage'
 import TrackingPage from './pages/tracking/TrackingPage'
 import NavBar from './components/NavBar'
 import { Routes, Route } from 'react-router-dom'
-import { products } from './data/products'
 import { useState } from 'react'
 import dataContext from './context/dataContext'
+import { useFetchProducts } from './hooks/useFetch' 
+import { useLocalStorage } from './hooks/useLocalStorage'
 
 function App() {
   const [cart, setCart] = useState([])
-  
+
+  const data = useFetchProducts()
+  const products = useLocalStorage(data)
+
 
   return (
     <>
