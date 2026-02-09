@@ -1,7 +1,6 @@
 import OrdersContainer from "./components/OrdersContainer"
-import orders from "./_test_/testData"
-
 function OrdersPage() {
+  const orders=[]
 
   return(
     <>

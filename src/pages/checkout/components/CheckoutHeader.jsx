@@ -1,5 +1,14 @@
 import { NavLink   } from "react-router-dom"
+import { useContext } from "react"
+import dataContext from "../../../context/dataContext"
+
 function CheckoutHeader() {
+
+  const {cart} = useContext(dataContext)
+
+  const checkOutItems = cart.length
+
+
 
   return (
     <div className="checkout-header h-[60px] px-[30px] bg-white   
@@ -20,7 +29,7 @@ function CheckoutHeader() {
           Checkout (<NavLink  className="return-to-home-NavLink     
             text-greenPry
             no-underline cursor-pointer lg:text-xl"
-            to="/"> 3 items</NavLink >)
+            to="/"> {checkOutItems} items</NavLink >)
 
         </div>
 

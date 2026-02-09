@@ -38,7 +38,7 @@ function OrderProductDetails({orderProduct}) {
         <Link to="/tracking">
           <ButtonPrimary 
             text={'Track package'}
-            className={`bg-white text-black w-36 text-base p-[8px] border 
+            className={`bg-white text-[black] w-36 text-base p-[8px] border 
               border-solid rounded-md mb-2 md:w-[180px] hover:bg-slate-50
               hover:outline-[0.5px]
               shadow-sm

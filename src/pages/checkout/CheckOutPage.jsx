@@ -1,9 +1,13 @@
 import CheckoutHeader from './components/CheckoutHeader'
 import CartItemContainer from './components/CartItemContainer'
 import PaymentSumary from './components/PaymentSummary'
-
+import { useContext, useEffect } from 'react'
+import dataContext from '../../context/dataContext'
 
 function CheckOutPage() {
+
+  const {cart} = useContext(dataContext)
+  
 
   return(
     <>
@@ -20,27 +24,22 @@ function CheckOutPage() {
           <div className="checkout-grid flex flex-col gap-3 lg:flex-row lg:items-start      
             ">
             <div className="order-summary order-2 lg:order-1 lg:w-[80%]">
-              <CartItemContainer cartProduct={
-                {
-                  name: 'Black and Gray Athletic Cotton Socks - 6 Pairs',
-                  price: '$10.90',
-                  quantity: 2,
-                  deliveryDate: 'Tuesday, June 21',
-                  image: "images/products/athletic-cotton-socks-6-pairs.jpg",
-                }
-              } 
-              />
 
-              <CartItemContainer cartProduct={
+              {cart?.map(cartItem => {
+                return (
+                  <CartItemContainer cartProduct={
                 {
-                  name: 'Intermediate Size Basketball',
-                  price: '$10.90',
-                  quantity: 1,
-                  deliveryDate: 'Wednesday, June 15',
-                  image: "images/products/intermediate-composite-basketball.jpg",
+                  name: cartItem.name,
+                  price: cartItem.price,
+                  quantity: cartItem.quantity,
+                  deliveryDate: cartItem.deliveryDate,
+                  image: cartItem.image,
                 }
               } 
               />
+                )
+              })}
+              
             </div>
             <PaymentSumary />
           </div>
