@@ -12,8 +12,8 @@ import { useLocalStorage } from './hooks/useLocalStorage'
 
 function App() {
 
-  const productUrl = 'http://localhost:3000/api/products'
-  const cartUrl = 'http://localhost:3000/api/cart-items'
+  const productUrl = '/api/products'
+  const cartUrl = '/api/cart-items'
 
 
   const {fetchedData:fetchedProduct, error:productFetchError} = useFetchData(productUrl)
