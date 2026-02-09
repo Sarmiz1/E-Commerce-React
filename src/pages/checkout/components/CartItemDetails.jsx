@@ -1,12 +1,25 @@
+import { useContext } from "react"
+import cartContext from "../../../context/cartContext"
+import { formatDate } from "../../../utils/formatDate"
 
 function CartItemDetails({cartProduct, children}) {
-  
+
+  const{deliveryOptions} = useContext(cartContext)
+  const selectedDeliveryOption = deliveryOptions
+
+  find((deliveryOption) => {    
+    return deliveryOption.id === cartProduct.deliveryOptionId
+  })
+
+
 
 
   return(
     <>
       <div className="delivery-date text-greenPry font-bold mt-1 mb-5 text-[1.19rem]">
-        Delivery date: {cartProduct.deliveryDate}
+        Delivery date: {
+        formatDate(selectedDeliveryOption.estimatedDeliveryTimeMs)
+        }
       </div>
 
       <div className="cart-item-details-grid  grid lg:grid-cols-3 lg:gap-4 gap-2    

@@ -24,8 +24,7 @@ function App() {
 
   const [cart, setCart] = useState(cartFromLocalStorage)
 
-  console.log(cart);
-  console.log(products);
+  
   
 
 

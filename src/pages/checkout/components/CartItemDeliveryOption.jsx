@@ -1,8 +1,12 @@
-import { useEffect } from "react"
-import dataContext from '../../../context/dataContext'
+import { formatDate } from "../../../utils/formatDate";
+import { formatMoneyCents } from "../../../utils/formatMoneyCents";
+import { useContext } from "react";
+import cartContext from "../../../context/cartContext";
 
-function CartItemDeliveryOption() {
-  
+function CartItemDeliveryOption({cartId, cartDeliveryOptionId}) {
+
+  const {deliveryOptions} = useContext(cartContext)
+      
 
   return (
     <div className="delivery-options col-span-[1/2]">
@@ -11,51 +15,32 @@ function CartItemDeliveryOption() {
         Choose a delivery option:
       </div>
 
-      <div className="delivery-option flex mb-1 cursor-pointer gap-2">
-        <input type="radio" checked
-          className="delivery-option-input w-4 focus:outline focus:outline-2 focus:outline-offset-2
-          focus:outline-greenPry"
-          name="delivery-option-1" 
-        />
-        <div>
-          <div className="delivery-option-date w-full mb-1 font-medium text-[1rem]">
-            Tuesday, June 21
-          </div>
-          <div className="delivery-option-price  text-[1rem] text-[rgb(120, 120, 120)]">
-            FREE Shipping
-          </div>
-        </div>
-      </div>
-
-      <div className="delivery-option flex mb-3 cursor-pointer gap-2">
-        <input type="radio"
-          className="delivery-option-input w-4 focus:outline focus:outline-2 focus:outline-offset-2
-          focus:outline-greenPry"
-          name="delivery-option-1" />
-        <div>
-          <div className="delivery-option-date w-full mb-1 font-medium text-[1rem]">
-            Wednesday, June 15
-          </div>
-          <div className="delivery-option-price  text-[1rem] text-[rgb(120, 120, 120)]">
-            $4.99 - Shipping
-          </div>
-        </div>
-      </div>
-
-      <div className="delivery-option flex mb-1 cursor-pointer gap-2">
-        <input type="radio"
-          className="delivery-option-input w-4 focus:outline focus:outline-2 focus:outline-offset-2
-          focus:outline-greenPry"
-          name="delivery-option-1" />
-        <div>
-          <div className="delivery-option-date w-full mb-1 font-medium text-[1rem]">
-            Monday, June 13
-          </div>
-          <div className="delivery-option-price  text-[1rem] text-[rgb(120, 120, 120)]">
-            $9.99 - Shipping
-          </div>
-        </div>
-      </div>
+      {
+        deliveryOptions.length > 0 && deliveryOptions.map(deliveryOption => {
+          return(
+          
+            <div className="delivery-option flex mb-1 cursor-pointer gap-2" key={deliveryOption.id}>
+              <input type="radio" 
+                checked={deliveryOption.id === cartDeliveryOptionId}
+                className="delivery-option-input w-4 focus:outline focus:outline-2 focus:outline-offset-2
+                focus:outline-greenPry"
+                name={`delivery-option-${cartId}`}
+              />
+              <div>
+                <div className="delivery-option-date w-full mb-1 font-medium text-[1rem]">
+                  {formatDate(deliveryOption.estimatedDeliveryTimeMs)}
+                </div>
+                <div className="delivery-option-price  text-[1rem] text-[rgb(120, 120, 120)]">
+                  {deliveryOption.priceCents === 0 ? 'FREE Shipping'
+                      :
+                    formatMoneyCents(deliveryOption.priceCents)
+                  }
+                </div>
+              </div>
+            </div>
+          )
+        })
+      }
       
     </div>
   )
