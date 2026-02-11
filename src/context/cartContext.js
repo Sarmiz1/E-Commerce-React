@@ -1,9 +1,9 @@
 import { createContext } from "react";
 
-const dataContext = createContext({
-  products:[],
+const cartContext = createContext({
   cart:[],
-  setCart: null,
+  loadCart: null
+
 })
 
-export default dataContext
+export default cartContext

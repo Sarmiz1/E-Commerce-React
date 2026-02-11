@@ -4,7 +4,7 @@ import ViewAllOrders from "./components/ViewAllOrders"
 import ProgressBar from "./components/ProgressBar"
 
 function TrackingPage() {
-  const progress = 40
+  const progress = 50
 
   return(
     <main className=" m-0 font-roboto text-[rgb(33, 33, 33)]">

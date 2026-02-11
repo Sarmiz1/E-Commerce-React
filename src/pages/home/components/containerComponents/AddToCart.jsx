@@ -18,12 +18,14 @@ function AddToCart({ productId }) {
 
 
   const handleOnclick = (productID) => {
-    
-    const addToCartUrl = '/api/cart-items'
+
     const productDetails = {
       productId: productID,
       quantity,
     }
+    
+    const addToCartUrl = `/api/cart-items`
+    
 
     usePostData(addToCartUrl, productDetails)
     
