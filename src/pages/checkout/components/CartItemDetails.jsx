@@ -11,7 +11,6 @@ function CartItemDetails({cartProduct, children}) {
 
   const {loadCart} = useContext (dataContext)
 
-  console.log();
   
 
   const handleDelete = () => {

@@ -1,26 +1,39 @@
-import ProgressLabel from "./components/ProgressLabel"
-import TrackingDetails from "./components/TrackingDetails"
-import ViewAllOrders from "./components/ViewAllOrders"
-import ProgressBar from "./components/ProgressBar"
+import ProgressLabel from "./components/ProgressLabel";
+import TrackingDetails from "./components/TrackingDetails";
+import ViewAllOrders from "./components/ViewAllOrders";
+import ProgressBar from "./components/ProgressBar";
+import { useFetchData } from "../../Hooks/useFetch";
+import { Fragment } from "react";
 
 function TrackingPage() {
-  const progress = 50
+  const ordersApiUrl = "/api/orders?expand=products";
 
-  return(
+  const { fetchedData: orders } = useFetchData(ordersApiUrl);
+
+  return (
     <main className=" m-0 font-roboto text-[rgb(33, 33, 33)]">
       <title>Tracking</title>
-      
-      <div className="tracking-page max-w-[850px] mt-24 mb-28 px-8 mx-auto 
-        ">
-        <div className="order-tracking ">
+
+      <div
+        className="max-w-[850px] mt-24 mb-28 px-8 mx-auto 
+        "
+      >
+        <div>
           <ViewAllOrders />
-          <TrackingDetails />
-          <ProgressLabel progress={progress}/>
-          <ProgressBar progress={progress}/>
+          {orders.map((order) => {
+            const progress = Math.floor(Math.random() * 101);
+            return (
+              <Fragment key={order.id}>
+                <TrackingDetails order={order} />
+                <ProgressLabel progress={progress} />
+                <ProgressBar progress={progress} />
+              </Fragment>
+            );
+          })}
         </div>
       </div>
     </main>
-  )
+  );
 }
 
-export default TrackingPage
+export default TrackingPage;

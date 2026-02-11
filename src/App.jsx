@@ -8,6 +8,7 @@ import { Routes, Route } from 'react-router-dom'
 import dataContext from './Context/cartContext'
 import { useEffect, useState } from 'react' 
 import axios from 'axios'
+import ErrorBoundary from './ErrorHandling/ErrorBoundary'
 
 function App() {
 
@@ -41,10 +42,30 @@ function App() {
       }}>
         <NavBar />
         <Routes>
-          <Route path="/checkout" element={<CheckOutPage />} />
-          <Route path="/" element={<HomePage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/tracking" element={<TrackingPage />} />
+          <Route path="/checkout" element =
+          {
+            <ErrorBoundary>   
+              <CheckOutPage />
+            </ErrorBoundary>
+            } />
+          <Route path="/" element =
+          {
+            <ErrorBoundary>   
+              <HomePage />
+            </ErrorBoundary>
+            } />
+          <Route path="/orders" element =
+          {
+            <ErrorBoundary>   
+              <OrdersPage />
+            </ErrorBoundary>
+          } />
+          <Route path="/tracking" element =
+          {
+            <ErrorBoundary>   
+              <TrackingPage />
+            </ErrorBoundary>
+          } />
         </Routes>
       </dataContext.Provider>
       
