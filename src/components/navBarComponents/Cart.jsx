@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useContext } from "react";
-import dataContext from "../../context/dataContext";
+import dataContext from "../../Context/dataContext";
 
 function Cart() {
 

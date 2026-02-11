@@ -1,25 +1,37 @@
 import ButtonPrimary from '../../../../components/ButtonPrimary'
 import { Link } from 'react-router-dom'
+import { formatDate } from '../../../../Utils/formatDate'
 
-function OrderProductDetails({orderProduct}) {
+function OrderProductDetails({orderedProduct}) {
+
+  
+
+  const {
+    quantity,
+    estimatedDeliveryTimeMs,
+    product: { 
+    image,
+    name
+    } 
+  } =  orderedProduct
 
   return (
     <section className='grid grid-cols-1 md:grid-cols-2'>
       <div className='flex gap-8 md:mr-5 self-start md:justify-normal md:items-start'>
         <div className="product-image-container text-center mb-6">
-          <img src={orderProduct.productImage}
+          <img src={image}
             className="max-w-28 max-h-28"/>
         </div>
 
         <div className="product-details mt-0">
           <div className="product-name font-bold mb-px md:w-[100ch]">
-            {orderProduct.productName}
+            {name}
           </div>
           <div className="product-delivery-date mb-px ">
-            <span className="letterSpacingSm">Arriving</span> on: {orderProduct.arrivalDate}
+            <span className="letterSpacingSm">Arriving</span> on: {formatDate(estimatedDeliveryTimeMs)}
           </div>
           <div className="product-quantity mb-px sm:mb-4">
-            Quantity: {orderProduct.quantity}
+            Quantity: {quantity}
           </div>
 
           <ButtonPrimary 
@@ -38,7 +50,7 @@ function OrderProductDetails({orderProduct}) {
         <Link to="/tracking">
           <ButtonPrimary 
             text={'Track package'}
-            className={`bg-white text-[black] w-36 text-base p-[8px] border 
+            className={`bg-white text-[rgb(0,0,0)] w-36 text-base p-[8px] border 
               border-solid rounded-md mb-2 md:w-[180px] hover:bg-slate-50
               hover:outline-[0.5px]
               shadow-sm

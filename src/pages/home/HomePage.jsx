@@ -1,7 +1,6 @@
 import ProductContainer from "./components/ProuductContainer"
+
 function HomePage() {
-  
-  
 
   return (
     <>

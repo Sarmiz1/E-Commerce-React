@@ -2,25 +2,30 @@ import CheckoutHeader from './components/CheckoutHeader'
 import CartItemContainer from './components/CartItemContainer'
 import PaymentSumary from './components/PaymentSummary'
 import { useContext } from 'react'
-import dataContext from '../../context/dataContext'
-import { formatMoneyCents } from '../../utils/formatMoneyCents'
-import cartContext from '../../context/cartContext'
-import { useFetchData } from '../../hooks/useFetch'
+import dataContext from '../../Context/dataContext'
+import { formatMoneyCents } from '../../Utils/formatMoneyCents'
+import checkOutContext from '../../Context/checkOutContext'
+import { useFetchData } from '../../Hooks/useFetch'
+
 
 function CheckOutPage() {
 
   const {cart} = useContext(dataContext)
+  
   const deliveryApiUrl = '/api/delivery-options?expand=estimatedDeliveryTime'  
 
   const {fetchedData: deliveryOptions, 
-    error: deliveryFetchError} = useFetchData(deliveryApiUrl);  
+    error: deliveryFetchError} = useFetchData(deliveryApiUrl);
+    
+  
+  
   
 
   return(
     <>
 
       <title>Checkout</title>
-      <cartContext.Provider value={{
+      <checkOutContext.Provider value={{
         deliveryOptions,
         deliveryFetchError,
       }}>
@@ -53,11 +58,11 @@ function CheckOutPage() {
                 })}
                 
               </div>
-              <PaymentSumary />
+              <PaymentSumary  deliveryOptions={deliveryOptions}/>
             </div>
           </div>
         </div>
-      </cartContext.Provider>
+      </checkOutContext.Provider>
     </>
   )
 }

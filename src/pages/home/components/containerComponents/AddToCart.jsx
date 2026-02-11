@@ -1,10 +1,9 @@
 import ButtonPrimary from "../../../../components/ButtonPrimary";
-import { useContext, useState } from "react";
-import dataContext from "../../../../context/dataContext";
-import Cart from "../../../../components/navBarComponents/Cart";
+import { useState } from "react";
+import { usePostData } from "../../../../Hooks/usePost";
+
 
 function AddToCart({ productId }) {
-  const { setCart, products, cart } = useContext(dataContext);
 
   const [quantity, setQuantity] = useState(1)
 
@@ -12,27 +11,36 @@ function AddToCart({ productId }) {
     setQuantity(Number(e.target.value))
   }
 
-  const handleOnclick = (ID) => {
 
-    const check = cart.some(item => item.id === ID)
-
-    if (check === true) {
-      cart.forEach(( product) => {
-        if(product.id === ID) product.quantity += quantity
-      })
-    } 
+  const handleOnclick = (productID) => {
     
-    else {
-      const pickedProduct = products.find(( product) => product.id === ID);
-      pickedProduct.quantity = quantity
-
-      setCart((prev) => [
-      ...prev,
-        pickedProduct,
-    ]);
+    const addToCartUrl = '/api/cart-items'
+    const productDetails = {
+      productId: productID,
+      quantity,
     }
+
+
+    usePostData(addToCartUrl, productDetails)
     
-  };
+
+
+
+    
+    fetch(addToCartUrl, {
+      method: 'POST',
+      headers: {'Content-Type' : 'application/json'},
+      body: JSON.stringify({
+        productDetails
+      })
+    }).then(res => {
+      return res.json()
+    
+    }).then(data => console.log(data))
+      .catch(err => console.log(err))
+    
+    
+  } 
 
   
 

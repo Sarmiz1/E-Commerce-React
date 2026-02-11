@@ -1,4 +1,4 @@
-import { formatMoneyCents } from "../../../../utils/formatMoneyCents"
+import { formatMoneyCents } from "../../../../Utils/formatMoneyCents"
 function ProductPrice({productPrice}) {
 
   return (

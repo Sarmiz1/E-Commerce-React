@@ -1,7 +1,7 @@
-import { formatDate } from "../../../utils/formatDate";
-import { formatMoneyCents } from "../../../utils/formatMoneyCents";
+import { formatDate } from "../../../Utils/formatDate";
+import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useContext } from "react";
-import cartContext from "../../../context/cartContext";
+import cartContext from "../../../Context/checkOutContext";
 
 function CartItemDeliveryOption({cartId, cartDeliveryOptionId}) {
 

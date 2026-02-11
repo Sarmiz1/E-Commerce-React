@@ -1,24 +1,21 @@
 import ButtonPrimary from "../../../components/ButtonPrimary"
-import { useFetchDataObject } from "../../../hooks/useFetch"
-import { formatMoneyCents } from "../../../utils/formatMoneyCents"
-import { useLocalStorageObject } from "../../../hooks/useLocalStorage"
-function PaymentSumary() {
+import { useFetchDataObject } from "../../../Hooks/useFetch"
+import { formatMoneyCents } from "../../../Utils/formatMoneyCents"
+
+
+function PaymentSumary({ deliveryOptions }) {
 
   const paymentSumaryApiUrl = '/api/payment-summary'
 
   const {fetchedData:paymentSumary, 
     error:paymentSumaryFetchError} = useFetchDataObject(paymentSumaryApiUrl)
-
-
-
-  
-
+    
 
 
   return (
     <>
       {
-        paymentSumary && (
+        deliveryOptions.length > 0  && (
         
         <div className="payment-summary lg:w-[400px] border border-solid 
           border-borderColor rounded px-5 pt-5 pb-2

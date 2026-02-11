@@ -5,3 +5,10 @@ export const formatDate = (ms) => {
 
   return formattedDate
 }
+
+
+export const formatDateMonthDay = (ms) => {
+  const formattedDate = dayjs(ms).format ('MMM D')
+
+  return formattedDate
+}

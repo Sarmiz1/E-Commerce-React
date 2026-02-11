@@ -1,4 +1,4 @@
-import { ratingCount } from "../../../../utils/ratingsCount"
+import { ratingCount } from "../../../../Utils/ratingsCount"
 function ProductRating({productRating}) {
 
   const {stars, count} = productRating

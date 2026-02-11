@@ -3,14 +3,19 @@ import ProductName from "./containerComponents/ProductName"
 import ProductRating from "./containerComponents/ProductRating"
 import ProductPrice from "./containerComponents/ProductPrice"
 import AddToCart from "./containerComponents/AddToCart"
-import { useContext } from "react"
-import dataContext from "../../../context/dataContext"
+import { useFetchData } from "../../../Hooks/useFetch"
+import {useSessionStorage} from '../../../Hooks/useSessionStorage'
 
 
 function ProductContainer() {
 
+  const productUrl = '/api/products'
 
-  const {products} = useContext(dataContext)
+  const {fetchedData:fetchedProduct, error:productFetchError} = useFetchData(productUrl)
+
+  const products = useSessionStorage('products',fetchedProduct)
+
+  
   
 
 

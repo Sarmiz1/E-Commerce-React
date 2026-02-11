@@ -5,40 +5,21 @@ import OrdersPage from './pages/orders/OrdersPage'
 import TrackingPage from './pages/tracking/TrackingPage'
 import NavBar from './components/NavBar'
 import { Routes, Route } from 'react-router-dom'
-import { useState } from 'react'
-import dataContext from './context/dataContext'
-import { useFetchData } from './hooks/useFetch' 
-import { useLocalStorage } from './hooks/useLocalStorage'
+import dataContext from './Context/dataContext'
+import { useFetchData } from './Hooks/useFetch' 
 
 function App() {
 
-  const productUrl = '/api/products'
   const cartUrl = '/api/cart-items?expand=product'
 
-
-  const {fetchedData:fetchedProduct, error:productFetchError} = useFetchData(productUrl)
-  const products = useLocalStorage('products',fetchedProduct)
-
-  const {fetchedData:fetchedCart, error:cartFetchError} = useFetchData(cartUrl)
-  const cartFromLocalStorage = useLocalStorage('carts',fetchedCart)
-
-  const [cart, setCart] = useState(cartFromLocalStorage)
-
-  
-  
-
-
-
-
+  const {fetchedData:cart, error:cartFetchError} = useFetchData(cartUrl)
+    
 
 
   return (
     <>
       <dataContext.Provider value={{
-        products,
-        productFetchError,
         cart,
-        setCart,
         cartFetchError,
       }}>
         <NavBar />
@@ -49,6 +30,7 @@ function App() {
           <Route path="/tracking" element={<TrackingPage />} />
         </Routes>
       </dataContext.Provider>
+      
     </>
   )
 }

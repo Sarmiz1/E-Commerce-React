@@ -1,10 +1,10 @@
 import { useContext } from "react"
-import cartContext from "../../../context/cartContext"
-import { formatDate } from "../../../utils/formatDate"
+import checkOutContext from "../../../Context/checkOutContext"
+import { formatDate } from "../../../Utils/formatDate"
 
 function CartItemDetails({cartProduct, children}) {
 
-  const{deliveryOptions} = useContext(cartContext)
+  const{deliveryOptions} = useContext(checkOutContext)
   const selectedDeliveryOption = deliveryOptions
 
   find((deliveryOption) => {    
