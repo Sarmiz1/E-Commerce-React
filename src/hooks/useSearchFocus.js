@@ -5,7 +5,7 @@ const useSearchFocus = (ref) => {
   useEffect(() => {
     ref.current.focus()
     
-  },[])
+  },[ref])
 
 }
 

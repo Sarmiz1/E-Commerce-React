@@ -1,5 +1,5 @@
 import ButtonPrimary from "../../../../components/ButtonPrimary";
-import { useState, useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import { usePostData } from "../../../../Hooks/usePost";
 import dataContext from "../../../../Context/cartContext";
 

@@ -11,7 +11,7 @@ function ProductContainer() {
 
   const productUrl = '/api/products'
 
-  const {fetchedData:fetchedProduct, error:productFetchError} = useFetchData(productUrl)
+  const {fetchedData:fetchedProduct} = useFetchData(productUrl)
 
   const products = useSessionStorage('products',fetchedProduct)
 

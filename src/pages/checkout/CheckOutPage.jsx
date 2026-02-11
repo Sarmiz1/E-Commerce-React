@@ -29,8 +29,10 @@ function CheckOutPage() {
   }
     
   useEffect(()=> {
+    
     loadPaymentSumary()
-  })
+
+  }, [])
   
   
 

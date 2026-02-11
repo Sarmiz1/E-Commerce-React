@@ -1,17 +1,29 @@
 import { useContext } from "react"
 import checkOutContext from "../../../Context/checkOutContext"
 import { formatDate } from "../../../Utils/formatDate"
+import { useDelete } from "../../../Hooks/useDelete"
+import dataContext from "../../../Context/cartContext"
 
 function CartItemDetails({cartProduct, children}) {
 
-  const{deliveryOptions} = useContext(checkOutContext)
+  const { deliveryOptions, loadPaymentSumary } = useContext(checkOutContext)
   const selectedDeliveryOption = deliveryOptions
 
-  find((deliveryOption) => {    
-    return deliveryOption.id === cartProduct.deliveryOptionId
-  })
+  const {loadCart} = useContext (dataContext)
 
+  console.log();
+  
 
+  const handleDelete = () => {
+    const deleteCartItemUrl = `/api/cart-items/${cartProduct.id}`
+    
+    useDelete(deleteCartItemUrl)
+
+    loadCart()
+
+    loadPaymentSumary()
+
+  }
 
 
   return(
@@ -43,7 +55,9 @@ function CartItemDetails({cartProduct, children}) {
               ml-1 text-greenPry active:opacity-50 cursor-pointer hover:opacity-75">
               Update
             </span>
-            <span className="delete-quantity-link link-primary  
+            <span 
+              onClick={handleDelete}
+              className="delete-quantity-link link-primary  
               ml-1 text-greenPry active:opacity-50 cursor-pointer hover:opacity-75">
               Delete
             </span>

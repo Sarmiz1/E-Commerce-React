@@ -7,7 +7,7 @@ import { useFetchData } from "../../Hooks/useFetch"
 function OrdersPage() {
   const ordersApiUrl = '/api/orders?expand=products'
 
-  const {fetchedData: orders, fetchError} = useFetchData(ordersApiUrl)
+  const {fetchedData: orders} = useFetchData(ordersApiUrl)
 
 
 

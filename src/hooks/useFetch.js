@@ -95,7 +95,7 @@ export const useFetchDataObject = (url)=> {
 
     return cleanUp
     
-  },[])
+  },[url])
 
   
   return {fetchedData, error, isLoading}

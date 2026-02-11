@@ -1,19 +1,12 @@
 import ButtonPrimary from "../../../components/ButtonPrimary"
-import { useFetchDataObject } from "../../../Hooks/useFetch"
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents"
 import { useContext } from "react"
 import checkOutContext from "../../../Context/checkOutContext"
 
 function PaymentSumary({ deliveryOptions }) {
 
-  // const paymentSumaryApiUrl = '/api/payment-summary'
-
-  // const {fetchedData:paymentSumary, 
-  //   error:paymentSumaryFetchError} = useFetchDataObject(paymentSumaryApiUrl)
-
   const {paymentSumary} = useContext(checkOutContext)
     
-
 
   return (
     <>
