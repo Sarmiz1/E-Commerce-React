@@ -1,11 +1,12 @@
-import CheckoutHeader from './components/CheckoutHeader'
-import CartItemContainer from './components/CartItemContainer'
-import PaymentSumary from './components/PaymentSummary'
-import { useContext } from 'react'
-import dataContext from '../../Context/dataContext'
+import CheckoutHeader from './Components/CheckoutHeader'
+import CartItemContainer from './Components/CartItemContainer'
+import PaymentSumary from './Components/PaymentSummary'
+import { useContext, useState, useEffect } from 'react'
+import dataContext from '../../Context/cartContext'
 import { formatMoneyCents } from '../../Utils/formatMoneyCents'
 import checkOutContext from '../../Context/checkOutContext'
 import { useFetchData } from '../../Hooks/useFetch'
+import axios from 'axios'
 
 
 function CheckOutPage() {
@@ -16,8 +17,20 @@ function CheckOutPage() {
 
   const {fetchedData: deliveryOptions, 
     error: deliveryFetchError} = useFetchData(deliveryApiUrl);
-    
   
+  const [paymentSumary, setPaymentSumary] = useState(null) 
+
+  const loadPaymentSumary = async () => {
+
+    const paymentSumUrl = '/api/payment-summary'
+    const response = await axios.get(paymentSumUrl)
+    
+    setPaymentSumary(response.data)
+  }
+    
+  useEffect(()=> {
+    loadPaymentSumary()
+  })
   
   
 
@@ -28,6 +41,8 @@ function CheckOutPage() {
       <checkOutContext.Provider value={{
         deliveryOptions,
         deliveryFetchError,
+        loadPaymentSumary,
+        paymentSumary
       }}>
         <div className='m-0 p-0'>
           <CheckoutHeader />

@@ -2,10 +2,32 @@ import { formatDate } from "../../../Utils/formatDate";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useContext } from "react";
 import cartContext from "../../../Context/checkOutContext";
+import dataContext from "../../../Context/cartContext";
+import { usePutData } from "../../../Hooks/usePut";
 
 function CartItemDeliveryOption({cartId, cartDeliveryOptionId}) {
+  
 
-  const {deliveryOptions} = useContext(cartContext)
+  const {deliveryOptions, loadPaymentSumary} = useContext(cartContext)
+  const {loadCart} = useContext(dataContext)
+
+
+  const handleOnClick = (productId, deliveryOptionID) => {
+
+    const cartUpdateUrl = `/api/cart-items/${productId}`
+    
+    const deliveryDetails = {
+      deliveryOptionId: deliveryOptionID
+    }
+
+    usePutData(cartUpdateUrl, deliveryDetails)
+
+    loadCart()
+    loadPaymentSumary()
+  
+  }
+
+
       
 
   return (
@@ -19,12 +41,16 @@ function CartItemDeliveryOption({cartId, cartDeliveryOptionId}) {
         deliveryOptions.length > 0 && deliveryOptions.map(deliveryOption => {
           return(
           
-            <div className="delivery-option flex mb-1 cursor-pointer gap-2" key={deliveryOption.id}>
-              <input type="radio" 
+            <div className="delivery-option flex mb-1 cursor-pointer gap-2" key={deliveryOption.id}
+              onClick={()=> handleOnClick(cartId,deliveryOption.id)}
+            >
+              <input 
+                type="radio" 
                 checked={deliveryOption.id === cartDeliveryOptionId}
                 className="delivery-option-input w-4 focus:outline focus:outline-2 focus:outline-offset-2
                 focus:outline-greenPry"
                 name={`delivery-option-${cartId}`}
+                onChange={() => {}}
               />
               <div>
                 <div className="delivery-option-date w-full mb-1 font-medium text-[1rem]">

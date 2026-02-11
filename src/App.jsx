@@ -5,14 +5,31 @@ import OrdersPage from './pages/orders/OrdersPage'
 import TrackingPage from './pages/tracking/TrackingPage'
 import NavBar from './components/NavBar'
 import { Routes, Route } from 'react-router-dom'
-import dataContext from './Context/dataContext'
-import { useFetchData } from './Hooks/useFetch' 
+import dataContext from './Context/cartContext'
+import { useEffect, useState } from 'react' 
+import axios from 'axios'
 
 function App() {
 
-  const cartUrl = '/api/cart-items?expand=product'
 
-  const {fetchedData:cart, error:cartFetchError} = useFetchData(cartUrl)
+
+  const [cart, setCart] = useState([])
+
+  const loadCart = async () => {
+    const cartUrl = '/api/cart-items?expand=product'
+    const response = await axios.get(cartUrl)
+    
+    setCart(response.data)
+  }
+
+
+
+
+  useEffect(() => {
+
+    loadCart()
+
+  }, [])
     
 
 
@@ -20,7 +37,7 @@ function App() {
     <>
       <dataContext.Provider value={{
         cart,
-        cartFetchError,
+        loadCart,
       }}>
         <NavBar />
         <Routes>

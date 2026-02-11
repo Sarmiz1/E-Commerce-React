@@ -1,15 +1,20 @@
 import ButtonPrimary from "../../../../components/ButtonPrimary";
-import { useState } from "react";
+import { useState, useEffect, useContext } from "react";
 import { usePostData } from "../../../../Hooks/usePost";
+import dataContext from "../../../../Context/cartContext";
 
 
 function AddToCart({ productId }) {
 
-  const [quantity, setQuantity] = useState(1)
+  const [ quantity, setQuantity ] = useState(1)
+
+  const { loadCart } = useContext(dataContext)
 
   const handleOnchange = (e) => {
     setQuantity(Number(e.target.value))
   }
+
+  
 
 
   const handleOnclick = (productID) => {
@@ -20,27 +25,11 @@ function AddToCart({ productId }) {
       quantity,
     }
 
-
     usePostData(addToCartUrl, productDetails)
     
-
-
-
-    
-    fetch(addToCartUrl, {
-      method: 'POST',
-      headers: {'Content-Type' : 'application/json'},
-      body: JSON.stringify({
-        productDetails
-      })
-    }).then(res => {
-      return res.json()
-    
-    }).then(data => console.log(data))
-      .catch(err => console.log(err))
-    
-    
+    loadCart()
   } 
+
 
   
 
