@@ -1,5 +1,5 @@
-import OrdersHeader from "./components/components/OrdersHeader";
-import OrderProductDetails from "./components/components/OrderProductDetails";
+import OrdersHeader from "./OrdersHeader";
+import OrderProductDetails from "./Components/OrderProductDetails";
 import { useFetchData } from "../../Hooks/useFetch";
 
 function OrdersPage() {

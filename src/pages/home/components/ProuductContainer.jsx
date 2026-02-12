@@ -1,17 +1,43 @@
-import ProductImageContainer from "./containerComponents/ProductImageContainer";
-import ProductName from "./containerComponents/ProductName";
-import ProductRating from "./containerComponents/ProductRating";
-import ProductPrice from "./containerComponents/ProductPrice";
-import AddToCart from "./containerComponents/AddToCart";
+import ProductImageContainer from "./ContainerComponents/ProductImageContainer";
+import ProductName from "./ContainerComponents/ProductName";
+import ProductRating from "./ContainerComponents/ProductRating";
+import ProductPrice from "./ContainerComponents/ProductPrice";
+import AddToCart from "./ContainerComponents/AddToCart";
 import { useFetchData } from "../../../Hooks/useFetch";
 import { useSessionStorage } from "../../../Hooks/useSessionStorage";
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 
 function ProductContainer() {
+  const [searchParams] = useSearchParams();
+
+  console.log(searchParams.size);
+
+  const search = searchParams.get("search");
+
+  console.log(search);
+
   const productUrl = "/api/products";
+  const searchUrlPath = `/api/products?search=${search}`;
 
   const { fetchedData: fetchedProduct } = useFetchData(productUrl);
 
   const products = useSessionStorage("products", fetchedProduct);
+
+  // let fetchedProduct  = []
+
+  // useEffect(()=> {
+
+  //   if(search) {
+  //     const { fetchedData } = useFetchData(searchUrlPath);
+
+  //     fetchedProduct = fetchedData
+  //   } else {
+  //     const { fetchedData } = useFetchData(productUrl);
+  //     fetchedProduct = fetchedData
+  //   }
+
+  // }, [search])
 
   return (
     <>

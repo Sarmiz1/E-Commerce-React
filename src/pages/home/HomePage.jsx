@@ -1,6 +1,9 @@
-import ProductContainer from "./components/ProuductContainer";
+import ProductContainer from "./Components/ProuductContainer";
+
 
 function HomePage() {
+  
+  
   return (
     <>
       <div className="mt-[61px]">

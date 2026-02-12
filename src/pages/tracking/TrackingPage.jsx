@@ -1,7 +1,7 @@
-import ProgressLabel from "./components/ProgressLabel";
-import TrackingDetails from "./components/TrackingDetails";
-import ViewAllOrders from "./components/ViewAllOrders";
-import ProgressBar from "./components/ProgressBar";
+import ProgressLabel from "./Components/ProgressLabel";
+import TrackingDetails from "./Components/TrackingDetails";
+import ViewAllOrders from "./Components/ViewAllOrders";
+import ProgressBar from "./Components/ProgressBar";
 import { useFetchData } from "../../Hooks/useFetch";
 import { Fragment } from "react";
 
@@ -11,11 +11,14 @@ function TrackingPage() {
   const { fetchedData: orders } = useFetchData(ordersApiUrl);
 
   return (
-    <main className=" m-0 font-roboto text-[rgb(33, 33, 33)]">
+    <main
+      className=" m-0 font-roboto text-[rgb(33, 33, 33)] 
+    "
+    >
       <title>Tracking</title>
 
       <div
-        className="max-w-[850px] mt-24 mb-28 px-8 mx-auto 
+        className="max-w-[850px] mt-24 mb-28 px-8 mx-auto
         "
       >
         <div>
