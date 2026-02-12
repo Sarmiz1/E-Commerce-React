@@ -7,39 +7,39 @@ import { useEffect, useState } from "react"
               Fetching data from backEnd
 =================================================================================
 */
-export const useFetchData = (url)=> {
-  const [ fetchedData, setFetchedData ] = useState([])
-  const [ error, setError ] = useState(null)
-  const [ isLoading, setIsLoading ] = useState(false)
+export const useFetchData = (url) => {
+  const [fetchedData, setFetchedData] = useState([])
+  const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
 
-  useEffect(()=> {
+  useEffect(() => {
 
     let isMounted = true
     const source = axios.CancelToken.source()
 
-    const fetchData = async(url) => {
+    const fetchData = async (url) => {
       setIsLoading(true)
-      
+
       try {
-        const response = await axios.get(url,{
+        const response = await axios.get(url, {
           cancelToken: source.token
         });
 
-        if(isMounted) {
-          setFetchedData (response.data)
+        if (isMounted) {
+          setFetchedData(response.data)
           setError(null)
         }
-        
+
       } catch (error) {
 
-        if(isMounted) {
+        if (isMounted) {
           setError(error.message)
           setFetchedData([])
         }
       } finally {
-        isMounted && setTimeout(() => 
-        setIsLoading(false), 2000)
+        isMounted && setTimeout(() =>
+          setIsLoading(false), 2000)
       }
     }
 
@@ -51,10 +51,10 @@ export const useFetchData = (url)=> {
     }
 
     return cleanUp
-    
-  },[url])
-  
-  return {fetchedData, error, isLoading}
+
+  }, [url])
+
+  return { fetchedData, error, isLoading }
 }
 
 
@@ -63,20 +63,20 @@ export const useFetchData = (url)=> {
               Fetching Object data from backEnd
 =================================================================================
 */
-export const useFetchDataObject = (url)=> {
+export const useFetchDataObject = (url) => {
   const [fetchedData, setFetchedData] = useState(null)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
 
-  useEffect(()=> {
+  useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
 
       try {
         const response = await axios.get(url)
 
-        if(response.status === 200) {
+        if (response.status === 200) {
           setFetchedData(response.data)
           setIsLoading(false)
         }
@@ -94,11 +94,11 @@ export const useFetchDataObject = (url)=> {
     }
 
     return cleanUp
-    
-  },[url])
 
-  
-  return {fetchedData, error, isLoading}
+  }, [url])
+
+
+  return { fetchedData, error, isLoading }
 }
 
 

@@ -1,12 +1,13 @@
-function ProductName({productName}) {
-
+function ProductName({ productName }) {
   return (
-    <div className="product-name limit-text-to-2-lines h-12 mb-[5px]
+    <div
+      className=" h-12 mb-[5px]
       [display: -webkit-box] overflow-hidden  [-webkit-line-clamp: 2]
-      [-webkit-box-orient: vertical]">
-        {productName}
+      [-webkit-box-orient: vertical]"
+    >
+      {productName}
     </div>
-  )
+  );
 }
 
-export default ProductName
+export default ProductName;

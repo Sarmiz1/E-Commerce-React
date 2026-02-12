@@ -1,30 +1,30 @@
-export const useLocalStorage = (storageName = 'data',data) => {
+export const useLocalStorage = (storageName = 'data', data) => {
 
   let storedData = []
 
   if (data.length > 0) {
     storedData = JSON.parse(localStorage.getItem(storageName)) || []
 
-    
-  localStorage.setItem(storageName, JSON.stringify(data))
+
+    localStorage.setItem(storageName, JSON.stringify(data))
 
   }
 
   return storedData
 
-} 
+}
 
 
 
-export const useLocalStorageObject = (storageName ='data',data) => {
+export const useLocalStorageObject = (storageName = 'data', data) => {
 
   let storedData = null
 
   if (data !== undefined) {
     storedData = JSON.parse(localStorage.getItem(storageName)) || []
 
-    
-  localStorage.setItem(storageName, JSON.stringify(data))
+
+    localStorage.setItem(storageName, JSON.stringify(data))
 
   }
 

@@ -7,53 +7,49 @@ import cartContext from "../../../Context/cartContext";
 import { useNavigate } from "react-router-dom";
 
 function PaymentSumary({ deliveryOptions }) {
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { paymentSumary } = useContext(checkOutContext);
   const { loadCart } = useContext(cartContext);
-
 
   const placeOrderClick = () => {
     const placeOrderApiUrl = "/api/orders";
 
     usePostData(placeOrderApiUrl);
 
-    loadCart()
+    loadCart();
 
-    navigate('/orders')
+    navigate("/orders");
   };
 
   return (
     <>
       {deliveryOptions.length > 0 && (
         <div
-          className="payment-summary lg:w-[400px] border border-solid 
+          className=" lg:w-[400px] border border-solid 
           border-borderColor rounded px-5 pt-5 pb-2
           lg:grid-rows-1 lg:mt-3  order-1 lg:order-2 text-[15px]"
         >
-          <div className="payment-summary-title font-bold text-lg mb-1">
-            Payment Summary
-          </div>
+          <div className=" font-bold text-lg mb-1">Payment Summary</div>
 
-          <div className="payment-summary-row  flex mb-2">
+          <div className="flex mb-2">
             <div>Items ({paymentSumary.totalItems}):</div>
-            <div className="payment-summary-money ml-auto">
+            <div className=" ml-auto">
               {formatMoneyCents(paymentSumary.productCostCents)}
             </div>
           </div>
 
-          <div className="payment-summary-row flex">
+          <div className=" flex">
             <div>Shipping &amp; handling:</div>
-            <div className="payment-summary-money ml-auto">
+            <div className=" ml-auto">
               {formatMoneyCents(paymentSumary.shippingCostCents)}
             </div>
           </div>
 
-          <div className="payment-summary-row subtotal-row  flex mb-2">
+          <div className="flex mb-2">
             <div className="pt-2">Total before tax:</div>
             <div
-              className="payment-summary-money ml-auto border border-solid 
+              className=" ml-auto border border-solid 
             border-borderColor border-t-0 border-l-0 border-r-0 pt-2"
             >
               {formatMoneyCents(paymentSumary.totalCostBeforeTaxCents)}
@@ -61,21 +57,21 @@ function PaymentSumary({ deliveryOptions }) {
           </div>
 
           <div
-            className="payment-summary-row flex border border-t-0 border-l-0 
+            className=" flex border border-t-0 border-l-0 
           border-r-0 border-borderColor"
           >
             <div>Estimated tax (10%):</div>
-            <div className="payment-summary-money ml-auto">
+            <div className=" ml-auto">
               {formatMoneyCents(paymentSumary.taxCents)}
             </div>
           </div>
 
           <div
-            className="payment-summary-row total-row text-greenPry font-bold text-lg
+            className=" text-greenPry font-bold text-lg
           pt-4 flex"
           >
             <div>Order total:</div>
-            <div className="payment-summary-money ml-auto">
+            <div className=" ml-auto">
               {formatMoneyCents(paymentSumary.totalCostCents)}
             </div>
           </div>

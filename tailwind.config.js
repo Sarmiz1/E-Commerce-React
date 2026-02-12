@@ -11,9 +11,9 @@ export default {
         roboto: ["Roboto", "sans-serif"],
       },
       colors: {
+        greenPry: 'rgb(25, 135, 84)',
         darkGreen: 'rgb(8, 79, 45)',
         limeGreen: 'rgb(186, 255, 190)',
-        greenPry: 'rgb(25, 135, 84)',
         greenPryTrans: 'rgba(25, 135, 84, 0.5)',
         borderColor: 'rgb(222, 222, 222)',
         hover: 'rgba(25, 135, 84, 0.75)',

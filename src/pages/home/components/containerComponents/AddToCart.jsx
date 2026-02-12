@@ -2,42 +2,44 @@ import ButtonPrimary from "../../../../components/ButtonPrimary";
 import { useState, useContext } from "react";
 import { usePostData } from "../../../../Hooks/usePost";
 import dataContext from "../../../../Context/cartContext";
-
+import { useEffect } from "react";
 
 function AddToCart({ productId }) {
+  const [quantity, setQuantity] = useState(1);
+  const [addSuccesfully, setAddedSuccesfully] = useState(false);
 
-  const [ quantity, setQuantity ] = useState(1)
-
-  const { loadCart } = useContext(dataContext)
+  const { loadCart } = useContext(dataContext);
 
   const handleOnchange = (e) => {
-    setQuantity(Number(e.target.value))
-  }
-
-  
-
+    setQuantity(Number(e.target.value));
+  };
 
   const handleOnclick = (productID) => {
-
     const productDetails = {
       productId: productID,
       quantity,
+    };
+
+    const addToCartUrl = `/api/cart-items`;
+
+    usePostData(addToCartUrl, productDetails);
+
+    setAddedSuccesfully(true);
+
+    loadCart();
+  };
+
+  useEffect(() => {
+    if (addSuccesfully) {
+      setTimeout(() => {
+        setAddedSuccesfully(false);
+      }, 3000);
     }
-    
-    const addToCartUrl = `/api/cart-items`
-    
-
-    usePostData(addToCartUrl, productDetails)
-    
-    loadCart()
-  } 
-
-
-  
+  }, [addSuccesfully]);
 
   return (
     <>
-      <div className="product-quantity-container mb-4">
+      <div className=" mb-4">
         <select
           className="text-[rgb(33, 33, 33)] bg-white border border-solid
         border-[rgb(200, 200, 200)] rounded-md py-[3px] px-[5px] text-base
@@ -58,7 +60,10 @@ function AddToCart({ productId }) {
           <option value="10">10</option>
         </select>
       </div>
-      <div className="added-to-cart text-greenPry text-base flex items-center mb-2 opacity-0">
+      <div
+        className={` text-greenPry text-base flex items-center mb-2 
+        ${addSuccesfully ? "opacity-100" : "opacity-0"}`}
+      >
         <img className="h-5 mr-[6px]" src="images/icons/checkmark.png" />
         Added
       </div>

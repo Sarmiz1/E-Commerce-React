@@ -1,7 +1,7 @@
 import { createContext } from "react";
 
 const checkOutContext = createContext({
-  deliveryOptions:[],
+  deliveryOptions: [],
   deliveryFetchError: null,
   loadPaymentSumary: null,
   paymentSumary: null

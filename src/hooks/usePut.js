@@ -1,7 +1,7 @@
 import axios from "axios"
 
 
-export const usePutData = (url, data)=> {
+export const usePutData = (url, data) => {
 
   const postData = async () => {
     try {
@@ -10,12 +10,12 @@ export const usePutData = (url, data)=> {
     } catch (error) {
 
       console.log(error);
-      
+
     }
   }
 
   postData(url, data)
 
-} 
+}
 
 

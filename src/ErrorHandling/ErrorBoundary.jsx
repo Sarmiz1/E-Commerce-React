@@ -2,32 +2,33 @@ import { Component } from "react";
 
 class ErrorBoundary extends Component {
   constructor(props) {
-
-    super(props)
+    super(props);
 
     this.state = {
-      hasError: false
-    }
+      hasError: false,
+    };
   }
 
-  static getDerivedStateFromError (error) {
-
+  static getDerivedStateFromError(error) {
     return {
-      hasError: true
-    }
+      hasError: true,
+    };
   }
 
   render() {
-    if(this.state.hasError) {
-      return (<h1 className="flex justify-center items-center    
-        h-screen">
-        Something went wrong
+    if (this.state.hasError) {
+      return (
+        <h1
+          className="flex justify-center items-center    
+        h-screen"
+        >
+          Something went wrong
         </h1>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
-export default ErrorBoundary
+export default ErrorBoundary;
