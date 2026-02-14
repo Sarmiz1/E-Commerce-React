@@ -4,7 +4,10 @@ function ProductImageContainer({ productImage }) {
       className=" flex items-center justify-center
       h-44 mb-5"
     >
-      <img className=" w-full h-full rounded-md" src={productImage} />
+      <img className=" w-full h-full rounded-md" 
+      src={productImage} 
+      data-testid = 'product-image'
+      />
     </div>
   );
 }
