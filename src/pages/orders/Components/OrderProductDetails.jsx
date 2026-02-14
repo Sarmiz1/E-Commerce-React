@@ -1,4 +1,4 @@
-import ButtonPrimary from "../../../components/ButtonPrimary";
+import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
 import { usePostData } from "../../../Hooks/usePost";
@@ -49,13 +49,13 @@ function OrderProductDetails({ orderedProduct }) {
           </div>
 
           <ButtonPrimary
-            children={
-              <img className="w-5 mr-3" src="images/icons/buy-again.png" />
-            }
-            text={<span onClick={() => handleAddToCart(id)}>Add to Cart</span>}
-            className={`text-base w-36 h-9 rounded-md flex items-center justify-center hover:opacity-80
-              mb-3`}
-          />
+            size="xxl"
+            variant='secondary'
+            onClick={() => handleAddToCart(id)}
+          >
+            <img className="w-5 mr-3" src="images/icons/buy-again.png" />
+            <span>Add to Cart</span>
+          </ButtonPrimary>
         </div>
       </div>
 
@@ -64,14 +64,9 @@ function OrderProductDetails({ orderedProduct }) {
       sm:-ml-3 md:block"
       >
         <Link to="/tracking">
-          <ButtonPrimary
-            text={"Track package"}
-            className={`bg-white text-black w-36 text-base p-[8px] border 
-              border-solid rounded-md mb-2 md:w-[180px] hover:bg-slate-50
-              hover:outline-[0.5px]
-              shadow-sm
-              `}
-          />
+          <ButtonPrimary variant="purity" size="custom">
+            Track package
+          </ButtonPrimary>
         </Link>
       </div>
     </section>

@@ -2,16 +2,20 @@ import { forwardRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const SearchBar = forwardRef((props, ref) => {
-  const [inptValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState("");
 
   const navigateToHomePage = useNavigate();
 
   const handleSearchBar = (e) => {
+    if (e.key === "Enter") {
+      handleSubmitSearch();
+    }
+
     setInputValue(e.target.value);
   };
 
   const handleSubmitSearch = () => {
-    navigateToHomePage("/?search=${search}");
+    inputValue && navigateToHomePage(`/?search=${inputValue}`);
   };
 
   return (
@@ -20,11 +24,12 @@ const SearchBar = forwardRef((props, ref) => {
       flex w-[850px]"
     >
       <input
+        onKeyDown={handleSearchBar}
         onChange={handleSearchBar}
-        value={inptValue}
+        value={inputValue}
         ref={ref}
         className="flex text-base pl-
-        [15px] px-4 rounded-s-md w-full
+        [15px] px-4 rounded-s-md w-full text-black
         border-none font-roboto outline-none dark:bg-slate-100 dark:text-black"
         type="text"
         placeholder="Search"

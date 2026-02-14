@@ -1,4 +1,4 @@
-import ButtonPrimary from "../../../../components/ButtonPrimary";
+import {ButtonPrimary} from "../../../../components/ButtonPrimary";
 import { useState, useContext } from "react";
 import { usePostData } from "../../../../Hooks/usePost";
 import dataContext from "../../../../Context/cartContext";
@@ -69,13 +69,12 @@ function AddToCart({ productId }) {
       </div>
 
       <ButtonPrimary
-        text={"Add to Cart"}
-        className={`text-base w-full mt-[1px]  border border-solid rounded-md 
-      [box-shadow: 0 2px 5px rgba(220, 220, 220, 0.5)] 
-      hover:bg-greenPy/75 hover:border hover:border-solid
-      hover:border-transparent`}
-        handleOnclick={() => handleOnclick(productId)}
-      />
+        variant='ok'
+        size='xl'
+        onClick={() => handleOnclick(productId)}
+      >
+        Add to Cart
+      </ButtonPrimary>
     </>
   );
 }

@@ -13,8 +13,11 @@ function CheckOutPage() {
 
   const deliveryApiUrl = "/api/delivery-options?expand=estimatedDeliveryTime";
 
-  const { fetchedData: deliveryOptions, error: deliveryFetchError } =
-    useFetchData(deliveryApiUrl);
+  const {
+    fetchedData: deliveryOptions,
+    error: deliveryFetchError,
+    isLoading,
+  } = useFetchData(deliveryApiUrl);
 
   const [paymentSumary, setPaymentSumary] = useState(null);
 
@@ -28,6 +31,18 @@ function CheckOutPage() {
   useEffect(() => {
     loadPaymentSumary();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800 h-screen flex justify-center items-center overflow-hidden">
+        <img
+          src="/public/images/loading/loading-shopping-cart.png"
+          alt="shopping-cart.png"
+          className="animate-slide-x size-36"
+        />
+      </div>
+    );
+  }
 
   return (
     <>

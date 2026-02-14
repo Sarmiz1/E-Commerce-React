@@ -1,11 +1,23 @@
-import OrdersHeader from "./OrdersHeader";
+import OrdersHeader from "./Components/OrdersHeader";
 import OrderProductDetails from "./Components/OrderProductDetails";
 import { useFetchData } from "../../Hooks/useFetch";
 
 function OrdersPage() {
   const ordersApiUrl = "/api/orders?expand=products";
 
-  const { fetchedData: orders } = useFetchData(ordersApiUrl);
+  const { fetchedData: orders, isLoading } = useFetchData(ordersApiUrl);
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800 h-screen flex justify-center items-center overflow-hidden">
+        <img
+          src="/public/images/loading/loading-shopping-cart.png"
+          alt="shopping-cart.png"
+          className="animate-slide-x size-36"
+        />
+      </div>
+    );
+  }
 
   return (
     <>

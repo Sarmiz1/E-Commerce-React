@@ -1,4 +1,4 @@
-import ButtonPrimary from "../../../components/ButtonPrimary";
+import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useContext } from "react";
 import checkOutContext from "../../../Context/checkOutContext";
@@ -77,10 +77,13 @@ function PaymentSumary({ deliveryOptions }) {
           </div>
 
           <ButtonPrimary
-            handleOnclick={placeOrderClick}
-            text={"Place your order"}
-            className={"w-full py-3 rounded-md my-5  hover:outline-lime-400"}
-          />
+            onClick={placeOrderClick}
+            size="full"
+            variant="primary"
+            className=" my-5 hover:bg-darkGreen shadow-md hover:opacity-90"
+          >
+            Place your order
+          </ButtonPrimary>
         </div>
       )}
     </>

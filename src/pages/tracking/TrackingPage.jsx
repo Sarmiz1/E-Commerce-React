@@ -8,7 +8,19 @@ import { Fragment } from "react";
 function TrackingPage() {
   const ordersApiUrl = "/api/orders?expand=products";
 
-  const { fetchedData: orders } = useFetchData(ordersApiUrl);
+  const { fetchedData: orders, isLoading } = useFetchData(ordersApiUrl);
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800 h-screen flex justify-center items-center">
+        <img
+          src="/public/images/loading/loading_circles_blue_gradient.png"
+          alt="/loading_circles_blue_gradient"
+          className="animate-spin [animation-duration:2.5s] size-8"
+        />
+      </div>
+    );
+  }
 
   return (
     <main

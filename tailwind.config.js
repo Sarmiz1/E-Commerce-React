@@ -48,6 +48,15 @@ export default {
           'letter-spacing': '1.1px'
         },
       },
+      keyframes: {
+        slideX: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(100vw)' }, // slide across screen
+        },
+      },
+      animation: {
+        'slide-x': 'slideX 4s linear infinite',
+      },
     },
   },
   plugins: [],
