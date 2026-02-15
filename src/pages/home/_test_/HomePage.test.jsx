@@ -1,4 +1,4 @@
-import { it, expect, describe, vi } from "vitest";
+import { it, expect, describe, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProductName from "../Components/ContainerComponents/ProductName";
@@ -15,7 +15,7 @@ vi.mock("../../../api/postData", () => ({
 }));
 
 describe('HomePage Component', () => {
-  const product = {
+  let product = {
     keywords:["socks","sports","apparel"],
     id:"e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
     image:"images/products/athletic-cotton-socks-6-pairs.jpg",
@@ -28,6 +28,26 @@ describe('HomePage Component', () => {
     createdAt:"2026-02-09T08:54:47.802Z",
     updatedAt:"2026-02-09T08:54:47.802Z"
   }
+
+  let mockLoadCart = vi.fn()
+
+  beforeEach(() => {
+    product = {
+    keywords:["socks","sports","apparel"],
+    id:"e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
+    image:"images/products/athletic-cotton-socks-6-pairs.jpg",
+    name:"Black and Gray Athletic Cotton Socks - 6 Pairs",
+    rating:{
+      stars:4.5,
+      count:87
+    },
+    priceCents:1090,
+    createdAt:"2026-02-09T08:54:47.802Z",
+    updatedAt:"2026-02-09T08:54:47.802Z"
+  }
+
+  mockLoadCart = vi.fn()
+  })
 
   it('Displays the product name Correctly', () => {
 
@@ -69,7 +89,6 @@ describe('HomePage Component', () => {
 
   it('Add a product to the Cart', async () => {
 
-  const mockLoadCart = vi.fn()
 
   render(
     <cartContext.Provider value={{ loadCart: mockLoadCart }}>
