@@ -1,7 +1,7 @@
 import axios from "axios"
 
 
-export const usePutData = (url, data) => {
+export const putData = (url, data) => {
 
   const postData = async () => {
     try {

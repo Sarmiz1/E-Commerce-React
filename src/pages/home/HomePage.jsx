@@ -1,7 +1,9 @@
 import ProductContainer from "./Components/ProuductContainer";
 import { useFetchData } from "../../Hooks/useFetch";
-import { useSessionStorage } from "../../Hooks/useSessionStorage";
+import { useSessionStorage } from "../../Storage/sessionStorageStore";
 import { useSearchParams } from "react-router-dom";
+import { TiShoppingCart } from "react-icons/ti";
+
 
 function HomePage() {
   const [searchParams] = useSearchParams();
@@ -16,17 +18,11 @@ function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800 h-screen flex justify-center items-center overflow-hidden">
-        <img
-          src="/public/images/loading/loading-shopping-cart.png"
-          alt="shopping-cart.png"
-          className="animate-slide-x size-36"
-        />
+      <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
+        <TiShoppingCart className="animate-slide-x"/>
       </div>
     );
   }
-
-  console.log(search);
   
 
   if(products.length === 0) {

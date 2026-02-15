@@ -1,14 +1,14 @@
 import {ButtonPrimary} from "../../../../components/ButtonPrimary";
 import { useState, useContext } from "react";
-import { usePostData } from "../../../../Hooks/usePost";
-import dataContext from "../../../../Context/cartContext";
+import { postData } from "../../../../api/postData";
+import cartContext from "../../../../Context/cartContext";
 import { useEffect } from "react";
 
 function AddToCart({ productId }) {
   const [quantity, setQuantity] = useState(1);
   const [addSuccesfully, setAddedSuccesfully] = useState(false);
 
-  const { loadCart } = useContext(dataContext);
+  const { loadCart } = useContext(cartContext);
 
   const handleOnchange = (e) => {
     setQuantity(Number(e.target.value));
@@ -22,7 +22,7 @@ function AddToCart({ productId }) {
 
     const addToCartUrl = `/api/cart-items`;
 
-    usePostData(addToCartUrl, productDetails);
+    postData(addToCartUrl, productDetails);
 
     setAddedSuccesfully(true);
 
@@ -69,6 +69,7 @@ function AddToCart({ productId }) {
       </div>
 
       <ButtonPrimary
+        data-testid = 'add-to-cart-btn'
         variant='ok'
         size='xl'
         onClick={() => handleOnclick(productId)}

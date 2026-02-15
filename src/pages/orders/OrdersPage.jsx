@@ -1,6 +1,7 @@
 import OrdersHeader from "./Components/OrdersHeader";
 import OrderProductDetails from "./Components/OrderProductDetails";
 import { useFetchData } from "../../Hooks/useFetch";
+import { TiShoppingCart } from "react-icons/ti";
 
 function OrdersPage() {
   const ordersApiUrl = "/api/orders?expand=products";
@@ -9,12 +10,8 @@ function OrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800 h-screen flex justify-center items-center overflow-hidden">
-        <img
-          src="/public/images/loading/loading-shopping-cart.png"
-          alt="shopping-cart.png"
-          className="animate-slide-x size-36"
-        />
+      <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
+        <TiShoppingCart className="animate-slide-x"/>
       </div>
     );
   }

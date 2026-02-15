@@ -55,7 +55,7 @@ export default {
         },
       },
       animation: {
-        'slide-x': 'slideX 4s linear infinite',
+        'slide-x': 'slideX 8s linear infinite',
       },
     },
   },

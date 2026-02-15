@@ -1,7 +1,7 @@
 import axios from "axios"
 
 
-export const usePostData = (url, data = '') => {
+export const postData = (url, data = '') => {
 
   const postData = async () => {
     try {

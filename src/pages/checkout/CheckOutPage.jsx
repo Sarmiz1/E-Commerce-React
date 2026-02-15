@@ -7,6 +7,7 @@ import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import checkOutContext from "../../Context/checkOutContext";
 import { useFetchData } from "../../Hooks/useFetch";
 import axios from "axios";
+import { TiShoppingCart } from "react-icons/ti";
 
 function CheckOutPage() {
   const { cart } = useContext(dataContext);
@@ -34,12 +35,8 @@ function CheckOutPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800 h-screen flex justify-center items-center overflow-hidden">
-        <img
-          src="/public/images/loading/loading-shopping-cart.png"
-          alt="shopping-cart.png"
-          className="animate-slide-x size-36"
-        />
+      <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
+        <TiShoppingCart className="animate-slide-x"/>
       </div>
     );
   }

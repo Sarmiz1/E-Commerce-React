@@ -1,9 +1,9 @@
 import { useContext, useState, useRef } from "react";
 import checkOutContext from "../../../Context/checkOutContext";
 import { formatDate } from "../../../Utils/formatDate";
-import { useDelete } from "../../../Hooks/useDelete";
+import { useDelete } from "../../../api/deleteData";
 import dataContext from "../../../Context/cartContext";
-import { usePutData } from "../../../Hooks/usePut";
+import { usePutData } from "../../../api/putData";
 
 function CartItemDetails({ cartProduct, children }) {
   const { deliveryOptions, loadPaymentSumary } = useContext(checkOutContext);

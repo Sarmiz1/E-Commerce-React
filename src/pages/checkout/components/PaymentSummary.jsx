@@ -2,7 +2,7 @@ import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useContext } from "react";
 import checkOutContext from "../../../Context/checkOutContext";
-import { usePostData } from "../../../Hooks/usePost";
+import { usePostData } from "../../../api/postData";
 import cartContext from "../../../Context/cartContext";
 import { useNavigate } from "react-router-dom";
 

@@ -4,6 +4,8 @@ import ViewAllOrders from "./Components/ViewAllOrders";
 import ProgressBar from "./Components/ProgressBar";
 import { useFetchData } from "../../Hooks/useFetch";
 import { Fragment } from "react";
+import { GiSpinningRibbons } from "react-icons/gi";
+
 
 function TrackingPage() {
   const ordersApiUrl = "/api/orders?expand=products";
@@ -12,12 +14,8 @@ function TrackingPage() {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-800 h-screen flex justify-center items-center">
-        <img
-          src="/public/images/loading/loading_circles_blue_gradient.png"
-          alt="/loading_circles_blue_gradient"
-          className="animate-spin [animation-duration:2.5s] size-8"
-        />
+      <div className="bg-slate-300 h-screen flex justify-center items-center">
+        <GiSpinningRibbons className="animate-spin [animation-duration:2.5s] size-8"/>
       </div>
     );
   }

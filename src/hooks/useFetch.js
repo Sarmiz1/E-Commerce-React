@@ -38,9 +38,9 @@ export const useFetchData = (url) => {
           setFetchedData([])
         }
       } finally {
-        isMounted && setTimeout(() =>
-          setIsLoading(false), 2000)
+        if (isMounted) setIsLoading(false)
       }
+
     }
 
     fetchData(url)

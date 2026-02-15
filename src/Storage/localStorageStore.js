@@ -1,4 +1,4 @@
-export const useLocalStorage = (storageName = 'data', data) => {
+export const localStorageStore = (storageName = 'data', data) => {
 
   let storedData = []
 
@@ -16,7 +16,7 @@ export const useLocalStorage = (storageName = 'data', data) => {
 
 
 
-export const useLocalStorageObject = (storageName = 'data', data) => {
+export const localStorageStoreObject = (storageName = 'data', data) => {
 
   let storedData = null
 

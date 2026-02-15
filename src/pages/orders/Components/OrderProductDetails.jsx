@@ -1,7 +1,7 @@
 import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
-import { usePostData } from "../../../Hooks/usePost";
+import { usePostData } from "../../../api/postData";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import cartContext from "../../../Context/cartContext";

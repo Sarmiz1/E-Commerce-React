@@ -1,4 +1,4 @@
-export const useSessionStorage = (storageName = 'data', data) => {
+export const sessionStorageStore = (storageName = 'data', data) => {
 
   let storedData = []
 

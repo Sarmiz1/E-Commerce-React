@@ -1,10 +1,18 @@
 import { it, expect, describe, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import ProductName from "../Components/ContainerComponents/ProductName";
 import ProductPrice from "../Components/ContainerComponents/ProductPrice";
 import ProductRating from "../Components/ContainerComponents/ProductRating";
 import ProductImageContainer from "../Components/ContainerComponents/ProductImageContainer";
+import AddToCart from "../Components/ContainerComponents/AddToCart";
+import { postData } from "../../../api/postData";
+import cartContext from "../../../Context/cartContext"; 
 
+
+vi.mock("../../../api/postData", () => ({
+  postData: vi.fn()
+}));
 
 describe('HomePage Component', () => {
   const product = {
@@ -58,5 +66,30 @@ describe('HomePage Component', () => {
       screen.getByTestId('product-image')
     ).toHaveAttribute('src', 'images/products/athletic-cotton-socks-6-pairs.jpg')
   })
+
+  it('Add a product to the Cart', async () => {
+
+  const mockLoadCart = vi.fn()
+
+  render(
+    <cartContext.Provider value={{ loadCart: mockLoadCart }}>
+      <AddToCart productId={product.id} />
+    </cartContext.Provider>
+  )
+
+  const user = userEvent.setup()
+  await user.click(screen.getByTestId('add-to-cart-btn'))
+
+  expect(postData).toHaveBeenCalledWith(
+    '/api/cart-items',
+    {
+      productId: product.id,
+      quantity: 1
+    }
+  )
+
+  expect(mockLoadCart).toHaveBeenCalled()
+})
+
 
 })

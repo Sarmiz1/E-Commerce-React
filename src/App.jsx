@@ -9,6 +9,7 @@ import dataContext from './Context/cartContext'
 import { useEffect, useState } from 'react' 
 import axios from 'axios'
 import ErrorBoundary from './ErrorHandling/ErrorBoundary'
+import { IconContext } from 'react-icons'
 
 function App() {
 
@@ -42,6 +43,7 @@ function App() {
         cart,
         loadCart,
       }}>
+        <IconContext value={{ size: "80px", color: "green" }}>
         <NavBar />
         <Routes>
           <Route path="/checkout" element =
@@ -69,6 +71,7 @@ function App() {
             </ErrorBoundary>
           } />
         </Routes>
+        </IconContext>
       </dataContext.Provider>
       
     </>
