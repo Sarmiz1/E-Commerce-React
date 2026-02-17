@@ -1,7 +1,7 @@
 import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
-import { usePostData } from "../../../api/postData";
+import { postData } from "../../../api/postData";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import cartContext from "../../../Context/cartContext";
@@ -24,7 +24,7 @@ function OrderProductDetails({ orderedProduct }) {
 
     const addToCartUrl = `/api/cart-items`;
 
-    usePostData(addToCartUrl, productDetails);
+    postData(addToCartUrl, productDetails);
 
     loadCart();
 
@@ -50,7 +50,7 @@ function OrderProductDetails({ orderedProduct }) {
 
           <ButtonPrimary
             size="xxl"
-            variant='secondary'
+            variant="secondary"
             onClick={() => handleAddToCart(id)}
           >
             <img className="w-5 mr-3" src="images/icons/buy-again.png" />

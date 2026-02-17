@@ -1,9 +1,9 @@
 import { useContext, useState, useRef } from "react";
 import checkOutContext from "../../../Context/checkOutContext";
 import { formatDate } from "../../../Utils/formatDate";
-import { useDelete } from "../../../api/deleteData";
 import dataContext from "../../../Context/cartContext";
-import { usePutData } from "../../../api/putData";
+import { putData } from "../../../api/putData";
+import { deleteData } from "../../../api/deleteData"
 
 function CartItemDetails({ cartProduct, children }) {
   const { deliveryOptions, loadPaymentSumary } = useContext(checkOutContext);
@@ -18,7 +18,7 @@ function CartItemDetails({ cartProduct, children }) {
   const handleDelete = () => {
     const deleteCartItemUrl = `/api/cart-items/${cartProduct.id}`;
 
-    useDelete(deleteCartItemUrl);
+    deleteData(deleteCartItemUrl);
 
     loadCart();
 
@@ -55,7 +55,7 @@ function CartItemDetails({ cartProduct, children }) {
         return;
       }
 
-      usePutData(cartUpdateUrl, updatedQuantity);
+      putData(cartUpdateUrl, updatedQuantity);
       loadCart();
       loadPaymentSumary();
       setUpdate(false);

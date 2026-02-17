@@ -1,6 +1,6 @@
 import ProductContainer from "./Components/ProuductContainer";
 import { useFetchData } from "../../Hooks/useFetch";
-import { useSessionStorage } from "../../Storage/sessionStorageStore";
+import { sessionStorageStore } from "../../Storage/sessionStorageStore"; 
 import { useSearchParams } from "react-router-dom";
 import { TiShoppingCart } from "react-icons/ti";
 
@@ -14,7 +14,7 @@ function HomePage() {
 
   const { fetchedData: fetchedProduct, isLoading } = useFetchData(url);
 
-  const products = useSessionStorage("products", fetchedProduct);
+  const products = sessionStorageStore("products", fetchedProduct);
 
   if (isLoading) {
     return (

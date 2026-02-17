@@ -1,5 +1,6 @@
 import { it, expect, describe, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import ProductName from "../Components/ContainerComponents/ProductName";
 import ProductPrice from "../Components/ContainerComponents/ProductPrice";
@@ -8,13 +9,26 @@ import ProductImageContainer from "../Components/ContainerComponents/ProductImag
 import AddToCart from "../Components/ContainerComponents/AddToCart";
 import { postData } from "../../../api/postData";
 import cartContext from "../../../Context/cartContext"; 
+import HomePage from "../HomePage";
+import { useFetchData } from "../../../Hooks/useFetch";
+import { sessionStorageStore } from "../../../Storage/sessionStorageStore";
 
+// initialEntries={["/?search=socks"]}
 
 vi.mock("../../../api/postData", () => ({
   postData: vi.fn()
 }));
 
-describe('HomePage Component', () => {
+vi.mock( "../../../Hooks/useFetch", () => ({
+  useFetchData: vi.fn()
+}))
+
+vi.mock("../../../Storage/sessionStorageStore", () => ({
+  sessionStorageStore: vi.fn()
+}));
+
+
+describe('HomePage Components', () => {
   let product = {
     keywords:["socks","sports","apparel"],
     id:"e43638ce-6aa0-4b85-b27f-e1d07eb678c6",
@@ -47,7 +61,18 @@ describe('HomePage Component', () => {
   }
 
   mockLoadCart = vi.fn()
+
+
+    useFetchData.mockReturnValue({
+      data: [product],
+      loading: false,
+      error: null
+    });
+
+    sessionStorageStore.mockReturnValue([product]);
+
   })
+
 
   it('Displays the product name Correctly', () => {
 
@@ -108,7 +133,19 @@ describe('HomePage Component', () => {
   )
 
   expect(mockLoadCart).toHaveBeenCalled()
-})
+  })
+
+
+  it('Fetched Product from API Correctly', () => {
+
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>
+    )
+
+    expect(useFetchData).toHaveBeenCalled()
+  })
 
 
 })

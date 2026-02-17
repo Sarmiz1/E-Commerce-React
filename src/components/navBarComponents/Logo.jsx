@@ -1,4 +1,6 @@
 import { NavLink } from "react-router-dom";
+import largeScreenLogo from '../../assets/logos/logo2.png'
+import mobileLogo from '../../assets/logos/logo.png'
 
 function Logo() {
   return (
@@ -10,13 +12,17 @@ function Logo() {
         hover:outline hover:outline-1
         hover:outline-white"
       >
+        <div className="relative right-2 mt-1 hidden sm:flex">
+          <img
+          className=" size-20 invert block"
+          src={largeScreenLogo}
+          />
+          <p className="text-white absolute left-full right-0 top-[41%]
+          font-semibold ">Mart</p>
+        </div>
         <img
-          className="h-[26px] mt-1 hidden sm:block"
-          src="images/logo-white.png"
-        />
-        <img
-          className=" block sm:hidden h-[26px] mt-1"
-          src="images/mobile-logo-white.png"
+          className=" block sm:hidden size-14 mt-1"
+          src={mobileLogo}
         />
       </NavLink>
     </div>

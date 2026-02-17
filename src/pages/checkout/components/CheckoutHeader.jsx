@@ -1,6 +1,8 @@
 import { NavLink } from "react-router-dom";
 import { useContext } from "react";
 import dataContext from "../../../Context/cartContext";
+import largeScreenLogo from '../../../assets/logos/logo2.png'
+import mobileLogo from '../../../assets/logos/logo.png'
 
 function CheckoutHeader() {
   const { cart } = useContext(dataContext);
@@ -19,13 +21,18 @@ function CheckoutHeader() {
       <div className=" w-full max-w-[1100px] flex items-center">
         <div className=" w-[100px] sm:w-auto  ml-2 lg:ml-4 mr-4">
           <NavLink to="/">
+            <div className="relative right-2 mt-1 hidden sm:flex">
+              <img
+              className=" size-20 invert block"
+              src={largeScreenLogo}
+              />
+              <p className="text-blue-700 absolute left-full right-0 top-[40%]
+              font-semibold ">Mart</p>
+            </div>
+
             <img
-              className=" h-[26px] mt-0 hidden sm:inline-block"
-              src="images/logo.png"
-            />
-            <img
-              className=" inline-block sm:hidden h-[26px]"
-              src="images/mobile-logo.png"
+              className=" inline-block sm:hidden size-14"
+              src={mobileLogo}
             />
           </NavLink>
         </div>

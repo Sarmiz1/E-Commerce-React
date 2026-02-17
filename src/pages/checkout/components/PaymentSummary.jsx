@@ -2,7 +2,7 @@ import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useContext } from "react";
 import checkOutContext from "../../../Context/checkOutContext";
-import { usePostData } from "../../../api/postData";
+import { postData } from "../../../api/postData";
 import cartContext from "../../../Context/cartContext";
 import { useNavigate } from "react-router-dom";
 
@@ -15,7 +15,7 @@ function PaymentSumary({ deliveryOptions }) {
   const placeOrderClick = () => {
     const placeOrderApiUrl = "/api/orders";
 
-    usePostData(placeOrderApiUrl);
+    postData(placeOrderApiUrl);
 
     loadCart();
 

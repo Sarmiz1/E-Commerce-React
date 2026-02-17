@@ -12,7 +12,7 @@ function NavBar() {
 
   return (
     <div
-      className="bg-darkGreen text-white px-[15px] flex items-center  dark:text-slate-300
+      className="bg-slate-400 text-white px-[15px] flex items-center  dark:text-slate-300
         justify-between fixed top-0 left-0 right-0 h-[60px]"
     >
       <Logo />

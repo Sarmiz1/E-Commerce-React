@@ -3,7 +3,7 @@ import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useContext } from "react";
 import cartContext from "../../../Context/checkOutContext";
 import dataContext from "../../../Context/cartContext";
-import { usePutData } from "../../../api/putData";
+import { putData } from '../../../api/putData' 
 
 function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
   const { deliveryOptions, loadPaymentSumary } = useContext(cartContext);
@@ -16,7 +16,7 @@ function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
       deliveryOptionId: deliveryOptionID,
     };
 
-    usePutData(cartUpdateUrl, deliveryDetails);
+    putData(cartUpdateUrl, deliveryDetails);
 
     loadCart();
     loadPaymentSumary();
