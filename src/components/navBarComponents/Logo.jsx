@@ -12,7 +12,7 @@ function Logo() {
         hover:outline hover:outline-1
         hover:outline-white"
       >
-        <div className="relative right-2 mt-1 hidden sm:flex">
+        <div className="relative right-2 mt-1 hidden lg:flex">
           <img
           className=" size-20 invert block"
           src={largeScreenLogo}
@@ -21,7 +21,7 @@ function Logo() {
           font-semibold ">Mart</p>
         </div>
         <img
-          className=" block sm:hidden size-14 mt-1"
+          className=" block lg:hidden size-14 mt-1"
           src={mobileLogo}
         />
       </NavLink>
