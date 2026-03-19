@@ -1,28 +1,30 @@
 import { NavLink } from "react-router-dom";
-import largeScreenLogo from '../../assets/logos/logo2.png'
-import mobileLogo from '../../assets/logos/logo.png'
+import largeScreenLogo from '../../assets/logos/logo2.png';
+import mobileLogo from '../../assets/logos/logo.png';
 
 function Logo() {
   return (
-    <div className="w-auto">
+    <div className="flex items-center w-auto">
       <NavLink
         to="/"
-        className="inline-block py-[6px] px-[9.5px]
-        cursor-pointer rounded-md no-underline
-        hover:outline hover:outline-1
-        hover:outline-white"
+        className="flex items-center cursor-pointer no-underline rounded-md
+          hover:outline hover:outline-1 hover:outline-white"
       >
-        <div className="relative right-2 mt-1 hidden lg:flex">
+        {/* LARGE SCREEN LOGO */}
+        <div className="hidden lg:flex items-center gap-2">
           <img
-          className=" size-20 invert block"
-          src={largeScreenLogo}
+            src={largeScreenLogo}
+            alt="Logo"
+            className="h-10 w-auto"
           />
-          <p className="text-white absolute left-full right-0 top-[41%]
-          font-semibold ">Mart</p>
+          <span className="text-white font-semibold text-lg">Mart</span>
         </div>
+
+        {/* MOBILE LOGO */}
         <img
-          className=" block lg:hidden size-14 mt-1"
           src={mobileLogo}
+          alt="Logo"
+          className="block lg:hidden h-14 w-14 mr-2 -ml-2"
         />
       </NavLink>
     </div>
