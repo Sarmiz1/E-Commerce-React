@@ -1,8 +1,7 @@
 import { ButtonPrimary } from "../../../components/ButtonPrimary";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
 import { postData } from "../../../api/postData";
-import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import cartContext from "../../../Context/cartContext";
 
@@ -17,57 +16,71 @@ function OrderProductDetails({ orderedProduct }) {
   } = orderedProduct;
 
   const handleAddToCart = (id) => {
-    const productDetails = {
+    postData(`/api/cart-items`, {
       productId: id,
       quantity: 1,
-    };
-
-    const addToCartUrl = `/api/cart-items`;
-
-    postData(addToCartUrl, productDetails);
+    });
 
     loadCart();
-
     navigateToCheckOut("/checkout");
   };
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2">
-      <div className="flex gap-8 md:mr-5 self-start md:justify-normal md:items-start">
-        <div className=" text-center mb-6">
-          <img src={image} className="max-w-28 max-h-28" />
+    <section className="border p-4 rounded-lg">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        
+        {/* LEFT: IMAGE + INFO */}
+        <div className="flex gap-4 flex-1 min-w-0">
+          <img
+            src={image}
+            alt={name}
+            className="w-20 h-20 object-contain flex-shrink-0"
+          />
+
+          <div className="flex flex-col gap-1 min-w-0">
+            <div className="font-semibold break-words">
+              {name}
+            </div>
+
+            <div className="text-sm">
+              <span className="letterSpacingSm">Arriving</span> on:{" "}
+              {formatDate(estimatedDeliveryTimeMs)}
+            </div>
+
+            <div className="text-sm">
+              Quantity: {quantity}
+            </div>
+          </div>
         </div>
 
-        <div className=" mt-0">
-          <div className=" font-bold mb-px md:w-[100ch]">{name}</div>
-          <div className=" mb-px ">
-            <span className="letterSpacingSm">Arriving</span> on:{" "}
-            {formatDate(estimatedDeliveryTimeMs)}
-          </div>
-          <div className="product-quantity mb-px sm:mb-4">
-            Quantity: {quantity}
-          </div>
-
+        {/* RIGHT: ACTIONS */}
+        <div className="flex flex-col sm:flex-row md:flex-col gap-2 w-full md:w-auto">
+          
           <ButtonPrimary
             size="xxl"
             variant="secondary"
             onClick={() => handleAddToCart(id)}
+            className="w-full md:w-48 flex items-center justify-center"
           >
-            <img className="w-5 mr-3" src="images/icons/buy-again.png" />
-            <span>Add to Cart</span>
+            <img
+              src="images/icons/buy-again.png"
+              className="w-5 mr-2"
+              alt="buy again"
+            />
+            Add to Cart
           </ButtonPrimary>
-        </div>
-      </div>
 
-      <div
-        className=" flex justify-center ml-5 md:ml-auto md:mr-0
-      sm:-ml-3 md:block"
-      >
-        <Link to="/tracking">
-          <ButtonPrimary variant="purity" size="custom">
-            Track package
-          </ButtonPrimary>
-        </Link>
+          <Link to="/tracking" className="w-full md:w-48">
+            <ButtonPrimary
+              variant="purity"
+              size="custom"
+              className="w-full flex items-center justify-center"
+            >
+              Track package
+            </ButtonPrimary>
+          </Link>
+
+        </div>
       </div>
     </section>
   );
