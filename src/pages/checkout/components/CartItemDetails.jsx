@@ -78,7 +78,7 @@ function CartItemDetails({ cartProduct, children }) {
           src={cartProduct.image}
         />
 
-        <div className=" -ml-16 sm:-ml-[170px] md:-ml-[100px] mb-2">
+        <div className=" -ml-8 md:-ml-32 mb-2 lg:-ml-10">
           <div className="font-bold mb-1">{cartProduct.name}</div>
           <div className="font-bold mb-1">{cartProduct.price}</div>
           <div>
