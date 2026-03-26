@@ -136,7 +136,7 @@ function CartItemDetails({ cartProduct, children }) {
             </span>
           </div>
           <ErrorMessage errorMessage={errorMessage} />
-          1
+          
         </div>
 
         {children}

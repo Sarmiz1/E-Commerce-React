@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
-const ErrorPage = (props) => {
+const FallbackPage = (props) => {
   const navigate = useNavigate();
 
   const handleGoHome = () => {
@@ -44,4 +44,4 @@ const ErrorPage = (props) => {
   );
 };
 
-export default ErrorPage;
+export default FallbackPage;
