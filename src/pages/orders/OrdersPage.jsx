@@ -2,16 +2,20 @@ import OrdersHeader from "./Components/OrdersHeader";
 import OrderProductDetails from "./Components/OrderProductDetails";
 import { useFetchData } from "../../Hooks/useFetch";
 import { TiShoppingCart } from "react-icons/ti";
+import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 
 function OrdersPage() {
+
   const ordersApiUrl = "/api/orders?expand=products";
 
-  const { fetchedData: orders, isLoading } = useFetchData(ordersApiUrl);
+  const { fetchedData: orders, isLoading, error: fetchError } = useFetchData(ordersApiUrl);
+
+  useShowErrorBoundary(fetchError);
 
   if (isLoading) {
     return (
       <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
-        <TiShoppingCart className="animate-slide-x"/>
+        <TiShoppingCart className="animate-slide-x" />
       </div>
     );
   }

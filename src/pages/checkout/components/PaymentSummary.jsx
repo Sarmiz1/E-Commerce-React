@@ -1,25 +1,37 @@
 import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import checkOutContext from "../../../Context/checkOutContext";
 import { postData } from "../../../api/postData";
 import cartContext from "../../../Context/cartContext";
 import { useNavigate } from "react-router-dom";
+import { ErrorMessage } from "../../../Components/ErrorMessage";
 
 function PaymentSumary({ deliveryOptions }) {
   const navigate = useNavigate();
 
+  const [errorMessage, setErrorMessage] = useState('')
+
   const { paymentSumary } = useContext(checkOutContext);
   const { loadCart } = useContext(cartContext);
 
-  const placeOrderClick = () => {
-    const placeOrderApiUrl = "/api/orders";
+  const placeOrderClick = async () => {
+    try {
+      setErrorMessage(null)
 
-    postData(placeOrderApiUrl);
+      const placeOrderApiUrl = "/api/orders";
 
-    loadCart();
+      await postData(placeOrderApiUrl);
 
-    navigate("/orders");
+      await loadCart();
+
+      navigate("/orders");
+    }
+    catch (error) {
+      setErrorMessage('Cant place an order, try again.')
+    }
+
+
   };
 
   return (
@@ -84,6 +96,7 @@ function PaymentSumary({ deliveryOptions }) {
           >
             Place your order
           </ButtonPrimary>
+          <ErrorMessage  errorMessage={errorMessage}/>
         </div>
       )}
     </>

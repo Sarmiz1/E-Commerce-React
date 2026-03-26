@@ -2,32 +2,37 @@ import ProductContainer from "./Components/ProuductContainer";
 import { useFetchData } from "../../Hooks/useFetch";
 import { useSearchParams } from "react-router-dom";
 import { TiShoppingCart } from "react-icons/ti";
+import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 
 
 function HomePage() {
+
   const [searchParams] = useSearchParams();
 
   const search = searchParams.get("search");
 
   const url = search ? `/api/products?search=${search}` : "/api/products";
 
-  const { fetchedData: products, isLoading } = useFetchData(url);
+  const { fetchedData: products, isLoading, error: fetchError } = useFetchData(url);
+
+
+  useShowErrorBoundary(fetchError);
 
   if (isLoading) {
     return (
       <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
-        <TiShoppingCart className="animate-slide-x"/>
+        <TiShoppingCart className="animate-slide-x" />
       </div>
     );
   }
-  
 
-  if(products.length === 0) {
+
+  if (products.length === 0) {
     return (
-    <h1>no avilable products</h1>
+      <h1>no avilable products</h1>
     )
-  } 
-  
+  }
+
 
   return (
     <>

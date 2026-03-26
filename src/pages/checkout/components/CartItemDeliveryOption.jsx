@@ -1,25 +1,40 @@
 import { formatDate } from "../../../Utils/formatDate";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import cartContext from "../../../Context/checkOutContext";
 import dataContext from "../../../Context/cartContext";
-import { putData } from '../../../api/putData' 
+import { putData } from '../../../api/putData'
+import { ErrorMessage } from "../../../Components/ErrorMessage";
+
 
 function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
   const { deliveryOptions, loadPaymentSumary } = useContext(cartContext);
   const { loadCart } = useContext(dataContext);
 
-  const handleOnClick = (productId, deliveryOptionID) => {
-    const cartUpdateUrl = `/api/cart-items/${productId}`;
+  const [errorMessage, setErrorMessage] = useState('')
 
-    const deliveryDetails = {
-      deliveryOptionId: deliveryOptionID,
-    };
 
-    putData(cartUpdateUrl, deliveryDetails);
+  const handleOnClick = async (productId, deliveryOptionID) => {
+    try {
+      setErrorMessage(null)
 
-    loadCart();
-    loadPaymentSumary();
+      const cartUpdateUrl = `/api/cart-items/${productId}`;
+
+      const deliveryDetails = {
+        deliveryOptionId: deliveryOptionID,
+      };
+
+      await putData(cartUpdateUrl, deliveryDetails);
+
+      await loadCart();
+      await loadPaymentSumary();
+    }
+
+    catch (error) {
+      setErrorMessage('Cant place an order, try again.')
+
+    }
+
   };
 
   return (
@@ -40,7 +55,7 @@ function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
                 className=" w-4 focus:outline focus:outline-2 focus:outline-offset-2
                 focus:outline-greenPry"
                 name={`delivery-option-${cartId}`}
-                onChange={() => {}}
+                onChange={() => { }}
               />
               <div>
                 <div className=" w-full mb-1 font-medium text-[1rem]">
@@ -52,7 +67,10 @@ function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
                     : formatMoneyCents(deliveryOption.priceCents)}
                 </div>
               </div>
+              <ErrorMessage errorMessage={errorMessage} />
+
             </div>
+
           );
         })}
     </div>

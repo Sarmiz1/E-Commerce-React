@@ -5,17 +5,20 @@ import ProgressBar from "./Components/ProgressBar";
 import { useFetchData } from "../../Hooks/useFetch";
 import { Fragment } from "react";
 import { GiSpinningRibbons } from "react-icons/gi";
+import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 
 
 function TrackingPage() {
   const ordersApiUrl = "/api/orders?expand=products";
 
-  const { fetchedData: orders, isLoading } = useFetchData(ordersApiUrl);
+  const { fetchedData: orders, isLoading, error: fetchError } = useFetchData(ordersApiUrl);
+  useShowErrorBoundary(fetchError);
+
 
   if (isLoading) {
     return (
       <div className="bg-slate-300 h-screen flex justify-center items-center">
-        <GiSpinningRibbons className="animate-spin [animation-duration:2.5s] size-8"/>
+        <GiSpinningRibbons className="animate-spin [animation-duration:2.5s] size-8" />
       </div>
     );
   }

@@ -2,11 +2,13 @@ import { ButtonPrimary } from "../../../components/ButtonPrimary";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
 import { postData } from "../../../api/postData";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import cartContext from "../../../Context/cartContext";
+import { ErrorMessage } from "../../../Components/ErrorMessage"; 
 
 function OrderProductDetails({ orderedProduct }) {
   const navigateToCheckOut = useNavigate();
+  const [errorMessage, setErrorMessage] = useState('')
   const { loadCart } = useContext(cartContext);
 
   const {
@@ -15,20 +17,26 @@ function OrderProductDetails({ orderedProduct }) {
     product: { image, name, id },
   } = orderedProduct;
 
-  const handleAddToCart = (id) => {
-    postData(`/api/cart-items`, {
-      productId: id,
-      quantity: 1,
-    });
+  const handleAddToCart = async (id) => {
+    try {
+      setErrorMessage(null);
+      await postData(`/api/cart-items`, {
+        productId: id,
+        quantity: 1,
+      });
 
-    loadCart();
-    navigateToCheckOut("/checkout");
+      await loadCart();
+      navigateToCheckOut("/checkout");
+
+    } catch (error) {
+      setErrorMessage("Failed to add item to cart. Please try again.");
+    }
   };
 
   return (
     <section className="border p-4 rounded-lg">
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-        
+
         {/* LEFT: IMAGE + INFO */}
         <div className="flex gap-4 flex-1 min-w-0">
           <img
@@ -55,7 +63,7 @@ function OrderProductDetails({ orderedProduct }) {
 
         {/* RIGHT: ACTIONS */}
         <div className="flex flex-col sm:flex-row md:flex-col gap-2 w-full md:w-auto">
-          
+
           <ButtonPrimary
             size="xxl"
             variant="secondary"
@@ -81,6 +89,7 @@ function OrderProductDetails({ orderedProduct }) {
           </Link>
 
         </div>
+        <ErrorMessage  errorMessage={errorMessage}/>
       </div>
     </section>
   );

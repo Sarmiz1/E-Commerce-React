@@ -1,10 +1,12 @@
-import {ButtonPrimary} from "../../../../components/ButtonPrimary";
-import { useState, useContext } from "react";
+import { ButtonPrimary } from "../../../../components/ButtonPrimary";
+import { useState, useContext, useEffect } from "react";
 import { postData } from "../../../../api/postData";
 import cartContext from "../../../../Context/cartContext";
-import { useEffect } from "react";
+import { ErrorMessage } from "../../../../Components/ErrorMessage";
 
 function AddToCart({ productId }) {
+
+  const [errorMessage, setErrorMessage] = useState('')
   const [quantity, setQuantity] = useState(1);
   const [addSuccesfully, setAddedSuccesfully] = useState(false);
 
@@ -14,26 +16,36 @@ function AddToCart({ productId }) {
     setQuantity(Number(e.target.value));
   };
 
-  const handleOnclick = (productID) => {
-    const productDetails = {
-      productId: productID,
-      quantity,
-    };
+  const handleOnclick = async (productID) => {
 
-    const addToCartUrl = `/api/cart-items`;
+    try {
+      setErrorMessage('');
 
-    postData(addToCartUrl, productDetails);
+      const productDetails = {
+        productId: productID,
+        quantity,
+      };
 
-    setAddedSuccesfully(true);
+      const addToCartUrl = `/api/cart-items`;
 
-    loadCart();
+      await postData(addToCartUrl, productDetails);
+
+      await loadCart();
+
+      setAddedSuccesfully(true);
+
+    } catch (error) {
+      setErrorMessage("Failed to add item to cart. Please try again.");
+    }
   };
 
   useEffect(() => {
     if (addSuccesfully) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setAddedSuccesfully(false);
       }, 3000);
+
+      return () => clearTimeout(timer);
     }
   }, [addSuccesfully]);
 
@@ -69,13 +81,14 @@ function AddToCart({ productId }) {
       </div>
 
       <ButtonPrimary
-        data-testid = 'add-to-cart-btn'
+        data-testid='add-to-cart-btn'
         variant='ok'
         size='xl'
         onClick={() => handleOnclick(productId)}
       >
         Add to Cart
       </ButtonPrimary>
+      <ErrorMessage errorMessage={errorMessage} />
     </>
   );
 }

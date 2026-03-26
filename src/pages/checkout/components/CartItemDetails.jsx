@@ -4,63 +4,89 @@ import { formatDate } from "../../../Utils/formatDate";
 import dataContext from "../../../Context/cartContext";
 import { putData } from "../../../api/putData";
 import { deleteData } from "../../../api/deleteData"
+import { ErrorMessage } from "../../../Components/ErrorMessage";
+
 
 function CartItemDetails({ cartProduct, children }) {
-  const { deliveryOptions, loadPaymentSumary } = useContext(checkOutContext);
-  const selectedDeliveryOption = deliveryOptions;
+
+  const [errorMessage, setErrorMessage] = useState('');
+
+
+  const { deliveryOptions, loadPaymentSumary } =
+    useContext(checkOutContext);
 
   const { loadCart } = useContext(dataContext);
 
   const [update, setUpdate] = useState(false);
-
   const updateInputRef = useRef(null);
 
-  const handleDelete = () => {
-    const deleteCartItemUrl = `/api/cart-items/${cartProduct.id}`;
+  const selectedDeliveryOption = deliveryOptions;
 
-    deleteData(deleteCartItemUrl);
 
-    loadCart();
+  // 🔹 DELETE HANDLER
+  const handleDelete = async () => {
+    try {
+      setErrorMessage(null)
 
-    loadPaymentSumary();
+      const deleteCartItemUrl = `/api/cart-items/${cartProduct.id}`;
+
+      await deleteData(deleteCartItemUrl);
+
+      await loadCart();
+      await loadPaymentSumary();
+    } catch (error) {
+      setErrorMessage('cant delete this, try again.')
+    }
   };
 
+  // 🔹 UPDATE CLICK
   const handleUpdateClick = () => {
     setUpdate(true);
 
-    updateInputRef.current.focus();
-  };
-
-  const updateCartItem = (e) => {
-    const cartUpdateUrl = `/api/cart-items/${cartProduct.id}`;
-
-    const updatedQuantity = {
-      quantity: Number(e.target.value),
-    };
-
-    if (e.key === "Enter") {
-      if (updatedQuantity.quantity > 100) return;
-
-      if (e.target.value === "") {
-        setUpdate(false);
-
-        e.target.value = "";
-
-        return;
-      }
-
-      if (e.target.value === "0") {
-        handleDelete();
-
-        return;
-      }
-
-      putData(cartUpdateUrl, updatedQuantity);
-      loadCart();
-      loadPaymentSumary();
-      setUpdate(false);
+    if (updateInputRef.current) {
+      updateInputRef.current.focus();
     }
   };
+
+  // 🔹 UPDATE QUANTITY
+  const updateCartItem = async (e) => {
+    if (e.key !== "Enter") return;
+
+    try {
+      setErrorMessage(null)
+
+      const cartUpdateUrl = `/api/cart-items/${cartProduct.id}`;
+      const value = e.target.value;
+
+      if (!value) {
+        setUpdate(false);
+        return;
+      }
+
+      if (Number(value) === 0) {
+        await handleDelete();
+        return;
+      }
+
+      if (Number(value) > 100) return;
+
+      const updatedQuantity = {
+        quantity: Number(value),
+      };
+
+      await putData(cartUpdateUrl, updatedQuantity);
+
+      await loadCart();
+      await loadPaymentSumary();
+
+      setUpdate(false);
+    } catch (error) {
+      setErrorMessage('cant update this item, try again.')
+    }
+  };
+
+
+
 
   return (
     <>
@@ -109,6 +135,8 @@ function CartItemDetails({ cartProduct, children }) {
               Delete
             </span>
           </div>
+          <ErrorMessage errorMessage={errorMessage} />
+          1
         </div>
 
         {children}
