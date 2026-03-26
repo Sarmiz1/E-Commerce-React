@@ -20,9 +20,9 @@ export default {
         secondary: 'rgb(255, 255, 255)'
       },
       screens: {
-        'max-2xl': {'min': '2000px'},
-        'sm-min' : {'min': '500px'},
-        'sm-max' : {'max': '500px'}
+        'max-2xl': { 'min': '2000px' },
+        'sm-min': { 'min': '500px' },
+        'sm-max': { 'max': '500px' }
       },
       boxShadow: {
         xxxl: {
@@ -31,17 +31,17 @@ export default {
       },
       gap: {
         columnSm: {
-            'column-gap': '0px'
-          },
+          'column-gap': '0px'
+        },
         columnMd: {
-            'column-gap': '35px'
-          },       
+          'column-gap': '35px'
+        },
         rowSm: {
-            'row-gap': '0px'
-          },
+          'row-gap': '0px'
+        },
         rowLg: {
-            'row-gap': '60px'
-          }
+          'row-gap': '60px'
+        }
       },
       spacing: {
         letterSpacingSm: {
@@ -53,9 +53,20 @@ export default {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(100vw)' }, // slide across screen
         },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(-20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '20%, 60%': { transform: 'translateX(-10px)' },
+          '40%, 80%': { transform: 'translateX(10px)' },
+        },
       },
       animation: {
         'slide-x': 'slideX 8s linear infinite',
+        fadeIn: 'fadeIn 0.5s ease-out forwards',
+        shake: 'shake 0.5s ease-in-out',
       },
     },
   },

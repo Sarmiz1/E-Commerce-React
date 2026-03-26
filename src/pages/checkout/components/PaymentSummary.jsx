@@ -33,16 +33,16 @@ function PaymentSumary({ deliveryOptions }) {
           <div className=" font-bold text-lg mb-1">Payment Summary</div>
 
           <div className="flex mb-2">
-            <div>Items ({paymentSumary.totalItems}):</div>
+            <div>Items ({paymentSumary?.totalItems}):</div>
             <div className=" ml-auto">
-              {formatMoneyCents(paymentSumary.productCostCents)}
+              {formatMoneyCents(paymentSumary?.productCostCents)}
             </div>
           </div>
 
           <div className=" flex">
             <div>Shipping &amp; handling:</div>
             <div className=" ml-auto">
-              {formatMoneyCents(paymentSumary.shippingCostCents)}
+              {formatMoneyCents(paymentSumary?.shippingCostCents)}
             </div>
           </div>
 
@@ -52,7 +52,7 @@ function PaymentSumary({ deliveryOptions }) {
               className=" ml-auto border border-solid 
             border-borderColor border-t-0 border-l-0 border-r-0 pt-2"
             >
-              {formatMoneyCents(paymentSumary.totalCostBeforeTaxCents)}
+              {formatMoneyCents(paymentSumary?.totalCostBeforeTaxCents)}
             </div>
           </div>
 
@@ -62,7 +62,7 @@ function PaymentSumary({ deliveryOptions }) {
           >
             <div>Estimated tax (10%):</div>
             <div className=" ml-auto">
-              {formatMoneyCents(paymentSumary.taxCents)}
+              {formatMoneyCents(paymentSumary?.taxCents)}
             </div>
           </div>
 
@@ -72,7 +72,7 @@ function PaymentSumary({ deliveryOptions }) {
           >
             <div>Order total:</div>
             <div className=" ml-auto">
-              {formatMoneyCents(paymentSumary.totalCostCents)}
+              {formatMoneyCents(paymentSumary?.totalCostCents)}
             </div>
           </div>
 

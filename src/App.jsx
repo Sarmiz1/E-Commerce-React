@@ -6,27 +6,21 @@ import TrackingPage from './pages/tracking/TrackingPage'
 import NavBar from './components/NavBar'
 import { Routes, Route } from 'react-router-dom'
 import dataContext from './Context/cartContext'
-import { useEffect, useState } from 'react' 
+import { useEffect, useState } from 'react'
 import axios from 'axios'
-import ErrorBoundary from './ErrorHandling/ErrorBoundary'
 import { IconContext } from 'react-icons'
 
+
 function App() {
-
-
 
   const [cart, setCart] = useState([])
 
   const loadCart = async () => {
     const cartUrl = '/api/cart-items?expand=product'
     const response = await axios.get(cartUrl)
-    
+
     setCart(response.data)
   }
-
-  
-
-
 
 
   useEffect(() => {
@@ -34,7 +28,7 @@ function App() {
     loadCart()
 
   }, [])
-    
+
 
 
   return (
@@ -44,36 +38,31 @@ function App() {
         loadCart,
       }}>
         <IconContext value={{ size: "80px", color: "green" }}>
-        <NavBar />
-        <Routes>
-          <Route path="/checkout" element =
-          {
-            <ErrorBoundary>   
-              <CheckOutPage />
-            </ErrorBoundary>
-            } />
-          <Route path="/" element =
-          {
-            <ErrorBoundary>   
-              <HomePage />
-            </ErrorBoundary>
-            } />
-          <Route path="/orders" element =
-          {
-            <ErrorBoundary>   
-              <OrdersPage />
-            </ErrorBoundary>
-          } />
-          <Route path="/tracking" element =
-          {
-            <ErrorBoundary>   
-              <TrackingPage />
-            </ErrorBoundary>
-          } />
-        </Routes>
+          <NavBar />
+          <Routes>
+            <Route path="/checkout" element=
+              {
+                <CheckOutPage />
+              } />
+
+            <Route path="/" element=
+              {
+                <HomePage />
+              } />
+
+            <Route path="/orders" element=
+              {
+                <OrdersPage />
+              } />
+
+            <Route path="/tracking" element=
+              {
+                <TrackingPage />
+              } />
+          </Routes>
         </IconContext>
       </dataContext.Provider>
-      
+
     </>
   )
 }
