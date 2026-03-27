@@ -69,6 +69,7 @@ function CheckOutPage() {
                 {cart?.map((cartItem) => {
                   return (
                     <ErrorBoundary
+                      key={cartItem.productId}
                       FallbackComponent={(props) => (
                         <WidgetFallbackPage
                           {...props}
@@ -80,7 +81,6 @@ function CheckOutPage() {
                       onReset={() => loadCart()}
                     >
                       <CartItemContainer
-                        key={cartItem.productId}
                         cartProduct={{
                           name: cartItem.product.name,
                           price: formatMoneyCents(cartItem.product.priceCents),
