@@ -23,23 +23,27 @@ function CartItemDetails({ cartProduct, children }) {
   const selectedDeliveryOption = deliveryOptions;
 
 
-  // 🔹 DELETE HANDLER
+  //  DELETE HANDLER
   const handleDelete = async () => {
     try {
-      setErrorMessage(null)
+      setErrorMessage(null);
 
       const deleteCartItemUrl = `/api/cart-items/${cartProduct.id}`;
 
+      // Only continues if deleteData succeeds (status 2xx)
       await deleteData(deleteCartItemUrl);
 
+      // Reload cart and payment summary
       await loadCart();
       await loadPaymentSumary();
+
     } catch (error) {
-      setErrorMessage('cant delete this, try again.')
+      console.error("Delete cart item failed:", error);
+      setErrorMessage("Can't delete this item, try again.");
     }
   };
 
-  // 🔹 UPDATE CLICK
+  //  UPDATE CLICK
   const handleUpdateClick = () => {
     setUpdate(true);
 
@@ -48,7 +52,7 @@ function CartItemDetails({ cartProduct, children }) {
     }
   };
 
-  // 🔹 UPDATE QUANTITY
+  //  UPDATE QUANTITY
   const updateCartItem = async (e) => {
     if (e.key !== "Enter") return;
 
@@ -68,7 +72,10 @@ function CartItemDetails({ cartProduct, children }) {
         return;
       }
 
-      if (Number(value) > 100) return;
+      if (Number(value) > 100) {
+        setErrorMessage('Quantity cant be more than 100')
+        return;
+      }
 
       const updatedQuantity = {
         quantity: Number(value),
@@ -81,7 +88,7 @@ function CartItemDetails({ cartProduct, children }) {
 
       setUpdate(false);
     } catch (error) {
-      setErrorMessage('cant update this item, try again.')
+      setErrorMessage('Quantity update failed, try again.')
     }
   };
 
@@ -135,12 +142,12 @@ function CartItemDetails({ cartProduct, children }) {
               Delete
             </span>
           </div>
-          <ErrorMessage errorMessage={errorMessage} />
-          
+
         </div>
 
         {children}
       </div>
+      <ErrorMessage errorMessage={errorMessage} />
     </>
   );
 }

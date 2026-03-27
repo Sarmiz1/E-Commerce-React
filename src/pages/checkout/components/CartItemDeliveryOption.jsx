@@ -1,41 +1,45 @@
 import { formatDate } from "../../../Utils/formatDate";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import cartContext from "../../../Context/checkOutContext";
 import dataContext from "../../../Context/cartContext";
 import { putData } from '../../../api/putData'
 import { ErrorMessage } from "../../../Components/ErrorMessage";
 
 
-function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
+function CartItemDeliveryOption(
+  { cartId, 
+    cartDeliveryOptionId, 
+    setErrorMessage 
+  }) {
+
   const { deliveryOptions, loadPaymentSumary } = useContext(cartContext);
   const { loadCart } = useContext(dataContext);
 
-  const [errorMessage, setErrorMessage] = useState('')
 
 
-  const handleOnClick = async (productId, deliveryOptionID) => {
-    try {
-      setErrorMessage(null)
+  const handleOnClickDelivery = async (productId, deliveryOptionID) => {
+  try {
+    setErrorMessage(null);
 
-      const cartUpdateUrl = `/api/cart-items/${productId}`;
+    const cartUpdateUrl = `/api/cart-items/${productId}`;
 
-      const deliveryDetails = {
-        deliveryOptionId: deliveryOptionID,
-      };
+    const deliveryDetails = {
+      deliveryOptionId: deliveryOptionID,
+    };
 
-      await putData(cartUpdateUrl, deliveryDetails);
+    // Only continues if putData succeeds (status 2xx)
+    await putData(cartUpdateUrl, deliveryDetails);
 
-      await loadCart();
-      await loadPaymentSumary();
-    }
+    // Reload cart and payment summary
+    await loadCart();
+    await loadPaymentSumary();
 
-    catch (error) {
-      setErrorMessage('Cant place an order, try again.')
-
-    }
-
-  };
+  } catch (error) {
+    console.error("Cart update failed:", error);
+    setErrorMessage("Can't change delivery date, try again.");
+  }
+};
 
   return (
     <div className="col-span-[1/2]">
@@ -47,7 +51,7 @@ function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
             <div
               className="flex mb-1 cursor-pointer gap-2"
               key={deliveryOption.id}
-              onClick={() => handleOnClick(cartId, deliveryOption.id)}
+              onClick={() => handleOnClickDelivery(cartId, deliveryOption.id)}
             >
               <input
                 type="radio"
@@ -55,7 +59,6 @@ function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
                 className=" w-4 focus:outline focus:outline-2 focus:outline-offset-2
                 focus:outline-greenPry"
                 name={`delivery-option-${cartId}`}
-                onChange={() => { }}
               />
               <div>
                 <div className=" w-full mb-1 font-medium text-[1rem]">
@@ -67,8 +70,6 @@ function CartItemDeliveryOption({ cartId, cartDeliveryOptionId }) {
                     : formatMoneyCents(deliveryOption.priceCents)}
                 </div>
               </div>
-              <ErrorMessage errorMessage={errorMessage} />
-
             </div>
 
           );

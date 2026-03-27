@@ -17,21 +17,25 @@ function PaymentSumary({ deliveryOptions }) {
 
   const placeOrderClick = async () => {
     try {
-      setErrorMessage(null)
+      setErrorMessage(null);
 
-      const placeOrderApiUrl = "/api/orders";
+      // Send order request
+      const response = await postData("/api/orders");
 
-      await postData(placeOrderApiUrl);
+      // Only navigate if response looks valid
+      if (!response || Object.keys(response).length === 0) {
+        // Backend returned nothing → treat as failure
+        throw new Error("Order not created");
+      }
 
+      // ✅ At this point, order went through
       await loadCart();
-
       navigate("/orders");
-    }
-    catch (error) {
-      setErrorMessage('Cant place an order, try again.')
-    }
 
-
+    } catch (error) {
+      console.error("Place order error:", error);
+      setErrorMessage("Order failed, try again.");
+    }
   };
 
   return (
@@ -96,7 +100,7 @@ function PaymentSumary({ deliveryOptions }) {
           >
             Place your order
           </ButtonPrimary>
-          <ErrorMessage  errorMessage={errorMessage}/>
+          <ErrorMessage errorMessage={errorMessage} />
         </div>
       )}
     </>
