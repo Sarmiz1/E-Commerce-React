@@ -3,6 +3,8 @@ import ProductName from "./ContainerComponents/ProductName";
 import ProductRating from "./ContainerComponents/ProductRating";
 import ProductPrice from "./ContainerComponents/ProductPrice";
 import AddToCart from "./ContainerComponents/AddToCart";
+import { NavLink } from "react-router-dom";
+
 
 function ProductContainer({ products }) {
   return (
@@ -16,10 +18,12 @@ function ProductContainer({ products }) {
           dark:border-b-black/50"
             key={id}
           >
-            <ProductImageContainer productImage={image} />
-            <ProductName productName={name} />
-            <ProductRating productRating={rating} />
-            <ProductPrice productPrice={priceCents} />
+            <NavLink to={'/'}>
+              <ProductImageContainer productImage={image} />
+              <ProductName productName={name} />
+              <ProductRating productRating={rating} />
+              <ProductPrice productPrice={priceCents} />
+            </NavLink>
 
             <AddToCart productId={id} />
           </div>

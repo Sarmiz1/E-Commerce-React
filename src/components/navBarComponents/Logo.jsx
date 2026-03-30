@@ -8,7 +8,7 @@ function Logo() {
       <NavLink
         to="/"
         className="flex items-center cursor-pointer no-underline rounded-md
-          hover:outline hover:outline-1 hover:outline-white"
+        hover:outline hover:outline-1 hover:outline-white"
       >
         {/* LARGE SCREEN LOGO */}
         <div className="hidden lg:flex items-center gap-2">

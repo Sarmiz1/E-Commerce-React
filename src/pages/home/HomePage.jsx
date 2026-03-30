@@ -4,7 +4,6 @@ import { useSearchParams } from "react-router-dom";
 import { TiShoppingCart } from "react-icons/ti";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 
-
 function HomePage() {
 
   const [searchParams] = useSearchParams();
@@ -41,8 +40,8 @@ function HomePage() {
           className="grid grid-cols-2    
         sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-2xl:grid-cols-7"
         >
-          <ProductContainer products={products} />
-          {products.length === 0 && <h1>no products</h1>}
+            <ProductContainer products={products} />
+            {products.length === 0 && <h1>no products</h1>}
         </div>
       </div>
     </>
