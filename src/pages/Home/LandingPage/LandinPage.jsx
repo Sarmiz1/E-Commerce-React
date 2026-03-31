@@ -3,10 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { useFetchData } from "../../../Hooks/useFetch";
-import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLoaderData } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -20,10 +18,8 @@ export default function LandingPage() {
   const pageRef = useRef(null);
   const cartIconRef = useRef(null);
 
-  // Fetching Products
-  const url = "/api/products";
-  const { fetchedData: products = [], isLoading, error } = useFetchData(url);
-  useShowErrorBoundary(error);
+  // Products Data
+    const products = useLoaderData();
 
   // Trending Products
   const trendingProducts = products?.slice(0, 6) || [];
@@ -143,6 +139,7 @@ export default function LandingPage() {
   // Button color
   const topButtonColor = "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-indigo-500/40"
 
+  // Adiffrent Logic for the To top Button
   // useEffect(() => {
   //   const handleScroll = () => {
   //     const scrollTop = window.scrollY;
@@ -257,13 +254,15 @@ export default function LandingPage() {
           Trending Products
         </h3>
 
-        {isLoading && (
+        {/* {isLoading && (
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3,4,5].map(i => (
               <div key={i} className="h-72 bg-gray-200 animate-pulse rounded-3xl" />
             ))}
           </div>
-        )}
+        )} 
+        MIGHT NEED THIS FOR UI SKELETON 
+         */}
 
         <div className="grid md:grid-cols-3 gap-8">
           {trendingProducts.map((item) => (
@@ -488,4 +487,8 @@ export default function LandingPage() {
       </div>
     </motion.button>
   )}
-</AnimatePresence> */}
+</AnimatePresence> 
+
+
+A DIFFRENT DESIGN FOR TO TOP BUTTON
+*/}

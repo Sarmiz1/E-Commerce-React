@@ -1,74 +1,20 @@
 // src/pages/ProductDetailPage.jsx
-import { useParams } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
-import { useFetchData } from "../../Hooks/useFetch";
-import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
+import { useParams, useLoaderData } from "react-router-dom";
 import ProductCard from "../../Components/Ui/ProductCard";
 import { ratingCount } from "../../Utils/ratingsCount";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
-import { Loader2 } from "lucide-react";
 
 
 export default function ProductDetail() {
   const { productId } = useParams();
 
-  const url = "/api/products";
-  const { fetchedData, isLoading, error } = useFetchData(url);
+  // Products Data
+  const products = useLoaderData();
 
-  useShowErrorBoundary(error);
-  const products = useMemo(() => fetchedData || [], [fetchedData]);
-
-  const product = products.find((p) => p.id === productId)
-
-  // State to delay "No products" message
-  const [showNoProducts, setShowNoProducts] = useState(false);
-
-  useEffect(() => {
-    let timer;
-    if (!isLoading && (!products || product?.length === 0)) {
-      // wait 3 seconds before showing the message
-      timer = setTimeout(() => setShowNoProducts(true), 3500);
-    } else {
-      setShowNoProducts(false); // reset if products appear
-    }
-
-    return () => clearTimeout(timer);
-  }, [isLoading, products]);
-
-
-  // similar products (all except current)
-  const similarProducts = products?.filter((p) =>
-    p.id !== product?.id && // exclude current product
-    p.keywords.some((keyword) =>
-      product?.keywords.includes(keyword)
-    )
+  // Product
+  const product = products.find(
+    (p) => p.id === productId
   );
-
-  console.log(products)
-  console.log(product)
-  console.log(similarProducts)
-  console.log(showNoProducts)
-  
-
-
-
-
-  if (isLoading) {
-    return (
-      <div className="text-2xl h-screen flex items-center justify-center">
-        Loading products...
-      </div>
-    );
-  }
-
-  if ((!products || product?.length === 0) && showNoProducts) {
-    return (
-      <h1 className="text-2xl h-screen flex items-center justify-center">
-        No details on this product
-      </h1>
-    );
-  }
-
 
   if (!product) {
     return (
@@ -77,6 +23,15 @@ export default function ProductDetail() {
       </h1>
     );
   }
+
+  // Similar products
+  const similarProducts = products.filter(
+    (p) =>
+      p.id !== product.id &&
+      p.keywords.some((keyword) =>
+        product.keywords.includes(keyword)
+      )
+  );
 
 
 
@@ -128,7 +83,7 @@ export default function ProductDetail() {
       </section>
 
       {/* SIMILAR PRODUCTS */}
-      { product && similarProducts.length > 0 && (
+      {product && similarProducts.length > 0 && (
         <section className="py-20 max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-center animate-fadeInFeature">
             You May Also Like

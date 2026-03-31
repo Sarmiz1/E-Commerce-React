@@ -1,4 +1,5 @@
 import './App.css'
+import { fetchLoader } from "./api/fetchLoader"
 import HomePage from './Pages/Home/HomePage/HomePage'
 import LandingPage from './Pages/Home/LandingPage/LandinPage'
 import CheckOutPage from './pages/checkout/CheckOutPage'
@@ -20,6 +21,7 @@ import FallbackPage from './Components/FallbackPage'
 
 
 
+
 export default function App() {
 
   const [cart, setCart] = useState([])
@@ -38,6 +40,9 @@ export default function App() {
 
   }, [])
 
+  const productsUrl = "/api/products";
+
+
 
   const isLoggedIn = false; // Mock authentication state, replace with real auth logic as needed
 
@@ -47,7 +52,7 @@ export default function App() {
 
         {/* Conditional home route */}
         <Route
-          path = '/'
+          path='/'
           element={
             isLoggedIn ? (
               <DefaultLayout />
@@ -59,7 +64,11 @@ export default function App() {
           {isLoggedIn ? (
             <Route index element={<HomePage />} />
           ) : (
-            <Route index element={<LandingPage />} />
+            <Route
+              index
+              element={<LandingPage />}
+              loader={fetchLoader(productsUrl)}
+            />
           )}
         </Route>
 
@@ -71,7 +80,11 @@ export default function App() {
 
           <Route path="products" element={<ProductsLayout />} >
             <Route index element={<ProductsPage />} />
-            <Route path=":productId" element={<ProductDetail />}/>
+            <Route
+              path=":productId"
+              element={<ProductDetail />}
+              loader={fetchLoader(productsUrl)}
+            />
           </Route>
         </Route>
 

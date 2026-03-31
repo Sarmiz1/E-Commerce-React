@@ -1,10 +1,13 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigation } from "react-router-dom";
 import { Suspense } from "react";
 import Footer from "../Components/Footer";
 import { TiShoppingCart } from "react-icons/ti";
 
 
+
 export default function RootLayout() {
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
   return (
     <>
       {/* <Suspense fallback={
@@ -12,7 +15,7 @@ export default function RootLayout() {
           <TiShoppingCart className="animate-slide-x" />
         </div>
       }> */}
-        <Outlet />  {/* This renders the route element */}
+      <Outlet />  {/* This renders the route element */}
       {/* </Suspense > */}
       <Footer />
     </>
