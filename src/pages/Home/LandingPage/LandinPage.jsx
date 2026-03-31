@@ -11,19 +11,24 @@ import { useNavigate } from "react-router-dom";
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 export default function LandingPage() {
+
+  const [showTopBtn, setShowTopBtn] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
   const navigate = useNavigate();
   const pageRef = useRef(null);
   const cartIconRef = useRef(null);
 
+  // Fetching Products
   const url = "/api/products";
   const { fetchedData: products = [], isLoading, error } = useFetchData(url);
   useShowErrorBoundary(error);
 
+  // Trending Products
   const trendingProducts = products?.slice(0, 6) || [];
 
-  const [cart, setCart] = useState([]);
-  const [cartOpen, setCartOpen] = useState(false);
-
+  // Add to Cart  Function
   const addToCart = (product, e) => {
     if (!product) return;
 
@@ -81,6 +86,7 @@ export default function LandingPage() {
     0
   );
 
+  // Rendering Stars Rating function
   const renderStars = (rating = 0) => {
     const full = Math.floor(rating);
     const half = rating % 1 >= 0.5;
@@ -104,6 +110,7 @@ export default function LandingPage() {
     );
   };
 
+  // Scroll to section Logic
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.utils.toArray(".reveal").forEach((el) => {
@@ -131,18 +138,29 @@ export default function LandingPage() {
     });
   };
 
-  const [showTopBtn, setShowTopBtn] = useState(false);
+
+  // Back To Top Button Logic
+  // Button color
+  const topButtonColor = "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-indigo-500/40"
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 400) {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+      const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+
+      setScrollProgress(progress);
+
+      if (scrollTop > 400) {
         setShowTopBtn(true);
       } else {
         setShowTopBtn(false);
       }
     };
-    window.addEventListener("scroll", handleScroll);
 
+    window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -359,20 +377,53 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
+      {/* To the Top Button */}
       <AnimatePresence>
         {showTopBtn && (
           <motion.button
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, scale: 0.8, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 40 }}
             transition={{ duration: 0.3 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 
-            bg-gradient-to-r from-blue-600 to-indigo-600 
-            text-white px-5 py-3 rounded-full 
-            shadow-xl hover:scale-110 transition-transform"
+            className={`fixed bottom-8 right-8 z-50 
+            w-14 h-14 
+            rounded-full 
+            ${topButtonColor}
+            text-white 
+            shadow-xl 
+            flex items-center justify-center 
+            transition-all duration-300 
+            hover:scale-110`}
           >
-            ↑
+            {/* Progress Ring */}
+            <svg className="absolute w-16 h-16 rotate-[-90deg]">
+              <circle
+                cx="32"
+                cy="32"
+                r="28"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="4"
+                fill="transparent"
+              />
+              <circle
+                cx="32"
+                cy="32"
+                r="28"
+                stroke="white"
+                strokeWidth="4"
+                fill="transparent"
+                strokeDasharray={2 * Math.PI * 28}
+                strokeDashoffset={
+                  2 * Math.PI * 28 * (1 - scrollProgress)
+                }
+                strokeLinecap="round"
+              />
+            </svg>
+
+            <span className="relative text-white font-bold text-lg">
+              ↑
+            </span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -380,6 +431,9 @@ export default function LandingPage() {
     </div>
   );
 }
+
+
+
 
 
 
