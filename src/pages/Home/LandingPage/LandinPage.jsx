@@ -143,24 +143,46 @@ export default function LandingPage() {
   // Button color
   const topButtonColor = "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-indigo-500/40"
 
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     const scrollTop = window.scrollY;
+  //     const docHeight =
+  //       document.documentElement.scrollHeight - window.innerHeight;
+
+  //     const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+
+  //     setScrollProgress(progress);
+
+  //     if (scrollTop > 400) {
+  //       setShowTopBtn(true);
+  //     } else {
+  //       setShowTopBtn(false);
+  //     }
+  //   };
+
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight =
         document.documentElement.scrollHeight - window.innerHeight;
 
-      const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+      // Prevent divide-by-zero
+      const progress =
+        docHeight > 0 ? Math.min(scrollTop / docHeight, 1) : 0;
 
       setScrollProgress(progress);
-
-      if (scrollTop > 400) {
-        setShowTopBtn(true);
-      } else {
-        setShowTopBtn(false);
-      }
+      setShowTopBtn(scrollTop > 400);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Run once on mount
+    handleScroll();
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -205,6 +227,8 @@ export default function LandingPage() {
               </motion.span>
             )}
           </button>
+
+          
         </div>
       </header>
 
@@ -439,3 +463,27 @@ export default function LandingPage() {
 
 
 
+{/* <AnimatePresence>
+  {showTopBtn && (
+    <motion.button
+      initial={{ opacity: 0, scale: 0.8, y: 40 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.8, y: 40 }}
+      transition={{ duration: 0.3 }}
+      onClick={scrollToTop}
+      className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full
+      bg-indigo-600 text-white shadow-xl
+      flex items-center justify-center hover:scale-110 transition"
+      style={{
+        background: `conic-gradient(
+          #4f46e5 ${scrollProgress * 360}deg,
+          #e5e7eb ${scrollProgress * 360}deg
+        )`
+      }}
+    >
+      <div className="bg-indigo-600 w-10 h-10 rounded-full flex items-center justify-center text-white">
+        ↑
+      </div>
+    </motion.button>
+  )}
+</AnimatePresence> */}
