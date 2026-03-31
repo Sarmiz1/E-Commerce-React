@@ -13,6 +13,8 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { IconContext } from 'react-icons'
 import RootLayout from './Layout/RootLayout'
+import DefaultLayout from './Layout/DefaultLayout'
+import LandingLayout from './Layout/LandingLayout'
 import NotFoundPage from './Components/NotFoundPage'
 
 
@@ -35,25 +37,44 @@ export default function App() {
   }, [])
 
 
-  const isLoggedIn = false
+  const isLoggedIn = false; // Mock authentication state, replace with real auth logic as needed
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route>
-        <Route path="/" element={<RootLayout />}>
-          <Route index element={
-            !isLoggedIn ? <LandingPage /> : <HomePage />
-          } />
+      <Route element={<RootLayout />}>
+
+        {/* Conditional home route */}
+        <Route
+          path = '/'
+          element={
+            isLoggedIn ? (
+              <DefaultLayout />
+            ) : (
+              <LandingLayout />
+            )
+          }
+        >
+          {isLoggedIn ? (
+            <Route index element={<HomePage />} />
+          ) : (
+            <Route index element={<LandingPage />} />
+          )}
+        </Route>
+
+        {/* All app pages */}
+        <Route element={<DefaultLayout />}>
           <Route path="checkout" element={<CheckOutPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="tracking" element={<TrackingPage />} />
-          <Route path="products"  element={<ProductsLayout />} >
+
+          <Route path="products" element={<ProductsLayout />}>
             <Route index element={<ProductsPage />} />
             <Route path=":productId" element={<ProductDetail />} />
           </Route>
         </Route>
 
-        <Route path='*' element={<NotFoundPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+
       </Route>
     )
   )

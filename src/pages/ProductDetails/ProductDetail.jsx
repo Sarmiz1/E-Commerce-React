@@ -1,6 +1,8 @@
 // src/pages/ProductDetailPage.jsx
 import { useParams } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
 import { useFetchData } from "../../Hooks/useFetch";
+import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import ProductCard from "../../Components/Ui/ProductCard";
 import { ratingCount } from "../../Utils/ratingsCount";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
@@ -11,39 +13,54 @@ export default function ProductDetail() {
   const { productId } = useParams();
 
   const url = "/api/products";
-  const { fetchedData: products, isLoading, error: fetchError } = useFetchData(url);
+  const { fetchedData, isLoading, error } = useFetchData(url);
+
+  useShowErrorBoundary(error);
+  const products = useMemo(() => fetchedData || [], [fetchedData]);
 
   const product = products.find((p) => p.id === productId)
 
+  // State to delay "No products" message
+  const [showNoProducts, setShowNoProducts] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (!isLoading && (!products || products.length === 0)) {
+      // wait 3 seconds before showing the message
+      timer = setTimeout(() => setShowNoProducts(true), 3500);
+    } else {
+      setShowNoProducts(false); // reset if products appear
+    }
+
+    return () => clearTimeout(timer);
+  }, [isLoading, products]);
+
 
   // similar products (all except current)
-  const similarProducts = products.filter((p) =>
-    p.id !== product.id && // exclude current product
+  const similarProducts = products?.filter((p) =>
+    p.id !== product?.id && // exclude current product
     p.keywords.some((keyword) =>
-      product.keywords.includes(keyword)
+      product?.keywords.includes(keyword)
     )
   );
 
 
-  if (!product || fetchError) {
-    return (
-      <div className="h-screen flex justify-center items-center -mt-16">
-        <p className="text-center mt-20 text-xl">Product not found.</p>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
-      <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
-        <Loader2 className="animate-spin text-blue-600 size-10"/>
+      <div className="h-screen flex justify-center items-center">
+        Loading products...
       </div>
     );
   }
 
+  if ((!products || products.length === 0) && showNoProducts) {
+    return (
+      <h1 className="text-center mt-20 text-2xl">
+        No details on this product
+      </h1>
+    );
+  }
 
-
-  
 
 
   return (
@@ -52,34 +69,34 @@ export default function ProductDetail() {
       <section className="max-w-6xl mx-auto py-20 px-6 md:flex md:gap-12">
         <div className="md:w-1/2 animate-fadeInProduct">
           <img
-            src={product.image}
-            alt={product.name}
+            src={product?.image}
+            alt={product?.name}
             className="rounded-2xl shadow-lg w-full object-cover"
           />
           {/* Optional thumbnails could go here */}
         </div>
 
         <div className="md:w-1/2 mt-8 md:mt-0 animate-fadeInProduct">
-          <h1 className="text-4xl font-bold">{product.name}</h1>
+          <h1 className="text-4xl font-bold">{product?.name}</h1>
 
           {/* Product Ratings */}
-          {product.rating &&
+          {product?.rating &&
             <div className=" flex items-center mb-[10px]">
               <img
                 className=" w-24 mr-[6px]"
                 data-testid='product-stars-image'
-                src={`images/ratings/rating-${ratingCount(product.rating?.stars)}.png`}
+                src={`images/ratings/rating-${ratingCount(product?.rating?.stars)}.png`}
               />
               <div className=" link-primary text-greenPry cursor-auto mt-[3px] hover:opacity-75 active:opacity-50">
-                {product.rating?.count}
+                {product?.rating?.count}
               </div>
             </div>
           }
 
           {/* Product Price */}
-          <p className="text-2xl font-semibold mt-4">{formatMoneyCents(product.priceCents)}</p>
+          <p className="text-2xl font-semibold mt-4">{formatMoneyCents(product?.priceCents)}</p>
 
-          <p className="mt-6 text-gray-600">{product.description}</p>
+          <p className="mt-6 text-gray-600">{product?.description}</p>
 
           <button className="mt-8 mb-5 bg-black text-white px-6 py-3 rounded-2xl hover:bg-gray-800 transition font-semibold">
             Add to Cart
@@ -94,7 +111,7 @@ export default function ProductDetail() {
       </section>
 
       {/* SIMILAR PRODUCTS */}
-      {similarProducts.length > 0 && (
+      { product && similarProducts.length > 0 && (
         <section className="py-20 max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-8 text-center animate-fadeInFeature">
             You May Also Like

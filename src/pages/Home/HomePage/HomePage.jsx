@@ -2,18 +2,30 @@
 import { useFetchData } from "../../../Hooks/useFetch";
 import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { useMemo } from "react";
 
 
 export default function HomePage() {
 
   const url = "/api/products";
+  const { fetchedData, isLoading, error } = useFetchData(url);
 
-  const { fetchedData: products, isLoading, error: fetchError } = useFetchData(url);
-  useShowErrorBoundary(fetchError);
+  useShowErrorBoundary(error);
+
+  const products = useMemo(() => fetchedData || [], [fetchedData]);
+
 
   const trendingProducts = products.slice(0, 3);
   const bestSellers = products.slice(1, 4);
   const categories = ["Bags", "Watches", "Scarves", "Sunglasses"];
+
+  if (isLoading) {
+  return (
+    <div className="h-screen flex justify-center items-center">
+      Loading...
+    </div>
+  );
+}
 
   return (
     <div className="space-y-20 -mt-1 mb-4">

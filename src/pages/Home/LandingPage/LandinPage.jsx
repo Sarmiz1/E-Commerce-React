@@ -1,71 +1,253 @@
-import { motion } from "framer-motion";
-// import { ShoppingCart, Star, Truck, ShieldCheck, RefreshCcw } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { useFetchData } from "../../../Hooks/useFetch";
+import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
+import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { useNavigate } from "react-router-dom";
+
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const pageRef = useRef(null);
+  const cartIconRef = useRef(null);
+
+  const url = "/api/products";
+  const { fetchedData: products = [], isLoading, error } = useFetchData(url);
+  useShowErrorBoundary(error);
+
+  const trendingProducts = products?.slice(0, 6) || [];
+
+  const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
+
+  const addToCart = (product, e) => {
+    if (!product) return;
+
+    const img = e.currentTarget.closest(".product-card")?.querySelector("img");
+    if (img && cartIconRef.current) {
+      const imgRect = img.getBoundingClientRect();
+      const cartRect = cartIconRef.current.getBoundingClientRect();
+
+      const clone = img.cloneNode(true);
+      clone.style.position = "fixed";
+      clone.style.top = imgRect.top + "px";
+      clone.style.left = imgRect.left + "px";
+      clone.style.width = imgRect.width + "px";
+      clone.style.zIndex = 9999;
+      document.body.appendChild(clone);
+
+      gsap.to(clone, {
+        top: cartRect.top,
+        left: cartRect.left,
+        width: 40,
+        height: 40,
+        opacity: 0.5,
+        duration: 0.8,
+        ease: "power2.inOut",
+        onComplete: () => clone.remove(),
+      });
+    }
+
+    setCart((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+  };
+
+  const updateQuantity = (id, amount) => {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.id === id
+            ? { ...item, quantity: Math.max(1, item.quantity + amount) }
+            : item
+        )
+    );
+  };
+
+  const totalPrice = cart.reduce(
+    (acc, item) => acc + item.priceCents * item.quantity,
+    0
+  );
+
+  const renderStars = (rating = 0) => {
+    const full = Math.floor(rating);
+    const half = rating % 1 >= 0.5;
+    const empty = 5 - full - (half ? 1 : 0);
+
+    return (
+      <div className="flex items-center gap-1">
+        {Array(full)
+          .fill()
+          .map((_, i) => (
+            <span key={`f-${i}`} className="text-yellow-500">★</span>
+          ))}
+        {half && <span className="text-yellow-500">⯪</span>}
+        {Array(empty)
+          .fill()
+          .map((_, i) => (
+            <span key={`e-${i}`} className="text-gray-300">★</span>
+          ))}
+        <span className="ml-2 text-sm text-gray-500">{rating}</span>
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray(".reveal").forEach((el) => {
+        gsap.from(el, {
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+          },
+          y: 60,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+        });
+      });
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const scrollToSection = (id) => {
+    gsap.to(window, {
+      duration: 1,
+      scrollTo: id,
+      ease: "power2.inOut",
+    });
+  };
+
+  const [showTopBtn, setShowTopBtn] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowTopBtn(true);
+      } else {
+        setShowTopBtn(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    gsap.to(window, {
+      duration: 1,
+      scrollTo: { y: 0 },
+      ease: "power2.inOut",
+    });
+  };
+
 
   return (
-    <div className="bg-gray-50 text-gray-800 scroll-smooth">
+    <div ref={pageRef} className="bg-gray-50 text-gray-800">
 
-      {/* ================= NAVBAR SECTION ================= */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      {/* HEADER */}
+      <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">ShopEase</h1>
 
           <nav className="hidden md:flex gap-8 text-sm font-medium">
-            <a href="#products" className="hover:text-blue-600 transition">
-              Products
-            </a>
-            <a href="#features" className="hover:text-blue-600 transition">
-              Features
-            </a>
-            <a href="#testimonials" className="hover:text-blue-600 transition">
-              Reviews
-            </a>
-            <a href="#contact" className="hover:text-blue-600 transition">
-              Contact
-            </a>
+            <button onClick={() => scrollToSection("#products")}>Products</button>
+            <button onClick={() => scrollToSection("#features")}>Features</button>
+            <button onClick={() => scrollToSection("#testimonials")}>Reviews</button>
+            <button onClick={() => scrollToSection("#cta")}>Contact</button>
           </nav>
 
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-2xl hover:bg-blue-700 transition">
+          <button
+            ref={cartIconRef}
+            onClick={() => setCartOpen(true)}
+            className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-xl"
+          >
             Cart
+            {cart.length > 0 && (
+              <motion.span
+                key={cart.length}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-2 -right-2 bg-red-500 text-xs w-5 h-5 flex items-center justify-center rounded-full"
+              >
+                {cart.length}
+              </motion.span>
+            )}
           </button>
         </div>
       </header>
 
-      {/* ================= HERO SECTION ================= */}
-      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-10 items-center">
+      {/* HERO */}
+      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-24 text-center reveal">
+        <h2 className="text-5xl font-extrabold">
+          Discover Products You'll Love
+        </h2>
+        <p className="mt-6 text-lg text-blue-100">
+          Premium quality. Delivered fast.
+        </p>
+        <button
+          onClick={() => navigate("/products")}
+          className="mt-8 bg-white text-indigo-700 px-8 py-3 rounded-xl font-semibold 
+              hover:scale-105 hover:bg-gray-100 transition-transform duration-300"
+        >
+          Shop Now
+        </button>
+      </section>
 
-          {/* Left */}
-          <div className="animate-fadeInHero">
-            <h2 className="text-4xl md:text-5xl font-extrabold leading-tight">
-              Discover Products You'll Love
-            </h2>
-            <p className="mt-6 text-lg text-blue-100">
-              Premium quality. Affordable prices. Delivered fast to your doorstep.
-            </p>
+      {/* PRODUCTS */}
+      <section id="products" className="py-20 max-w-7xl mx-auto px-6">
+        <h3 className="text-3xl font-bold text-center mb-12 reveal">
+          Trending Products
+        </h3>
 
-            <div className="mt-8 flex gap-4">
-              <button className="bg-white text-blue-700 px-6 py-3 rounded-2xl hover:bg-gray-100 transition">
-                Shop Now
-              </button>
-              <button className="border border-white px-6 py-3 rounded-2xl hover:bg-white hover:text-blue-700 transition">
-                Learn More
-              </button>
-            </div>
+        {isLoading && (
+          <div className="grid md:grid-cols-3 gap-8">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-72 bg-gray-200 animate-pulse rounded-3xl" />
+            ))}
           </div>
+        )}
 
-          {/* Right */}
-          <div className="animate-fadeInImage">
-            <img
-              src="https://images.unsplash.com/photo-1606813907291-d86efa9b94db"
-              alt="Hero"
-              className="rounded-2xl shadow-2xl"
-            />
-          </div>
-
+        <div className="grid md:grid-cols-3 gap-8">
+          {trendingProducts.map((item) => (
+            <motion.div
+              whileHover={{ y: -10 }}
+              key={item.id}
+              className="product-card bg-white rounded-3xl shadow-lg hover:shadow-2xl transition overflow-hidden reveal"
+            >
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-56 object-cover"
+              />
+              <div className="p-6">
+                <h4 className="font-semibold text-lg">{item.name}</h4>
+                {renderStars(item.rating?.stars || 0)}
+                <p className="my-4 font-bold text-xl ">
+                  {formatMoneyCents(item.priceCents)}
+                </p>
+                <button
+                  onClick={(e) => addToCart(item, e)}
+                  className="w-full mt-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold hover:scale-105 transition"
+                >
+                  Add to Cart
+                </button>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -107,45 +289,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ================= PRODUCTS SECTION ================= */}
-      <section id="products" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <h3 className="text-3xl font-bold text-center mb-12">
-            Trending Products
-          </h3>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div
-                key={item}
-                className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition transform hover:scale-105 duration-300 overflow-hidden animate-fadeInProduct"
-              >
-                <img
-                  src={`https://source.unsplash.com/random/400x300?sig=${item}`}
-                  alt="Product"
-                  className="w-full h-56 object-cover"
-                />
-
-                <div className="p-6">
-                  <h4 className="font-semibold">Product Name</h4>
-                  <p className="text-gray-500 text-sm mt-1">
-                    ⭐ 4.8 Rating
-                  </p>
-                  <p className="mt-4 font-bold text-lg">
-                    $49.99
-                  </p>
-
-                  <button className="w-full mt-4 bg-blue-600 text-white py-2 rounded-2xl hover:bg-blue-700 transition">
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ================= TESTIMONIAL SECTION ================= */}
       <section id="testimonials" className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <h3 className="text-3xl font-bold mb-12">
@@ -162,7 +306,7 @@ export default function LandingPage() {
       </section>
 
       {/* ================= CTA SECTION ================= */}
-      <section className="py-20 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-center animate-fadeInCTA">
+      <section className="py-20 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-center animate-fadeInCTA" id="cta">
         <h3 className="text-3xl font-bold">Ready to Start Shopping?</h3>
         <p className="mt-4 text-blue-100">Join thousands of happy customers today.</p>
 
@@ -171,8 +315,73 @@ export default function LandingPage() {
         </button>
       </section>
 
+      {/* CART DRAWER */}
+      <AnimatePresence>
+        {cartOpen && (
+          <motion.div
+            initial={{ x: 400 }}
+            animate={{ x: 0 }}
+            exit={{ x: 400 }}
+            transition={{ type: "spring", stiffness: 120 }}
+            className="fixed top-0 right-0 w-96 h-full bg-white shadow-2xl z-50 p-6 overflow-y-auto"
+          >
+            <h3 className="text-xl font-bold mb-6">Your Cart</h3>
+
+            {cart.length === 0 && <p>Cart is empty</p>}
+
+            {cart.map((item) => (
+              <div key={item.id} className="flex justify-between mb-6">
+                <div>
+                  <p className="font-semibold">{item.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatMoneyCents(item.priceCents)}
+                  </p>
+                  <div className="flex gap-3 mt-2 items-center">
+                    <button onClick={() => updateQuantity(item.id, -1)}>-</button>
+                    <span>{item.quantity}</span>
+                    <button onClick={() => updateQuantity(item.id, 1)}>+</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div className="mt-8 font-bold text-lg">
+              Total: {formatMoneyCents(totalPrice)}
+            </div>
+
+            <button
+              onClick={() => setCartOpen(false)}
+              className="mt-6 w-full bg-black text-white py-3 rounded-xl"
+            >
+              Close
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showTopBtn && (
+          <motion.button
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.3 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 z-50 
+            bg-gradient-to-r from-blue-600 to-indigo-600 
+            text-white px-5 py-3 rounded-full 
+            shadow-xl hover:scale-110 transition-transform"
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
+
+
+
 
 

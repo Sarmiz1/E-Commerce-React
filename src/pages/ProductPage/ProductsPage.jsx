@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useFetchData } from "../../Hooks/useFetch";
 import { useSearchParams } from "react-router-dom";
 import ProductsContainer from "./Components/ProuductsContainer";
@@ -29,9 +29,27 @@ export default function ProductsPage() {
   const [searchParams] = useSearchParams();
   const search = searchParams.get("search");
   const url = search ? `/api/products?search=${search}` : "/api/products";
-  const { fetchedData: products, isLoading, error: fetchError } = useFetchData(url);
+  const { fetchedData, isLoading, error } = useFetchData(url);
 
-  useShowErrorBoundary(fetchError);
+  useShowErrorBoundary(error);
+
+  const products = useMemo(() => fetchedData || [], [fetchedData]);
+
+  // State to delay "No products" message
+  const [showNoProducts, setShowNoProducts] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (!isLoading && (!products || products.length === 0)) {
+      // wait 3 seconds before showing the message
+      timer = setTimeout(() => setShowNoProducts(true), 3000);
+    } else {
+      setShowNoProducts(false); // reset if products appear
+    }
+
+    return () => clearTimeout(timer);
+  }, [isLoading, products]);
+
 
   // --- State for filtering ---
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -48,16 +66,22 @@ export default function ProductsPage() {
   }, [products, selectedCategory]);
 
 
+  
+
   if (isLoading) {
     return (
-      <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
-        <TiShoppingCart className="animate-slide-x text-6xl text-gray-700" />
+      <div className="h-screen flex justify-center items-center">
+        Loading products...
       </div>
     );
   }
 
-  if (!products || products.length === 0) {
-    return <h1 className="text-center mt-20 text-2xl">No products available</h1>;
+  if ((!products || products.length === 0) && showNoProducts) {
+    return (
+      <h1 className="text-center mt-20 text-2xl">
+        No products available
+      </h1>
+    );
   }
 
 
