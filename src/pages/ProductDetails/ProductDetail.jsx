@@ -25,7 +25,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     let timer;
-    if (!isLoading && (!products || products.length === 0)) {
+    if (!isLoading && (!products || product?.length === 0)) {
       // wait 3 seconds before showing the message
       timer = setTimeout(() => setShowNoProducts(true), 3500);
     } else {
@@ -44,19 +44,36 @@ export default function ProductDetail() {
     )
   );
 
+  console.log(products)
+  console.log(product)
+  console.log(similarProducts)
+  console.log(showNoProducts)
+  
+
+
+
 
   if (isLoading) {
     return (
-      <div className="h-screen flex justify-center items-center">
+      <div className="text-2xl h-screen flex items-center justify-center">
         Loading products...
       </div>
     );
   }
 
-  if ((!products || products.length === 0) && showNoProducts) {
+  if ((!products || product?.length === 0) && showNoProducts) {
     return (
-      <h1 className="text-center mt-20 text-2xl">
+      <h1 className="text-2xl h-screen flex items-center justify-center">
         No details on this product
+      </h1>
+    );
+  }
+
+
+  if (!product) {
+    return (
+      <h1 className="text-2xl h-screen flex items-center justify-center">
+        Product does not exist
       </h1>
     );
   }

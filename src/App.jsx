@@ -16,6 +16,8 @@ import RootLayout from './Layout/RootLayout'
 import DefaultLayout from './Layout/DefaultLayout'
 import LandingLayout from './Layout/LandingLayout'
 import NotFoundPage from './Components/NotFoundPage'
+import FallbackPage from './Components/FallbackPage'
+
 
 
 export default function App() {
@@ -41,7 +43,7 @@ export default function App() {
 
   const router = createBrowserRouter(
     createRoutesFromElements(
-      <Route element={<RootLayout />}>
+      <Route element={<RootLayout />} errorElement={<FallbackPage />}>
 
         {/* Conditional home route */}
         <Route
@@ -67,9 +69,9 @@ export default function App() {
           <Route path="orders" element={<OrdersPage />} />
           <Route path="tracking" element={<TrackingPage />} />
 
-          <Route path="products" element={<ProductsLayout />}>
+          <Route path="products" element={<ProductsLayout />} >
             <Route index element={<ProductsPage />} />
-            <Route path=":productId" element={<ProductDetail />} />
+            <Route path=":productId" element={<ProductDetail />}/>
           </Route>
         </Route>
 

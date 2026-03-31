@@ -228,7 +228,9 @@ export default function LandingPage() {
             )}
           </button>
 
-          
+          <button className="flex md:hidden items-center gap-1 text-sm font-medium" onClick={() => alert("Mobile menu coming soon!")}>
+            Menu
+          </button>
         </div>
       </header>
 
