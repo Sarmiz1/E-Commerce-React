@@ -1,4 +1,4 @@
-import { ButtonPrimary } from "../../../components/ButtonPrimary";
+import { ButtonPrimary } from "../../../Components/Ui/ButtonPrimary"; 
 import { Link, useNavigate } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
 import { postData } from "../../../api/postData";

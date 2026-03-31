@@ -1,0 +1,28 @@
+{
+  "proucts": [
+    {
+      "id": 1,
+      "name": "Luxury Leather Bag",
+      "price": 299,
+      "rating": 4.9,
+      "image": "https://source.unsplash.com/400x300/?leather-bag",
+      "description": "Crafted from the finest leather, timeless design, premium quality."
+    },
+    {
+      "id": 2,
+      "name": "Designer Sneakers",
+      "price": 199,
+      "rating": 4.8,
+      "image": "https://source.unsplash.com/400x300/?designer-sneakers",
+      "description": "High-end sneakers made with premium materials for ultimate comfort."
+    },
+    {
+      "id": 3,
+      "name": "Luxury Watch",
+      "price": 999,
+      "rating": 5.0,
+      "image": "https://source.unsplash.com/400x300/?luxury-watch",
+      "description": "Precision engineered watch with exquisite craftsmanship."
+    }
+  ]
+}

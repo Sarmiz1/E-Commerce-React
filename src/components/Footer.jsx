@@ -1,34 +1,29 @@
-import { NavLink } from "react-router-dom";
-
+// src/components/Footer.jsx
 export default function Footer() {
   return (
-    <section className="flex gap-4 flex-col justify-center pt-10 px-10 bg-slate-200 dark:bg-slate-400">
-      <div className="flex flex-col md:flex-row  justify-center md:justify-start items-center md:items-start gap-4 mb-8">
-
-        <ul className=" md:mr-auto sm:ml-10 md:ml-0 mb-2 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-1 gap-4">
-          <li className="hover:text-slate-100"><NavLink>Facebook</NavLink></li>
-          <li className="hover:text-slate-100"><NavLink>Instagram</NavLink></li>
-          <li className="hover:text-slate-100"><NavLink>Twitter</NavLink></li>
-          <li className="sm:-ml-4 md:-ml-0 hover:text-slate-100"><NavLink>Tiktok</NavLink></li>
-        </ul>
-
-        <ul className="flex gap-4">
-          <li className="hover:text-slate-100">
-            <NavLink>Contact</NavLink>
-          </li >
-          <li className="hover:text-slate-100">
-            <NavLink>About</NavLink>
-          </li>
-          <li className="hover:text-slate-100">
-            <NavLink>Support</NavLink>
-          </li>
-          <li className="hover:text-slate-100">
-            <NavLink>FAQ</NavLink>
-          </li>
-        </ul>
+    <footer className="bg-gray-900 text-gray-400 py-12">
+      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+        <div>
+          <h4 className="text-white font-semibold mb-4">ShopEase</h4>
+          <p className="text-sm">Your trusted online store for premium products.</p>
+        </div>
+        <div>
+          <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+          <ul className="space-y-2 text-sm">
+            <li><a href="#" className="hover:text-white">About Us</a></li>
+            <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
+            <li><a href="#" className="hover:text-white">Terms</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-white font-semibold mb-4">Contact</h4>
+          <p className="text-sm">support@shopease.com</p>
+          <p className="text-sm">+1 (234) 567-890</p>
+        </div>
       </div>
-
-      <p className="text-center mb-1">&copy; 2026  ShopMart. All rights reserved.</p>
-    </section>
+      <div className="text-center text-xs mt-10 text-gray-500">
+        © {new Date().getFullYear()} ShopEase. All rights reserved.
+      </div>
+    </footer>
   );
 }

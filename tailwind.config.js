@@ -62,13 +62,47 @@ export default {
           '20%, 60%': { transform: 'translateX(-10px)' },
           '40%, 80%': { transform: 'translateX(10px)' },
         },
+        fadeInHero: {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
+        fadeInImage: {
+          "0%": { opacity: 0, transform: "scale(0.95)" },
+          "100%": { opacity: 1, transform: "scale(1)" },
+        },
+        fadeInFeature: {
+          "0%": { opacity: 0, transform: "translateY(20px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
+        fadeInProduct: {
+          "0%": { opacity: 0, transform: "scale(0.95)" },
+          "100%": { opacity: 1, transform: "scale(1)" },
+        },
+        fadeInTestimonial: {
+          "0%": { opacity: 0, transform: "translateY(15px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
+        fadeInCTA: {
+          "0%": { opacity: 0, transform: "translateY(20px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
       },
       animation: {
         'slide-x': 'slideX 8s linear infinite',
         fadeIn: 'fadeIn 0.5s ease-out forwards',
         shake: 'shake 0.5s ease-in-out',
+        fadeInHero: "fadeInHero 1s ease-in forwards",
+        fadeInImage: "fadeInImage 1s ease-in forwards",
+        fadeInFeature: "fadeInFeature 1s ease-out forwards",
+        fadeInProduct: "fadeInProduct 1s ease-out forwards",
+        fadeInTestimonial: "fadeInTestimonial 1s ease-out forwards",
+        fadeInCTA: "fadeInCTA 1s ease-out forwards",
       },
     },
   },
   plugins: [],
 };
+
+
+
+

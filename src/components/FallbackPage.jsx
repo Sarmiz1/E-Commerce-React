@@ -16,7 +16,7 @@ const FallbackPage = (props) => {
       "
     >
       <img
-        src='/images/error/error.jpg'
+        src='public/images/error/error.jpg'
         alt='Page not found'
         className="w-64 md:w-70 rounded-lg shadow-lg lg:w-60"
       />

@@ -10,7 +10,7 @@ export default function NotFoundPage() {
     >
       <img
         component="img"
-        src="/images/notFound/notfound-removebg-preview.png"
+        src="public/images/notFound/notfound-removebg-preview.png"
         alt="Page not found"
         className="w-40 sm:w-44 md:w-52 rounded-md shadow-lg"
       />

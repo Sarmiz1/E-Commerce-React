@@ -10,9 +10,9 @@ export default function RootLayout() {
     <>
       <NavBar />
       <Suspense fallback={
-        <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden"> 
-        <TiShoppingCart className="animate-slide-x"/>
-      </div>
+        <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
+          <TiShoppingCart className="animate-slide-x" />
+        </div>
       }>
         <Outlet />  {/* This renders the route element */}
       </Suspense >

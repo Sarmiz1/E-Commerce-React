@@ -1,0 +1,28 @@
+{
+  "jobs" : [
+    {
+      "id": 1,
+      "title": "Sr. React Developer",
+      "salary": 50000,
+      "location": "London, UK"
+    },
+    {
+      "id": 2,
+      "title": "Jr. React Developer",
+      "salary": 25000,
+      "location": "San Francisco, US"
+    },
+    {
+      "id": 3,
+      "title": "Web Developer",
+      "salary": 4000,
+      "location": "Accra, GH"
+    },
+    {
+      "id": 2,
+      "title": "Wordpress Developer",
+      "salary": 2000,
+      "location": "Lagos, NG"
+    }
+  ]
+}

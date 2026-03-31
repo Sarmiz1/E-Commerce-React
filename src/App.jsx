@@ -1,17 +1,22 @@
 import './App.css'
-import HomePage from './pages/home/HomePage'
+import HomePage from './Pages/Home/HomePage/HomePage'
+import LandingPage from './Pages/Home/LandingPage/LandinPage'
 import CheckOutPage from './pages/checkout/CheckOutPage'
 import OrdersPage from './pages/orders/OrdersPage'
+import ProductsPage from './Pages/ProductPage/ProductsPage'
 import TrackingPage from './pages/tracking/TrackingPage'
-import NavBar from './components/NavBar'
-import { Routes, Route } from 'react-router-dom'
+import ProductDetail from './Pages/ProductDetails/ProductDetail'
+import ProductsLayout from './Layout/ProductsLayout'
+import { createBrowserRouter, Route, createRoutesFromElements, RouterProvider } from 'react-router-dom'
 import dataContext from './Context/cartContext'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { IconContext } from 'react-icons'
+import RootLayout from './Layout/RootLayout'
+import NotFoundPage from './Components/NotFoundPage'
 
 
-function App() {
+export default function App() {
 
   const [cart, setCart] = useState([])
 
@@ -30,6 +35,30 @@ function App() {
   }, [])
 
 
+  const isLoggedIn = false
+
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route>
+        <Route path="/" element={<RootLayout />}>
+          <Route index element={
+            !isLoggedIn ? <LandingPage /> : <HomePage />
+          } />
+          <Route path="checkout" element={<CheckOutPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="tracking" element={<TrackingPage />} />
+          <Route path="products"  element={<ProductsLayout />} >
+            <Route index element={<ProductsPage />} />
+            <Route path=":productId" element={<ProductDetail />} />
+          </Route>
+        </Route>
+
+        <Route path='*' element={<NotFoundPage />} />
+      </Route>
+    )
+  )
+
+
 
   return (
     <>
@@ -38,33 +67,11 @@ function App() {
         loadCart,
       }}>
         <IconContext value={{ size: "80px", color: "green" }}>
-          <NavBar />
-          <Routes>
-            <Route path="/checkout" element=
-              {
-                <CheckOutPage />
-              } />
-
-            <Route path="/" element=
-              {
-                <HomePage />
-              } />
-
-            <Route path="/orders" element=
-              {
-                <OrdersPage />
-              } />
-
-            <Route path="/tracking" element=
-              {
-                <TrackingPage />
-              } />
-          </Routes>
+          <RouterProvider router={router} />
         </IconContext>
       </dataContext.Provider>
-
     </>
+
   )
 }
 
-export default App

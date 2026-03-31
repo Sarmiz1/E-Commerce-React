@@ -1,4 +1,4 @@
-import { ButtonPrimary } from "../../../components/ButtonPrimary";
+import { ButtonPrimary } from "../../../Components/Ui/ButtonPrimary"; 
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useContext, useState } from "react";
 import checkOutContext from "../../../Context/checkOutContext";
@@ -13,7 +13,7 @@ function PaymentSumary({ deliveryOptions }) {
   const [errorMessage, setErrorMessage] = useState('')
 
   const { paymentSumary } = useContext(checkOutContext);
-  const { loadCart } = useContext(cartContext);
+  const { loadCart, cart } = useContext(cartContext);
 
   const placeOrderClick = async () => {
     try {
@@ -33,11 +33,12 @@ function PaymentSumary({ deliveryOptions }) {
       navigate("/orders");
 
     } catch (error) {
-      console.error("Place order error:", error);
-      setErrorMessage("Order failed, try again.");
+      if(cart.length === 0) setErrorMessage("Cart is Empty");
+      else setErrorMessage("Order failed, try again.");
     }
   };
 
+  
   return (
     <>
       {deliveryOptions.length > 0 && (

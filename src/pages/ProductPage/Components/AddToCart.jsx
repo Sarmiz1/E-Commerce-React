@@ -1,8 +1,8 @@
-import { ButtonPrimary } from "../../../../components/ButtonPrimary";
+import { ButtonPrimary } from "../../../Components/Ui/ButtonPrimary";  
 import { useState, useContext, useEffect } from "react";
-import { postData } from "../../../../api/postData";
-import cartContext from "../../../../Context/cartContext";
-import { ErrorMessage } from "../../../../Components/ErrorMessage";
+import { postData } from "../../../api/postData";
+import cartContext from "../../../Context/cartContext";
+import { ErrorMessage } from "../../../Components/ErrorMessage";
 
 function AddToCart({ productId }) {
 
@@ -51,7 +51,7 @@ function AddToCart({ productId }) {
 
   return (
     <>
-      <div className=" mb-4">
+      <div className=" mt-4 -mb-2">
         <select
           className="text-[rgb(33, 33, 33)] bg-white border border-solid
         border-[rgb(200, 200, 200)] rounded-md py-[3px] px-[5px] text-base
@@ -73,7 +73,7 @@ function AddToCart({ productId }) {
         </select>
       </div>
       <div
-        className={` text-greenPry text-base flex items-center mb-2 
+        className={` text-greenPry text-base flex items-center mb-2 justify-center 
         ${addSuccesfully ? "opacity-100" : "opacity-0"}`}
       >
         <img className="h-5 mr-[6px]" src="images/icons/checkmark.png" />
