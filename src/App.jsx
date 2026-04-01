@@ -1,5 +1,5 @@
 import './App.css'
-import { fetchLoader } from "./api/fetchLoader"
+import { fetchLoader } from "./api/loaders"
 import HomePage from './Pages/Home/HomePage/HomePage'
 import LandingPage from './Pages/Home/LandingPage/LandinPage'
 import CheckOutPage from './pages/checkout/CheckOutPage'

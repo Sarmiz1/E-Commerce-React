@@ -10,6 +10,7 @@ export default function ProductDetail() {
 
   // Products Data
   const products = useLoaderData();
+  console.log("Products", products)
 
   // Product
   const product = products.find(
