@@ -44,7 +44,7 @@ export default function App() {
 
 
 
-  const isLoggedIn = false; // Mock authentication state, replace with real auth logic as needed
+  const isLoggedIn = true; // Mock authentication state, replace with real auth logic as needed
 
   const router = createBrowserRouter(
     createRoutesFromElements(
