@@ -8,7 +8,7 @@ import { TiShoppingCart } from "react-icons/ti";
 export default function RootLayout() {
   return (
     <>
-      <NavBar />
+      {/* <NavBar /> */}
       <Suspense fallback={
         <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
           <TiShoppingCart className="animate-slide-x" />

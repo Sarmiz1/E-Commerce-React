@@ -6,6 +6,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useFetchData } from "../../../Hooks/useFetch";
 import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import Navbar from "./Navbar";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -21,12 +22,12 @@ const HERO_PARTICLES = Array.from({ length: 50 }, () => ({
 
 // ─── Static data ──────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { label: "Bags",        emoji: "👜", bg: "from-rose-400 to-pink-600",     count: "2.4K+" },
-  { label: "Watches",     emoji: "⌚", bg: "from-amber-400 to-orange-500",   count: "890+"  },
-  { label: "Scarves",     emoji: "🧣", bg: "from-violet-400 to-purple-600",  count: "1.1K+" },
-  { label: "Sunglasses",  emoji: "🕶️", bg: "from-sky-400 to-blue-600",       count: "670+"  },
-  { label: "Perfumes",    emoji: "🧴", bg: "from-emerald-400 to-teal-600",   count: "340+"  },
-  { label: "Shoes",       emoji: "👠", bg: "from-gray-600 to-gray-900",      count: "3.2K+" },
+  { label: "Bags", emoji: "👜", bg: "from-rose-400 to-pink-600", count: "2.4K+" },
+  { label: "Watches", emoji: "⌚", bg: "from-amber-400 to-orange-500", count: "890+" },
+  { label: "Scarves", emoji: "🧣", bg: "from-violet-400 to-purple-600", count: "1.1K+" },
+  { label: "Sunglasses", emoji: "🕶️", bg: "from-sky-400 to-blue-600", count: "670+" },
+  { label: "Perfumes", emoji: "🧴", bg: "from-emerald-400 to-teal-600", count: "340+" },
+  { label: "Shoes", emoji: "👠", bg: "from-gray-600 to-gray-900", count: "3.2K+" },
 ];
 
 const BRANDS = ["ZARA", "H&M", "GUCCI", "PRADA", "VERSACE", "DIOR", "FENDI", "BALENCIAGA"];
@@ -37,23 +38,23 @@ const MARQUEE_ITEMS = [
 ];
 
 const PERKS = [
-  { icon: "🚀", title: "Express Delivery",     desc: "Same-day on thousands of items. White-glove handling on every order." },
+  { icon: "🚀", title: "Express Delivery", desc: "Same-day on thousands of items. White-glove handling on every order." },
   { icon: "🔒", title: "Vault-Grade Security", desc: "256-bit encryption on every transaction. Your data stays yours." },
-  { icon: "↩️", title: "Effortless Returns",   desc: "No-questions 30-day returns. Full refunds processed in 48 hours." },
-  { icon: "💎", title: "Member Privileges",    desc: "Exclusive drops, early access, and curated edits before the public." },
+  { icon: "↩️", title: "Effortless Returns", desc: "No-questions 30-day returns. Full refunds processed in 48 hours." },
+  { icon: "💎", title: "Member Privileges", desc: "Exclusive drops, early access, and curated edits before the public." },
 ];
 
 const TESTIMONIALS = [
-  { id: 1, text: "The packaging alone felt like unwrapping a gift from a Parisian boutique. Absolutely exceptional.", author: "Amara J.",  role: "VIP Member",      stars: 5 },
-  { id: 2, text: "Delivered in 6 hours. I've never experienced e-commerce at this level before. Truly elite.",         author: "Marcus W.", role: "Verified Buyer",  stars: 5 },
-  { id: 3, text: "The return was handled in 24 hours with a personal apology note. Class-defining service.",           author: "Sophie K.", role: "Loyal Customer",  stars: 5 },
-  { id: 4, text: "Every product is exactly as described — photographed honestly, no surprises. Rare these days.",      author: "Chen Li",   role: "Top Reviewer",    stars: 5 },
+  { id: 1, text: "The packaging alone felt like unwrapping a gift from a Parisian boutique. Absolutely exceptional.", author: "Amara J.", role: "VIP Member", stars: 5 },
+  { id: 2, text: "Delivered in 6 hours. I've never experienced e-commerce at this level before. Truly elite.", author: "Marcus W.", role: "Verified Buyer", stars: 5 },
+  { id: 3, text: "The return was handled in 24 hours with a personal apology note. Class-defining service.", author: "Sophie K.", role: "Loyal Customer", stars: 5 },
+  { id: 4, text: "Every product is exactly as described — photographed honestly, no surprises. Rare these days.", author: "Chen Li", role: "Top Reviewer", stars: 5 },
 ];
 
 const HOW_IT_WORKS = [
-  { num: "01", icon: "🔍", title: "Discover",  desc: "Explore thousands of curated luxury items across every category." },
-  { num: "02", icon: "🛒", title: "Select",    desc: "Add to your wardrobe with a single tap." },
-  { num: "03", icon: "💳", title: "Checkout",  desc: "Secure, fast payment. Under 60 seconds." },
+  { num: "01", icon: "🔍", title: "Discover", desc: "Explore thousands of curated luxury items across every category." },
+  { num: "02", icon: "🛒", title: "Select", desc: "Add to your wardrobe with a single tap." },
+  { num: "03", icon: "💳", title: "Checkout", desc: "Secure, fast payment. Under 60 seconds." },
   { num: "04", icon: "📦", title: "Delivered", desc: "Your order arrives fast, tracked end-to-end." },
 ];
 
@@ -75,6 +76,30 @@ const STYLES = `
   }
   @keyframes hp-float-y{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
   .hp-float-y{animation:hp-float-y 4s ease-in-out infinite}
+
+  @keyframes hp-count-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .hp-count-up{animation:hp-count-up 0.5s ease-out forwards}
+
+  @keyframes hp-pulse-ring{0%{transform:scale(1);opacity:.6}70%{transform:scale(1.4);opacity:0}100%{transform:scale(1.4);opacity:0}}
+  .hp-pulse-ring{animation:hp-pulse-ring 2s ease-out infinite}
+
+  @keyframes hp-scroll-x{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .hp-scroll-x{animation:hp-scroll-x 30s linear infinite}
+  .hp-scroll-x:hover{animation-play-state:paused}
+
+  .hp-progress-bar{transition:width 1.2s cubic-bezier(0.4,0,0.2,1)}
+
+  .hp-back-top{
+    position:fixed;bottom:2rem;right:2rem;z-index:50;
+    width:3.5rem;height:3.5rem;border-radius:9999px;
+    background:linear-gradient(135deg,#2563eb,#6366f1);
+    color:white;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 30px rgba(99,102,241,0.4);
+    cursor:pointer;border:none;outline:none;
+  }
+  .hp-back-top:hover{transform:scale(1.1);box-shadow:0 16px 40px rgba(99,102,241,0.55);}
+  .hp-back-top svg{transition:transform 0.2s;}
+  .hp-back-top:hover svg{transform:translateY(-2px);}
 `;
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
@@ -86,7 +111,7 @@ function Stars({ rating = 0 }) {
   const full = Math.floor(rating), half = rating % 1 >= 0.5, empty = 5 - full - (half ? 1 : 0);
   return (
     <div className="flex items-center gap-0.5">
-      {Array(full).fill(0).map((_, i)  => <span key={`f${i}`} className="text-yellow-400 text-sm">★</span>)}
+      {Array(full).fill(0).map((_, i) => <span key={`f${i}`} className="text-yellow-400 text-sm">★</span>)}
       {half && <span className="text-yellow-400 text-sm">⯪</span>}
       {Array(empty).fill(0).map((_, i) => <span key={`e${i}`} className="text-gray-200 text-sm">★</span>)}
       <span className="ml-1 text-xs text-gray-400">{rating}</span>
@@ -103,7 +128,7 @@ function ParticleField() {
     // Clone module-level data with real pixel positions
     const particles = HERO_PARTICLES.map((p) => ({
       ...p,
-      x: (p.x / 100) * (canvas.offsetWidth  || 800),
+      x: (p.x / 100) * (canvas.offsetWidth || 800),
       y: (p.y / 100) * (canvas.offsetHeight || 500),
     }));
     const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
@@ -120,7 +145,7 @@ function ParticleField() {
       for (let i = 0; i < particles.length; i++) for (let j = i + 1; j < particles.length; j++) {
         const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
         const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 90) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `rgba(255,255,255,${0.06*(1-d/90)})`; ctx.lineWidth=0.5; ctx.stroke(); }
+        if (d < 90) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `rgba(255,255,255,${0.06 * (1 - d / 90)})`; ctx.lineWidth = 0.5; ctx.stroke(); }
       }
       animId = requestAnimationFrame(draw);
     };
@@ -135,12 +160,12 @@ function FloatingOrbs({ dark = false }) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {[
-        { w:600,h:600,top:"-10%",left:"-10%",delay:0,dur:18 },
-        { w:400,h:400,top:"40%",right:"-8%",delay:3,dur:22 },
-        { w:300,h:300,bottom:"-5%",left:"30%",delay:6,dur:16 },
-      ].map((o,i) => (
-        <div key={i} style={{ width:o.w,height:o.h,top:o.top,left:o.left,right:o.right,bottom:o.bottom,animationDelay:`${o.delay}s`,animationDuration:`${o.dur}s` }}
-          className={`absolute rounded-full blur-3xl hp-float-orb ${dark?"bg-indigo-900/40":"bg-gradient-to-br from-blue-400/20 to-indigo-500/20"}`} />
+        { w: 600, h: 600, top: "-10%", left: "-10%", delay: 0, dur: 18 },
+        { w: 400, h: 400, top: "40%", right: "-8%", delay: 3, dur: 22 },
+        { w: 300, h: 300, bottom: "-5%", left: "30%", delay: 6, dur: 16 },
+      ].map((o, i) => (
+        <div key={i} style={{ width: o.w, height: o.h, top: o.top, left: o.left, right: o.right, bottom: o.bottom, animationDelay: `${o.delay}s`, animationDuration: `${o.dur}s` }}
+          className={`absolute rounded-full blur-3xl hp-float-orb ${dark ? "bg-indigo-900/40" : "bg-gradient-to-br from-blue-400/20 to-indigo-500/20"}`} />
       ))}
     </div>
   );
@@ -444,10 +469,10 @@ function BestSellersSection({ products, isLoading }) {
 function StatsBanner() {
   const ref = useRef(null);
   const stats = [
-    { value: "2M+",  label: "Happy Customers", icon: "😊" },
-    { value: "150K+",label: "Products Listed",  icon: "📦" },
-    { value: "4.9★", label: "Average Rating",   icon: "⭐" },
-    { value: "99%",  label: "On-Time Delivery", icon: "🚀" },
+    { value: "2M+", label: "Happy Customers", icon: "😊" },
+    { value: "150K+", label: "Products Listed", icon: "📦" },
+    { value: "4.9★", label: "Average Rating", icon: "⭐" },
+    { value: "99%", label: "On-Time Delivery", icon: "🚀" },
   ];
   useEffect(() => {
     const el = ref.current; if (!el) return;
@@ -757,6 +782,506 @@ function CTABanner() {
   );
 }
 
+
+// ─── Back to Top ──────────────────────────────────────────────────────────────
+function BackToTop() {
+  const [visible, setVisible] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(docH > 0 ? Math.min(scrollTop / docH, 1) : 0);
+      setVisible(scrollTop > 400);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollToTop = () => gsap.to(window, { duration: 1, scrollTo: { y: 0 }, ease: 'power2.inOut' });
+  const r = 24, circ = 2 * Math.PI * r;
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.6, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.6, y: 30 }}
+          transition={{ duration: 0.3, ease: 'backOut' }}
+          onClick={scrollToTop}
+          className="hp-back-top"
+          aria-label="Back to top"
+        >
+          <svg className="absolute w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+            <circle cx="28" cy="28" r={r} stroke="rgba(255,255,255,0.15)" strokeWidth="3" fill="none" />
+            <circle
+              cx="28" cy="28" r={r}
+              stroke="white" strokeWidth="3" fill="none"
+              strokeDasharray={circ}
+              strokeDashoffset={circ * (1 - progress)}
+              strokeLinecap="round"
+            />
+          </svg>
+          <svg className="relative z-10 w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+          </svg>
+        </motion.button>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─── Deal of the Day ──────────────────────────────────────────────────────────
+function DealOfTheDay({ product, isLoading }) {
+  const ref = useRef(null);
+  const [time, setTime] = useState({ h: 11, m: 34, s: 7 });
+  const pad = (n) => String(n).padStart(2, '0');
+
+  useEffect(() => {
+    const id = setInterval(() => setTime((p) => {
+      let { h, m, s } = p; s--;
+      if (s < 0) { s = 59; m--; } if (m < 0) { m = 59; h--; } if (h < 0) { h = 11; m = 59; s = 59; }
+      return { h, m, s };
+    }), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const t = setTimeout(() => {
+      const items = el.querySelectorAll('.hp-dotd');
+      if (!items.length) return;
+      gsap.fromTo(items, { y: 45, opacity: 0 },
+        {
+          y: 0, opacity: 1, stagger: 0.1, duration: 0.9, ease: 'power3.out', clearProps: 'all',
+          scrollTrigger: { trigger: el, start: 'top 82%', once: true }
+        });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [product]);
+
+  if (isLoading) return (
+    <section className="py-20 max-w-7xl mx-auto px-6">
+      <div className="h-96 bg-gray-100 rounded-3xl animate-pulse" />
+    </section>
+  );
+  if (!product) return null;
+
+  return (
+    <section ref={ref} className="py-20 max-w-7xl mx-auto px-6">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-8 md:p-14 shadow-2xl">
+        {/* Subtle dot pattern */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+        <FloatingOrbs dark />
+        <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
+          {/* Left — info */}
+          <div className="text-white">
+            <div className="hp-dotd flex items-center gap-3 mb-6">
+              <span className="bg-red-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest animate-pulse">🔥 Deal of the Day</span>
+              <span className="text-gray-400 text-xs">Ends in:</span>
+              <div className="flex gap-1.5">
+                {[{ v: time.h, l: 'h' }, { v: time.m, l: 'm' }, { v: time.s, l: 's' }].map((t) => (
+                  <span key={t.l} className="bg-white/10 text-white font-black text-sm px-2 py-1 rounded-lg min-w-[32px] text-center">{pad(t.v)}<span className="text-[9px] text-gray-400 ml-0.5">{t.l}</span></span>
+                ))}
+              </div>
+            </div>
+            <h2 className="hp-dotd text-4xl md:text-5xl font-black leading-tight mb-4">{product.name}</h2>
+            <div className="hp-dotd flex items-baseline gap-4 mb-6">
+              <span className="text-4xl font-black text-white">{formatMoneyCents(product.priceCents)}</span>
+              <span className="text-gray-500 line-through text-xl">{formatMoneyCents(Math.round(product.priceCents * 1.4))}</span>
+              <span className="bg-green-500 text-white text-xs font-black px-2.5 py-1 rounded-full">−30% OFF</span>
+            </div>
+            <Stars rating={product.rating?.stars || 0} />
+            {/* Progress bar */}
+            <div className="hp-dotd mt-8">
+              <div className="flex justify-between text-xs text-gray-400 mb-2">
+                <span>🔥 Selling fast</span>
+                <span>74 sold · 26 left</span>
+              </div>
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full hp-progress-bar" style={{ width: '74%' }} />
+              </div>
+            </div>
+            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              className="hp-dotd mt-8 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black px-10 py-4 rounded-2xl text-lg shadow-xl shadow-indigo-500/30">
+              Grab This Deal →
+            </motion.button>
+          </div>
+          {/* Right — product image */}
+          <motion.div className="hp-dotd relative" animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
+            <div className="relative w-full max-w-xs mx-auto aspect-square rounded-3xl overflow-hidden shadow-2xl">
+              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            </div>
+            {/* Pulse rings */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full aspect-square rounded-3xl border border-indigo-500/30 hp-pulse-ring" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full aspect-square rounded-3xl border border-blue-400/20 hp-pulse-ring" style={{ animationDelay: '0.8s' }} />
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Auto-scroll product strip (infinite loop) ────────────────────────────────
+function ProductScrollStrip({ products, isLoading, title, label }) {
+  const trackRef = useRef(null);
+  const wrapperRef = useRef(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const currentX = useRef(0);
+  const dragStartX = useRef(0);
+  const animRef = useRef(null);
+  const speed = useRef(0.6); // px per frame
+
+  // Auto-scroll
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    let raf;
+    const step = () => {
+      if (!isDragging.current) {
+        currentX.current -= speed.current;
+        const half = track.scrollWidth / 2;
+        if (Math.abs(currentX.current) >= half) currentX.current = 0;
+        gsap.set(track, { x: currentX.current });
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [products]);
+
+  // Drag
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const clamp = (v) => Math.min(0, v);
+    const onDown = (e) => {
+      isDragging.current = true;
+      dragStartX.current = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+      startX.current = currentX.current;
+      track.style.cursor = 'grabbing';
+    };
+    const onMove = (e) => {
+      if (!isDragging.current) return;
+      const cx = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+      currentX.current = clamp(startX.current + (cx - dragStartX.current));
+      gsap.set(track, { x: currentX.current });
+    };
+    const onUp = () => { isDragging.current = false; track.style.cursor = 'grab'; };
+    track.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    track.addEventListener('touchstart', onDown, { passive: true });
+    track.addEventListener('touchmove', onMove, { passive: true });
+    track.addEventListener('touchend', onUp);
+    track.addEventListener('dragstart', (e) => e.preventDefault());
+    return () => {
+      track.removeEventListener('mousedown', onDown);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      track.removeEventListener('touchstart', onDown);
+      track.removeEventListener('touchmove', onMove);
+      track.removeEventListener('touchend', onUp);
+    };
+  }, []);
+
+  const doubled = [...(products || []), ...(products || [])];
+
+  return (
+    <section className="py-20 bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 mb-10">
+        <div className="flex items-end justify-between">
+          <div>
+            {label && <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-2">{label}</p>}
+            <h2 className="text-3xl font-black text-gray-900">{title}</h2>
+            <p className="text-sm text-gray-400 mt-1">← Drag or scroll to explore →</p>
+          </div>
+          <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
+        </div>
+      </div>
+      <div ref={wrapperRef} className="overflow-hidden">
+        <div ref={trackRef} className="flex gap-5 px-6 will-change-transform" style={{ width: 'max-content', cursor: 'grab' }}>
+          {isLoading
+            ? Array(8).fill(0).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-52 h-72 bg-gray-100 rounded-3xl animate-pulse" />
+            ))
+            : doubled.map((p, i) => (
+              <div key={i} className="flex-shrink-0 w-52">
+                <ProductCard product={p} variant="minimal" />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Bento Product Grid ───────────────────────────────────────────────────────
+function BentoProductGrid({ products, isLoading }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const t = setTimeout(() => {
+      const cards = el.querySelectorAll('.hp-bento-cell');
+      if (!cards.length) return;
+      gsap.fromTo(cards, { scale: 0.88, opacity: 0 },
+        {
+          scale: 1, opacity: 1, stagger: { amount: 0.7, from: 'start' }, duration: 0.8,
+          ease: 'power3.out', clearProps: 'all',
+          scrollTrigger: { trigger: el, start: 'top 82%', once: true }
+        });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [products]);
+
+  if (isLoading) return (
+    <section className="py-20 max-w-7xl mx-auto px-6">
+      <div className="h-8 bg-gray-200 rounded w-48 mb-8 animate-pulse" />
+      <div className="grid grid-cols-3 grid-rows-2 gap-4 h-[480px]">
+        {Array(5).fill(0).map((_, i) => <div key={i} className="bg-gray-100 rounded-3xl animate-pulse" />)}
+      </div>
+    </section>
+  );
+
+  const [p0, p1, p2, p3, p4] = products;
+
+  const BentoCard = ({ product, className = '' }) => {
+    if (!product) return <div className={`${className} bg-gray-100 rounded-3xl`} />;
+    return (
+      <motion.div whileHover={{ scale: 1.02 }}
+        className={`hp-bento-cell relative group overflow-hidden rounded-3xl cursor-pointer shadow-lg hover:shadow-2xl transition-shadow duration-300 ${className}`}>
+        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-bold text-indigo-600 px-2 py-1 rounded-full">New</div>
+        <div className="absolute bottom-0 left-0 right-0 p-5 text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+          <p className="font-bold text-sm line-clamp-1 mb-1">{product.name}</p>
+          <div className="flex items-center justify-between">
+            <p className="font-black text-lg">{formatMoneyCents(product.priceCents)}</p>
+            <motion.button whileTap={{ scale: 0.9 }} className="bg-white text-gray-900 text-xs font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">+ Cart</motion.button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  return (
+    <section ref={ref} className="py-20 max-w-7xl mx-auto px-6">
+      <div className="flex items-end justify-between mb-12">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3">Discover</p>
+          <h2 className="text-3xl font-black text-gray-900">Top Picks for You</h2>
+        </div>
+        <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
+      </div>
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-4" style={{ gridTemplateRows: '240px 240px' }}>
+        <BentoCard product={p0} className="col-span-2 row-span-2" />
+        <BentoCard product={p1} className="col-span-1" />
+        <BentoCard product={p2} className="col-span-1" />
+        <BentoCard product={p3} className="col-span-1" />
+        <BentoCard product={p4} className="col-span-1" />
+      </div>
+    </section>
+  );
+}
+
+// ─── Recently Viewed (tag-filtered grid) ──────────────────────────────────────
+function FilterableGrid({ products, isLoading }) {
+  const ref = useRef(null);
+  const [active, setActive] = useState('All');
+  const tabs = ['All', 'Under $20', 'Top Rated', 'On Sale'];
+
+  const filtered = useMemo(() => {
+    if (!products.length) return [];
+    if (active === 'Under $20') return products.filter((p) => p.priceCents < 2000);
+    if (active === 'Top Rated') return products.filter((p) => (p.rating?.stars || 0) >= 4.5);
+    if (active === 'On Sale') return products.slice(0, 4);
+    return products.slice(0, 8);
+  }, [products, active]);
+
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const cards = el.querySelectorAll('.hp-fg-card');
+    if (!cards.length) return;
+    gsap.fromTo(cards, { y: 30, opacity: 0 },
+      { y: 0, opacity: 1, stagger: 0.07, duration: 0.6, ease: 'power2.out', clearProps: 'all' });
+  }, [filtered]);
+
+  return (
+    <section ref={ref} className="py-20 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-5">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3">Shop Smart</p>
+            <h2 className="text-3xl font-black text-gray-900">Browse & Filter</h2>
+          </div>
+          {/* Tab filter */}
+          <div className="flex gap-2 flex-wrap">
+            {tabs.map((tab) => (
+              <motion.button key={tab} whileTap={{ scale: 0.95 }} onClick={() => setActive(tab)}
+                className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${active === tab
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                  }`}>
+                {tab}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.div key={active} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            {isLoading
+              ? Array(8).fill(0).map((_, i) => <Skeleton key={i} />)
+              : filtered.length
+                ? filtered.map((p) => <div key={p.id} className="hp-fg-card"><ProductCard product={p} /></div>)
+                : <div className="col-span-4 text-center py-20 text-gray-400">
+                  <div className="text-5xl mb-3">🔍</div>
+                  <p className="font-semibold">No products match this filter</p>
+                </div>
+            }
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+
+// ─── Lookbook / Style Guide Section ──────────────────────────────────────────
+function LookbookSection({ products, isLoading }) {
+  const ref = useRef(null);
+  const looks = [
+    { title: 'Street Style', palette: ['from-gray-800 to-black'], tag: 'Urban', icon: '🧢' },
+    { title: 'Resort Luxe', palette: ['from-sky-400 to-cyan-600'], tag: 'Vacation', icon: '🏖️' },
+    { title: 'Power Dressing', palette: ['from-slate-700 to-slate-900'], tag: 'Office', icon: '💼' },
+    { title: 'Weekend Casual', palette: ['from-amber-400 to-orange-500'], tag: 'Relax', icon: '☕' },
+  ];
+
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const t = setTimeout(() => {
+      const cards = el.querySelectorAll('.hp-look-card');
+      if (!cards.length) return;
+      gsap.fromTo(cards, { y: 60, opacity: 0 },
+        {
+          y: 0, opacity: 1, stagger: 0.12, duration: 0.85, ease: 'back.out(1.4)', clearProps: 'all',
+          scrollTrigger: { trigger: el, start: 'top 82%', once: true }
+        });
+    }, 120);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <section ref={ref} className="py-24 relative overflow-hidden" style={{ background: 'linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%)' }}>
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-14">
+          <p className="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3">Style Inspiration</p>
+          <h2 className="text-4xl font-black text-gray-900 mb-4">Shop the Look</h2>
+          <p className="text-gray-500 max-w-md mx-auto text-sm leading-relaxed">Curated outfits and vibes for every occasion. Tap a look to explore the full collection.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {looks.map((look, i) => {
+            const prod = products?.[i];
+            return (
+              <motion.div key={look.title} whileHover={{ y: -10 }}
+                className="hp-look-card group relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer" style={{ height: 360 }}>
+                {prod && !isLoading ? (
+                  <img src={prod.image} alt={look.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                ) : (
+                  <div className={`w-full h-full bg-gradient-to-br ${look.palette[0]} flex items-center justify-center`}>
+                    <span className="text-6xl">{look.icon}</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute top-4 left-4">
+                  <span className="bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/30">{look.tag}</span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <h3 className="font-black text-lg mb-3">{look.title}</h3>
+                  <motion.button whileTap={{ scale: 0.95 }}
+                    className="w-full bg-white text-gray-900 font-bold py-2.5 rounded-xl text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    Shop This Look →
+                  </motion.button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Trust & Guarantee Strip ──────────────────────────────────────────────────
+function TrustStrip() {
+  const ref = useRef(null);
+  const items = [
+    { icon: '🛡️', title: 'Authentic Guarantee', desc: '100% genuine products or full refund' },
+    { icon: '⚡', title: 'Same-Day Dispatch', desc: 'Order before 2pm for same-day shipping' },
+    { icon: '🔄', title: '30-Day Free Returns', desc: 'No questions, hassle-free returns' },
+    { icon: '🏆', title: 'Award-Winning Service', desc: 'Rated #1 customer support 3 years running' },
+    { icon: '🌍', title: 'Ships Worldwide', desc: 'Delivery to 180+ countries' },
+  ];
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const t = setTimeout(() => {
+      const cards = el.querySelectorAll('.hp-trust-item');
+      if (!cards.length) return;
+      gsap.fromTo(cards, { x: -30, opacity: 0 },
+        {
+          x: 0, opacity: 1, stagger: 0.1, duration: 0.7, ease: 'power2.out', clearProps: 'all',
+          scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+        });
+    }, 120);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <section ref={ref} className="py-14 bg-white border-y border-gray-100">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          {items.map((item) => (
+            <div key={item.title} className="hp-trust-item flex flex-col items-center text-center group">
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-200">{item.icon}</div>
+              <h3 className="font-bold text-gray-900 text-sm mb-1">{item.title}</h3>
+              <p className="text-gray-400 text-xs leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Recently Trending Tags ───────────────────────────────────────────────────
+function TrendingTags() {
+  const tags = [
+    '#SummerDrop', '#LuxuryBags', '#StreetStyle', '#WatchOfTheYear',
+    '#NewArrival', '#SaleFinds', '#TopRated', '#MemberExclusive',
+    '#SustainableFashion', '#DesignerPicks', '#WeekendVibes', '#PowerDressing',
+  ];
+  return (
+    <section className="py-10 bg-gray-50 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 mb-6">
+        <p className="text-xs font-bold uppercase tracking-widest text-indigo-500">Trending Now</p>
+      </div>
+      <div className="flex whitespace-nowrap hp-scroll-x gap-4 px-6">
+        {[...tags, ...tags].map((tag, i) => (
+          <motion.button key={i} whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.97 }}
+            className="flex-shrink-0 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-semibold hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors shadow-sm whitespace-nowrap">
+            {tag}
+          </motion.button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -769,25 +1294,30 @@ export default function HomePage() {
 
   // Product slices
   const heroFeatured = products[0] || null;
-  const trending     = products.slice(0, 6);
-  const bestSellers  = products.slice(2, 8);
-  const newArrivals  = products.slice(4, 8);
-  const flashDeals   = products.slice(1, 5);
+  const trending = products.slice(0, 6);
+  const bestSellers = products.slice(2, 8);
+  const newArrivals = products.slice(4, 8);
+  const flashDeals = products.slice(1, 5);
   const editorsPicks = products.slice(3, 7);
+  const dealOfDay = products[5] || products[0] || null;
+  const scrollStrip = products.slice(0, 8);
+  const bentoProducts = products.slice(0, 5);
+  const filterGrid = products.slice(0, 12);
+  const lookbook = products.slice(0, 4);
 
   // Hero animation refs
   const heroTitleRef = useRef(null);
-  const heroSubRef   = useRef(null);
-  const heroBtnRef   = useRef(null);
-  const heroImgRef   = useRef(null);
+  const heroSubRef = useRef(null);
+  const heroBtnRef = useRef(null);
+  const heroImgRef = useRef(null);
 
   useEffect(() => {
     if (!heroTitleRef.current) return;
     const tl = gsap.timeline({ delay: 0.2 });
     tl.fromTo(heroTitleRef.current, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 1.1, ease: "expo.out", clearProps: "all" })
-      .fromTo(heroSubRef.current,   { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", clearProps: "all" }, "-=0.65")
-      .fromTo(heroBtnRef.current,   { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "back.out(2)", clearProps: "all" }, "-=0.45")
-      .fromTo(heroImgRef.current,   { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 1.1, ease: "power3.out", clearProps: "all" }, "-=1.0");
+      .fromTo(heroSubRef.current, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", clearProps: "all" }, "-=0.65")
+      .fromTo(heroBtnRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "back.out(2)", clearProps: "all" }, "-=0.45")
+      .fromTo(heroImgRef.current, { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 1.1, ease: "power3.out", clearProps: "all" }, "-=1.0");
     return () => tl.kill();
   }, []);
 
@@ -819,6 +1349,8 @@ export default function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
+      <Navbar />
+
       <style>{STYLES}</style>
 
       {/* Marquee */}
@@ -898,12 +1430,19 @@ export default function HomePage() {
       {/* ── ALL SECTIONS ── */}
       <CategoriesSection />
       <TrendingSection products={trending} isLoading={isLoading} />
+      <TrendingTags />
       <FlashSaleSection products={flashDeals} isLoading={isLoading} />
+      <DealOfTheDay product={dealOfDay} isLoading={isLoading} />
       <BestSellersSection products={bestSellers} isLoading={isLoading} />
       <StatsBanner />
+      <BentoProductGrid products={bentoProducts} isLoading={isLoading} />
+      <TrustStrip />
       <NewArrivalsSection products={newArrivals} isLoading={isLoading} />
       <SplitShowcase />
+      <ProductScrollStrip products={scrollStrip} isLoading={isLoading} title="You Might Also Like" label="Recommendations" />
       <EditorsPicks products={editorsPicks} isLoading={isLoading} />
+      <LookbookSection products={lookbook} isLoading={isLoading} />
+      <FilterableGrid products={filterGrid} isLoading={isLoading} />
       <HowItWorksSection />
       <PerksSection />
 
@@ -920,6 +1459,9 @@ export default function HomePage() {
       <TestimonialsCarousel />
       <NewsletterSection />
       <CTABanner />
+
+      {/* Back to Top */}
+      <BackToTop />
     </div>
   );
 }

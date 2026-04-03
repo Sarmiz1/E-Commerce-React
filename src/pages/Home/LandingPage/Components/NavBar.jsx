@@ -10,7 +10,6 @@ gsap.registerPlugin(ScrollTrigger); // safe to call in multiple files — GSAP d
 
 
 const NavBar = ({
-  navLinks,
   scrollToSection,
   mobileMenuOpen,
   setMobileMenuOpen,
@@ -19,6 +18,9 @@ const NavBar = ({
   setCartOpen,
   cartIconRef,
 }) => {
+
+  const navLinks = [{ label: "Products", href: "#products" }, { label: "Features", href: "#features" }, { label: "Reviews", href: "#testimonials" }, { label: "Contact", href: "#cta" }];
+
   return (
     <header className="flex md:flex-col flex-col-reverse">
 
@@ -48,6 +50,7 @@ const NavBar = ({
       <section className="fixed md:sticky top-0 left-0 right-0 z-40 md:mt-[64px]">
         <MarqueeStrip />
       </section>
+
     </header>
   )
 }
