@@ -1,6 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-const RightSection = ({ mobileMenuOpen, navLinks, scrollToSection, navigate }) => {
+
+const RightSection = ({ mobileMenuOpen, navLinks, scrollToSection }) => {
+  const navigate = useNavigate()
+  
   return (
     <AnimatePresence>
           {mobileMenuOpen && (

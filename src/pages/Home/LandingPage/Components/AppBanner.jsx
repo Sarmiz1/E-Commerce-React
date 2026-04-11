@@ -46,7 +46,7 @@ function AppBanner() {
               <div className="absolute inset-2 rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 overflow-hidden flex flex-col items-center justify-center gap-4 p-4">
                 <div className="w-16 h-1.5 rounded-full bg-white/20 mb-2" />
                 <div className="text-5xl">🛍️</div>
-                <p className="text-white font-black text-lg">ShopEase</p>
+                <p className="text-white font-black text-lg">WooSho</p>
                 <div className="w-full space-y-2">{[80, 60, 90, 70].map((w, i) => (<div key={i} className="flex items-center gap-2"><div className="w-8 h-8 rounded-xl bg-white/20" /><div className="flex-1 space-y-1"><div className="h-2 rounded-full bg-white/30" style={{ width: `${w}%` }} /><div className="h-1.5 rounded-full bg-white/15" style={{ width: `${w - 20}%` }} /></div></div>))}</div>
               </div>
             </div>

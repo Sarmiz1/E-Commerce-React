@@ -6,7 +6,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useFetchData } from "../../../Hooks/useFetch";
 import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import Navbar from "./Navbar";
+// import Navbar from "./Navbar";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -1135,7 +1135,7 @@ function FilterableGrid({ products, isLoading }) {
         </div>
         <AnimatePresence mode="wait">
           <motion.div key={active} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xs gap-5">
             {isLoading
               ? Array(8).fill(0).map((_, i) => <Skeleton key={i} />)
               : filtered.length
@@ -1349,12 +1349,12 @@ export default function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
-      <Navbar />
-
       <style>{STYLES}</style>
 
       {/* Marquee */}
+      <div className="pt-20 bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800"  />
       <MarqueeStrip />
+      
 
       {/* ── HERO ── */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 text-white min-h-[90vh] flex items-center">
@@ -1362,7 +1362,7 @@ export default function HomePage() {
         <div className="absolute w-96 h-96 rounded-full bg-blue-400/25 blur-3xl -top-20 -left-20 hp-hero-glow" />
         <div className="absolute w-80 h-80 rounded-full bg-violet-500/25 blur-3xl bottom-0 -right-20 hp-hero-glow" style={{ animationDelay: "3s" }} />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 grid lg:grid-cols-2 gap-12 items-center w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center w-full">
           {/* Left */}
           <div>
             <p className="text-blue-200 text-xs font-bold uppercase tracking-[0.35em] mb-6">New Season · New Drops 🔥</p>
@@ -1392,7 +1392,7 @@ export default function HomePage() {
           </div>
 
           {/* Right — featured product */}
-          <div ref={heroImgRef} className="relative flex justify-center lg:justify-end">
+          <div ref={heroImgRef} className="relative flex justify-center md:justify-end md:-mt-20 lg:-mt-10">
             {heroFeatured ? (
               <div className="relative">
                 <div className="relative w-72 md:w-80 h-96 rounded-3xl overflow-hidden shadow-2xl">

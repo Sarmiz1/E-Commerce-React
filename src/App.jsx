@@ -9,7 +9,7 @@ import TrackingPage from './pages/tracking/TrackingPage'
 import ProductDetail from './Pages/ProductDetails/ProductDetail'
 import ProductsLayout from './Layout/ProductsLayout'
 import { createBrowserRouter, Route, createRoutesFromElements, RouterProvider } from 'react-router-dom'
-import dataContext from './Context/cartContext'
+import cartContext from './Context/cartContext'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { IconContext } from 'react-icons'
@@ -98,14 +98,14 @@ export default function App() {
 
   return (
     <>
-      <dataContext.Provider value={{
+      <cartContext.Provider value={{
         cart,
         loadCart,
       }}>
         <IconContext value={{ size: "80px", color: "green" }}>
           <RouterProvider router={router} />
         </IconContext>
-      </dataContext.Provider>
+      </cartContext.Provider>
     </>
 
   )

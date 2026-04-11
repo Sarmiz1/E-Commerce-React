@@ -1,25 +1,31 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import LeftSection from "./NavBarComponents/LeftSection";
-import RightSection from "./NavBarComponents/RightSection";
+import LeftSection from "./NavbarLandingComponents/LeftSection";
+import RightSection from "./NavbarLandingComponents/RightSection";
 import MarqueeStrip from "./MarqueeStrip";
+import { useContext } from "react";
+import cartContext from "../../../../Context/cartContext"; 
+
 
 
 
 gsap.registerPlugin(ScrollTrigger); // safe to call in multiple files — GSAP deduplicates it
 
 
-const NavBar = ({
-  scrollToSection,
-  mobileMenuOpen,
-  setMobileMenuOpen,
-  cart,
-  navigate,
+const NavbarLanding = ({
+  scrollToSection = '',
+  mobileMenuOpen = '',
+  setMobileMenuOpen ,
+  // cart,
   setCartOpen,
   cartIconRef,
 }) => {
 
   const navLinks = [{ label: "Products", href: "#products" }, { label: "Features", href: "#features" }, { label: "Reviews", href: "#testimonials" }, { label: "Contact", href: "#cta" }];
+
+  const {cart , loadCart} = useContext(cartContext) || null
+  console.log(cart)
+
 
   return (
     <header className="flex md:flex-col flex-col-reverse">
@@ -41,7 +47,6 @@ const NavBar = ({
           mobileMenuOpen={mobileMenuOpen}
           navLinks={navLinks}
           scrollToSection={scrollToSection}
-          navigate={navigate}
         />
 
       </section>
@@ -55,7 +60,7 @@ const NavBar = ({
   )
 }
 
-export default NavBar
+export default NavbarLanding
 
 
 
