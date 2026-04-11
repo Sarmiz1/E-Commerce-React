@@ -23,6 +23,7 @@ import ProductsContainer from "./Components/ProuductsContainer";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 
+
 gsap.registerPlugin(ScrollTrigger);
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -470,6 +471,7 @@ export default function ProductsPage() {
       </div>
     );
   }
+  
 
   // Empty state (after grace period)
   if (!isLoading && products.length === 0 && showEmpty) {

@@ -1,7 +1,6 @@
 // src/Components/Ui/ProductCard.jsx
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ratingCount } from "../../Utils/ratingsCount";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 
 // ── Stars renderer ────────────────────────────────────────────────────────────
