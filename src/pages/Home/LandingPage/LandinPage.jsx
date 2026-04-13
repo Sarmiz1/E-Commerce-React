@@ -26,16 +26,10 @@
 //   <SellerHowToStart />
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useNavigate, useLoaderData } from "react-router-dom";
-import { useContext } from "react";
-import cartContext from "../../../Context/cartContext";
-import { postData } from "../../../api/postData";
-import { putData } from "../../../api/putData";
-import { deleteData } from "../../../api/deleteData";
 import NavbarLanding from "./Components/NavbarLanding";
 import HeroSection from './Components/HeroSection';
 import CategorySpotlight from "./Components/CategorySpotlight";
@@ -71,10 +65,6 @@ export default function LandingPage() {
 
   const [showTopBtn, setShowTopBtn] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [addCartErrorMessage, setAddCartErrorMessage] = useState('')
-  const [qtyUpdateErrorMessage, setQtyUpdateErrorMessage] = useState('')
-  const [removeCartErrorMessage, setRemoveCartErrorMessage] = useState('')
-
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -84,10 +74,8 @@ export default function LandingPage() {
   const heroSubRef = useRef(null);
   const heroBtnRef = useRef(null);
   const productsRef = useRef(null);
-
   const products = useLoaderData();
   const trendingProducts = useMemo(() => products?.slice(0, 6) || [], [products]);
-  const { cart, loadCart } = useContext(cartContext) || null
 
 
   // Hero entrance — no ScrollTrigger, plain timeline
@@ -130,95 +118,8 @@ export default function LandingPage() {
   }, []);
 
 
-  const addToCart = async (productID, e) => {
+  console.log("LandingPage render");
 
-    if (!productID) return;
-    const card = e.currentTarget.closest(".se-pc"); const img = card?.querySelector("img");
-    if (img && cartIconRef.current) {
-      const ir = img.getBoundingClientRect(); const cr = cartIconRef.current.getBoundingClientRect();
-      const clone = document.createElement("div");
-      clone.style.cssText = `position:fixed;top:${ir.top}px;left:${ir.left}px;width:${ir.width}px;height:${ir.height}px;background-image:url('${img.src}');background-size:cover;background-position:center;border-radius:16px;z-index:9999;pointer-events:none;box-shadow:0 8px 32px rgba(79,70,229,0.3);`;
-      document.body.appendChild(clone);
-      gsap.to(clone, { top: cr.top + cr.height / 2 - 20, left: cr.left + cr.width / 2 - 20, width: 40, height: 40, borderRadius: "50%", opacity: 0, duration: 0.75, ease: "power3.in", onComplete: () => { clone.remove(); if (cartIconRef.current) gsap.fromTo(cartIconRef.current, { scale: 1.4 }, { scale: 1, duration: 0.4, ease: "elastic.out(1.2,0.5)" }); } });
-    }
-
-    try {
-      setAddCartErrorMessage('');
-
-      const productDetails = {
-        productId: productID,
-        quantity: 1,
-      };
-
-      const addToCartUrl = `/api/cart-items`;
-
-      await postData(addToCartUrl, productDetails);
-
-      await loadCart();
-
-    } catch (error) {
-      setAddCartErrorMessage("Failed to add item to cart. Please try again.");
-      console.log(error)
-    }
-  };
-
-
-  //  DELETE HANDLER
-  const removeFromCart = async (productID) => {
-    try {
-      setRemoveCartErrorMessage(null);
-
-      const deleteCartItemUrl = `/api/cart-items/${productID}`;
-
-      // Only continues if deleteData succeeds (status 2xx)
-      await deleteData(deleteCartItemUrl);
-
-      // Reload cart and payment summary
-      await loadCart();
-
-    } catch (error) {
-      console.error("Delete cart item failed:", error);
-      setRemoveCartErrorMessage("Can't delete this item, try again.");
-    }
-  };
-
-  const updateQuantity = async (productID, qty) => {
-
-    try {
-      setQtyUpdateErrorMessage(null)
-
-      const cartUpdateUrl = `/api/cart-items/${productID}`;
-
-      if (Number(qty) > 100) {
-        setQtyUpdateErrorMessage('Quantity cant be more than 100')
-        return;
-      }
-
-      const updatedQuantity = {
-        quantity: qty,
-      };
-
-      await putData(cartUpdateUrl, updatedQuantity);
-
-      await loadCart();
-
-    } catch (error) {
-      setQtyUpdateErrorMessage('Quantity update failed, try again.')
-      console.log(error)
-    }
-  };
-
-  const renderStars = (rating = 0) => {
-    const full = Math.floor(rating), half = rating % 1 >= 0.5, empty = 5 - full - (half ? 1 : 0);
-    return (
-      <div className="flex items-center gap-0.5">
-        {Array(full).fill().map((_, i) => <span key={`f${i}`} className="text-yellow-400 text-sm">★</span>)}
-        {half && <span className="text-yellow-400 text-sm">⯪</span>}
-        {Array(empty).fill().map((_, i) => <span key={`e${i}`} className="text-gray-200 text-sm">★</span>)}
-        <span className="ml-1.5 text-xs text-gray-400">{rating}</span>
-      </div>
-    );
-  };
 
   const scrollToSection = (id) => { gsap.to(window, { duration: 1, scrollTo: id, ease: "power2.inOut" }); setMobileMenuOpen(false); };
 
@@ -252,7 +153,6 @@ export default function LandingPage() {
         scrollToSection={scrollToSection}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        cart={cart}
         setCartOpen={setCartOpen}
         cartIconRef={cartIconRef}
       />
@@ -276,9 +176,7 @@ export default function LandingPage() {
       <ProductsSection
         productsRef={productsRef}
         trendingProducts={trendingProducts}
-        renderStars={renderStars}
-        addToCart={addToCart}
-        addCartErrorMessage={addCartErrorMessage}
+        cartIconRef={cartIconRef}
       />
 
       {/* Flash Sale */}
@@ -311,13 +209,8 @@ export default function LandingPage() {
 
       {/* Cart Drawer */}
       <CartDrawer
-        cart={cart}
         cartOpen={cartOpen}
         setCartOpen={setCartOpen}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
-        qtyUpdateErrorMessage={qtyUpdateErrorMessage}
-        removeCartErrorMessage={removeCartErrorMessage}
       />
 
       {/* Back to Top */}

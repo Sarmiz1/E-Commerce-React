@@ -1,21 +1,13 @@
 // ─── Testimonials Carousel ─────────────────────────────────────────────────────
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, memo } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion, AnimatePresence } from "framer-motion";
 import FloatingOrbs from "./FloatingOrbs";
+import { TESTIMONIALS } from "../Data/Testimonials";
 
 gsap.registerPlugin(ScrollTrigger);
 
-
-// ─── Testimonials data ─────────────────────────────────────────────────────────
-const TESTIMONIALS = [
-  { id: 1, text: "Absolutely amazing service and quality products. I'll definitely shop again!", author: "Sarah M.", role: "Verified Buyer", stars: 5 },
-  { id: 2, text: "Fastest delivery I've ever experienced. The packaging was premium and the product exceeded expectations.", author: "James K.", role: "Loyal Customer", stars: 5 },
-  { id: 3, text: "Returns were so easy. No questions asked, full refund in 2 days. This is how e-commerce should work.", author: "Amaka O.", role: "Verified Buyer", stars: 5 },
-  { id: 4, text: "The curated product selection is spot on. Every item I've ordered has been exactly as described.", author: "Liu Wei", role: "Top Reviewer", stars: 5 },
-  { id: 5, text: "Customer support actually picked up the phone. Rare these days. Refreshing experience overall.", author: "Carlos R.", role: "Verified Buyer", stars: 5 },
-];
 
 function TestimonialsCarousel() {
 
@@ -24,9 +16,12 @@ function TestimonialsCarousel() {
   const dragStartX = useRef(0); const dragDelta = useRef(0);
   const sectionRef = useRef(null);
   const total = TESTIMONIALS.length;
+
   const prev = useCallback(() => setCurrent((c) => (c - 1 + total) % total), [total]);
+
   const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total]);
   useEffect(() => { const id = setInterval(next, 5000); return () => clearInterval(id); }, [next]);
+  
   useEffect(() => {
     const el = sectionRef.current; if (!el) return;
     const t = setTimeout(() => {
@@ -38,6 +33,8 @@ function TestimonialsCarousel() {
   const onDS = (e) => { setDragging(true); dragStartX.current = e.type === "touchstart" ? e.touches[0].clientX : e.clientX; dragDelta.current = 0; };
   const onDM = (e) => { if (!dragging) return; dragDelta.current = (e.type === "touchmove" ? e.touches[0].clientX : e.clientX) - dragStartX.current; };
   const onDE = () => { if (!dragging) return; setDragging(false); if (dragDelta.current < -50) next(); else if (dragDelta.current > 50) prev(); };
+
+  console.log("Seller Testimony")
 
   return (
     <section ref={sectionRef} id="testimonials" className="relative py-28 overflow-hidden" style={{ background: "linear-gradient(135deg,#f0f4ff 0%,#fafafa 50%,#f5f0ff 100%)" }}>
@@ -67,4 +64,4 @@ function TestimonialsCarousel() {
   );
 }
 
-export default TestimonialsCarousel
+export default memo(TestimonialsCarousel)

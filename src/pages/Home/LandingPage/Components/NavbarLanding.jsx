@@ -3,8 +3,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LeftSection from "./NavbarLandingComponents/LeftSection";
 import RightSection from "./NavbarLandingComponents/RightSection";
 import MarqueeStrip from "./MarqueeStrip";
-import { useContext } from "react";
-import cartContext from "../../../../Context/cartContext"; 
+import { useContext, memo } from "react";
+import { CartStateContext } from "../../../../Context/cartContext"; 
 
 
 
@@ -16,15 +16,15 @@ const NavbarLanding = ({
   scrollToSection = '',
   mobileMenuOpen = '',
   setMobileMenuOpen ,
-  // cart,
   setCartOpen,
   cartIconRef,
 }) => {
 
   const navLinks = [{ label: "Products", href: "#products" }, { label: "Features", href: "#features" }, { label: "Reviews", href: "#testimonials" }, { label: "Contact", href: "#cta" }];
 
-  const {cart , loadCart} = useContext(cartContext) || null
-  console.log(cart)
+  const { cart } = useContext(CartStateContext) || []
+  
+  console.log("Navbar: ", cart)
 
 
   return (
@@ -60,7 +60,7 @@ const NavbarLanding = ({
   )
 }
 
-export default NavbarLanding
+export default memo(NavbarLanding)
 
 
 

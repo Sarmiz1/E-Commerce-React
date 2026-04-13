@@ -32,9 +32,6 @@ const FixedWrapper = ({
   cartHover,
   setMobileOpen,
   keepCart,
-  cart,
-  onRemoveFromCart,
-  formatMoneyCents,
   BagIcon,
   ArrowRight,
   setCartHover,
@@ -92,11 +89,8 @@ const FixedWrapper = ({
           cartBadgeKey={cartBadgeKey}
           cartHover={cartHover}
           keepCart={keepCart}
-          onRemoveFromCart={onRemoveFromCart}
-          formatMoneyCents={formatMoneyCents}
           BagIcon={BagIcon}
           ArrowRight={ArrowRight}
-          cart={cart}
           SearchIcon={SearchIcon}
           navigate={navigate}
           setMobileOpen={setMobileOpen}

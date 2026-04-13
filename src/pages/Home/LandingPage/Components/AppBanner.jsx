@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "framer-motion";
@@ -7,7 +7,9 @@ import FloatingOrbs from "./FloatingOrbs";
 gsap.registerPlugin(ScrollTrigger);
 
 function AppBanner() {
+
   const ref = useRef(null);
+  
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const t = setTimeout(() => {
@@ -17,6 +19,9 @@ function AppBanner() {
     }, 120);
     return () => clearTimeout(t);
   }, []);
+
+  console.log("App Banner")
+
   return (
     <section ref={ref} className="relative py-24 overflow-hidden" style={{ background: "linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)" }}>
       <FloatingOrbs dark />
@@ -58,4 +63,4 @@ function AppBanner() {
   );
 }
 
-export default AppBanner
+export default memo(AppBanner)

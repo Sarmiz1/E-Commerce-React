@@ -18,11 +18,8 @@ const RightActions = ({
   cartBadgeKey, 
   cartHover, 
   keepCart, 
-  onRemoveFromCart, 
-  formatMoneyCents, 
   BagIcon, 
   ArrowRight,
-  cart,
   SearchIcon, 
   navigate, 
   setMobileOpen, 
@@ -161,10 +158,7 @@ const RightActions = ({
                 onMouseLeave={closeCart}
               >
                 <CartPreview
-                  cart={cart}
-                  onRemove={onRemoveFromCart || (() => { })}
                   onNavigate={(href) => { navigate(href); setCartHover(false); }}
-                  formatMoney={formatMoneyCents}
                   BagIcon={BagIcon}
                   ArrowRight={ArrowRight}
                 />

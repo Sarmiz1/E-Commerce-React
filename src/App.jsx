@@ -1,23 +1,12 @@
 import './App.css'
-import { fetchLoader } from "./api/loaders"
-import HomePage from './Pages/Home/HomePage/HomePage'
-import LandingPage from './Pages/Home/LandingPage/LandinPage'
-import CheckOutPage from './pages/checkout/CheckOutPage'
-import OrdersPage from './pages/orders/OrdersPage'
-import ProductsPage from './Pages/ProductPage/ProductsPage'
-import TrackingPage from './pages/tracking/TrackingPage'
-import ProductDetail from './Pages/ProductDetails/ProductDetail'
-import ProductsLayout from './Layout/ProductsLayout'
-import { createBrowserRouter, Route, createRoutesFromElements, RouterProvider } from 'react-router-dom'
-import cartContext from './Context/cartContext'
-import { useEffect, useState } from 'react'
+import { supabase } from './supabaseClient'
+import { RouterProvider } from 'react-router-dom'
+import { useEffect, useState, useCallback, useMemo } from 'react'
+import { CartActionsContext, CartStateContext } from './Context/cartContext'
 import axios from 'axios'
 import { IconContext } from 'react-icons'
-import RootLayout from './Layout/RootLayout'
-import DefaultLayout from './Layout/DefaultLayout'
-import LandingLayout from './Layout/LandingLayout'
-import NotFoundPage from './Components/NotFoundPage'
-import FallbackPage from './Components/FallbackPage'
+import router from './Router/router'
+
 
 
 
@@ -26,86 +15,60 @@ export default function App() {
 
   const [cart, setCart] = useState([])
 
-  const loadCart = async () => {
+  const loadCart = useCallback(async () => {
     const cartUrl = '/api/cart-items?expand=product'
     const response = await axios.get(cartUrl)
 
     setCart(response.data)
-  }
+  }, [])
+
+  console.log("AppJsx", cart);
+
 
 
   useEffect(() => {
+    loadCart();
+  }, [loadCart]);
 
-    loadCart()
+  // useEffect(() => {
+  //   async function getPosts() {
+  //     const { data, error } = await supabase
+  //       .from("products")
+  //       .select("*");
 
-  }, [])
+  //     if (error) {
+  //       console.log(error);
+  //     } else {
+  //       console.log(data);
+  //     }
+  //   }
+  //   getPosts();
 
-  const productsUrl = "/api/products";
+  // }, [])
 
 
 
-  const isLoggedIn = true; // Mock authentication state, replace with real auth logic as needed
+  const actionsValue = useMemo(() => ({
+    loadCart,
+  }), [loadCart]);
 
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <Route element={<RootLayout />} errorElement={<FallbackPage />}>
+  const stateValue = useMemo(() => ({
+    cart
+  }), [cart]);
 
-        {/* Conditional home route */}
-        <Route
-          path='/'
-          element={
-            isLoggedIn ? (
-              <DefaultLayout />
-            ) : (
-              <LandingLayout />
-            )
-          }
-        >
-          {isLoggedIn ? (
-            <Route index element={<HomePage />} />
-          ) : (
-            <Route
-              index
-              element={<LandingPage />}
-              loader={fetchLoader(productsUrl)}
-            />
-          )}
-        </Route>
 
-        {/* All app pages */}
-        <Route element={<DefaultLayout />}>
-          <Route path="checkout" element={<CheckOutPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="tracking" element={<TrackingPage />} />
-
-          <Route path="products" element={<ProductsLayout />} >
-            <Route index element={<ProductsPage />} />
-            <Route
-              path=":productId"
-              element={<ProductDetail />}
-              loader={fetchLoader(productsUrl)}
-            />
-          </Route>
-        </Route>
-
-        <Route path="*" element={<NotFoundPage />} />
-
-      </Route>
-    )
-  )
 
 
 
   return (
     <>
-      <cartContext.Provider value={{
-        cart,
-        loadCart,
-      }}>
-        <IconContext value={{ size: "80px", color: "green" }}>
-          <RouterProvider router={router} />
-        </IconContext>
-      </cartContext.Provider>
+      <CartStateContext.Provider value={stateValue}>
+        <CartActionsContext.Provider value={actionsValue}>
+          <IconContext.Provider value={{ size: "80px", color: "green" }}>
+            <RouterProvider router={router} />
+          </IconContext.Provider>
+        </CartActionsContext.Provider>
+      </CartStateContext.Provider>
     </>
 
   )

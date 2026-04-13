@@ -1,18 +1,18 @@
 import axios from "axios";
 
 // loaders/FetchLoader.js
-export const fetchLoader = (url) => {
-  
-  return async () => {
-    try {
-      const response = await axios.get(url);
-      return response.data;
-    } catch (error) {
-      throw new Response("Failed to fetch object", {
-        status: error.response?.status || 500,
-      });
-    }
-  };
+
+const productsUrl = "/api/products";
+
+export const fetchLoader = async () => {
+  try {
+    const response = await axios.get("/api/products");
+    return response.data;
+  } catch (error) {
+    throw new Response("Failed to fetch object", {
+      status: error.response?.status || 500,
+    });
+  }
 };
 
 

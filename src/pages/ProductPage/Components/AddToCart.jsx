@@ -11,7 +11,7 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { postData } from "../../../api/postData";
-import cartContext from "../../../Context/cartContext";
+import { CartActionsContext } from "../../../Context/cartContext";
 import { ErrorMessage } from "../../../Components/ErrorMessage";
 import gsap from "gsap";
 
@@ -37,7 +37,7 @@ function AddToCart({ productId }) {
   const [loading,         setLoading]         = useState(false);
   const btnRef = useRef(null);
 
-  const { loadCart } = useContext(cartContext);
+  const { loadCart } = useContext(CartActionsContext) || null;
 
   // Auto-reset success state after 3 s
   useEffect(() => {

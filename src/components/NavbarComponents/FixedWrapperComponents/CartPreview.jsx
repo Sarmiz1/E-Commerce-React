@@ -1,16 +1,45 @@
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useContext } from "react";
+import { CartStateContext, CartActionsContext } from "../../../Context/cartContext";
+import { deleteData } from "../../../api/deleteData";
+import { formatMoneyCents as formatMoney} from "../../../Utils/formatMoneyCents";
 
 function CartPreview(
-  { 
-    cart, 
-    onRemove, 
-    onNavigate, 
-    formatMoney, 
+  {
+    onNavigate,
     BagIcon,
-    ArrowRight 
+    ArrowRight
   }) {
-  const totalPrice = cart.reduce((a, i) => a + i.priceCents * i.quantity, 0);
+
+  const { cart } = useContext(CartStateContext) || [];
+  const { loadCart } = useContext(CartActionsContext) || null;
+
+  console.log("Cart: ", cart);
+
+
+  const totalPrice = cart.reduce((a, i) => a + i?.product?.priceCents * i?.quantity, 0);
+
+  const TrashIcon = ({ className = "w-4 h-4" }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+    </svg>
+  );
+
+  const onRemove = async (productID) => {
+    try {
+
+      const deleteCartItemUrl = `/api/cart-items/${productID}`;
+
+      // Only continues if deleteData succeeds (status 2xx)
+      await deleteData(deleteCartItemUrl);
+
+      // Reload cart and payment summary
+      await loadCart();
+
+    } catch (error) {
+      console.error("Delete cart item failed:", error);
+    }
+  };
 
   return (
     <div className="nb-cart-panel">
@@ -48,7 +77,7 @@ function CartPreview(
           <div className="nb-cart-scroll overflow-y-auto max-h-[260px] px-4 py-3 space-y-3">
             <AnimatePresence initial={false}>
               {cart.map((item) => (
-                <motion.div key={item.id}
+                <motion.div key={item?.product?.id}
                   layout
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -57,16 +86,17 @@ function CartPreview(
                   className="flex gap-3 items-start group">
                   {/* Image */}
                   <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
-                    {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover" />}
+                    {console.log(item)}
+                    {item?.product?.image && <img src={item?.product?.image} alt={item?.product?.name} className="w-full h-full object-cover" />}
                   </div>
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-xs leading-tight line-clamp-1">{item.name}</p>
-                    <p className="text-gray-400 text-[10px] mt-0.5">Qty: {item.quantity}</p>
-                    <p className="font-black text-indigo-600 text-sm mt-0.5">{formatMoney(item.priceCents * item.quantity)}</p>
+                    <p className="font-semibold text-gray-900 text-xs leading-tight line-clamp-1">{item?.product?.name}</p>
+                    <p className="text-gray-400 text-[10px] mt-0.5">Qty: {item?.quantity}</p>
+                    <p className="font-black text-indigo-600 text-sm mt-0.5">{formatMoney(Number(item?.product?.priceCents) * Number(item?.quantity))}</p>
                   </div>
                   {/* Remove */}
-                  <motion.button whileTap={{ scale: 0.9 }} onClick={() => onRemove(item.id)}
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={() => onRemove(item?.product?.id)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <TrashIcon className="w-3 h-3 text-red-400" />
                   </motion.button>

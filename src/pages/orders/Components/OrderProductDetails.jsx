@@ -3,13 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
 import { postData } from "../../../api/postData";
 import { useContext, useState } from "react";
-import cartContext from "../../../Context/cartContext";
+import { CartActionsContext } from "../../../Context/cartContext";
 import { ErrorMessage } from "../../../Components/ErrorMessage"; 
 
 function OrderProductDetails({ orderedProduct }) {
   const navigateToCheckOut = useNavigate();
   const [errorMessage, setErrorMessage] = useState('')
-  const { loadCart } = useContext(cartContext);
+  const { loadCart } = useContext(CartActionsContext) || null;
 
   const {
     quantity,

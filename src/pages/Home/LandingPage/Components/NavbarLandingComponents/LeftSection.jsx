@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useMemo } from "react";
 
 const LeftSection = ({
   navLinks,
@@ -11,7 +11,9 @@ const LeftSection = ({
   cartIconRef,
 }) => {
 
-  const totalItems = cart.reduce((a, b) => a + b.quantity, 0)
+  const totalItems = useMemo(() => {
+    return cart?.reduce((a, b) => a + b.quantity, 0);
+  }, [cart]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -26,7 +28,7 @@ const LeftSection = ({
       <div className="flex items-center gap-3">
         <button ref={cartIconRef} onClick={() => setCartOpen(true)} className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-200">
           🛒 Cart
-          <AnimatePresence>{cart.length > 0 && (<motion.span key={cart.length} initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute -top-2 -right-2 bg-red-500 text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">{totalItems}</motion.span>)}</AnimatePresence>
+          <AnimatePresence>{cart?.length > 0 && (<motion.span key={cart?.length} initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="absolute -top-2 -right-2 bg-red-500 text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">{totalItems}</motion.span>)}</AnimatePresence>
         </button>
         <button className="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 rounded-lg hover:bg-gray-100 transition" onClick={() => setMobileMenuOpen((o) => !o)} aria-label="Toggle menu">
           <motion.span animate={mobileMenuOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }} className="block w-5 h-0.5 bg-gray-700 rounded-full origin-center" />
