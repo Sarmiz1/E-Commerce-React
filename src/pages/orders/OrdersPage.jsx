@@ -27,17 +27,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
-  useState, useEffect, useRef, useCallback, useMemo, useContext,
+  useState, useEffect, useRef, useCallback, useMemo
 } from "react";
-import { motion, AnimatePresence, useInView }   from "framer-motion";
-import { useNavigate }                           from "react-router-dom";
-import gsap                                      from "gsap";
-import { ScrollTrigger }                         from "gsap/ScrollTrigger";
-
-import { useFetchData }        from "../../Hooks/useFetch";
-import { postData }            from "../../api/postData";
-import useShowErrorBoundary    from "../../Hooks/useShowErrorBoundary";
-import { formatMoneyCents }    from "../../Utils/formatMoneyCents";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useLoaderData, useNavigate, useNavigation } from "react-router-dom";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useCartActions } from "../../Context/cart/CartContext";
+import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -93,62 +90,62 @@ const OR_STYLES = `
 const STATUS_CONFIG = {
   processing: {
     label: "Processing",
-    bg:    "bg-amber-100",
-    text:  "text-amber-700",
-    dot:   "bg-amber-500",
-    glow:  "or-glow-processing",
-    icon:  "⏳",
-    ring:  "border-amber-300",
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+    dot: "bg-amber-500",
+    glow: "or-glow-processing",
+    icon: "⏳",
+    ring: "border-amber-300",
     track: [
-      { label: "Order Placed",         done: true,  time: "Just now"            },
-      { label: "Payment Confirmed",    done: true,  time: "Just now"            },
-      { label: "Processing",           done: true,  time: "In progress"         },
-      { label: "Dispatched",           done: false, time: "Within 24h"          },
-      { label: "Delivered",            done: false, time: "2–5 business days"   },
+      { label: "Order Placed", done: true, time: "Just now" },
+      { label: "Payment Confirmed", done: true, time: "Just now" },
+      { label: "Processing", done: true, time: "In progress" },
+      { label: "Dispatched", done: false, time: "Within 24h" },
+      { label: "Delivered", done: false, time: "2–5 business days" },
     ],
   },
   shipped: {
     label: "Shipped",
-    bg:    "bg-blue-100",
-    text:  "text-blue-700",
-    dot:   "bg-blue-500",
-    glow:  "or-glow-shipped",
-    icon:  "🚚",
-    ring:  "border-blue-300",
+    bg: "bg-blue-100",
+    text: "text-blue-700",
+    dot: "bg-blue-500",
+    glow: "or-glow-shipped",
+    icon: "🚚",
+    ring: "border-blue-300",
     track: [
-      { label: "Order Placed",         done: true,  time: "Confirmed"           },
-      { label: "Payment Confirmed",    done: true,  time: "Confirmed"           },
-      { label: "Dispatched",           done: true,  time: "On its way"          },
-      { label: "Out for Delivery",     done: true,  time: "Today"               },
-      { label: "Delivered",            done: false, time: "Expected today"      },
+      { label: "Order Placed", done: true, time: "Confirmed" },
+      { label: "Payment Confirmed", done: true, time: "Confirmed" },
+      { label: "Dispatched", done: true, time: "On its way" },
+      { label: "Out for Delivery", done: true, time: "Today" },
+      { label: "Delivered", done: false, time: "Expected today" },
     ],
   },
   delivered: {
     label: "Delivered",
-    bg:    "bg-emerald-100",
-    text:  "text-emerald-700",
-    dot:   "bg-emerald-500",
-    glow:  "or-glow-delivered",
-    icon:  "✅",
-    ring:  "border-emerald-300",
+    bg: "bg-emerald-100",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+    glow: "or-glow-delivered",
+    icon: "✅",
+    ring: "border-emerald-300",
     track: [
-      { label: "Order Placed",         done: true,  time: "Completed"           },
-      { label: "Payment Confirmed",    done: true,  time: "Completed"           },
-      { label: "Dispatched",           done: true,  time: "Completed"           },
-      { label: "Delivered",            done: true,  time: "Delivered ✓"         },
+      { label: "Order Placed", done: true, time: "Completed" },
+      { label: "Payment Confirmed", done: true, time: "Completed" },
+      { label: "Dispatched", done: true, time: "Completed" },
+      { label: "Delivered", done: true, time: "Delivered ✓" },
     ],
   },
   cancelled: {
     label: "Cancelled",
-    bg:    "bg-red-100",
-    text:  "text-red-600",
-    dot:   "bg-red-400",
-    glow:  "or-glow-cancelled",
-    icon:  "✕",
-    ring:  "border-red-200",
+    bg: "bg-red-100",
+    text: "text-red-600",
+    dot: "bg-red-400",
+    glow: "or-glow-cancelled",
+    icon: "✕",
+    ring: "border-red-200",
     track: [
-      { label: "Order Placed",         done: true,  time: "Placed"              },
-      { label: "Cancelled",            done: true,  time: "Cancelled"           },
+      { label: "Order Placed", done: true, time: "Placed" },
+      { label: "Cancelled", done: true, time: "Cancelled" },
     ],
   },
 };
@@ -158,13 +155,15 @@ function FloatingOrbs({ dark = false }) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {[
-        { w:500, h:500, top:"-12%", left:"-8%",   delay:0,  dur:20 },
-        { w:380, h:380, top:"45%",  right:"-8%",  delay:5,  dur:24 },
-        { w:260, h:260, bottom:"0", left:"38%",   delay:10, dur:18 },
+        { w: 500, h: 500, top: "-12%", left: "-8%", delay: 0, dur: 20 },
+        { w: 380, h: 380, top: "45%", right: "-8%", delay: 5, dur: 24 },
+        { w: 260, h: 260, bottom: "0", left: "38%", delay: 10, dur: 18 },
       ].map((o, i) => (
         <div key={i}
-          style={{ width:o.w, height:o.h, top:o.top, left:o.left, right:o.right, bottom:o.bottom,
-            animationDelay:`${o.delay}s`, animationDuration:`${o.dur}s` }}
+          style={{
+            width: o.w, height: o.h, top: o.top, left: o.left, right: o.right, bottom: o.bottom,
+            animationDelay: `${o.delay}s`, animationDuration: `${o.dur}s`
+          }}
           className={`absolute rounded-full blur-3xl or-orb ${dark ? "bg-indigo-900/35" : "bg-gradient-to-br from-blue-400/15 to-indigo-500/15"}`}
         />
       ))}
@@ -174,8 +173,8 @@ function FloatingOrbs({ dark = false }) {
 
 // ─── Animated counter (counts up from 0 on first scroll-enter) ────────────────
 function AnimatedCounter({ end, prefix = "", suffix = "", duration = 1200 }) {
-  const ref        = useRef(null);
-  const isInView   = useInView(ref, { once: true });
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
   const [val, setVal] = useState(0);
 
   useEffect(() => {
@@ -183,7 +182,7 @@ function AnimatedCounter({ end, prefix = "", suffix = "", duration = 1200 }) {
     const isDecimal = typeof end === "number" && end % 1 !== 0;
     const startTime = Date.now();
     const tick = () => {
-      const elapsed  = Date.now() - startTime;
+      const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       // Ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
@@ -216,38 +215,38 @@ function StatusBadge({ status }) {
 
 // ─── SVG icon set ─────────────────────────────────────────────────────────────
 const Icons = {
-  Search: ({ c = "w-5 h-5" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>,
-  Filter: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
-  Sort:   ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="21" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>,
-  Close:  ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>,
-  Truck:  ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
-  Package:({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
-  Bag:    ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
-  Refresh:({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>,
-  Chev:   ({ dir = "right", c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">{dir==="right"?<path d="M9 18l6-6-6-6"/>:dir==="down"?<path d="M6 9l6 6 6-6"/>:<path d="M15 18l-6-6 6-6"/>}</svg>,
-  Star:   ({ c = "w-4 h-4" }) => <svg className={c} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
-  X:      ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>,
+  Search: ({ c = "w-5 h-5" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>,
+  Filter: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>,
+  Sort: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="21" y1="10" x2="3" y2="10" /><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="14" x2="3" y2="14" /><line x1="21" y1="18" x2="3" y2="18" /></svg>,
+  Close: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>,
+  Truck: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" /><polygon points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>,
+  Package: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>,
+  Bag: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>,
+  Refresh: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></svg>,
+  Chev: ({ dir = "right", c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">{dir === "right" ? <path d="M9 18l6-6-6-6" /> : dir === "down" ? <path d="M6 9l6 6 6-6" /> : <path d="M15 18l-6-6 6-6" />}</svg>,
+  Star: ({ c = "w-4 h-4" }) => <svg className={c} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
+  X: ({ c = "w-4 h-4" }) => <svg className={c} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M15 9l-6 6M9 9l6 6" /></svg>,
 };
 
 // ─── Spinner ───────────────────────────────────────────────────────────────────
 const Spinner = ({ className = "w-5 h-5" }) => (
   <svg className={`${className} or-spin`} fill="none" viewBox="0 0 24 24">
-    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
   </svg>
 );
 
 // ─── Stats bar — four animated counters ───────────────────────────────────────
 function StatsBar({ orders }) {
-  const totalSpent   = orders.reduce((s, o) => s + (o.total || 0), 0);
-  const delivered    = orders.filter((o) => o.status === "delivered").length;
-  const pending      = orders.filter((o) => ["processing","shipped"].includes(o.status)).length;
+  const totalSpent = orders?.reduce((s, o) => s + (o.total || 0), 0);
+  const delivered = orders.filter((o) => o.status === "delivered").length;
+  const pending = orders.filter((o) => ["processing", "shipped"].includes(o.status)).length;
 
   const stats = [
-    { label: "Total Orders",   value: orders.length, suffix: "",   icon: <Icons.Package c="w-5 h-5" />, color: "from-blue-500 to-indigo-600",    shadow: "shadow-indigo-500/20" },
-    { label: "Total Spent",    value: totalSpent / 100, prefix: "$", suffix: "", decimals: true, icon: <Icons.Bag c="w-5 h-5" />, color: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
-    { label: "Delivered",      value: delivered,     suffix: "",   icon: <Icons.Truck c="w-5 h-5" />,   color: "from-emerald-500 to-teal-600",   shadow: "shadow-emerald-500/20" },
-    { label: "In Progress",    value: pending,       suffix: "",   icon: <Icons.Refresh c="w-5 h-5" />, color: "from-amber-500 to-orange-500",   shadow: "shadow-amber-500/20" },
+    { label: "Total Orders", value: orders.length, suffix: "", icon: <Icons.Package c="w-5 h-5" />, color: "from-blue-500 to-indigo-600", shadow: "shadow-indigo-500/20" },
+    { label: "Total Spent", value: totalSpent / 100, prefix: "$", suffix: "", decimals: true, icon: <Icons.Bag c="w-5 h-5" />, color: "from-violet-500 to-purple-600", shadow: "shadow-violet-500/20" },
+    { label: "Delivered", value: delivered, suffix: "", icon: <Icons.Truck c="w-5 h-5" />, color: "from-emerald-500 to-teal-600", shadow: "shadow-emerald-500/20" },
+    { label: "In Progress", value: pending, suffix: "", icon: <Icons.Refresh c="w-5 h-5" />, color: "from-amber-500 to-orange-500", shadow: "shadow-amber-500/20" },
   ];
 
   return (
@@ -285,17 +284,17 @@ function StatsBar({ orders }) {
 // ─── Filter + sort toolbar ────────────────────────────────────────────────────
 function FilterToolbar({ search, onSearch, status, onStatus, sort, onSort }) {
   const STATUSES = [
-    { value: "all",        label: "All Orders" },
+    { value: "all", label: "All Orders" },
     { value: "processing", label: "Processing" },
-    { value: "shipped",    label: "Shipped" },
-    { value: "delivered",  label: "Delivered" },
-    { value: "cancelled",  label: "Cancelled" },
+    { value: "shipped", label: "Shipped" },
+    { value: "delivered", label: "Delivered" },
+    { value: "cancelled", label: "Cancelled" },
   ];
   const SORTS = [
-    { value: "newest",    label: "Newest First" },
-    { value: "oldest",    label: "Oldest First" },
-    { value: "highest",   label: "Highest Value" },
-    { value: "lowest",    label: "Lowest Value" },
+    { value: "newest", label: "Newest First" },
+    { value: "oldest", label: "Oldest First" },
+    { value: "highest", label: "Highest Value" },
+    { value: "lowest", label: "Lowest Value" },
   ];
 
   return (
@@ -327,11 +326,10 @@ function FilterToolbar({ search, onSearch, status, onStatus, sort, onSort }) {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => onStatus(s.value)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-black transition-all duration-200 border ${
-                status === s.value
-                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-md shadow-indigo-500/25"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
-              }`}>
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-black transition-all duration-200 border ${status === s.value
+                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-md shadow-indigo-500/25"
+                : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
+                }`}>
               {s.label}
             </motion.button>
           ))}
@@ -358,8 +356,8 @@ function FilterToolbar({ search, onSearch, status, onStatus, sort, onSort }) {
 
 // ─── Tracking timeline (inside drawer) ───────────────────────────────────────
 function TrackingTimeline({ order }) {
-  const cfg    = STATUS_CONFIG[order?.status] || STATUS_CONFIG.processing;
-  const steps  = cfg.track;
+  const cfg = STATUS_CONFIG[order?.status] || STATUS_CONFIG.processing;
+  const steps = cfg.track;
   const lineRef = useRef(null);
 
   // Animate the vertical connecting line drawing top→down
@@ -399,13 +397,12 @@ function TrackingTimeline({ order }) {
               className="flex items-start gap-4 relative z-10"
             >
               {/* Node */}
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border-2 text-sm transition-all duration-300 ${
-                step.done
-                  ? "bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white shadow-md shadow-indigo-500/30"
-                  : i === lastDone + 1
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border-2 text-sm transition-all duration-300 ${step.done
+                ? "bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white shadow-md shadow-indigo-500/30"
+                : i === lastDone + 1
                   ? "bg-white border-indigo-400 text-indigo-500 shadow-sm"
                   : "bg-gray-100 border-gray-200 text-gray-300"
-              }`}>
+                }`}>
                 {step.done ? "✓" : i + 1}
               </div>
 
@@ -428,9 +425,9 @@ function TrackingTimeline({ order }) {
 
 // ─── Order detail drawer (right slide-over on desktop, bottom sheet mobile) ───
 function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
-  const navigate    = useNavigate();
-  const drawerRef   = useRef(null);
-  const cfg         = STATUS_CONFIG[order?.status] || STATUS_CONFIG.processing;
+  const navigate = useNavigate();
+  const drawerRef = useRef(null);
+  const cfg = STATUS_CONFIG[order?.status] || STATUS_CONFIG.processing;
   const [tab, setTab] = useState("items"); // "items" | "tracking" | "invoice"
 
   // Lock body scroll while drawer is open
@@ -467,17 +464,17 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 30, mass: 0.8 }}
-        className="fixed top-0 right-0 bottom-0 z-[81] or-scroll overflow-y-auto flex flex-col"
+        className="fixed top-0 right-0 bottom-0 z-[9999999999999999999999999999999999] or-scroll overflow-y-auto flex flex-col"
         style={{ width: "min(520px, 100vw)", background: "rgba(255,255,255,0.98)", backdropFilter: "blur(24px)", boxShadow: "-12px 0 60px rgba(0,0,0,0.15)" }}
       >
         {/* Drawer header */}
-        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
+        <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Order Details</p>
             <h2 className="font-black text-gray-900 text-lg">#{order.id?.slice(0, 12) || "N/A"}</h2>
             <div className="flex items-center gap-2 mt-1.5">
               <StatusBadge status={order.status} />
-              <span className="text-gray-400 text-xs">{new Date(order.createdAt || Date.now()).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" })}</span>
+              <span className="text-gray-400 text-xs">{new Date(order.createdAt || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
             </div>
           </div>
           <button onClick={onClose}
@@ -489,14 +486,13 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
         {/* Tab nav */}
         <div className="flex gap-0 px-6 border-b border-gray-100">
           {[
-            { id: "items",    label: "Items" },
+            { id: "items", label: "Items" },
             { id: "tracking", label: "Tracking" },
-            { id: "invoice",  label: "Invoice" },
+            { id: "invoice", label: "Invoice" },
           ].map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`relative px-5 py-3.5 text-sm font-bold transition-colors ${
-                tab === t.id ? "text-indigo-700" : "text-gray-400 hover:text-gray-700"
-              }`}>
+              className={`relative px-5 py-3.5 text-sm font-bold transition-colors ${tab === t.id ? "text-indigo-700" : "text-gray-400 hover:text-gray-700"
+                }`}>
               {t.label}
               {tab === t.id && (
                 <motion.div layoutId="drawer-tab-line"
@@ -585,13 +581,13 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
                 <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Invoice Summary</p>
                   {[
-                    ["Subtotal",  formatMoneyCents(order.totals?.subtotal || order.total)],
-                    ["Shipping",  order.totals?.shipping === 0 ? "Free" : formatMoneyCents(order.totals?.shipping || 0)],
+                    ["Subtotal", formatMoneyCents(order.totals?.subtotal || order.total)],
+                    ["Shipping", order.totals?.shipping === 0 ? "Free" : formatMoneyCents(order.totals?.shipping || 0)],
                     ...(order.totals?.discount > 0 ? [["Discount", `-${formatMoneyCents(order.totals.discount)}`]] : []),
-                  ].map(([k,v]) => (
+                  ].map(([k, v]) => (
                     <div key={k} className="flex justify-between text-sm">
                       <span className="text-gray-500">{k}</span>
-                      <span className={`font-bold ${k==="Discount" ? "text-emerald-600" : "text-gray-900"}`}>{v}</span>
+                      <span className={`font-bold ${k === "Discount" ? "text-emerald-600" : "text-gray-900"}`}>{v}</span>
                     </div>
                   ))}
                   <div className="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-gray-200 mt-2">
@@ -617,7 +613,7 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
         </div>
 
         {/* Drawer action footer */}
-        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-4 space-y-3">
+        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-4 space-y-3 z-50">
           {/* Re-order */}
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => onReorder(order)}
@@ -626,7 +622,7 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
           </motion.button>
 
           {/* Cancel — only available if not already cancelled/delivered */}
-          {!["cancelled","delivered"].includes(order.status) && (
+          {!["cancelled", "delivered"].includes(order.status) && (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={() => onCancel(order.id)}
               disabled={isCancelling}
@@ -698,12 +694,11 @@ function OrderCard({ order, index, onOpen }) {
       onClick={() => onOpen(order)}
     >
       {/* Card header strip */}
-      <div className={`h-1 bg-gradient-to-r ${
-        order.status === "delivered"  ? "from-emerald-400 to-teal-500" :
-        order.status === "shipped"    ? "from-blue-400 to-indigo-500"  :
-        order.status === "cancelled"  ? "from-red-400 to-rose-500"     :
-                                        "from-amber-400 to-orange-500"
-      }`} />
+      <div className={`h-1 bg-gradient-to-r ${order.status === "delivered" ? "from-emerald-400 to-teal-500" :
+        order.status === "shipped" ? "from-blue-400 to-indigo-500" :
+          order.status === "cancelled" ? "from-red-400 to-rose-500" :
+            "from-amber-400 to-orange-500"
+        }`} />
 
       <div className="p-5 sm:p-6">
         {/* Top row */}
@@ -741,7 +736,7 @@ function OrderCard({ order, index, onOpen }) {
           <div>
             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Ordered</p>
             <p className="text-sm font-bold text-gray-700">
-              {new Date(order.createdAt || Date.now()).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" })}
+              {new Date(order.createdAt || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
             </p>
           </div>
           <div className="text-right">
@@ -767,11 +762,11 @@ function OrderCard({ order, index, onOpen }) {
 // ─── Empty state per filter ────────────────────────────────────────────────────
 function EmptyState({ statusFilter, search, onReset, navigate }) {
   const configs = {
-    all:        { emoji: "📦", title: "No orders yet",             sub: "When you place your first order it'll appear here." },
-    processing: { emoji: "⏳", title: "Nothing processing",        sub: "You have no orders currently being processed." },
-    shipped:    { emoji: "🚚", title: "No orders in transit",      sub: "Orders on their way to you will show here." },
-    delivered:  { emoji: "✅", title: "No deliveries yet",         sub: "Completed orders will appear here." },
-    cancelled:  { emoji: "✕",  title: "No cancelled orders",       sub: "Any cancelled orders would appear here." },
+    all: { emoji: "📦", title: "No orders yet", sub: "When you place your first order it'll appear here." },
+    processing: { emoji: "⏳", title: "Nothing processing", sub: "You have no orders currently being processed." },
+    shipped: { emoji: "🚚", title: "No orders in transit", sub: "Orders on their way to you will show here." },
+    delivered: { emoji: "✅", title: "No deliveries yet", sub: "Completed orders will appear here." },
+    cancelled: { emoji: "✕", title: "No cancelled orders", sub: "Any cancelled orders would appear here." },
   };
   const cfg = search
     ? { emoji: "🔍", title: `No results for "${search}"`, sub: "Try a different search term or clear the filter." }
@@ -813,15 +808,15 @@ function OrderSkeleton() {
       <div className="h-1 bg-gray-200" />
       <div className="p-6 space-y-4">
         <div className="flex justify-between">
-          <div className="space-y-1.5"><div className="h-3 bg-gray-200 rounded w-24"/><div className="h-4 bg-gray-200 rounded w-36"/></div>
+          <div className="space-y-1.5"><div className="h-3 bg-gray-200 rounded w-24" /><div className="h-4 bg-gray-200 rounded w-36" /></div>
           <div className="h-7 bg-gray-200 rounded-full w-24" />
         </div>
         <div className="flex gap-2">
-          {Array(3).fill(0).map((_,i) => <div key={i} className="w-10 h-10 bg-gray-200 rounded-xl" />)}
+          {Array(3).fill(0).map((_, i) => <div key={i} className="w-10 h-10 bg-gray-200 rounded-xl" />)}
         </div>
         <div className="flex justify-between pt-4 border-t border-gray-100">
-          <div className="space-y-1.5"><div className="h-2 bg-gray-100 rounded w-16"/><div className="h-4 bg-gray-200 rounded w-28"/></div>
-          <div className="space-y-1.5 items-end flex flex-col"><div className="h-2 bg-gray-100 rounded w-12"/><div className="h-6 bg-gray-200 rounded w-20"/></div>
+          <div className="space-y-1.5"><div className="h-2 bg-gray-100 rounded w-16" /><div className="h-4 bg-gray-200 rounded w-28" /></div>
+          <div className="space-y-1.5 items-end flex flex-col"><div className="h-2 bg-gray-100 rounded w-12" /><div className="h-6 bg-gray-200 rounded w-20" /></div>
         </div>
       </div>
     </div>
@@ -834,24 +829,38 @@ function OrderSkeleton() {
 export default function OrdersPage() {
   const navigate = useNavigate();
 
-  // ── Fetch all orders from API ──────────────────────────────────────────────
-  const { fetchedData, isLoading, error, refetch } = useFetchData("/api/orders");
-  useShowErrorBoundary(error);
+  const navigation = useNavigation();
 
-  const orders = useMemo(() => fetchedData || [], [fetchedData]);
+  // navigation.state === "loading"  →  when loader or action is running
+  const isLoading = navigation.state === "loading";
+
+  // ── Fetch all orders from API ──────────────────────────────────────────────
+  const ordersData = useLoaderData();
+
+  console.log(ordersData)
+
+  // Cart Actions
+  const { addItem } = useCartActions();
+
+  // Orders Action
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // Havent Created any yet but will do so when i fully set up my supabase to work with the app
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  const orders = useMemo(() => ordersData || [], [ordersData]);
 
   // ── Filter / sort / search state ───────────────────────────────────────────
-  const [search,      setSearch]      = useState("");
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sort,        setSort]        = useState("newest");
+  const [sort, setSort] = useState("newest");
 
   // ── Selected order for drawer ──────────────────────────────────────────────
-  const [selectedOrder,  setSelectedOrder]  = useState(null);
-  const [showDrawer,     setShowDrawer]     = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showDrawer, setShowDrawer] = useState(false);
 
   // ── Cancel flow ───────────────────────────────────────────────────────────
-  const [cancelTarget,   setCancelTarget]   = useState(null); // orderId pending cancel
-  const [isCancelling,   setIsCancelling]   = useState(false);
+  const [cancelTarget, setCancelTarget] = useState(null); // orderId pending cancel
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // ── Re-order loading ───────────────────────────────────────────────────────
   const [reorderLoading, setReorderLoading] = useState(false);
@@ -872,15 +881,17 @@ export default function OrdersPage() {
   // ── Initiate cancel → show confirm modal ──────────────────────────────────
   const handleCancelClick = useCallback((orderId) => {
     setCancelTarget(orderId);
+    setShowDrawer(false)
   }, []);
 
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // No Api to cancel order for now, add that when i set up subapase
   // ── Confirm cancel → POST to API ──────────────────────────────────────────
   const handleCancelConfirm = useCallback(async () => {
     if (!cancelTarget) return;
     setIsCancelling(true);
     try {
-      await postData(`/api/orders/${cancelTarget}/cancel`, {});
-      await refetch?.();
+      await addItem(`${cancelTarget}/cancel`, {});
       setCancelTarget(null);
       closeDrawer();
     } catch {
@@ -888,8 +899,11 @@ export default function OrdersPage() {
     } finally {
       setIsCancelling(false);
     }
-  }, [cancelTarget, refetch, closeDrawer]);
+  }, [cancelTarget, closeDrawer]);
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // No Api to RE order for now, add that when i set up subapase
   // ── Re-order: add all items from an order back to cart ────────────────────
   const handleReorder = useCallback(async (order) => {
     setReorderLoading(true);
@@ -897,7 +911,7 @@ export default function OrdersPage() {
       // Add each line item back to cart concurrently
       await Promise.all(
         (order.items || []).map((item) =>
-          postData("/api/cart-items", { productId: item.product?.id, quantity: item.quantity })
+          addItem(item.product?.id, item.quantity)
         )
       );
       navigate("/cart");
@@ -907,6 +921,8 @@ export default function OrdersPage() {
       setReorderLoading(false);
     }
   }, [navigate]);
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
   // ── Reset all filters ──────────────────────────────────────────────────────
   const resetFilters = useCallback(() => {
@@ -934,23 +950,23 @@ export default function OrdersPage() {
     }
 
     // Sort
-    if (sort === "newest")  result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    if (sort === "oldest")  result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    if (sort === "newest") result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (sort === "oldest") result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     if (sort === "highest") result.sort((a, b) => (b.total || 0) - (a.total || 0));
-    if (sort === "lowest")  result.sort((a, b) => (a.total || 0) - (b.total || 0));
+    if (sort === "lowest") result.sort((a, b) => (a.total || 0) - (b.total || 0));
 
     return result;
   }, [orders, statusFilter, search, sort]);
 
   // ── Hero entrance animation ────────────────────────────────────────────────
-  const heroRef   = useRef(null);
-  const titleRef  = useRef(null);
-  const subRef    = useRef(null);
+  const heroRef = useRef(null);
+  const titleRef = useRef(null);
+  const subRef = useRef(null);
   useEffect(() => {
     if (!titleRef.current) return;
     const tl = gsap.timeline({ delay: 0.1 });
     tl.fromTo(titleRef.current, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, ease: "expo.out", clearProps: "all" })
-      .fromTo(subRef.current,   { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out", clearProps: "all" }, "-=0.5");
+      .fromTo(subRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out", clearProps: "all" }, "-=0.5");
     return () => tl.kill();
   }, []);
 
@@ -1002,9 +1018,9 @@ export default function OrdersPage() {
 
         {/* ── Filter toolbar ── */}
         <FilterToolbar
-          search={search}        onSearch={setSearch}
-          status={statusFilter}  onStatus={setStatusFilter}
-          sort={sort}            onSort={setSort}
+          search={search} onSearch={setSearch}
+          status={statusFilter} onStatus={setStatusFilter}
+          sort={sort} onSort={setSort}
         />
 
         {/* ── Results count ── */}

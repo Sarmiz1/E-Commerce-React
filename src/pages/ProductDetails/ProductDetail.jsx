@@ -18,16 +18,15 @@
 // triggered similar products section. All GSAP animations use clearProps:"all".
 // ──────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState, useContext, useCallback } from "react";
-import { useParams, useLoaderData, useNavigate, Link } from "react-router-dom";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useParams, useLoaderData, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { ratingCount } from "../../Utils/ratingsCount";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
-import { postData } from "../../api/postData";
-import { CartActionsContext } from "../../Context/cartContext222";
+import { useCartActions } from "../../Context/cart/CartContext";
 import { ErrorMessage } from "../../Components/ErrorMessage";
 import ProductCard from "../../Components/Ui/ProductCard";
 
@@ -144,7 +143,7 @@ function AddToCartPanel({ productId }) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
   const btnRef = useRef(null);
-  const { loadCart } = useContext(CartActionsContext);
+  const { addItem } = useCartActions();
 
   // Auto-reset success state
   useEffect(() => {
@@ -158,8 +157,7 @@ function AddToCartPanel({ productId }) {
     setError("");
     setLoading(true);
     try {
-      await postData("/api/cart-items", { productId, quantity: qty });
-      await loadCart();
+      await addItem( productId, qty );
       setDone(true);
       // Elastic bounce feedback
       if (btnRef.current) gsap.fromTo(btnRef.current, { scale: 0.9 }, { scale: 1, duration: 0.45, ease: "elastic.out(1.2,0.5)" });
@@ -677,7 +675,7 @@ export default function ProductDetail() {
       {/* ══════════════════════════════════════════════════════════
           HERO SECTION
       ══════════════════════════════════════════════════════════ */}
-      <div ref={heroRef} className="relative overflow-hidden">
+      <div ref={heroRef} className="relative overflow-hidden pt-20">
         {/* Subtle gradient wash behind content */}
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: "linear-gradient(180deg,rgba(238,242,255,0.6) 0%,rgba(255,255,255,0) 60%)" }} />

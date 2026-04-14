@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useState, memo, useCallback } from "react";
 import { formatMoneyCents } from "../../../../../Utils/formatMoneyCents";
 import { useCartActions } from "../../../../../Context/cart/CartContext";
-import { runAddToCartAnimation } from "../../../../../Components/Ui/runAddToCartAnimation";
+import { runFlyToCart } from "../../../../../Utils/runFlyToCart"; 
 
 const ProductDisplay = memo(({ item, cartIconRef }) => {
 
@@ -12,7 +12,7 @@ const ProductDisplay = memo(({ item, cartIconRef }) => {
   const addToCart = useCallback(async (productID, e) => {
     if (!productID) return;
 
-    runAddToCartAnimation(e, cartIconRef);
+    runFlyToCart(e, cartIconRef);
 
     try {
       setAddCartErrorMessage("");

@@ -1,10 +1,10 @@
 // src/components/Navbar.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRegisterCartIcon } from "../Context/cart/CartAnimationContext";
+import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../Utils/formatMoneyCents";
 import FixedWrapper from "./NavbarComponents/FixedWrapper";
 import SearchPanel from "./NavbarComponents/SearchPanel";
 import MobileDrawer from "./NavbarComponents/MobileDrawer";
@@ -238,7 +238,9 @@ const NAVBAR_STYLES = `
 
 
 
-export default function Navbar({ cart = [], onRemoveFromCart, cartIconRef: externalCartIconRef }) {
+export default function Navbar({ cart = [] }) {
+  const { cartIconRef: externalCartIconRef } = useRegisterCartIcon()
+
   const navigate = useNavigate();
   const location = useLocation();
 

@@ -11,7 +11,7 @@ import { CATEGORIES } from "./Data/categories";
 import { BRANDS } from "./Data/brands";
 import { PERKS } from "./Data/perks";
 import { TESTIMONIALS } from "./Data/testimonials";
-import { HOW_IT_WORKS } from "./Data/how-it-works" 
+import { HOW_IT_WORKS } from "./Data/how-it-works"
 import SectionLabel from "./Components/SectionLabel";
 import Stars from "./Components/Stars";
 import ParticleField from "./Components/ParticleField";
@@ -865,8 +865,8 @@ function FilterableGrid({ products, isLoading }) {
             {tabs.map((tab) => (
               <motion.button key={tab} whileTap={{ scale: 0.95 }} onClick={() => setActive(tab)}
                 className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${active === tab
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
                   }`}>
                 {tab}
               </motion.button>
@@ -1026,9 +1026,14 @@ function TrendingTags() {
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
+
+  
+
   const url = "/api/products";
   const { fetchedData, isLoading, error } = useFetchData(url);
   useShowErrorBoundary(error);
+
+
 
   const products = useMemo(() => fetchedData || [], [fetchedData]);
 
@@ -1092,9 +1097,9 @@ export default function HomePage() {
       <style>{STYLES}</style>
 
       {/* Marquee */}
-      <div className="pt-20 bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800"  />
+      <div className="pt-20 bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800" />
       <MarqueeStrip />
-      
+
 
       {/* ── HERO ── */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 text-white min-h-[90vh] flex items-center">

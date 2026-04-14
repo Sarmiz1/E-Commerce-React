@@ -489,7 +489,7 @@ function FilterPanel({ filters, onChange, products, onClose }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: "-100%", opacity: 0 }}
       transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-      className="fixed top-0 left-0 bottom-0 z-[90] w-[min(340px,88vw)] bg-white shadow-2xl flex flex-col overflow-hidden"
+      className="fixed top-0 left-0 bottom-0 z-[999999999999999999999999999999999999999999999999999999999999999] w-[min(340px,88vw)] bg-white shadow-2xl flex flex-col overflow-hidden "
     >
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">

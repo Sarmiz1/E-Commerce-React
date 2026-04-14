@@ -2,10 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
 import { calculateTotalPrice } from "../Utils/calculateTotalPrice";
-import { deleteData } from "../../../../api/deleteData";
-import { putData } from "../../../../api/putData";
-import { useContext, useState } from "react";
-import { CartStateContext, CartActionsContext } from "../../../../Context/cartContext222";
+import { useCartActions, useCartState } from "../../../../Context/cart/CartContext";
 
 
 
@@ -17,61 +14,17 @@ const CartDrawer = ({
 
   const navigate = useNavigate()
 
-  const [removeCartErrorMessage, setRemoveCartErrorMessage] = useState('')
-  const [qtyUpdateErrorMessage, setQtyUpdateErrorMessage] = useState('')
+  // Will fix this back later
+  // const [removeCartErrorMessage, setRemoveCartErrorMessage] = useState('')
+  // const [qtyUpdateErrorMessage, setQtyUpdateErrorMessage] = useState('')
 
-  const { cart } = useContext(CartStateContext) || [];
-  const { loadCart } = useContext(CartActionsContext) || null
+  const { cart } = useCartState();
+  const { removeItem, updateQuantity } = useCartActions();
+  // const { loadCart } = useContext(CartActionsContext) || null
 
   const totalPrice = calculateTotalPrice(cart);
   console.log("Cart Drawer")
 
-  //  DELETE HANDLER
-  const removeFromCart = async (productID) => {
-    try {
-      setRemoveCartErrorMessage(null);
-
-      const deleteCartItemUrl = `/api/cart-items/${productID}`;
-
-      // Only continues if deleteData succeeds (status 2xx)
-      await deleteData(deleteCartItemUrl);
-
-      // Reload cart and payment summary
-      await loadCart();
-
-    } catch (error) {
-      console.error("Delete cart item failed:", error);
-      setRemoveCartErrorMessage("Can't delete this item, try again.");
-    }
-  };
-
-  const updateQuantity = async (productID, qty) => {
-
-    try {
-      setQtyUpdateErrorMessage(null)
-
-      const cartUpdateUrl = `/api/cart-items/${productID}`;
-
-      if (Number(qty) > 100) {
-        setQtyUpdateErrorMessage('Quantity cant be more than 100')
-        return;
-      }
-
-      if(Number(qty) < 1) return;
-
-      const updatedQuantity = {
-        quantity: qty,
-      };
-
-      await putData(cartUpdateUrl, updatedQuantity);
-
-      await loadCart();
-
-    } catch (error) {
-      setQtyUpdateErrorMessage('Quantity update failed, try again.')
-      console.log(error)
-    }
-  };
 
   return (
     <AnimatePresence>
@@ -85,13 +38,14 @@ const CartDrawer = ({
               <button onClick={() => setCartOpen(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition">✕</button>
             </div>
 
-            {
+            {/* Error message */}
+            {/* {
               qtyUpdateErrorMessage || removeCartErrorMessage && (
                 <p className="text-red-500 text-sm font-medium flex justify-center items-center mt-2">
                   {qtyUpdateErrorMessage ? qtyUpdateErrorMessage : removeCartErrorMessage}
                 </p>
               )
-            }
+            } */}
 
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
@@ -112,7 +66,7 @@ const CartDrawer = ({
                     </div>
                   </div>
 
-                  <button onClick={() => removeFromCart(item?.product?.id)} className="text-gray-300 hover:text-red-400 transition text-lg self-start">✕</button>
+                  <button onClick={() => removeItem(item?.product?.id)} className="text-gray-300 hover:text-red-400 transition text-lg self-start">✕</button>
                 </motion.div>
               ))}
             </div>

@@ -750,7 +750,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(0);
 
   // ── Fetch live cart from API ──────────────────────────────────────────────
-  const { Cart: cartData, error: cartError, loading: cartLoading } = useCartState();
+  const { cart: cartData, error: cartError, loading: cartLoading } = useCartState();
   useShowErrorBoundary(cartError);
 
   // Cart Actions from Api

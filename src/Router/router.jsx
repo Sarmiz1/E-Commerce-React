@@ -1,12 +1,13 @@
 import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
-import { fetchLoader, cartRecommendationsLoader } from "../loaders/fetchLoader"; 
+import { fetchProductsLoader, cartRecommendationsLoader } from "../loaders/fetchProductsLoader";
+import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
 import HomePage from "../Pages/Home/HomePage/HomePage"
 import LandingPage from "../Pages/Home/LandingPage/LandinPage";
 import CheckoutPage from "../Pages/Checkout/CheckOutPage";
-// import OrdersPage from "../Pages/orders/OrdersPage";
-// import ProductsPage from "../Pages/ProductPage/ProductsPage";
-// import TrackingPage from "../Pages/tracking/TrackingPage";
-// import ProductDetail from "../Pages/ProductDetails/ProductDetail";
+import OrdersPage from "../Pages/orders/OrdersPage";
+import ProductsPage from "../Pages/ProductPage/ProductsPage";
+import TrackingPage from "../Pages/tracking/TrackingPage";
+import ProductDetail from "../Pages/ProductDetails/ProductDetail";
 import ProductsLayout from "../Layout/ProductsLayout";
 import RootLayout from "../Layout/RootLayout";
 import DefaultLayout from "../Layout/DefaultLayout";
@@ -37,16 +38,16 @@ const router = createBrowserRouter(
         }
       >
         {isLoggedIn ? (
-          <Route 
-            index 
+          <Route
+            index
             element={<HomePage />}
-            loader={fetchLoader} 
+            loader={fetchProductsLoader}
           />
         ) : (
           <Route
             index
             element={<LandingPage />}
-            loader={fetchLoader}
+            loader={fetchProductsLoader}
           />
         )}
       </Route>
@@ -55,22 +56,31 @@ const router = createBrowserRouter(
       <Route element={<DefaultLayout />}>
         <Route path="checkout" element={<CheckoutPage />} />
 
-        {/* <Route path="orders" element={<OrdersPage />} />
-        <Route path="tracking" element={<TrackingPage />} /> */}
+        <Route
+          path="orders"
+          element={<OrdersPage />}
+          loader={fetchOrdersLoader}
+        />
 
-        <Route 
-          path="cart" 
-          element={<CartPage />} 
+        <Route
+          path="tracking"
+          element={<TrackingPage />}
+          loader={fetchOrdersLoader}
+        />
+
+        <Route
+          path="cart"
+          element={<CartPage />}
           loader={cartRecommendationsLoader}
         />
 
         <Route path="products" element={<ProductsLayout />} >
-          {/* <Route index element={<ProductsPage />} />
+          <Route index element={<ProductsPage />} />
           <Route
             path=":productId"
             element={<ProductDetail />}
-            loader={fetchLoader}
-          /> */}
+            loader={fetchProductsLoader}
+          />
         </Route>
       </Route>
 

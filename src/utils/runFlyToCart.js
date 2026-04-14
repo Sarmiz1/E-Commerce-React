@@ -1,6 +1,6 @@
 import gsap from "gsap";
 
-export const runAddToCartAnimation = (e, cartIconRef) => {
+export const runFlyToCart = (e, cartIconRef) => {
   const card = e.currentTarget.closest(".se-pc");
   const img = card?.querySelector("img");
 

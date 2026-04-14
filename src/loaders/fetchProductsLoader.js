@@ -1,6 +1,6 @@
 import { ProductsAPI } from "../api/productsApi";
 
-export const fetchLoader = async () => {
+export const fetchProductsLoader = async () => {
   try {
     const products = await ProductsAPI.getAll();
     return products;
@@ -26,3 +26,4 @@ export const cartRecommendationsLoader = async () => {
     });
   }
 };
+

@@ -3,16 +3,20 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 
+
+const issNew = (product) => product?.createdAt && (Date.now() - new Date(product.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 * 30;
+
+
 // ── Stars renderer ────────────────────────────────────────────────────────────
 function StarRating({ stars = 0, count = 0 }) {
-  const full  = Math.floor(stars);
-  const half  = stars % 1 >= 0.5;
+  const full = Math.floor(stars);
+  const half = stars % 1 >= 0.5;
   const empty = 5 - full - (half ? 1 : 0);
   return (
     <div className="flex items-center gap-1.5">
       <div className="flex items-center gap-0.5">
-        {Array(full).fill(0).map((_, i)  => <span key={`f${i}`} className="text-yellow-400 text-xs leading-none">★</span>)}
-        {half                             && <span className="text-yellow-400 text-xs leading-none">⯪</span>}
+        {Array(full).fill(0).map((_, i) => <span key={`f${i}`} className="text-yellow-400 text-xs leading-none">★</span>)}
+        {half && <span className="text-yellow-400 text-xs leading-none">⯪</span>}
         {Array(empty).fill(0).map((_, i) => <span key={`e${i}`} className="text-gray-200  text-xs leading-none">★</span>)}
       </div>
       {count > 0 && (
@@ -24,9 +28,12 @@ function StarRating({ stars = 0, count = 0 }) {
 
 // ── ProductCard ───────────────────────────────────────────────────────────────
 export default function ProductCard({ product }) {
+
+  const isNew = issNew(product)
+
   if (!product) return null;
 
-  const isNew  = product?.createdAt && (Date.now() - new Date(product.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 * 30;
+
   const onSale = product?.priceCents && product.priceCents < 2000;
 
   return (

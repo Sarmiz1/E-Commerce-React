@@ -538,6 +538,7 @@ function SavedForLater({ items, onMoveToCart }) {
             transition={{ delay: i * 0.06 }}
             className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
           >
+            {console.log("SavedForLater", item)}
             <div className="aspect-square bg-gray-50 overflow-hidden">
               {item.product?.image && <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />}
             </div>
@@ -577,6 +578,7 @@ function RecommendedRow({ products, onAddToCart, cartProductIds }) {
             whileHover={{ y: -6 }}
             className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 group flex flex-col"
           >
+            {console.log(p)}
             <div className="aspect-square bg-gray-50 overflow-hidden">
               {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />}
             </div>
@@ -870,7 +872,8 @@ export default function CartPage() {
   // ── Add recommended product to cart ───────────────────────────────────────
   const handleAddRecommended = useCallback(async (product) => {
     try {
-      await addItem(product.id, 1);
+      await addItem(product.id);
+      console.log(product)
       // provider handles everything
     } catch {
       // optional: show toast
@@ -991,6 +994,7 @@ export default function CartPage() {
                   </AnimatePresence>
                 )}
               </div>
+              {console.log(localCart)}
 
               {/* Order notes */}
               <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm">

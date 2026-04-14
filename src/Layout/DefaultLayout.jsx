@@ -1,8 +1,11 @@
 import { Outlet } from "react-router-dom";
 import { Suspense } from "react";
+
 import Navbar from "../Components/Navbar";
 
-export default function RootLayout() {
+export default function DefaultLayout() {
+
+  
   return (
     <>
       <Navbar />

@@ -4,7 +4,8 @@ import LeftSection from "./NavbarLandingComponents/LeftSection";
 import RightSection from "./NavbarLandingComponents/RightSection";
 import MarqueeStrip from "./MarqueeStrip";
 import { useContext, memo } from "react";
-import { CartStateContext } from "../../../../Context/cartContext222"; 
+// import { CartStateContext } from "../../../../Context/cartContext222"; 
+import { useCartState } from "../../../../Context/cart/CartContext";
 
 
 
@@ -22,7 +23,7 @@ const NavbarLanding = ({
 
   const navLinks = [{ label: "Products", href: "#products" }, { label: "Features", href: "#features" }, { label: "Reviews", href: "#testimonials" }, { label: "Contact", href: "#cta" }];
 
-  const { cart } = useContext(CartStateContext) || []
+  const { cart } = useCartState()
   
   console.log("Navbar: ", cart)
 

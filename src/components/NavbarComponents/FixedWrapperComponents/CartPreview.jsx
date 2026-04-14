@@ -16,7 +16,7 @@ function CartPreview(
   console.log("Cart: ", cart);
 
 
-  const totalPrice = cart.reduce((a, i) => a + i?.product?.priceCents * i?.quantity, 0);
+  const totalPrice = cart?.reduce((a, i) => a + i?.product?.priceCents * i?.quantity, 0);
 
   const TrashIcon = ({ className = "w-4 h-4" }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

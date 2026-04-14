@@ -10,8 +10,7 @@
 
 import { useState, useContext, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { postData } from "../../../api/postData";
-import { CartActionsContext } from "../../../Context/cartContext222";
+import { useCartActions } from "../../../Context/cart/CartContext";
 import { ErrorMessage } from "../../../Components/ErrorMessage";
 import gsap from "gsap";
 
@@ -31,13 +30,13 @@ const CheckIcon = () => (
 );
 
 function AddToCart({ productId }) {
-  const [errorMessage,    setErrorMessage]    = useState("");
-  const [quantity,        setQuantity]        = useState(1);
+  const { addItem } = useCartActions();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [quantity, setQuantity] = useState(1);
   const [addedSuccessfully, setAddedSuccessfully] = useState(false);
-  const [loading,         setLoading]         = useState(false);
+  const [loading, setLoading] = useState(false);
   const btnRef = useRef(null);
 
-  const { loadCart } = useContext(CartActionsContext) || null;
 
   // Auto-reset success state after 3 s
   useEffect(() => {
@@ -52,8 +51,7 @@ function AddToCart({ productId }) {
     setLoading(true);
 
     try {
-      await postData("/api/cart-items", { productId, quantity });
-      await loadCart();
+      await addItem(productId, quantity );
       setAddedSuccessfully(true);
 
       // Micro-bounce on the button
@@ -93,13 +91,12 @@ function AddToCart({ productId }) {
         onClick={handleOnclick}
         disabled={loading}
         whileTap={{ scale: 0.96 }}
-        className={`w-full flex items-center justify-center gap-2 font-black text-sm py-3 px-4 rounded-2xl transition-all duration-300 shadow-md ${
-          addedSuccessfully
+        className={`w-full flex items-center justify-center gap-2 font-black text-sm py-3 px-4 rounded-2xl transition-all duration-300 shadow-md ${addedSuccessfully
             ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-emerald-500/25"
             : loading
-            ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-            : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:shadow-lg"
-        }`}
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+              : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:shadow-lg"
+          }`}
       >
         <AnimatePresence mode="wait">
           {addedSuccessfully ? (
@@ -113,8 +110,8 @@ function AddToCart({ productId }) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="flex items-center gap-2">
               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
               Adding…
             </motion.span>

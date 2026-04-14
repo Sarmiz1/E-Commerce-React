@@ -1,20 +1,30 @@
 // ─── Product card variants ─────────────────────────────────────────────────────
-
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents"; 
+import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
 import Stars from "../Components/Stars";
+import { useAddToCart } from "../../../../Components/Ui/AddToCart"; 
+import useSafeLoadCart
 
 
-export default function ProductCard({ product, variant = "default", onAddToCart }) {
+export default function ProductCard({ product, variant = "default" }) {
+
+
+  const { handleAdd, loading, success } = useAddToCart(product.id);
+
+
+  console.log(product)
+
   if (!product) return null;
+
 
   if (variant === "tall") return (
     <motion.div whileHover={{ y: -10 }} className="hp-prod-card group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
-      <div className="relative h-72 overflow-hidden">
+      <div className="relative h-72 overflow-hidden" data-cart-card>
         <img src={product?.image} alt={product?.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-bold text-red-600 px-2.5 py-1 rounded-full">SALE</div>
-        <motion.button whileTap={{ scale: 0.93 }} onClick={(e) => onAddToCart?.(product, e)}
+        <motion.button whileTap={{ scale: 0.93 }} onClick={(e) => handleAdd(e, product?.id)}
           className="absolute bottom-4 left-4 right-4 bg-white text-gray-900 font-bold py-2.5 rounded-2xl text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg">
           + Add to Cart
         </motion.button>
@@ -39,7 +49,7 @@ export default function ProductCard({ product, variant = "default", onAddToCart 
         </div>
         <div className="flex items-center justify-between mt-2">
           <p className="font-black text-gray-900">{formatMoneyCents(product?.priceCents)}</p>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => onAddToCart?.(product, e)}
+          <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => handleAdd(e, product?.id)}
             className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Add</motion.button>
         </div>
       </div>
@@ -57,7 +67,7 @@ export default function ProductCard({ product, variant = "default", onAddToCart 
         <h3 className="font-bold text-gray-900 text-sm line-clamp-1">{product?.name}</h3>
         <div className="flex items-center justify-between mt-3">
           <p className="font-black text-indigo-600">{formatMoneyCents(product?.priceCents)}</p>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => onAddToCart?.(product, e)}
+          <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => handleAdd(e, product?.id)}
             className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-lg font-bold">+</motion.button>
         </div>
       </div>
@@ -94,7 +104,7 @@ export default function ProductCard({ product, variant = "default", onAddToCart 
         <Stars rating={product?.rating?.stars || 0} />
         <div className="flex items-center justify-between mt-4">
           <p className="font-black text-2xl text-gray-900">{formatMoneyCents(product?.priceCents)}</p>
-          <motion.button whileTap={{ scale: 0.93 }} onClick={(e) => onAddToCart?.(product, e)}
+          <motion.button whileTap={{ scale: 0.93 }} onClick={(e) => handleAdd(e, product?.id)}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-indigo-500/40 transition-all">+ Cart</motion.button>
         </div>
       </div>

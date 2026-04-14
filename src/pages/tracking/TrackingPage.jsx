@@ -31,12 +31,9 @@ import {
   useState, useEffect, useRef, useCallback, useMemo,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useNavigation, useLoaderData } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-import { useFetchData } from "../../Hooks/useFetch";
-import { postData } from "../../api/postData";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -436,8 +433,8 @@ function MilestoneSteps({ status }) {
           {/* Node circle */}
           <div className="absolute -left-10">
             <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-black transition-all duration-300 ${step.now ? "border-transparent text-white shadow-lg"
-                : step.done ? "border-transparent text-white"
-                  : "border-white/15 bg-transparent text-white/25"
+              : step.done ? "border-transparent text-white"
+                : "border-white/15 bg-transparent text-white/25"
               }`}
               style={step.now || step.done
                 ? { background: col, boxShadow: step.now ? `0 0 18px ${col}55` : undefined }
@@ -608,7 +605,7 @@ function CopyBadge({ text }) {
   return (
     <button onClick={doCopy}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${copied ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
-          : "bg-white/8 border-white/15 text-white/45 hover:text-white hover:border-white/30"
+        : "bg-white/8 border-white/15 text-white/45 hover:text-white hover:border-white/30"
         }`}>
       {copied ? <><Ic.Check className="w-3 h-3" />Copied</> : <><Ic.Copy className="w-3 h-3" />Copy ID</>}
     </button>
@@ -643,6 +640,18 @@ export default function TrackingPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
+  const navigation = useNavigation();
+
+  // navigation.state === "loading"  →  when loader or action is running
+  const ordersLoading = navigation.state === "loading";
+
+  // ── Fetch all orders (quick-select + search source) ───────────────────────
+  // ── Fetch all orders from API ──────────────────────────────────────────────
+  const ordersData = useLoaderData();
+  const orders = useMemo(() => ordersData || [], [ordersData]);
+
+  console.log(ordersData)
+
   // ── Input + tracked ID ────────────────────────────────────────────────────
   const initialId = params.get("id") || sessionStorage.getItem("tr-last-id") || "";
   const [inputVal, setInputVal] = useState(initialId);
@@ -651,9 +660,7 @@ export default function TrackingPage() {
   const [updatedAt, setUpdatedAt] = useState(null);
   const inputRef = useRef(null);
 
-  // ── Fetch all orders (quick-select + search source) ───────────────────────
-  const { fetchedData: raw, isLoading: ordersLoading } = useFetchData("/api/orders");
-  const orders = useMemo(() => raw || [], [raw]);
+  
 
   // ── Derive tracked order from local cache ─────────────────────────────────
   const trackedOrder = useMemo(() => {
@@ -720,7 +727,7 @@ export default function TrackingPage() {
       {/* ══════════════════════════════════════════════════════════
           HERO
       ══════════════════════════════════════════════════════════ */}
-      <div className="relative overflow-hidden" style={{ minHeight: trackedOrder ? 400 : 500, background: "linear-gradient(180deg,#0c0e26 0%,#070a18 100%)" }}>
+      <div className="relative overflow-hidden pt-16" style={{ minHeight: trackedOrder ? 400 : 500, background: "linear-gradient(180deg,#0c0e26 0%,#070a18 100%)" }}>
         {/* Star field */}
         <div className="absolute inset-0 opacity-35"
           style={{ backgroundImage: "radial-gradient(circle,rgba(255,255,255,.65) 1px,transparent 1px)", backgroundSize: "52px 52px" }} />
@@ -787,8 +794,8 @@ export default function TrackingPage() {
                     <motion.button key={o.id} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
                       onClick={() => { setInputVal(o.id); doSearch(o.id); }}
                       className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-black border transition-all ${trackedId === o.id
-                          ? "bg-white text-indigo-700 border-transparent shadow-md"
-                          : "bg-white/7 text-white/55 border-white/12 hover:border-white/28 hover:text-white"
+                        ? "bg-white text-indigo-700 border-transparent shadow-md"
+                        : "bg-white/7 text-white/55 border-white/12 hover:border-white/28 hover:text-white"
                         }`}>
                       #{o.id.slice(0, 8)}
                     </motion.button>
