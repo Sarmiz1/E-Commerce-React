@@ -2,17 +2,10 @@ import { memo, useContext } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ProductDisplay from "./ProductsSectionComponents/ProductDisplay";
-import { CartActionsContext } from "../../../../Context/cartContext";
 
 const ProductsSection = memo(({ productsRef, trendingProducts, cartIconRef }) => {
 
-  
-
   const navigate = useNavigate()
-
-  const { loadCart } = useContext(CartActionsContext) || null
-
-
 
   console.log("ProductsSection render");
 
@@ -26,7 +19,6 @@ const ProductsSection = memo(({ productsRef, trendingProducts, cartIconRef }) =>
             key={item.id} 
             item={item} 
             cartIconRef={cartIconRef} 
-            loadCart={loadCart} 
           />
         ))}
       </div>

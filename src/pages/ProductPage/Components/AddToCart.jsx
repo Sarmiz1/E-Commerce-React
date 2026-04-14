@@ -11,7 +11,7 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { postData } from "../../../api/postData";
-import { CartActionsContext } from "../../../Context/cartContext";
+import { CartActionsContext } from "../../../Context/cartContext222";
 import { ErrorMessage } from "../../../Components/ErrorMessage";
 import gsap from "gsap";
 

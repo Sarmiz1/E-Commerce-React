@@ -18,15 +18,15 @@
 //   • Fully responsive: stacked on mobile, side-by-side on lg+
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState, useContext, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { useFetchData } from "../../Hooks/useFetch";
-import { postData } from "../../api/postData";
-import { CartStateContext, CartActionsContext } from "../../Context/cartContext";
+import { useCartState, useCartActions } from "../../Context/cart/CartContext";
+import { OrderAPI } from "../../api/orderApi"; 
+
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 
@@ -146,31 +146,33 @@ function FloatingOrbs({ dark = false }) {
 
 // ─── Step progress bar ────────────────────────────────────────────────────────
 function StepBar({ step }) {
-  const steps = ["Cart Review", "Your Details", "Confirmed"];
+  const steps = ["Cart", "Details", "Done"];
   return (
-    <div className="flex items-center justify-center gap-0 mb-10">
+    <div className="flex items-center justify-center mb-10 px-2">
       {steps.map((s, i) => {
         const done = i < step;
         const current = i === step;
         return (
           <div key={s} className="flex items-center">
             {/* Circle */}
-            <motion.div
-              animate={done ? { scale: [1, 1.2, 1] } : {}}
-              transition={{ duration: 0.35 }}
-              className={`relative w-9 h-9 rounded-full flex items-center justify-center text-sm font-black transition-all duration-400 ${done ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/30"
-                  : current ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-200"
+            <div className="flex flex-col items-center gap-1">
+              <motion.div
+                animate={done ? { scale: [1, 1.2, 1] } : {}}
+                transition={{ duration: 0.35 }}
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-xs sm:text-sm font-black transition-all duration-300 ${done ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-indigo-500/30"
+                  : current ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-indigo-500/30 ring-2 ring-indigo-200"
                     : "bg-gray-100 text-gray-400"
-                }`}>
-              {done ? <Icon.Check className="w-4 h-4" /> : i + 1}
-            </motion.div>
-            {/* Label */}
-            <span className={`hidden sm:block ml-2 text-xs font-bold transition-colors duration-200 ${current || done ? "text-indigo-700" : "text-gray-400"}`}>
-              {s}
-            </span>
+                  }`}>
+                {done ? <Icon.Check className="w-3.5 h-3.5" /> : i + 1}
+              </motion.div>
+              {/* Label — visible at all sizes */}
+              <span className={`text-[10px] font-bold transition-colors duration-200 whitespace-nowrap ${current || done ? "text-indigo-700" : "text-gray-400"}`}>
+                {s}
+              </span>
+            </div>
             {/* Connector */}
             {i < steps.length - 1 && (
-              <div className="mx-3 sm:mx-4 flex-shrink-0 w-12 sm:w-20 h-0.5 bg-gray-200 overflow-hidden rounded-full">
+              <div className="mx-2 sm:mx-3 mb-4 flex-shrink-0 w-8 sm:w-16 h-0.5 bg-gray-200 overflow-hidden rounded-full">
                 <motion.div
                   initial={{ width: "0%" }}
                   animate={{ width: done ? "100%" : "0%" }}
@@ -249,8 +251,10 @@ function OrderSummary({ cart, shipping, coupon, shippingOptions, selectedShippin
   const finalShip = coupon?.type === "ship" ? 0 : shipPrice;
   const total = taxable + finalShip + tax;
 
-  return (
-    <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm sticky top-24">
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const summaryInner = (
+    <>
       <h3 className="font-black text-gray-900 text-lg mb-5 flex items-center gap-2">
         <Icon.Bag className="w-5 h-5 text-indigo-500" /> Order Summary
         <span className="ml-auto text-sm font-bold text-indigo-600">{cart.length} item{cart.length !== 1 ? "s" : ""}</span>
@@ -329,7 +333,65 @@ function OrderSummary({ cart, shipping, coupon, shippingOptions, selectedShippin
           </div>
         ))}
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* ── Desktop: sticky sidebar ── */}
+      <div className="hidden lg:block bg-white border border-gray-100 rounded-3xl p-6 shadow-sm sticky top-24">
+        {summaryInner}
+      </div>
+
+      {/* ── Mobile: collapsible panel + sticky bottom bar ── */}
+      <div className="lg:hidden">
+        {/* Sticky bottom total bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 px-4 py-3 shadow-2xl">
+          <div className="flex items-center gap-3 max-w-lg mx-auto">
+            <button
+              onClick={() => setMobileOpen((o) => !o)}
+              className="flex items-center gap-2 flex-1 text-left"
+            >
+              <span className="text-xs text-gray-500">{cart.length} item{cart.length !== 1 ? "s" : ""}</span>
+              <Icon.Bag className="w-4 h-4 text-indigo-500" />
+              <span className="text-xs font-bold text-indigo-600">{mobileOpen ? "Hide" : "Show"} summary</span>
+              <motion.span animate={{ rotate: mobileOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+                </svg>
+              </motion.span>
+            </button>
+            <div className="text-right flex-shrink-0">
+              <p className="text-[10px] text-gray-400">Total</p>
+              <p className="font-black text-gray-900 text-lg leading-tight">{formatMoneyCents(total)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Expandable panel (slides up above bottom bar) */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setMobileOpen(false)}
+                className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[80vh] overflow-y-auto pb-24"
+              >
+                <div className="p-5">
+                  <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+                  {summaryInner}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
   );
 }
 
@@ -476,9 +538,9 @@ function CheckoutForm({ form, errors, onChange, onSubmit, loading }) {
         </div>
 
         {/* Card type indicators */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           {["visa", "mastercard", "amex", "discover"].map((t) => (
-            <span key={t} className={`text-[9px] font-black px-2.5 py-1.5 rounded-lg border transition-all duration-200 ${cardType === t ? "bg-indigo-600 text-white border-indigo-600" : "bg-gray-50 text-gray-400 border-gray-200"
+            <span key={t} className={`text-[9px] font-black px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border transition-all duration-200 whitespace-nowrap ${cardType === t ? "bg-indigo-600 text-white border-indigo-600" : "bg-gray-50 text-gray-400 border-gray-200"
               }`}>{t.toUpperCase()}</span>
           ))}
         </div>
@@ -532,18 +594,22 @@ function CheckoutForm({ form, errors, onChange, onSubmit, loading }) {
   );
 }
 
+// ─── Confetti pieces — generated at module scope (never inside render) ────────
+const CONFETTI_PIECES = Array.from({ length: 24 }, (_, i) => ({
+  id: i,
+  left: `${(i * 4.17).toFixed(1)}%`,
+  delay: (i * 0.025).toFixed(3),
+  color: ["#6366f1", "#3b82f6", "#a855f7", "#ec4899", "#f59e0b", "#10b981"][i % 6],
+  size: 6 + (i % 9),
+  round: i % 2 === 0,
+  dur: (0.8 + (i % 5) * 0.12).toFixed(2),
+}));
+
 // ─── Confetti burst (CSS-only, no canvas) ─────────────────────────────────────
 function Confetti() {
-  const pieces = Array.from({ length: 24 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    delay: Math.random() * 0.6,
-    color: ["#6366f1", "#3b82f6", "#a855f7", "#ec4899", "#f59e0b", "#10b981"][i % 6],
-    size: Math.random() * 8 + 6,
-  }));
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {pieces.map((p) => (
+      {CONFETTI_PIECES.map((p) => (
         <div key={p.id}
           style={{
             position: "absolute",
@@ -552,8 +618,8 @@ function Confetti() {
             width: p.size,
             height: p.size,
             background: p.color,
-            borderRadius: Math.random() > 0.5 ? "50%" : "2px",
-            animation: `co-confetti ${0.8 + Math.random() * 0.6}s ${p.delay}s ease-out forwards`,
+            borderRadius: p.round ? "50%" : "2px",
+            animation: `co-confetti ${p.dur}s ${p.delay}s ease-out forwards`,
           }}
         />
       ))}
@@ -623,7 +689,7 @@ function SuccessScreen({ orderNumber, cart, total }) {
       </div>
 
       {/* What happens next */}
-      <div className="co-s-item grid grid-cols-3 gap-3 mb-10">
+      <div className="co-s-item grid grid-cols-2 sm:grid-cols-3 gap-3 mb-10">
         {[
           { icon: "📧", label: "Email sent", sub: "Check your inbox" },
           { icon: "📦", label: "Being packed", sub: "Within 2–4 hours" },
@@ -684,8 +750,11 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(0);
 
   // ── Fetch live cart from API ──────────────────────────────────────────────
-  const { fetchedData: cartData, isLoading: cartLoading, error: cartError } = useFetchData("/api/cart-items");
+  const { Cart: cartData, error: cartError, loading: cartLoading } = useCartState();
   useShowErrorBoundary(cartError);
+
+  // Cart Actions from Api
+  const { updateQuantity , removeItem } = useCartActions();
 
   // ── Local cart state (mirrors API, updated optimistically) ────────────────
   const [cart, setCart] = useState([]);
@@ -729,26 +798,48 @@ export default function CheckoutPage() {
   const handleUpdateQty = useCallback(async (item, delta) => {
     const newQty = item.quantity + delta;
     if (newQty < 1 || newQty > 10) return;
-    // Optimistic update
-    setCart((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantity: newQty } : i)));
+
+    const prevQty = item.quantity;
+
+    // optimistic update
+    setCart(prev =>
+      prev.map(i =>
+        i.id === item.id ? { ...i, quantity: newQty } : i
+      )
+    );
+
     try {
-      await postData(`/api/cart-items/${item.id}`, { quantity: newQty });
+      await updateQuantity(item.id, newQty);
     } catch {
-      // Revert on failure
-      setCart((prev) => prev.map((i) => (i.id === item.id ? { ...i, quantity: item.quantity } : i)));
+      // rollback
+      setCart(prev =>
+        prev.map(i =>
+          i.id === item.id ? { ...i, quantity: prevQty } : i
+        )
+      );
     }
   }, []);
 
   // ── Remove cart item (optimistic + API DELETE) ────────────────────────────
   const handleRemove = useCallback(async (item) => {
     setRemoving(item.id);
-    // Optimistic remove
-    setCart((prev) => prev.filter((i) => i.id !== item.id));
+
+    // optimistic remove
+    setCart(prev =>
+      prev.filter(i => i.id !== item.id)
+    );
+
     try {
-      await fetch(`/api/cart-items/${item.id}`, { method: "DELETE" });
+      await removeItem(item.id); 
+
     } catch {
-      // Revert
-      setCart((prev) => [...prev, item]);
+      // safer rollback → re-sync full state OR restore item correctly
+      setCart(prev => {
+        const exists = prev.find(i => i.id === item.id);
+        if (exists) return prev; // avoid duplicates
+
+        return [...prev, item];
+      });
     } finally {
       setRemoving(null);
     }
@@ -810,11 +901,14 @@ export default function CheckoutPage() {
   }, [cart, selectedShipping, coupon]);
 
   // ── Place order ───────────────────────────────────────────────────────────
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validate()) {
-      // Scroll to first error
-      document.querySelector(".co-input.error")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document
+        .querySelector(".co-input.error")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -823,18 +917,45 @@ export default function CheckoutPage() {
 
     try {
       const total = computeTotal();
+
       const payload = {
-        items: cart.map((i) => ({ productId: i.productId || i.id, quantity: i.quantity })),
-        shipping: { method: selectedShipping, address: { name: form.name, phone: form.phone, address: form.address, city: form.city, zip: form.zip, country: form.country } },
-        payment: { last4: form.cardNumber.replace(/\s/g, "").slice(-4), brand: detectCardType(form.cardNumber) || "card" },
+        items: cart.map(i => ({
+          productId: i.productId || i.id,
+          quantity: i.quantity,
+        })),
+
+        shipping: {
+          method: selectedShipping,
+          address: {
+            name: form.name,
+            phone: form.phone,
+            address: form.address,
+            city: form.city,
+            zip: form.zip,
+            country: form.country,
+          },
+        },
+
+        payment: {
+          last4: form.cardNumber.replace(/\s/g, "").slice(-4),
+          brand: detectCardType(form.cardNumber) || "card",
+        },
+
         couponCode: coupon?.code || null,
         totalCents: total,
       };
 
-      const result = await postData("/api/orders", payload);
-      setOrderNumber(result?.orderNumber || result?.id || `SE-${Date.now().toString(36).toUpperCase()}`);
+      const result = await OrderAPI.createOrder(payload);
+
+      setOrderNumber(
+        result?.orderNumber ||
+        result?.id ||
+        `SE-${Date.now().toString(36).toUpperCase()}`
+      );
+
       setOrderTotal(total);
       setStep(2);
+
     } catch (err) {
       setSubmitError("Failed to place order. Please try again.");
     } finally {
@@ -850,13 +971,13 @@ export default function CheckoutPage() {
       <style>{CO_STYLES}</style>
 
       {/* ── Ambient hero gradient header ── */}
-      <div ref={heroRef} className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 py-14 px-6">
+      <div ref={heroRef} className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 pt-24 pb-10 md:pb-14 px-4 sm:px-6">
         <FloatingOrbs />
         <div className="absolute inset-0 opacity-[0.06]"
           style={{ backgroundImage: "radial-gradient(circle,#fff 1px,transparent 1px)", backgroundSize: "22px 22px" }} />
         <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <p className="text-blue-200 text-[10px] font-black uppercase tracking-[0.4em] mb-3">ShopEase · Secure Checkout</p>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-2 leading-tight">
+          <p className="text-blue-200 text-[10px] font-black uppercase tracking-[0.4em] mb-3">WooSho · Secure Checkout</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-2 leading-tight">
             {step === 2 ? <span className="co-shimmer">Order Confirmed!</span>
               : step === 1 ? "Your Details"
                 : "Review Your Bag"}
@@ -869,7 +990,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-8 pb-28 lg:pb-10">
         {/* Step bar */}
         <StepBar step={step} />
 
@@ -904,9 +1025,9 @@ export default function CheckoutPage() {
                 transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}>
 
                 {cart.length === 0 ? <EmptyCart /> : (
-                  <div className="grid lg:grid-cols-5 gap-8">
+                  <div className="grid lg:grid-cols-5 gap-6">
                     {/* Cart items — 3 cols */}
-                    <div className="lg:col-span-3 space-y-6">
+                    <div className="lg:col-span-3 space-y-5">
                       <div className="flex items-center justify-between">
                         <h2 className="font-black text-gray-900 text-xl">Your Bag</h2>
                         <Link to="/products" className="text-sm text-indigo-600 font-bold hover:underline">+ Add more</Link>
@@ -958,7 +1079,7 @@ export default function CheckoutPage() {
               <motion.div key="step1"
                 initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}
                 transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}>
-                <div className="grid lg:grid-cols-5 gap-8">
+                <div className="grid lg:grid-cols-5 gap-6">
                   {/* Form — 3 cols */}
                   <div className="lg:col-span-3">
                     <div className="flex items-center gap-3 mb-6">
@@ -1002,7 +1123,7 @@ export default function CheckoutPage() {
         {step < 2 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
+            className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { icon: "🔒", title: "Encrypted", sub: "256-bit SSL security on all transactions" },
               { icon: "🚀", title: "Fast Delivery", sub: "Same-day dispatch on orders before 2pm" },

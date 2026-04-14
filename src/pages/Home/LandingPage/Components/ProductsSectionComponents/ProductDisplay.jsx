@@ -1,45 +1,26 @@
 import { motion } from "framer-motion";
-import gsap from "gsap";
 import { useState, memo, useCallback } from "react";
 import { formatMoneyCents } from "../../../../../Utils/formatMoneyCents";
-import { postData } from "../../../../../api/postData"; 
+import { useCartActions } from "../../../../../Context/cart/CartContext";
+import { runAddToCartAnimation } from "../../../../../Components/Ui/runAddToCartAnimation";
 
+const ProductDisplay = memo(({ item, cartIconRef }) => {
 
-const ProductDisplay = memo(({ item, cartIconRef, loadCart }) => {
-
+  const { addItem } = useCartActions();
   const [addCartErrorMessage, setAddCartErrorMessage] = useState('')
 
   const addToCart = useCallback(async (productID, e) => {
-
     if (!productID) return;
-    const card = e.currentTarget.closest(".se-pc"); const img = card?.querySelector("img");
-    if (img && cartIconRef?.current) {
-      const ir = img.getBoundingClientRect(); const cr = cartIconRef?.current.getBoundingClientRect();
-      const clone = document.createElement("div");
-      clone.style.cssText = `position:fixed;top:${ir.top}px;left:${ir.left}px;width:${ir.width}px;height:${ir.height}px;background-image:url('${img.src}');background-size:cover;background-position:center;border-radius:16px;z-index:9999;pointer-events:none;box-shadow:0 8px 32px rgba(79,70,229,0.3);`;
-      document.body.appendChild(clone);
-      gsap.to(clone, { top: cr.top + cr.height / 2 - 20, left: cr.left + cr.width / 2 - 20, width: 40, height: 40, borderRadius: "50%", opacity: 0, duration: 0.75, ease: "power3.in", onComplete: () => { clone.remove(); if (cartIconRef?.current) gsap.fromTo(cartIconRef?.current, { scale: 1.4 }, { scale: 1, duration: 0.4, ease: "elastic.out(1.2,0.5)" }); } });
-    }
+
+    runAddToCartAnimation(e, cartIconRef);
 
     try {
-      setAddCartErrorMessage('');
-
-      const productDetails = {
-        productId: productID,
-        quantity: 1,
-      };
-
-      const addToCartUrl = `/api/cart-items`;
-
-      await postData(addToCartUrl, productDetails);
-
-      await loadCart();
-
-    } catch (error) {
-      setAddCartErrorMessage("Failed to add item to cart. Please try again.");
-      console.log(error)
+      setAddCartErrorMessage("");
+      await addItem(productID, 1);
+    } catch {
+      setAddCartErrorMessage("Failed to add item to cart.");
     }
-  }, [loadCart, cartIconRef]);
+  }, [addItem, cartIconRef]);
 
 
   const renderStars = (rating = 0) => {

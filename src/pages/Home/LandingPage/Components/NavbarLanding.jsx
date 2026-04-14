@@ -4,7 +4,7 @@ import LeftSection from "./NavbarLandingComponents/LeftSection";
 import RightSection from "./NavbarLandingComponents/RightSection";
 import MarqueeStrip from "./MarqueeStrip";
 import { useContext, memo } from "react";
-import { CartStateContext } from "../../../../Context/cartContext"; 
+import { CartStateContext } from "../../../../Context/cartContext222"; 
 
 
 

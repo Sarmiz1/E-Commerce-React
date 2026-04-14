@@ -27,7 +27,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ratingCount } from "../../Utils/ratingsCount";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { postData } from "../../api/postData";
-import { CartActionsContext } from "../../Context/cartContext";
+import { CartActionsContext } from "../../Context/cartContext222";
 import { ErrorMessage } from "../../Components/ErrorMessage";
 import ProductCard from "../../Components/Ui/ProductCard";
 

@@ -5,7 +5,7 @@ import { calculateTotalPrice } from "../Utils/calculateTotalPrice";
 import { deleteData } from "../../../../api/deleteData";
 import { putData } from "../../../../api/putData";
 import { useContext, useState } from "react";
-import { CartStateContext, CartActionsContext } from "../../../../Context/cartContext";
+import { CartStateContext, CartActionsContext } from "../../../../Context/cartContext222";
 
 
 

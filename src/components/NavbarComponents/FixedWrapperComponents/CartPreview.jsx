@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useContext } from "react";
-import { CartStateContext, CartActionsContext } from "../../../Context/cartContext";
-import { deleteData } from "../../../api/deleteData";
+import { useCartState, useCartActions } from "../../../Context/cart/CartContext"; 
 import { formatMoneyCents as formatMoney} from "../../../Utils/formatMoneyCents";
 
 function CartPreview(
@@ -11,8 +10,8 @@ function CartPreview(
     ArrowRight
   }) {
 
-  const { cart } = useContext(CartStateContext) || [];
-  const { loadCart } = useContext(CartActionsContext) || null;
+  const { cart } = useCartState();
+  const { removeItem } = useCartActions();
 
   console.log("Cart: ", cart);
 
@@ -25,21 +24,6 @@ function CartPreview(
     </svg>
   );
 
-  const onRemove = async (productID) => {
-    try {
-
-      const deleteCartItemUrl = `/api/cart-items/${productID}`;
-
-      // Only continues if deleteData succeeds (status 2xx)
-      await deleteData(deleteCartItemUrl);
-
-      // Reload cart and payment summary
-      await loadCart();
-
-    } catch (error) {
-      console.error("Delete cart item failed:", error);
-    }
-  };
 
   return (
     <div className="nb-cart-panel">
@@ -86,7 +70,6 @@ function CartPreview(
                   className="flex gap-3 items-start group">
                   {/* Image */}
                   <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
-                    {console.log(item)}
                     {item?.product?.image && <img src={item?.product?.image} alt={item?.product?.name} className="w-full h-full object-cover" />}
                   </div>
                   {/* Info */}
@@ -96,7 +79,7 @@ function CartPreview(
                     <p className="font-black text-indigo-600 text-sm mt-0.5">{formatMoney(Number(item?.product?.priceCents) * Number(item?.quantity))}</p>
                   </div>
                   {/* Remove */}
-                  <motion.button whileTap={{ scale: 0.9 }} onClick={() => onRemove(item?.product?.id)}
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={() => removeItem(item?.product?.id)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <TrashIcon className="w-3 h-3 text-red-400" />
                   </motion.button>
