@@ -3,9 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { useFetchData } from "../../../Hooks/useFetch";
-import { useAddToCart } from "../../../Hooks/cart/useAddCart";
-import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
+import { useNavigation, useLoaderData } from "react-router-dom";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { STYLES } from "./Styles/styles";
 import { CATEGORIES } from "./Data/categories";
@@ -19,8 +17,10 @@ import ParticleField from "./Components/ParticleField";
 import FloatingOrbs from "./Components/FloatingOrbs";
 import MarqueeStrip from "./Components/MarqueeStrip";
 import ProductCard from "../../../Components/Ui/ProductCard";
-import { CheckIcon } from "../../../Components/Icons/CheckIcon"; 
-import { SpinIcon } from "../../../Components/Icons/SpinIcon"; 
+import { BentoCard } from "./Components/BentoProductGridComponents/BentoCard";
+import AddToCart from "../../../Components/Ui/AddToCart";
+
+
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 
@@ -97,7 +97,7 @@ function TrendingSection({ products, isLoading }) {
           <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-5">
-          {isLoading ? <Skeleton count={6} /> : products.map((p) => <ProductCard key={p.id} product={p} />)}
+          {isLoading ? <Skeleton count={6} /> : products.map((p) => <ProductCard key={p.id} product={p} variant="overlay" />)}
         </div>
       </div>
     </section>
@@ -150,7 +150,7 @@ function FlashSaleSection({ products, isLoading }) {
         </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-        {isLoading ? <Skeleton count={4} variant="tall" /> : products.map((p) => <ProductCard key={p.id} product={p} variant="tall" />)}
+        {isLoading ? <Skeleton count={4} variant="tall" /> : products.map((p) => <ProductCard key={p.id} product={p} variant="overlay" />)}
       </div>
     </section>
   );
@@ -158,7 +158,6 @@ function FlashSaleSection({ products, isLoading }) {
 
 function BestSellersSection({ products, isLoading }) {
 
-  // const { handleAdd, loading, success, error } = useAddToCart() 
   console.log(products)
 
   const ref = useRef(null);
@@ -175,8 +174,6 @@ function BestSellersSection({ products, isLoading }) {
   const top = products[0];
   const rest = products.slice(1, 5);
   console.log(top)
-
-  const { handleAdd, loading, success, error } = useAddToCart(top?.id)
 
 
   return (
@@ -202,45 +199,7 @@ function BestSellersSection({ products, isLoading }) {
                     <h3 className="font-black text-2xl mt-2 mb-1 leading-tight">{top.name}</h3>
                     <div className="flex items-center justify-between mt-4">
                       <span className="font-black text-3xl">{formatMoneyCents(top.priceCents)}</span>
-                      <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ duration: 0.4 }}
-                        className="relative overflow-hidden font-bold px-6 py-3 rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 bg-white text-gray-900"
-                        // className="bg-white text-gray-900 font-bold px-6 py-3 rounded-2xl text-sm shadow-lg"
-                        animate={
-                          success
-                            ? { scale: [1, 1.2, 1], backgroundColor: "#22c55e" }
-                            : error
-                              ? { x: [0, -6, 6, -4, 4, 0], backgroundColor: "#ef4444" }
-                              : loading
-                                ? { scale: [1, 0.97, 1] }
-                                : { scale: 1 }
-                        }
-                        disabled={loading}
-                        onClick={(e) => handleAdd(e, top.id)}
-                      >
-                        <AnimatePresence mode="wait">
-                          {success ? (
-                            <motion.span key="done"
-                              initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
-                              className="flex items-center gap-2">
-                              <CheckIcon /> Added!
-                            </motion.span>
-                          ) : loading ? (
-                            <motion.span key="spin"
-                              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                              className="flex items-center gap-2">
-                              <SpinIcon /> Adding…
-                            </motion.span>
-                          ) : (
-                            <motion.span key="idle"
-                              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                              className="flex items-center gap-2">
-                                Add to Cart
-                            </motion.span>
-                          )}
-                        </AnimatePresence>
-                      </motion.button>
+                      <AddToCart productId={top?.id} variant="ghost" />
                     </div>
                   </div>
                 </div>
@@ -248,7 +207,7 @@ function BestSellersSection({ products, isLoading }) {
             )}
           </div>
           <div className="space-y-4">
-            {isLoading ? <Skeleton variant="wide" count={4} /> : rest.map((p) => <div key={p.id} className="hp-bs-right"><ProductCard product={p} variant="wide" /></div>)}
+            {isLoading ? <Skeleton variant="wide" count={4} /> : rest.map((p) => <div key={p.id} className="hp-bs-right"><ProductCard product={p} variant="customWide" /></div>)}
           </div>
         </div>
       </div>
@@ -310,7 +269,7 @@ function NewArrivalsSection({ products, isLoading }) {
         <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-        {isLoading ? <Skeleton count={4} /> : products.map((p) => <ProductCard key={p.id} product={p} variant="minimal" />)}
+        {isLoading ? <Skeleton count={4} /> : products.map((p) => <ProductCard key={p.id} product={p} />)}
       </div>
     </section>
   );
@@ -378,7 +337,7 @@ function EditorsPicks({ products, isLoading }) {
           <motion.button whileHover={{ x: 4 }} className="text-indigo-300 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          {isLoading ? Array(4).fill(0).map((_, i) => <div key={i} className="h-72 bg-white/10 rounded-3xl animate-pulse" />) : products.map((p) => <ProductCard key={p.id} product={p} variant="dark" />)}
+          {isLoading ? Array(4).fill(0).map((_, i) => <div key={i} className="h-72 bg-white/10 rounded-3xl animate-pulse" />) : products.map((p) => <ProductCard key={p.id} product={p} variant="ghost" />)}
         </div>
       </div>
     </section>
@@ -802,7 +761,7 @@ function ProductScrollStrip({ products, isLoading, title, label }) {
             ))
             : doubled.map((p, i) => (
               <div key={i} className="flex-shrink-0 w-52">
-                <ProductCard product={p} variant="minimal" />
+                <ProductCard product={p} variant="overlay" />
               </div>
             ))
           }
@@ -814,6 +773,7 @@ function ProductScrollStrip({ products, isLoading, title, label }) {
 
 // ─── Bento Product Grid ───────────────────────────────────────────────────────
 function BentoProductGrid({ products, isLoading }) {
+
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current; if (!el) return;
@@ -839,26 +799,6 @@ function BentoProductGrid({ products, isLoading }) {
     </section>
   );
 
-  const [p0, p1, p2, p3, p4] = products;
-
-  const BentoCard = ({ product, className = '' }) => {
-    if (!product) return <div className={`${className} bg-gray-100 rounded-3xl`} />;
-    return (
-      <motion.div whileHover={{ scale: 1.02 }}
-        className={`hp-bento-cell relative group overflow-hidden rounded-3xl cursor-pointer shadow-lg hover:shadow-2xl transition-shadow duration-300 ${className}`}>
-        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-bold text-indigo-600 px-2 py-1 rounded-full">New</div>
-        <div className="absolute bottom-0 left-0 right-0 p-5 text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-          <p className="font-bold text-sm line-clamp-1 mb-1">{product.name}</p>
-          <div className="flex items-center justify-between">
-            <p className="font-black text-lg">{formatMoneyCents(product.priceCents)}</p>
-            <motion.button whileTap={{ scale: 0.9 }} className="bg-white text-gray-900 text-xs font-bold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">+ Cart</motion.button>
-          </div>
-        </div>
-      </motion.div>
-    );
-  };
 
   return (
     <section ref={ref} className="py-20 max-w-7xl mx-auto px-6">
@@ -870,11 +810,18 @@ function BentoProductGrid({ products, isLoading }) {
         <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
       </div>
       <div className="grid grid-cols-3 md:grid-cols-4 gap-4" style={{ gridTemplateRows: '240px 240px' }}>
-        <BentoCard product={p0} className="col-span-2 row-span-2" />
-        <BentoCard product={p1} className="col-span-1" />
-        <BentoCard product={p2} className="col-span-1" />
-        <BentoCard product={p3} className="col-span-1" />
-        <BentoCard product={p4} className="col-span-1" />
+        
+          { products?.slice(0, 5).map((product, index) => (
+            <BentoCard
+              key={product?.id || index}
+              product={product}
+              className={
+                index === 0
+                  ? "col-span-2 row-span-2"
+                  : "col-span-1"
+              }
+            />
+          ))}
       </div>
     </section>
   );
@@ -1077,15 +1024,15 @@ function TrendingTags() {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
 
-
-
-  const url = "/api/products";
-  const { fetchedData, isLoading, error } = useFetchData(url);
-  useShowErrorBoundary(error);
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading"
 
 
 
-  const products = useMemo(() => fetchedData || [], [fetchedData]);
+  //  Products fetched by Loader
+  const fetchedProducts = useLoaderData();
+  // Optimize the fetched results 
+  const products = useMemo(() => fetchedProducts || [], [fetchedProducts]);
 
   // Product slices
   const heroFeatured = products[0] || null;

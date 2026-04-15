@@ -3,11 +3,12 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ProductDisplay from "./ProductsSectionComponents/ProductDisplay";
 
-const ProductsSection = memo(({ productsRef, trendingProducts, cartIconRef }) => {
+const ProductsSection = memo(({ productsRef, trendingProducts }) => {
 
   const navigate = useNavigate()
 
   console.log("ProductsSection render");
+  
 
   return (
     <section id="products" ref={productsRef} className="py-20 max-w-7xl mx-auto px-6">
@@ -18,7 +19,6 @@ const ProductsSection = memo(({ productsRef, trendingProducts, cartIconRef }) =>
           <ProductDisplay 
             key={item.id} 
             item={item} 
-            cartIconRef={cartIconRef} 
           />
         ))}
       </div>

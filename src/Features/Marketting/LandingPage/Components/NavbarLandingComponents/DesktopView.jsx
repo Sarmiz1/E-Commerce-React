@@ -1,15 +1,24 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
+import { useRegisterCartIcon } from "../../../../../Context/cart/CartAnimationContext";
 
-const LeftSection = ({
+
+const DesktopView = ({
   navLinks,
-  scrollToSection,
   mobileMenuOpen,
   setMobileMenuOpen,
   cart,
   setCartOpen,
-  cartIconRef,
+  handleNavButtonClick
 }) => {
+
+
+  // Initialize cartIconRef
+  const cartIconRef = useRef(null);
+
+  // register Nav ref
+  useRegisterCartIcon(cartIconRef)
+
 
   const totalItems = useMemo(() => {
     return cart?.reduce((a, b) => a + b.quantity, 0);
@@ -20,7 +29,9 @@ const LeftSection = ({
       <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">WooSho</h1>
       <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-600">
         {navLinks.map((link) => (
-          <button key={link.label} onClick={() => scrollToSection(link.href)} className="relative hover:text-indigo-600 transition-colors duration-200 group">
+          <button key={link.label}
+            onClick={() => handleNavButtonClick(link)} 
+            className="relative hover:text-indigo-600 transition-colors duration-200 group">
             {link.label}<span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-indigo-500 group-hover:w-full transition-all duration-300" />
           </button>
         ))}
@@ -40,4 +51,4 @@ const LeftSection = ({
   )
 }
 
-export default LeftSection
+export default DesktopView

@@ -268,6 +268,7 @@ export default function Navbar({ cart = [] }) {
 
   // register Nav ref
   useRegisterCartIcon(cartBtnRef)
+  
 
   // Expose cart icon ref for fly animation (parent can pass externalCartIconRef)
   const cartRef = cartBtnRef;

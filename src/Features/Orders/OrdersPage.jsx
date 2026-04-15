@@ -26,14 +26,15 @@
 //  • Cancelled: shake animation on cancel confirm
 // ─────────────────────────────────────────────────────────────────────────────
 
+
 import {
   useState, useEffect, useRef, useCallback, useMemo
 } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { postData } from "../../api/apiClients";
 import { useLoaderData, useNavigate, useNavigation } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useCartActions } from "../../Context/cart/CartContext";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -238,7 +239,7 @@ const Spinner = ({ className = "w-5 h-5" }) => (
 
 // ─── Stats bar — four animated counters ───────────────────────────────────────
 function StatsBar({ orders }) {
-  const totalSpent = orders?.reduce((s, o) => s + (o.total || 0), 0);
+  const totalSpent = orders.reduce((s, o) => s + (o.total || 0), 0);
   const delivered = orders.filter((o) => o.status === "delivered").length;
   const pending = orders.filter((o) => ["processing", "shipped"].includes(o.status)).length;
 
@@ -464,11 +465,11 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 30, mass: 0.8 }}
-        className="fixed top-0 right-0 bottom-0 z-[9999999999999999999999999999999999] or-scroll overflow-y-auto flex flex-col"
-        style={{ width: "min(520px, 100vw)", background: "rgba(255,255,255,0.98)", backdropFilter: "blur(24px)", boxShadow: "-12px 0 60px rgba(0,0,0,0.15)" }}
+        className="fixed top-0 right-0 bottom-0 z-[81] or-scroll overflow-y-auto flex flex-col"
+        style={{ width: "min(520px, 100vw)", background: "rgba(255,255,255,0.98)", backdropFilter: "blur(24px)", boxShadow: "-12px 0 60px rgba(0,0,0,0.15)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         {/* Drawer header */}
-        <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
+        <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Order Details</p>
             <h2 className="font-black text-gray-900 text-lg">#{order.id?.slice(0, 12) || "N/A"}</h2>
@@ -477,9 +478,11 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
               <span className="text-gray-400 text-xs">{new Date(order.createdAt || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
             </div>
           </div>
-          <button onClick={onClose}
-            className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center flex-shrink-0 mt-1 transition">
-            <Icons.Close c="w-4 h-4 text-gray-500" />
+          <button
+            onClick={onClose}
+            aria-label="Close order details"
+            className="w-10 h-10 rounded-full bg-gray-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center flex-shrink-0 mt-1 transition-all duration-200 border border-transparent hover:border-red-200">
+            <Icons.Close c="w-4 h-4 text-gray-500 group-hover:text-red-500" />
           </button>
         </div>
 
@@ -613,7 +616,16 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
         </div>
 
         {/* Drawer action footer */}
-        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-4 space-y-3 z-50">
+        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-6 py-4 space-y-3">
+          {/* Mobile-only close pill — visible at the top of the footer so users
+              can always dismiss without scrolling back to the header */}
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="sm:hidden w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-sm transition-colors duration-200 border border-gray-200">
+            <Icons.Close c="w-4 h-4" />
+            Close
+          </button>
           {/* Re-order */}
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => onReorder(order)}
@@ -839,14 +851,6 @@ export default function OrdersPage() {
 
   console.log(ordersData)
 
-  // Cart Actions
-  const { addItem } = useCartActions();
-
-  // Orders Action
-  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // Havent Created any yet but will do so when i fully set up my supabase to work with the app
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
   const orders = useMemo(() => ordersData || [], [ordersData]);
 
   // ── Filter / sort / search state ───────────────────────────────────────────
@@ -878,20 +882,20 @@ export default function OrdersPage() {
     setTimeout(() => setSelectedOrder(null), 400);
   }, []);
 
+
   // ── Initiate cancel → show confirm modal ──────────────────────────────────
   const handleCancelClick = useCallback((orderId) => {
     setCancelTarget(orderId);
-    setShowDrawer(false)
   }, []);
 
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // No Api to cancel order for now, add that when i set up subapase
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  //          NO ORDER API YET THIS IS JUST A MOCKUP
   // ── Confirm cancel → POST to API ──────────────────────────────────────────
   const handleCancelConfirm = useCallback(async () => {
     if (!cancelTarget) return;
     setIsCancelling(true);
     try {
-      await addItem(`${cancelTarget}/cancel`, {});
+      await postData(`/api/orders/${cancelTarget}/cancel`, {});
       setCancelTarget(null);
       closeDrawer();
     } catch {
@@ -900,10 +904,11 @@ export default function OrdersPage() {
       setIsCancelling(false);
     }
   }, [cancelTarget, closeDrawer]);
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  // No Api to RE order for now, add that when i set up subapase
+
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  //          NO ORDER API YET THIS IS JUST A MOCKUP
   // ── Re-order: add all items from an order back to cart ────────────────────
   const handleReorder = useCallback(async (order) => {
     setReorderLoading(true);
@@ -911,7 +916,7 @@ export default function OrdersPage() {
       // Add each line item back to cart concurrently
       await Promise.all(
         (order.items || []).map((item) =>
-          addItem(item.product?.id, item.quantity)
+          postData("/api/cart-items", { productId: item.product?.id, quantity: item.quantity })
         )
       );
       navigate("/cart");
@@ -921,7 +926,7 @@ export default function OrdersPage() {
       setReorderLoading(false);
     }
   }, [navigate]);
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
   // ── Reset all filters ──────────────────────────────────────────────────────

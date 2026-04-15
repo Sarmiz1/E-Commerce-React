@@ -69,7 +69,6 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const pageRef = useRef(null);
-  const cartIconRef = useRef(null);
   const heroTitleRef = useRef(null);
   const heroSubRef = useRef(null);
   const heroBtnRef = useRef(null);
@@ -99,6 +98,7 @@ export default function LandingPage() {
         const fc = featureSec.querySelectorAll(".se-fc");
         if (fc.length) gsap.fromTo(fc, { scale: 0.82, opacity: 0 }, { scale: 1, opacity: 1, stagger: 0.14, duration: 0.8, ease: "back.out(1.5)", clearProps: "all", scrollTrigger: { trigger: featureSec, start: "top 82%", once: true } });
       }
+
       const ctaSec = document.querySelector("#cta");
       if (ctaSec) {
         const cc = ctaSec.querySelector(".se-cc");
@@ -154,7 +154,6 @@ export default function LandingPage() {
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         setCartOpen={setCartOpen}
-        cartIconRef={cartIconRef}
       />
 
       {/* Spacer for fixed header+marquee on mobile */}
@@ -176,7 +175,6 @@ export default function LandingPage() {
       <ProductsSection
         productsRef={productsRef}
         trendingProducts={trendingProducts}
-        cartIconRef={cartIconRef}
       />
 
       {/* Flash Sale */}
@@ -202,11 +200,13 @@ export default function LandingPage() {
       <CtaSection />
 
       {/* Sellers Section */}
-      <SellerHero />
-      <SellerBenefits />
-      <SellerStats />
-      <SellerHowToStart />
-
+      <div id="seller">
+        <SellerHero />
+        <SellerBenefits />
+        <SellerStats />
+        <SellerHowToStart />
+      </div>
+      
       {/* Cart Drawer */}
       <CartDrawer
         cartOpen={cartOpen}
