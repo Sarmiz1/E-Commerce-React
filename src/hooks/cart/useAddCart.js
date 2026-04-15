@@ -107,12 +107,18 @@ export function useAddToCart(productId, options = {}) {
   const handleAdd = useCallback(async (event) => {
     if (loading) return; // prevent double-submission
 
+        console.log(event)
+        console.log(productId)
+        console.log(cartIconRef)
+
+
 
     // Trigger the fly animation immediately (before the API call)
     // so it feels instant regardless of network latency.
     if (event && cartIconRef) {
       runFlyToCart(event, cartIconRef);
     }
+
 
     setLoading(true);
     setError(null);

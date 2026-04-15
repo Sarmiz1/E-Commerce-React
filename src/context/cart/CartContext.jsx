@@ -92,6 +92,9 @@ export function CartProvider({ children }) {
     CartStorage.save(cart);   // sync storage alongside the ref
   }, [cart]);
 
+
+
+
   // ── Per-item loading helpers ───────────────────────────────────────────────
   const startLoading = useCallback((productId) =>
     setLoadingIds((prev) => { const s = new Set(prev); s.add(productId); return s; }), []);
@@ -115,6 +118,15 @@ export function CartProvider({ children }) {
       setLoading(false);
     }
   }, []); // no deps — CartAPI is a stable module reference
+
+
+  // Load Cart
+  useEffect(() => {
+    (async () => {
+      await loadCart();
+      console.log(cart)
+    })();
+  }, []);
 
   /* ==========================================================================
      ADD ITEM — optimistic + server confirm

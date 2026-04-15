@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useFetchData } from "../../../Hooks/useFetch";
+import { useAddToCart } from "../../../Hooks/cart/useAddCart";
 import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { STYLES } from "./Styles/styles";
@@ -18,7 +19,8 @@ import ParticleField from "./Components/ParticleField";
 import FloatingOrbs from "./Components/FloatingOrbs";
 import MarqueeStrip from "./Components/MarqueeStrip";
 import ProductCard from "../../../Components/Ui/ProductCard";
-
+import { CheckIcon } from "../../../Components/Icons/CheckIcon"; 
+import { SpinIcon } from "../../../Components/Icons/SpinIcon"; 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 
@@ -155,6 +157,10 @@ function FlashSaleSection({ products, isLoading }) {
 }
 
 function BestSellersSection({ products, isLoading }) {
+
+  // const { handleAdd, loading, success, error } = useAddToCart() 
+  console.log(products)
+
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current; if (!el) return;
@@ -168,6 +174,10 @@ function BestSellersSection({ products, isLoading }) {
 
   const top = products[0];
   const rest = products.slice(1, 5);
+  console.log(top)
+
+  const { handleAdd, loading, success, error } = useAddToCart(top?.id)
+
 
   return (
     <section ref={ref} className="py-20 bg-white">
@@ -179,7 +189,10 @@ function BestSellersSection({ products, isLoading }) {
         <div className="grid lg:grid-cols-2 gap-8 items-start">
           <div className="hp-bs-left">
             {isLoading ? <Skeleton variant="tall" count={1} /> : top && (
-              <motion.div whileHover={{ y: -8 }} className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
+              <motion.div
+                data-cart-card
+                whileHover={{ y: -8 }}
+                className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
                 <div className="relative h-[420px] overflow-hidden">
                   <img src={top.image} alt={top.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -189,7 +202,45 @@ function BestSellersSection({ products, isLoading }) {
                     <h3 className="font-black text-2xl mt-2 mb-1 leading-tight">{top.name}</h3>
                     <div className="flex items-center justify-between mt-4">
                       <span className="font-black text-3xl">{formatMoneyCents(top.priceCents)}</span>
-                      <motion.button whileTap={{ scale: 0.95 }} className="bg-white text-gray-900 font-bold px-6 py-3 rounded-2xl text-sm shadow-lg">Add to Cart</motion.button>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.4 }}
+                        className="relative overflow-hidden font-bold px-6 py-3 rounded-2xl text-sm shadow-lg flex items-center justify-center gap-2 bg-white text-gray-900"
+                        // className="bg-white text-gray-900 font-bold px-6 py-3 rounded-2xl text-sm shadow-lg"
+                        animate={
+                          success
+                            ? { scale: [1, 1.2, 1], backgroundColor: "#22c55e" }
+                            : error
+                              ? { x: [0, -6, 6, -4, 4, 0], backgroundColor: "#ef4444" }
+                              : loading
+                                ? { scale: [1, 0.97, 1] }
+                                : { scale: 1 }
+                        }
+                        disabled={loading}
+                        onClick={(e) => handleAdd(e, top.id)}
+                      >
+                        <AnimatePresence mode="wait">
+                          {success ? (
+                            <motion.span key="done"
+                              initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}
+                              className="flex items-center gap-2">
+                              <CheckIcon /> Added!
+                            </motion.span>
+                          ) : loading ? (
+                            <motion.span key="spin"
+                              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                              className="flex items-center gap-2">
+                              <SpinIcon /> Adding…
+                            </motion.span>
+                          ) : (
+                            <motion.span key="idle"
+                              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                              className="flex items-center gap-2">
+                                Add to Cart
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
                     </div>
                   </div>
                 </div>
@@ -1026,7 +1077,7 @@ function TrendingTags() {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
 
-  
+
 
   const url = "/api/products";
   const { fetchedData, isLoading, error } = useFetchData(url);
