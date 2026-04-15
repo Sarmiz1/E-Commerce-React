@@ -9,7 +9,7 @@
 // Pass the click event to handleAdd so the animation can find the product image.
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useAddToCart } from "../../Hooks/useAddCart"; 
+import { useAddToCart } from "../../Hooks/cart/useAddCart";
 import { ErrorMessage } from "../ErrorMessage"; 
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ function AddToCart({ productId }) {
       {/* Add to cart button — pass the click event for fly animation */}
       <motion.button
         data-testid="add-to-cart-btn"
-        onClick={handleAdd}
+        onClick={(e) => handleAdd(e, productId)}
         disabled={loading}
         whileTap={{ scale: 0.96 }}
         className={`w-full flex items-center justify-center gap-2 font-black text-sm py-3 px-4 rounded-2xl transition-all duration-300 shadow-md ${success

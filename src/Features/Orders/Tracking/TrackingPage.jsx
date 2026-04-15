@@ -34,7 +34,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams, useNavigation, useLoaderData } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { formatMoneyCents } from "../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 
 gsap.registerPlugin(ScrollTrigger);
 

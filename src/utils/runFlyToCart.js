@@ -1,7 +1,7 @@
 import gsap from "gsap";
 
 export const runFlyToCart = (e, cartIconRef) => {
-  const card = e.currentTarget.closest(".se-pc");
+  const card = e.currentTarget.closest("[data-cart-card]")
   const img = card?.querySelector("img");
 
   if (!img || !cartIconRef?.current) return;

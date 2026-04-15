@@ -27,7 +27,7 @@
 // ── If you need the animation without the API (e.g. preview / demo) ───────────
 //
 //   import { runFlyToCart }  from "../utils/cartAnimation";
-//   import { useCartIconRef } from "../Context/CartAnimationContext";
+  // import { useCartIconRef } from "../Context/CartAnimationContext";
 //
 //   const cartIconRef = useCartIconRef();
 //   <button onClick={(e) => runFlyToCart(e, cartIconRef)}>Animate only</button>
@@ -36,10 +36,10 @@
 import { useState, useCallback } from "react";
 
 // import cartContext from "../Context/cartContext";     // legacy default export
-import { postData } from "../api/apiClients";
-import { useCartActions } from "../Context/cart/CartContext";    // new split-context actions
-import { useCartIconRef } from "../Context/cart/CartAnimationContext"; 
-import { runFlyToCart } from "../Utils/runFlyToCart"; 
+import { postData } from "../../api/apiClients";
+import { useCartActions } from "../../Context/cart/CartContext";    // new split-context actions
+import { useCartIconRef } from "../../Context/cart/CartAnimationContext";
+import { runFlyToCart } from "../../Utils/runFlyToCart";
 
 // ── Safely get loadCart regardless of which context shape the app uses ─────────
 // This handles both the old cartContext (default export with { loadCart }) and
@@ -88,6 +88,7 @@ export function useAddToCart(productId, options = {}) {
   const { loadCart } = useCartActions();
   const cartIconRef = useCartIconRef();
 
+
   /** Reset all local state back to idle. Useful after showing an error. */
   const reset = useCallback(() => {
     setLoading(false);
@@ -106,6 +107,7 @@ export function useAddToCart(productId, options = {}) {
   const handleAdd = useCallback(async (event) => {
     if (loading) return; // prevent double-submission
 
+
     // Trigger the fly animation immediately (before the API call)
     // so it feels instant regardless of network latency.
     if (event && cartIconRef) {
@@ -116,7 +118,7 @@ export function useAddToCart(productId, options = {}) {
     setError(null);
 
     try {
-      await postData("/api/cart-items", { productId, quantity });
+      await postData("/cart-items", { productId, quantity });
       await loadCart();
 
       setSuccess(true);

@@ -24,11 +24,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { ratingCount } from "../../Utils/ratingsCount";
-import { formatMoneyCents } from "../../Utils/formatMoneyCents";
-import { useCartActions } from "../../Context/cart/CartContext";
-import { ErrorMessage } from "../../Components/ErrorMessage";
-import ProductCard from "../../Components/Ui/ProductCard";
+import { ratingCount } from "../../../Utils/ratingsCount";
+import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { useCartActions } from "../../../Context/cart/CartContext";
+import { ErrorMessage } from "../../../Components/ErrorMessage";
+import ProductCard from "../../../Components/Ui/ProductCard";
 
 gsap.registerPlugin(ScrollTrigger);
 

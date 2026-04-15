@@ -13,12 +13,11 @@ import { PERKS } from "./Data/perks";
 import { TESTIMONIALS } from "./Data/testimonials";
 import { HOW_IT_WORKS } from "./Data/how-it-works"
 import SectionLabel from "./Components/SectionLabel";
-import Stars from "./Components/Stars";
+import Stars from "../../../Components/Stars";
 import ParticleField from "./Components/ParticleField";
 import FloatingOrbs from "./Components/FloatingOrbs";
 import MarqueeStrip from "./Components/MarqueeStrip";
-import ProductCard from "./Components/ProductCard";
-// import Navbar from "./Navbar";
+import ProductCard from "../../../Components/Ui/ProductCard";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 

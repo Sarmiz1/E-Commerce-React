@@ -239,7 +239,6 @@ const NAVBAR_STYLES = `
 
 
 export default function Navbar({ cart = [] }) {
-  const { cartIconRef: externalCartIconRef } = useRegisterCartIcon()
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -266,6 +265,13 @@ export default function Navbar({ cart = [] }) {
   const cartHoverTimer = useRef(null);
   const megaTimer = useRef(null);
   const pillRef = useRef(null);
+
+  // register Nav ref
+  useRegisterCartIcon(cartBtnRef)
+
+  // Expose cart icon ref for fly animation (parent can pass externalCartIconRef)
+  const cartRef = cartBtnRef;
+
 
   // Stable scroll handler — NO hide-on-scroll-down (that was the bug)
   useEffect(() => {
@@ -311,8 +317,6 @@ export default function Navbar({ cart = [] }) {
     setActiveMenu(null);
   }, [location.pathname]);
 
-  // Expose cart icon ref for fly animation (parent can pass externalCartIconRef)
-  const cartRef = externalCartIconRef || cartBtnRef;
 
   // Mega menu hover helpers (delayed open/close to prevent flicker)
   const openMega = (label) => {

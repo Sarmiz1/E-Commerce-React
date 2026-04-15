@@ -1,20 +1,20 @@
 import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
 import { fetchProductsLoader, cartRecommendationsLoader } from "../loaders/fetchProductsLoader";
 import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
-import HomePage from "../Pages/Home/HomePage/HomePage"
-import LandingPage from "../Pages/Home/LandingPage/LandinPage";
-import CheckoutPage from "../Pages/Checkout/CheckOutPage";
-import OrdersPage from "../Pages/orders/OrdersPage";
-import ProductsPage from "../Pages/ProductPage/ProductsPage";
-import TrackingPage from "../Pages/tracking/TrackingPage";
-import ProductDetail from "../Pages/ProductDetails/ProductDetail";
+import HomePage from "../Features/Home/HomePage/HomePage"
+import LandingPage from "../Features/Marketting/LandingPage/LandinPage";
+import CheckoutPage from "../Features/Checkout/CheckOutPage";
+import OrdersPage from "../Features/orders/OrdersPage";
+import ProductsPage from "../Features/Product/ProductsPage";
+import TrackingPage from "../Features/Orders/Tracking/TrackingPage";
+import ProductDetail from "../Features/Product/ProductDetails/ProductDetail";
 import ProductsLayout from "../Layout/ProductsLayout";
 import RootLayout from "../Layout/RootLayout";
 import DefaultLayout from "../Layout/DefaultLayout";
 import LandingLayout from "../Layout/LandingLayout";
 import NotFoundPage from "../Components/NotFoundPage";
 import FallbackPage from "../Components/FallbackPage";
-import CartPage from "../Pages/Cart/CartPage";
+import CartPage from "../Features/Cart/CartPage";
 
 
 
