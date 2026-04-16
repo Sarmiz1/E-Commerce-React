@@ -50,6 +50,13 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useCartState, useCartActions } from "../../Context/cart/CartContext";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
+import ProductCard from "../../Components/Ui/ProductCard";
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Mocked Cart
+import { mockedCart } from "../../Data/mockedCart";
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -290,7 +297,7 @@ function CartRow({ item,
     setPrevQty(item.quantity);
   }, [item.quantity, prevQty]);
 
-  const price = item.product?.priceCents || 0;
+  const price = item?.product.priceCents || 0;
   const lineTotal = price * item.quantity;
 
   // Swipe-to-delete gesture via drag
@@ -327,6 +334,7 @@ function CartRow({ item,
         layout
         className="relative bg-white border border-gray-100/80 rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-grab active:cursor-grabbing"
       >
+        {/* Product Display */}
         <div className="flex gap-4 items-start">
           {/* Product image */}
           <Link to={`/products/${item.product?.id}`} className="flex-shrink-0">
@@ -561,37 +569,17 @@ function SavedForLater({ items, onMoveToCart }) {
 // ─── Upsell / recommended row ──────────────────────────────────────────────────
 function RecommendedRow({ products, onAddToCart, cartProductIds }) {
   if (!products.length) return null;
-  const filtered = products.filter((p) => !cartProductIds.has(String(p.id))).slice(0, 6);
+  const filtered = products.filter((p) => !cartProductIds.has(String(p.id))).slice(0, 5);
   if (!filtered.length) return null;
 
   return (
     <section>
       <h2 className="text-xl font-black text-gray-900 mb-2">You Might Have Forgotten</h2>
       <p className="text-gray-400 text-sm mb-6">Frequently bought together with items in your cart.</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        {filtered.map((p, i) => (
-          <motion.div key={p.id}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.07 }}
-            whileHover={{ y: -6 }}
-            className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 group flex flex-col"
-          >
-            {console.log(p)}
-            <div className="aspect-square bg-gray-50 overflow-hidden">
-              {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />}
-            </div>
-            <div className="p-3 flex flex-col flex-1">
-              <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug flex-1">{p.name}</p>
-              <p className="text-indigo-600 font-black text-sm mt-1">{formatMoneyCents(p.priceCents)}</p>
-              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.95 }}
-                onClick={() => onAddToCart(p)}
-                className="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-black py-2 rounded-xl shadow-sm">
-                + Add
-              </motion.button>
-            </div>
-          </motion.div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {filtered.map((p) => (
+            // {console.log(p)}
+          <ProductCard product={p} key={p.id} variant="compact"/>
         ))}
       </div>
     </section>
@@ -712,7 +700,12 @@ export default function CartPage() {
 
   // ── Cart data from API ───o──────────────────────────────────────────────────
   const { updateQuantity, removeItem, addItem } = useCartActions();
-  const { cart, loading, error } = useCartState();
+  const { loading, error } = useCartState();
+
+  //++++++++++++++++++++++++++++++++++++
+  // Mocked Cart
+  const cart = mockedCart
+  //++++++++++++++++++++++++++++++++++++++++++
 
   console.log(cart)
 

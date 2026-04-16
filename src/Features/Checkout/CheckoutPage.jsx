@@ -29,6 +29,7 @@ import { OrderAPI } from "../../api/orderApi";
 
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
+import { mockedCart } from "../../Data/mockedCart";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -750,8 +751,13 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(0);
 
   // ── Fetch live cart from API ──────────────────────────────────────────────
-  const { cart: cartData, error: cartError, loading: cartLoading } = useCartState();
+  const { cart: cartDataW, error: cartError, loading: cartLoading } = useCartState();
   useShowErrorBoundary(cartError);
+
+  //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  //    Mocked cart
+  const cartData = mockedCart
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   // Cart Actions from Api
   const { updateQuantity , removeItem } = useCartActions();
