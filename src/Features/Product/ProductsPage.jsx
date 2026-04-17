@@ -47,6 +47,42 @@
 //  ✓ ProductDetailModal     : SHEIN-style, thumbnail strip, size/color/qty pickers.
 //  ✓ Cart+ icon             : Replaces "Add to cart" text. Opens detail modal.
 //  ✓ Add to cart in modal   : Real API call with size/color/quantity.
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// src/Pages/Products/ProductsPage.jsx
+//
+// ── All reported issues fixed ─────────────────────────────────────────────────
+//
+//  ✓ Custom scrollbar       : System scrollbars hidden globally; thin styled ones.
+//  ✓ Header collision       : Removed sticky from page header. Navbar handles top.
+//  ✓ FilterSidebar layout   : Rendered ONCE. Desktop aside + mobile sheet are
+//                             completely separate DOM elements, no fighting.
+//  ✓ Mobile no filter way   : Floating "Filter" pill button, always visible.
+//  ✓ FilterSidebar scroll   : Custom slim scrollbar, all content clearly visible.
+//  ✓ Mobile grid full-width : Sidebar never occupies space in mobile flex row.
+//  ✓ Image hover flicker    : Stacked <img> elements with CSS opacity transition.
+//                             No JS fading state = zero flicker. Video supported.
+//  ✓ Compare modal offscreen: Fixed `left-1/2 -translate-x-1/2` centering.
+//  ✓ ProductDetailModal     : SHEIN-style, thumbnail strip, size/color/qty pickers.
+//  ✓ Cart+ icon             : Replaces "Add to cart" text. Opens detail modal.
+//  ✓ Add to cart in modal   : Real API call with size/color/quantity.
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// src/Pages/Products/ProductsPage.jsx
+//
+// ── All reported issues fixed ─────────────────────────────────────────────────
+//
+//  ✓ Custom scrollbar       : System scrollbars hidden globally; thin styled ones.
+//  ✓ Header collision       : Removed sticky from page header. Navbar handles top.
+//  ✓ FilterSidebar layout   : Rendered ONCE. Desktop aside + mobile sheet are
+//                             completely separate DOM elements, no fighting.
+//  ✓ Mobile no filter way   : Floating "Filter" pill button, always visible.
+//  ✓ FilterSidebar scroll   : Custom slim scrollbar, all content clearly visible.
+//  ✓ Mobile grid full-width : Sidebar never occupies space in mobile flex row.
+//  ✓ Image hover flicker    : Stacked <img> elements with CSS opacity transition.
+//                             No JS fading state = zero flicker. Video supported.
+//  ✓ Compare modal offscreen: Fixed `left-1/2 -translate-x-1/2` centering.
+//  ✓ ProductDetailModal     : SHEIN-style, thumbnail strip, size/color/qty pickers.
+//  ✓ Cart+ icon             : Replaces "Add to cart" text. Opens detail modal.
+//  ✓ Add to cart in modal   : Real API call with size/color/quantity.
 
 import {
   useState, useMemo, useEffect, useRef, useCallback,
@@ -61,29 +97,29 @@ import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { useCartActions } from "../../Context/cart/CartContext";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PAGE_SIZE = 24;
-const AD_INTERVAL = 12;
-const TICKER_MS = 4000;
+const PAGE_SIZE     = 24;
+const AD_INTERVAL   = 12;
+const TICKER_MS     = 4000;
 
 // ─── Module-scope: no Math.random in render ───────────────────────────────────
 const ACTIVITY_TEMPLATES = [
-  { emoji: "🛍️", tpl: "[name] just purchased in Lagos" },
-  { emoji: "❤️", tpl: "[name] wishlisted from Abuja" },
-  { emoji: "🛒", tpl: "[name] added to cart · London" },
-  { emoji: "⚡", tpl: "Flash deal: [name] · NYC" },
-  { emoji: "🔥", tpl: "[name] is trending now" },
-  { emoji: "🌍", tpl: "[name] shipped to Nairobi" },
+  { emoji:"🛍️", tpl:"[name] just purchased in Lagos"   },
+  { emoji:"❤️",  tpl:"[name] wishlisted from Abuja"     },
+  { emoji:"🛒",  tpl:"[name] added to cart · London"    },
+  { emoji:"⚡",  tpl:"Flash deal: [name] · NYC"         },
+  { emoji:"🔥",  tpl:"[name] is trending now"           },
+  { emoji:"🌍",  tpl:"[name] shipped to Nairobi"        },
 ];
 
 const SORT_OPTIONS = [
-  { value: "default", label: "Best Match" },
-  { value: "price-asc", label: "Price: Low" },
-  { value: "price-desc", label: "Price: High" },
-  { value: "rating", label: "Top Rated" },
-  { value: "newest", label: "Newest" },
+  { value:"default",    label:"Best Match"  },
+  { value:"price-asc",  label:"Price: Low"  },
+  { value:"price-desc", label:"Price: High" },
+  { value:"rating",     label:"Top Rated"   },
+  { value:"newest",     label:"Newest"      },
 ];
 
-const CATEGORIES = ["All", "Electronics", "Fashion", "Sports", "Home", "Beauty", "Toys", "Books"];
+const CATEGORIES = ["All","Electronics","Fashion","Sports","Home","Beauty","Toys","Books"];
 
 // ─── Page-scoped styles ───────────────────────────────────────────────────────
 // Includes GLOBAL custom scrollbar override (system scrollbars hidden).
@@ -142,15 +178,78 @@ const PG_STYLES = `
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Derive size/color options from product keywords when not provided by API */
-function deriveProductOptions(product) {
-  if (!product) return { sizes: null, colors: null };
-  const text = [product.name || "", ...(product.keywords || [])].join(" ").toLowerCase();
-  const isApparel = /cloth|shirt|dress|top|blouse|pant|jean|skirt|jacket|coat|suit|sweater|hoodie/.test(text);
-  const isFootwear = /shoe|boot|sneaker|heel|sandal|slipper|footwear/.test(text);
+// ─── Color keyword map — hex values for auto-detected colours ─────────────────
+const COLOR_KEYWORDS = {
+  black:"#111827", white:"#f8fafc", red:"#ef4444", blue:"#3b82f6",
+  green:"#22c55e", yellow:"#eab308", pink:"#ec4899", purple:"#a855f7",
+  orange:"#f97316", gray:"#6b7280", grey:"#6b7280", brown:"#92400e",
+  navy:"#1e3a5f", beige:"#d4b896", cream:"#fef9e7", gold:"#d97706",
+  silver:"#9ca3af", rose:"#f43f5e", teal:"#14b8a6", coral:"#fb7185",
+  lavender:"#c4b5fd", burgundy:"#7f1d1d", olive:"#4d7c0f", tan:"#d4a76a",
+  khaki:"#c3b091", mint:"#a7f3d0", sky:"#38bdf8", lime:"#a3e635",
+};
 
-  const sizes = product.sizes || (isFootwear ? ["38", "39", "40", "41", "42", "43"] : isApparel ? ["XS", "S", "M", "L", "XL", "2XL"] : null);
-  const colors = product.colors || null;
-  return { sizes, colors };
+// ─── Size conversion tables ────────────────────────────────────────────────────
+// Each array index maps to the same physical size across systems.
+const SIZE_TABLES = {
+  apparel: {
+    Standard: ["XS","S","M","L","XL","2XL","3XL"],
+    UK:       ["6","8","10","12","14","16","18"],
+    US:       ["2","4","6","8","10","12","14"],
+    EU:       ["34","36","38","40","42","44","46"],
+  },
+  footwear: {
+    Standard: ["36","37","38","39","40","41","42","43","44","45"],
+    UK:       ["3","4","5","6","7","8","9","10","11","12"],
+    US:       ["5","6","7","8","9","10","11","12","13","14"],
+    EU:       ["36","37","38","39","40","41","42","43","44","45"],
+  },
+};
+
+/**
+ * Smart product option detection.
+ * Returns { sizes, colors, sizeType, productType }
+ * - colors: array from API OR auto-detected from name+keywords, OR null
+ * - sizes:  array from API OR derived from product type
+ * - sizeType: which size system the seller is likely using ("Standard"|"UK"|"US"|"EU")
+ * - productType: "apparel" | "footwear" | null
+ */
+function deriveProductOptions(product) {
+  if (!product) return { sizes: null, colors: null, sizeType: "Standard", productType: null };
+
+  const text = [product.name || "", ...(product.keywords || [])].join(" ").toLowerCase();
+
+  const isFootwear = /shoe|boot|sneaker|heel|sandal|slipper|footwear|trainer/.test(text);
+  const isApparel  = !isFootwear && /cloth|shirt|dress|top|blouse|pant|jean|skirt|jacket|coat|suit|sweater|hoodie|tee|outfit|wear|legging|shorts/.test(text);
+  const productType = isFootwear ? "footwear" : isApparel ? "apparel" : null;
+
+  // Detect seller size system from raw product.sizes values if available
+  let sizeType = "Standard";
+  if (product.sizes?.length) {
+    const first = String(product.sizes[0]).toUpperCase();
+    if (/^[XS|XL|M|L|S]/.test(first) || first === "XS") sizeType = "Standard";
+    else if (/^[0-9]+$/.test(first)) {
+      const n = parseInt(first, 10);
+      sizeType = n < 10 ? "UK" : n < 20 ? "US" : "EU";
+    }
+  }
+
+  const sizes = product.sizes || (
+    productType === "footwear" ? SIZE_TABLES.footwear.Standard :
+    productType === "apparel"  ? SIZE_TABLES.apparel.Standard  : null
+  );
+
+  // Color detection: API data first, then keyword scan
+  let colors = product.colors || null;
+  if (!colors) {
+    const found = [];
+    for (const [name, hex] of Object.entries(COLOR_KEYWORDS)) {
+      if (text.includes(name)) found.push({ label: name.charAt(0).toUpperCase() + name.slice(1), hex });
+    }
+    colors = found.length ? found : null;
+  }
+
+  return { sizes, colors, sizeType, productType };
 }
 
 /** Extract all available images from a product object */
@@ -164,9 +263,9 @@ function IconCart({ className = "w-4 h-4" }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8"
       strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <path d="M16 10a4 4 0 01-8 0" />
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 01-8 0"/>
     </svg>
   );
 }
@@ -174,7 +273,7 @@ function IconClose({ className = "w-4 h-4" }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5"
       strokeLinecap="round" viewBox="0 0 24 24">
-      <path d="M18 6L6 18M6 6l12 12" />
+      <path d="M18 6L6 18M6 6l12 12"/>
     </svg>
   );
 }
@@ -182,7 +281,7 @@ function IconChevRight({ className = "w-4 h-4" }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5"
       strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="M9 18l6-6-6-6" />
+      <path d="M9 18l6-6-6-6"/>
     </svg>
   );
 }
@@ -190,7 +289,7 @@ function IconStar({ filled, className = "w-3.5 h-3.5" }) {
   return (
     <svg className={className} fill={filled ? "currentColor" : "none"}
       stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
   );
 }
@@ -198,7 +297,7 @@ function IconPlus({ className = "w-3 h-3" }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5"
       strokeLinecap="round" viewBox="0 0 24 24">
-      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
   );
 }
@@ -206,15 +305,15 @@ function IconFilter({ className = "w-4 h-4" }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth="2"
       strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
     </svg>
   );
 }
 function IconSpinner({ className = "w-4 h-4" }) {
   return (
     <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
     </svg>
   );
 }
@@ -227,7 +326,7 @@ function AnimatedCount({ value }) {
     if (prev.current !== value) { setKey((k) => k + 1); prev.current = value; }
   }, [value]);
   return (
-    <span className="inline-block overflow-hidden align-middle" style={{ height: "1.2em" }}>
+    <span className="inline-block overflow-hidden align-middle" style={{ height:"1.2em" }}>
       <span key={key} className="pg-count inline-block tabular-nums">{value}</span>
     </span>
   );
@@ -245,24 +344,24 @@ function AnimatedCount({ value }) {
 //    using real product names — no hardcoding, no WebSockets needed.
 function LiveTicker({ products }) {
   const [events, setEvents] = useState([]);
-  const productIdx = useRef(0);
+  const productIdx  = useRef(0);
   const templateIdx = useRef(0);
 
   useEffect(() => {
     if (!products.length) return;
     // Seed initial events
     const seed = Array.from({ length: 6 }, (_, i) => ({
-      id: i,
+      id:   i,
       emoji: ACTIVITY_TEMPLATES[i % ACTIVITY_TEMPLATES.length].emoji,
-      text: ACTIVITY_TEMPLATES[i % ACTIVITY_TEMPLATES.length].tpl
-        .replace("[name]", (products[i % products.length]?.name || "Item").slice(0, 28)),
+      text:  ACTIVITY_TEMPLATES[i % ACTIVITY_TEMPLATES.length].tpl
+              .replace("[name]", (products[i % products.length]?.name || "Item").slice(0, 28)),
     }));
     setEvents(seed);
 
     const id = setInterval(() => {
-      productIdx.current = (productIdx.current + 1) % products.length;
+      productIdx.current  = (productIdx.current  + 1) % products.length;
       templateIdx.current = (templateIdx.current + 1) % ACTIVITY_TEMPLATES.length;
-      const p = products[productIdx.current];
+      const p  = products[productIdx.current];
       const tpl = ACTIVITY_TEMPLATES[templateIdx.current];
       setEvents((prev) => [
         ...prev.slice(-7),
@@ -305,18 +404,18 @@ function LiveTicker({ products }) {
 //  On hover: play() is called and video fades in on top of the image. On leave:
 //  video pauses, resets to 0:00, and fades back out. Falls back to image cycling.
 function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }) {
-  const images = useMemo(() => getProductImages(product), [product]);
+  const images     = useMemo(() => getProductImages(product), [product]);
   const [imgIdx, setImgIdx] = useState(0);
-  const [showVid, setShowVid] = useState(false);
+  const [showVid,  setShowVid] = useState(false);
   const intervalRef = useRef(null);
-  const videoRef = useRef(null);
+  const videoRef    = useRef(null);
 
   /** On mouse enter: if video exists play it, otherwise cycle images */
   const handleMouseEnter = useCallback(() => {
     if (product.video && videoRef.current) {
       setShowVid(true);
       videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => { });
+      videoRef.current.play().catch(() => {});
       return;
     }
     if (images.length <= 1) return;
@@ -342,7 +441,7 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
   useEffect(() => () => clearInterval(intervalRef.current), []);
 
   const onSale = product.priceCents < 2000;
-  const isNew = product.createdAt &&
+  const isNew  = product.createdAt &&
     Date.now() - new Date(product.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
 
   return (
@@ -353,7 +452,7 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
       onMouseLeave={handleMouseLeave}
     >
       {/* Image area */}
-      <Link to={`/products/${product.id}`} className="relative block overflow-hidden bg-gray-50" style={{ paddingTop: "125%" }}>
+      <Link to={`/products/${product.id}`} className="relative block overflow-hidden bg-gray-50" style={{ paddingTop:"125%" }}>
         {/* Stacked images — CSS cross-fade, zero JS flicker */}
         {images.map((src, i) => (
           <img
@@ -377,7 +476,7 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
 
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-          {isNew && <span className="bg-black text-white text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded">New</span>}
+          {isNew  && <span className="bg-black text-white text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded">New</span>}
           {onSale && <span className="bg-red-500 text-white text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded">Sale</span>}
         </div>
 
@@ -394,12 +493,13 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleCompare(product); }}
           disabled={!isCompared && !canAdd}
-          className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 ${isCompared
-            ? "bg-indigo-600 text-white border-indigo-600"
-            : canAdd
+          className={`absolute top-2 right-2 z-10 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200 ${
+            isCompared
+              ? "bg-indigo-600 text-white border-indigo-600"
+              : canAdd
               ? "bg-white text-gray-500 border-gray-300 hover:border-indigo-500 hover:text-indigo-600"
               : "bg-white/60 text-gray-300 border-gray-200 cursor-not-allowed"
-            }`}
+          }`}
           title={isCompared ? "Remove from compare" : canAdd ? "Compare" : "Max 2"}
         >≡</button>
       </Link>
@@ -451,7 +551,7 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
   const budgetPct = maxBudget > 0 ? Math.round((filters.budget / maxBudget) * 100) : 100;
 
   const resetAll = useCallback(() => {
-    setFilters({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget });
+    setFilters({ sort:"default", rating:null, inStock:false, onSale:false, budget:maxBudget });
     setSelectedCategory("All");
   }, [maxBudget, setFilters, setSelectedCategory]);
 
@@ -497,10 +597,11 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
           {CATEGORIES.map((cat) => (
             <button key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${selectedCategory === cat
-                ? "bg-gray-900 text-white font-semibold"
-                : "text-gray-600 hover:bg-gray-100"
-                }`}
+              className={`w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-colors ${
+                selectedCategory === cat
+                  ? "bg-gray-900 text-white font-semibold"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
             >{cat}</button>
           ))}
         </div>
@@ -520,17 +621,18 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
         {/* Slim pill quick-selects (NOT big cards) */}
         <div className="flex flex-wrap gap-1.5 mt-2">
           {[
-            { label: "< $10", max: 1000 },
-            { label: "< $25", max: 2500 },
-            { label: "< $50", max: 5000 },
-            { label: "All", max: maxBudget },
+            { label:"< $10", max:1000       },
+            { label:"< $25", max:2500       },
+            { label:"< $50", max:5000       },
+            { label:"All",   max:maxBudget  },
           ].map((b) => (
             <button key={b.label}
               onClick={() => setFilters((f) => ({ ...f, budget: b.max }))}
-              className={`px-2.5 py-1 text-xs rounded-full border transition-all ${filters.budget === b.max
-                ? "bg-gray-900 text-white border-gray-900"
-                : "text-gray-500 border-gray-200 hover:border-gray-400"
-                }`}
+              className={`px-2.5 py-1 text-xs rounded-full border transition-all ${
+                filters.budget === b.max
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "text-gray-500 border-gray-200 hover:border-gray-400"
+              }`}
             >{b.label}</button>
           ))}
         </div>
@@ -543,10 +645,11 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
           {[null, 3, 4, 4.5].map((r) => (
             <button key={String(r)}
               onClick={() => setFilters((f) => ({ ...f, rating: r }))}
-              className={`py-1.5 text-xs rounded-md border transition-all ${filters.rating === r
-                ? "bg-gray-900 text-white border-gray-900"
-                : "text-gray-500 border-gray-200 hover:border-gray-400"
-                }`}
+              className={`py-1.5 text-xs rounded-md border transition-all ${
+                filters.rating === r
+                  ? "bg-gray-900 text-white border-gray-900"
+                  : "text-gray-500 border-gray-200 hover:border-gray-400"
+              }`}
             >{r === null ? "Any" : `${r}+★`}</button>
           ))}
         </div>
@@ -554,7 +657,7 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
 
       {/* Toggles */}
       <div className="space-y-3">
-        {[{ key: "inStock", label: "In Stock Only" }, { key: "onSale", label: "On Sale" }].map(({ key, label }) => (
+        {[{ key:"inStock", label:"In Stock Only" }, { key:"onSale", label:"On Sale" }].map(({ key, label }) => (
           <label key={key} className="flex items-center justify-between cursor-pointer">
             <span className="text-sm text-gray-700">{label}</span>
             <button
@@ -580,20 +683,20 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
 // ─── ActiveFilterChips ─────────────────────────────────────────────────────────
 function ActiveFilterChips({ filters, selectedCategory, setFilters, setSelectedCategory, maxBudget }) {
   const chips = [];
-  if (selectedCategory !== "All") chips.push({ id: "cat", label: selectedCategory });
-  if (filters.sort !== "default") chips.push({ id: "sort", label: SORT_OPTIONS.find(o => o.value === filters.sort)?.label || "" });
-  if (filters.rating !== null) chips.push({ id: "rating", label: `${filters.rating}+★` });
-  if (filters.inStock) chips.push({ id: "stock", label: "In Stock" });
-  if (filters.onSale) chips.push({ id: "sale", label: "On Sale" });
-  if (filters.budget < maxBudget) chips.push({ id: "budget", label: `< ${formatMoneyCents(filters.budget)}` });
+  if (selectedCategory !== "All")      chips.push({ id:"cat",    label: selectedCategory });
+  if (filters.sort !== "default")      chips.push({ id:"sort",   label: SORT_OPTIONS.find(o=>o.value===filters.sort)?.label||"" });
+  if (filters.rating !== null)         chips.push({ id:"rating", label: `${filters.rating}+★` });
+  if (filters.inStock)                 chips.push({ id:"stock",  label: "In Stock" });
+  if (filters.onSale)                  chips.push({ id:"sale",   label: "On Sale" });
+  if (filters.budget < maxBudget)      chips.push({ id:"budget", label: `< ${formatMoneyCents(filters.budget)}` });
   if (!chips.length) return null;
   const remove = (id) => {
-    if (id === "cat") setSelectedCategory("All");
-    if (id === "sort") setFilters((f) => ({ ...f, sort: "default" }));
-    if (id === "rating") setFilters((f) => ({ ...f, rating: null }));
-    if (id === "stock") setFilters((f) => ({ ...f, inStock: false }));
-    if (id === "sale") setFilters((f) => ({ ...f, onSale: false }));
-    if (id === "budget") setFilters((f) => ({ ...f, budget: maxBudget }));
+    if (id==="cat")    setSelectedCategory("All");
+    if (id==="sort")   setFilters((f)=>({...f,sort:"default"}));
+    if (id==="rating") setFilters((f)=>({...f,rating:null}));
+    if (id==="stock")  setFilters((f)=>({...f,inStock:false}));
+    if (id==="sale")   setFilters((f)=>({...f,onSale:false}));
+    if (id==="budget") setFilters((f)=>({...f,budget:maxBudget}));
   };
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -610,64 +713,145 @@ function ActiveFilterChips({ filters, selectedCategory, setFilters, setSelectedC
 }
 
 // ─── ProductDetailModal ────────────────────────────────────────────────────────
-// SHEIN-style quick-view modal.
-// Desktop: wide centred modal (thumbnail strip left + main image + details right).
-// Mobile: full-height bottom sheet (image top + scroll details below).
-// Smart size/color derivation from product.keywords if not in API data.
-// Smooth AnimatePresence image transitions when switching thumbnails.
 function ProductDetailModal({ product, onClose }) {
+  const navigate = useNavigate();
   const images = useMemo(() => getProductImages(product), [product]);
-  const { sizes, colors } = useMemo(() => deriveProductOptions(product), [product]);
+  const { sizes, colors, sizeType: detectedSizeType, productType } = useMemo(
+    () => deriveProductOptions(product), [product]
+  );
 
-  const [selectedImg, setSelectedImg] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(null);
+  // ── Image state ────────────────────────────────────────────────────────────
+  const [selectedImg,  setSelectedImg]  = useState(0);
+  const [imgDirection, setImgDirection] = useState(1); // 1=forward, -1=back
+  const [isZoomed,     setIsZoomed]     = useState(false);
+
+  // ── Selection state ────────────────────────────────────────────────────────
+  const [selectedSize,  setSelectedSize]  = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
-  const [qty, setQty] = useState(1);
-  const [addState, setAddState] = useState("idle"); // idle|loading|success|error
+  const [sizeSystem,    setSizeSystem]    = useState("Standard"); // "Standard"|"UK"|"US"|"EU"
+  const [qty,           setQty]           = useState(1);
+  const [wishlisted,    setWishlisted]    = useState(false);
+  const [addState,      setAddState]      = useState("idle"); // idle|loading|success|error
 
-  // Lock body scroll while modal is open
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+  // ── Touch swipe tracking (mobile horizontal swipe) ────────────────────────
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
+
+  // ── Size system names available for this product type ─────────────────────
+  const availableSystems = useMemo(() => {
+    if (!productType || !SIZE_TABLES[productType]) return null;
+    return Object.keys(SIZE_TABLES[productType]);
+  }, [productType]);
+
+  // ── Convert sizes to currently selected system ─────────────────────────────
+  // If product.sizes exist and match the detected system, we convert them.
+  // Otherwise we use SIZE_TABLES directly.
+  const displaySizes = useMemo(() => {
+    if (!sizes || !sizes.length) return null;
+    if (!productType || !availableSystems) return sizes;
+    const table = SIZE_TABLES[productType];
+    if (!table || !table[sizeSystem]) return sizes;
+    // Try to find seller's sizes in a known system column, then map to target
+    const systems = Object.entries(table);
+    for (const [sys, vals] of systems) {
+      // Check if >50% of sizes match a known column
+      const matches = sizes.filter((s) => vals.includes(String(s)));
+      if (matches.length >= Math.ceil(sizes.length * 0.5)) {
+        // Map each seller size to target system by index
+        return sizes.map((s) => {
+          const idx = vals.indexOf(String(s));
+          return idx !== -1 ? table[sizeSystem][idx] || s : s;
+        });
+      }
+    }
+    return table[sizeSystem] || sizes;
+  }, [sizes, sizeSystem, productType, availableSystems]);
+
+  // ── Navigate to image by index with direction detection ──────────────────
+  const goToImage = useCallback((newIdx, forceDir) => {
+    setImgDirection(forceDir !== undefined ? forceDir : newIdx > selectedImg ? 1 : -1);
+    setSelectedImg(newIdx);
+  }, [selectedImg]);
+
+  // ── Touch handlers (swipe left/right on mobile) ──────────────────────────
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
   }, []);
 
-  // Close on Escape
+  const handleTouchEnd = useCallback((e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return; // too small
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      // Horizontal swipe
+      if (dx < -30) goToImage((selectedImg + 1) % images.length, 1);
+      else if (dx > 30) goToImage((selectedImg - 1 + images.length) % images.length, -1);
+    }
+  }, [selectedImg, images.length, goToImage]);
+
+  // ── Body scroll lock ──────────────────────────────────────────────────────
   useEffect(() => {
-    const h = (e) => { if (e.key === "Escape") onClose(); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  // ── Keyboard: Escape = close, arrows = prev/next image ────────────────────
+  useEffect(() => {
+    const h = (e) => {
+      if (e.key === "Escape")      onClose();
+      if (e.key === "ArrowRight")  goToImage((selectedImg + 1) % images.length, 1);
+      if (e.key === "ArrowLeft")   goToImage((selectedImg - 1 + images.length) % images.length, -1);
+      if (e.key === "ArrowDown")   goToImage((selectedImg + 1) % images.length, 1);
+      if (e.key === "ArrowUp")     goToImage((selectedImg - 1 + images.length) % images.length, -1);
+    };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
+  }, [onClose, selectedImg, images.length, goToImage]);
 
-  /** Actual add-to-cart with selected options */
+  /** Add to cart — real API call with size/color/qty */
   const handleAddToCart = useCallback(async () => {
     if (addState !== "idle") return;
     setAddState("loading");
     try {
-      // Try CartContext first, then fall back to direct API
-      let added = false;
-      try {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const { addItem } = useCartActions();
-        if (addItem) { await addItem(product.id, qty); added = true; }
-      } catch { /* fall through */ }
-
-      if (!added) {
-        await postData("/api/cart-items", {
-          productId: product.id,
-          quantity: qty,
-          ...(selectedSize && { size: selectedSize }),
-          ...(selectedColor && { color: selectedColor }),
-        });
-      }
+      await postData("/api/cart-items", {
+        productId: product.id,
+        quantity:  qty,
+        ...(selectedSize  && { size: selectedSize }),
+        ...(selectedColor && { color: typeof selectedColor === "object" ? selectedColor.label : selectedColor }),
+      });
       setAddState("success");
-      setTimeout(onClose, 1200);
+      setTimeout(() => setAddState("idle"), 2500);
     } catch {
       setAddState("error");
       setTimeout(() => setAddState("idle"), 2500);
     }
-  }, [addState, product.id, qty, selectedSize, selectedColor, onClose]);
+  }, [addState, product.id, qty, selectedSize, selectedColor]);
+
+  /** Navigate to product page — don't close modal until route changes to avoid flicker */
+  const handleViewDetails = useCallback((e) => {
+    e.preventDefault();
+    navigate(`/products/${product.id}`);
+    // Close after a brief tick so the navigation has started and the modal
+    // unmount doesn't cause a visible white flash before the new page renders.
+    setTimeout(onClose, 120);
+  }, [navigate, product.id, onClose]);
 
   const onSale = product.priceCents < 2000;
+  const currentColorLabel = selectedColor
+    ? (typeof selectedColor === "object" ? selectedColor.label : selectedColor)
+    : null;
+
+  // ── Image slide variants — direction-aware ────────────────────────────────
+  const imgVariants = {
+    enter: (dir) => ({ x: dir > 0 ? "60%" : "-60%", opacity: 0, scale: 0.96 }),
+    center: { x: 0, opacity: 1, scale: 1, transition: { duration: 0.32, ease: [0.32, 0.72, 0, 1] } },
+    exit:  (dir) => ({ x: dir > 0 ? "-60%" : "60%", opacity: 0, scale: 0.96, transition: { duration: 0.22, ease: "easeIn" } }),
+  };
 
   return (
     <>
@@ -676,231 +860,380 @@ function ProductDetailModal({ product, onClose }) {
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onClose}
-        className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        style={{ zIndex: 1100 }}
       />
 
-      {/* Modal panel
-          Mobile: full-height bottom sheet (slide up)
-          Desktop: centred card (scale + fade)  */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 40 }}
-        transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-        className="fixed z-[81] left-0 right-0 bottom-0 rounded-t-2xl md:rounded-2xl bg-white shadow-2xl overflow-hidden"
-        style={{
-          maxHeight: "95vh",
-          top: "auto",
-          // On md+: centre the modal
-          ...(typeof window !== "undefined" && window.innerWidth >= 768 ? {
-            top: "50%", bottom: "auto",
-            left: "50%", right: "auto",
-            transform: "translate(-50%,-50%)",
-            width: "min(920px, 95vw)",
-            maxHeight: "90vh",
-          } : {}),
-        }}
+      {/* Centering shell
+          z-[1101] — above navbar (typically z-30 to z-50) on ALL screen sizes */}
+      <div
+        className="fixed inset-0 flex items-end md:items-center justify-center pointer-events-none"
+        style={{ zIndex: 1101 }}
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+        <motion.div
+          initial={{ opacity: 0, y: 48 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 48 }}
+          transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+          onClick={(e) => e.stopPropagation()}
+          className="pointer-events-auto bg-white shadow-2xl overflow-hidden
+                     w-full rounded-t-2xl
+                     md:rounded-2xl md:w-[min(960px,96vw)]"
+          style={{ maxHeight: "92vh" }}
         >
-          <IconClose className="w-4 h-4 text-gray-600" />
-        </button>
+          {/* ── Close X button — always on top, always clickable ── */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-3 right-3 z-50 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-gray-100 flex items-center justify-center transition-colors border border-gray-200"
+            aria-label="Close"
+          >
+            <IconClose className="w-4 h-4 text-gray-700" />
+          </button>
 
-        <div className="flex flex-col md:flex-row h-full overflow-hidden" style={{ maxHeight: "inherit" }}>
+          <div className="flex flex-col md:flex-row" style={{ maxHeight: "92vh" }}>
 
-          {/* ── Left: image gallery ── */}
-          <div className="md:w-[55%] flex flex-col md:flex-row overflow-hidden flex-shrink-0">
+            {/* ══════════════════════════════════════════════════════
+                LEFT: Image gallery — 58% width, thumbnail strip
+            ══════════════════════════════════════════════════════ */}
+            <div className="md:w-[58%] flex md:flex-row flex-col-reverse overflow-hidden flex-shrink-0 bg-gray-50">
 
-            {/* Thumbnail strip — horizontal on mobile (bottom), vertical on desktop (left) */}
-            <div className="md:w-16 flex md:flex-col gap-1.5 p-2 overflow-x-auto md:overflow-y-auto md:overflow-x-hidden order-2 md:order-1 bg-gray-50 pg-slim flex-shrink-0">
-              {images.map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedImg(i)}
-                  className={`flex-shrink-0 w-12 h-12 md:w-12 md:h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${selectedImg === i
-                    ? "border-gray-900 opacity-100"
-                    : "border-transparent opacity-60 hover:opacity-90 hover:border-gray-300"
-                    }`}
-                >
-                  <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" />
-                </button>
-              ))}
-            </div>
-
-            {/* Main image */}
-            <div className="flex-1 relative overflow-hidden order-1 md:order-2 bg-gray-50" style={{ minHeight: 260 }}>
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={selectedImg}
-                  src={images[selectedImg]}
-                  alt={product.name}
-                  initial={{ opacity: 0, scale: 1.03 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              </AnimatePresence>
-
-              {/* Left/right navigation arrows */}
-              {images.length > 1 && (
-                <>
+              {/* Thumbnail strip — vertical on desktop, horizontal on mobile */}
+              <div className="
+                flex flex-row md:flex-col gap-1.5
+                overflow-x-auto md:overflow-y-auto md:overflow-x-hidden
+                p-2
+                md:w-[72px] md:flex-shrink-0
+                bg-gray-100/60
+              "
+                style={{ scrollbarWidth: "thin" }}
+              >
+                {images.map((src, i) => (
                   <button
-                    onClick={() => setSelectedImg((i) => (i - 1 + images.length) % images.length)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-700 hover:bg-white transition-all"
+                    key={i}
+                    type="button"
+                    onClick={() => goToImage(i, i > selectedImg ? 1 : -1)}
+                    className={`
+                      flex-shrink-0 rounded-lg overflow-hidden border-2
+                      transition-all duration-200 cursor-pointer
+                      w-14 h-14 md:w-full md:h-16
+                      hover:opacity-100 hover:scale-105 hover:shadow-md
+                      ${selectedImg === i
+                        ? "border-gray-900 opacity-100 scale-100 shadow-sm"
+                        : "border-transparent opacity-55 hover:border-gray-400"}
+                    `}
+                    style={{ aspectRatio: "1/1" }}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
-                  </button>
-                  <button
-                    onClick={() => setSelectedImg((i) => (i + 1) % images.length)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-700 hover:bg-white transition-all"
-                  >
-                    <IconChevRight className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* ── Right: product details ── */}
-          <div className="md:w-[45%] flex flex-col overflow-y-auto pg-slim p-5 md:p-7 gap-4">
-
-            {/* Name + SKU */}
-            <div>
-              <p className="text-xs text-gray-400 mb-1">SKU: {product.id?.slice(0, 16) || "N/A"}</p>
-              <h2 className="text-lg font-bold text-gray-900 leading-snug">{product.name}</h2>
-            </div>
-
-            {/* Rating */}
-            {product.rating?.stars > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="flex text-amber-400">
-                  {Array(5).fill(0).map((_, i) => (
-                    <IconStar key={i} filled={i < Math.round(product.rating.stars)} className="w-4 h-4" />
-                  ))}
-                </div>
-                <span className="text-sm text-gray-500">
-                  {product.rating.stars} ({(product.rating.count || 0).toLocaleString()} reviews)
-                </span>
-              </div>
-            )}
-
-            {/* Price */}
-            <div className="flex items-baseline gap-3">
-              <span className="text-2xl font-black text-gray-900">{formatMoneyCents(product.priceCents)}</span>
-              {onSale && (
-                <>
-                  <span className="text-base text-gray-400 line-through">{formatMoneyCents(Math.round(product.priceCents * 1.35))}</span>
-                  <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded">
-                    -{Math.round((1 - product.priceCents / Math.round(product.priceCents * 1.35)) * 100)}%
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="h-px bg-gray-100" />
-
-            {/* Color picker */}
-            {colors && colors.length > 0 && (
-              <div>
-                <p className="text-xs font-bold text-gray-700 mb-2">
-                  Colour: <span className="font-normal text-gray-500">{selectedColor || "Select"}</span>
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map((col) => (
-                    <motion.button
-                      key={col.value || col}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => setSelectedColor(col.value || col)}
-                      className={`w-7 h-7 rounded-full border-2 transition-all ${selectedColor === (col.value || col) ? "border-gray-900 scale-110 shadow-md" : "border-transparent hover:border-gray-400"
-                        }`}
-                      style={{ background: col.hex || col }}
-                      title={col.label || col}
+                    <img
+                      src={src}
+                      alt={`View ${i + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
                     />
-                  ))}
-                </div>
+                  </button>
+                ))}
               </div>
-            )}
 
-            {/* Size picker */}
-            {sizes && sizes.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold text-gray-700">
-                    Size: <span className="font-normal text-gray-500">{selectedSize || "Select size"}</span>
-                  </p>
-                  <button className="text-xs text-indigo-600 underline hover:text-indigo-800 transition-colors">Size Guide</button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((sz) => (
-                    <motion.button
-                      key={sz}
-                      whileTap={{ scale: 0.93 }}
-                      onClick={() => setSelectedSize(sz)}
-                      className={`min-w-[44px] px-3 py-2 text-xs font-semibold rounded-full border transition-all duration-200 ${selectedSize === sz
-                        ? "bg-gray-900 text-white border-gray-900"
-                        : "bg-white text-gray-700 border-gray-300 hover:border-gray-700"
-                        }`}
-                    >{sz}</motion.button>
-                  ))}
-                </div>
-                <p className="text-[10px] text-gray-400 mt-1.5">👍 96% found this true to size</p>
-              </div>
-            )}
+              {/* Main image — vertical padding so it never fills the full height */}
+              <div
+                className="flex-1 relative overflow-hidden bg-white flex items-center justify-center"
+                style={{ minHeight: 280, maxHeight: "60vh" }}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onClick={() => setIsZoomed((z) => !z)}
+              >
+                <AnimatePresence custom={imgDirection} mode="wait">
+                  <motion.img
+                    key={selectedImg}
+                    custom={imgDirection}
+                    variants={imgVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    src={images[selectedImg]}
+                    alt={product.name}
+                    className={`
+                      w-full py-4 md:py-8 object-contain cursor-zoom-in
+                      transition-transform duration-300
+                      ${isZoomed ? "scale-150 cursor-zoom-out" : "scale-100"}
+                    `}
+                    draggable={false}
+                  />
+                </AnimatePresence>
 
-            {/* Quantity */}
-            <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">Quantity</p>
-              <div className="flex items-center gap-0 border border-gray-300 rounded-lg w-fit overflow-hidden">
-                <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors font-bold text-lg"
-                >−</button>
-                <span className="w-10 text-center text-sm font-bold text-gray-900 tabular-nums">{qty}</span>
-                <button
-                  onClick={() => setQty((q) => Math.min(20, q + 1))}
-                  className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
-                ><IconPlus className="w-3.5 h-3.5" /></button>
+                {/* Arrow buttons — desktop only (mobile uses swipe) */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); goToImage((selectedImg - 1 + images.length) % images.length, -1); }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg transition-all hidden md:flex"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); goToImage((selectedImg + 1) % images.length, 1); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-md border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-white hover:shadow-lg transition-all hidden md:flex"
+                    >
+                      <IconChevRight className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+
+                {/* Swipe hint on mobile */}
+                {images.length > 1 && (
+                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 md:hidden">
+                    {images.map((_, i) => (
+                      <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === selectedImg ? "w-5 bg-gray-700" : "w-1.5 bg-gray-300"}`} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Zoom hint */}
+                {!isZoomed && (
+                  <div className="absolute bottom-2 right-2 text-[10px] text-gray-400 bg-white/80 px-2 py-0.5 rounded-full hidden md:block">
+                    Click to zoom
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Add to cart button */}
-            <div className="space-y-2.5 mt-auto">
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                onClick={handleAddToCart}
-                disabled={addState === "loading"}
-                className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors ${addState === "success"
-                  ? "bg-emerald-600 text-white"
-                  : addState === "error"
-                    ? "bg-red-500 text-white"
-                    : addState === "loading"
-                      ? "bg-gray-400 text-white cursor-default"
-                      : "bg-gray-900 text-white hover:bg-gray-700"
-                  }`}
-              >
-                {addState === "loading" && <IconSpinner className="w-4 h-4" />}
-                {addState === "success" ? "✓ Added to Cart!"
-                  : addState === "error" ? "Failed — Try again"
-                    : addState === "loading" ? "Adding…"
-                      : "Add to Cart"}
-              </motion.button>
+            {/* ══════════════════════════════════════════════════════
+                RIGHT: Product details — scrollable
+            ══════════════════════════════════════════════════════ */}
+            <div
+              className="md:w-[42%] flex flex-col overflow-y-auto p-5 md:p-6 gap-4"
+              style={{ scrollbarWidth: "thin", maxHeight: "92vh" }}
+            >
 
-              {/* View full details link */}
-              <Link
-                to={`/products/${product.id}`}
-                onClick={onClose}
-                className="flex items-center justify-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition-colors"
-              >
-                View Full Details <IconChevRight className="w-4 h-4" />
-              </Link>
+              {/* Name */}
+              <div className="pr-8"> {/* pr-8 leaves room for X button */}
+                <p className="text-[10px] text-gray-400 mb-0.5 font-mono">SKU: {String(product.id || "N/A").slice(0, 14)}</p>
+                <h2 className="text-[17px] font-bold text-gray-900 leading-snug">{product.name}</h2>
+              </div>
+
+              {/* Short description (API field or smart fallback) */}
+              {(product.description || product.shortDescription) && (
+                <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
+                  {product.shortDescription || product.description}
+                </p>
+              )}
+
+              {/* Seller name — clickable to seller page */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-gray-400">Sold by</span>
+                <Link
+                  to={product.sellerId ? `/sellers/${product.sellerId}` : "/sellers"}
+                  onClick={handleViewDetails}
+                  className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
+                >
+                  {product.sellerName || product.brand || "ShopEase Store"}
+                </Link>
+              </div>
+
+              {/* Rating */}
+              {product.rating?.stars > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {Array(5).fill(0).map((_, i) => (
+                      <IconStar key={i} filled={i < Math.round(product.rating.stars)} className="w-3.5 h-3.5 text-amber-400" />
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    <span className="font-semibold text-gray-700">{product.rating.stars}</span>
+                    {" "}({(product.rating.count || 0).toLocaleString()} reviews)
+                  </span>
+                </div>
+              )}
+
+              {/* Price */}
+              <div className="flex items-baseline gap-2.5 flex-wrap">
+                <span className="text-2xl font-black text-gray-900">{formatMoneyCents(product.priceCents)}</span>
+                {onSale && (
+                  <>
+                    <span className="text-sm text-gray-400 line-through">{formatMoneyCents(Math.round(product.priceCents * 1.35))}</span>
+                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                      -{Math.round((1 - product.priceCents / Math.round(product.priceCents * 1.35)) * 100)}%
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <div className="h-px bg-gray-100" />
+
+              {/* ── Color picker ── */}
+              {colors && colors.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-700 mb-2">
+                    Colour
+                    {currentColorLabel && <span className="ml-1.5 font-normal text-gray-500">· {currentColorLabel}</span>}
+                  </p>
+                  <div className="flex flex-wrap gap-2.5">
+                    {colors.map((col) => {
+                      const val   = col.hex  || col;
+                      const label = col.label || col;
+                      const isSelected = selectedColor === col;
+                      return (
+                        <motion.button
+                          key={label}
+                          type="button"
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => setSelectedColor(isSelected ? null : col)}
+                          title={label}
+                          className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${
+                            isSelected ? "border-gray-900 shadow-lg scale-110" : "border-white shadow-sm hover:border-gray-400"
+                          }`}
+                          style={{ background: val, boxShadow: isSelected ? `0 0 0 2px white, 0 0 0 4px ${val}` : undefined }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Size picker with system toggle ── */}
+              {displaySizes && displaySizes.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                    <p className="text-xs font-bold text-gray-700">
+                      Size
+                      {selectedSize && <span className="ml-1.5 font-normal text-gray-500">· {selectedSize}</span>}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      {/* Size system toggle — only show if we know the product type */}
+                      {availableSystems && availableSystems.map((sys) => (
+                        <button
+                          key={sys}
+                          type="button"
+                          onClick={() => { setSizeSystem(sys); setSelectedSize(null); }}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${
+                            sizeSystem === sys
+                              ? "bg-gray-900 text-white"
+                              : "text-gray-400 hover:text-gray-700 border border-gray-200"
+                          }`}
+                        >
+                          {sys}
+                        </button>
+                      ))}
+                      <button className="text-[10px] text-indigo-500 underline ml-1 hover:text-indigo-700 transition-colors">
+                        Guide
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {displaySizes.map((sz, idx) => {
+                      // Also show original size in parentheses if different system
+                      const original = sizes?.[idx];
+                      const showBoth = original && original !== sz && sizeSystem !== detectedSizeType;
+                      return (
+                        <motion.button
+                          key={`${sz}-${idx}`}
+                          type="button"
+                          whileTap={{ scale: 0.92 }}
+                          onClick={() => setSelectedSize(sz === selectedSize ? null : sz)}
+                          className={`min-w-[42px] px-3 py-2 text-xs font-semibold rounded-lg border transition-all duration-150 ${
+                            selectedSize === sz
+                              ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                              : "bg-white text-gray-700 border-gray-200 hover:border-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {sz}
+                          {showBoth && <span className="text-[9px] opacity-60 ml-0.5">({original})</span>}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1.5">
+                    👍 96% of buyers found this true to size
+                  </p>
+                </div>
+              )}
+
+              {/* ── Quantity ── */}
+              <div>
+                <p className="text-xs font-bold text-gray-700 mb-2">Quantity</p>
+                <div className="flex items-center border border-gray-200 rounded-lg w-fit overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors text-lg font-bold select-none"
+                  >−</button>
+                  <span className="w-10 text-center text-sm font-bold text-gray-900 tabular-nums select-none">{qty}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.min(20, q + 1))}
+                    className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <IconPlus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* ── CTA buttons ── */}
+              <div className="space-y-2.5 mt-auto pt-2">
+
+                {/* Add to cart */}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleAddToCart}
+                  disabled={addState === "loading"}
+                  className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors ${
+                    addState === "success" ? "bg-emerald-600 text-white"
+                    : addState === "error"   ? "bg-red-500 text-white"
+                    : addState === "loading" ? "bg-gray-300 text-gray-500 cursor-default"
+                    : "bg-gray-900 text-white hover:bg-gray-700"
+                  }`}
+                >
+                  {addState === "loading" && <IconSpinner className="w-4 h-4" />}
+                  {addState === "success" ? "✓ Added to Cart!"
+                    : addState === "error"   ? "Failed — Try again"
+                    : addState === "loading" ? "Adding…"
+                    : "Add to Cart"}
+                </motion.button>
+
+                {/* Wishlist + View Details row */}
+                <div className="flex items-center gap-2">
+                  {/* Wishlist button */}
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.88 }}
+                    onClick={() => setWishlisted((w) => !w)}
+                    className={`flex-shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center transition-all duration-200 ${
+                      wishlisted
+                        ? "bg-red-50 border-red-300 text-red-500"
+                        : "border-gray-200 text-gray-400 hover:border-red-200 hover:text-red-400"
+                    }`}
+                    aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    <svg
+                      className="w-5 h-5 transition-transform duration-200"
+                      style={{ transform: wishlisted ? "scale(1.2)" : "scale(1)" }}
+                      fill={wishlisted ? "currentColor" : "none"}
+                      stroke="currentColor" strokeWidth="1.8"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                  </motion.button>
+
+                  {/* View full details — no close-then-navigate flicker */}
+                  <button
+                    type="button"
+                    onClick={handleViewDetails}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-all"
+                  >
+                    View Full Details <IconChevRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </>
   );
 }
@@ -927,22 +1260,20 @@ function ComparisonModal({ items, onClose }) {
 
   return (
     <>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
         onClick={onClose} className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm" />
 
+      {/* Centering shell — flexbox centres the modal; Framer Motion only
+          animates scale/opacity on the inner div so transform never conflicts */}
+      <div className="fixed inset-0 z-[81] flex items-center justify-center p-4 pointer-events-none">
       <motion.div
-        initial={{ opacity: 0, scale: .95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: .95 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed z-[81] bg-white rounded-2xl shadow-2xl overflow-hidden"
-        style={{
-          width: "min(600px, calc(100vw - 2rem))",
-          maxHeight: "85vh",
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-        }}
+        initial={{ opacity:0, scale:.95, y:16 }}
+        animate={{ opacity:1, scale:1, y:0 }}
+        exit={{ opacity:0, scale:.95, y:16 }}
+        transition={{ type:"spring", stiffness:320, damping:28 }}
+        onClick={(e) => e.stopPropagation()}
+        className="pointer-events-auto bg-white rounded-2xl shadow-2xl overflow-hidden w-full"
+        style={{ maxWidth: 600, maxHeight: "85vh" }}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
           <div>
@@ -973,10 +1304,10 @@ function ComparisonModal({ items, onClose }) {
               winA={a.priceCents < b.priceCents} winB={b.priceCents < a.priceCents} />
             <Row label="Rating"
               valA={a.rating?.stars ? `${a.rating.stars}★` : "—"} valB={b.rating?.stars ? `${b.rating.stars}★` : "—"}
-              winA={(a.rating?.stars || 0) > (b.rating?.stars || 0)} winB={(b.rating?.stars || 0) > (a.rating?.stars || 0)} />
+              winA={(a.rating?.stars||0) > (b.rating?.stars||0)} winB={(b.rating?.stars||0) > (a.rating?.stars||0)} />
             <Row label="Reviews"
-              valA={(a.rating?.count || 0).toLocaleString()} valB={(b.rating?.count || 0).toLocaleString()}
-              winA={(a.rating?.count || 0) > (b.rating?.count || 0)} winB={(b.rating?.count || 0) > (a.rating?.count || 0)} />
+              valA={(a.rating?.count||0).toLocaleString()} valB={(b.rating?.count||0).toLocaleString()}
+              winA={(a.rating?.count||0) > (b.rating?.count||0)} winB={(b.rating?.count||0) > (a.rating?.count||0)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3 px-5 pb-5 border-t border-gray-100 pt-4">
@@ -995,6 +1326,7 @@ function ComparisonModal({ items, onClose }) {
           </div>
         </div>
       </motion.div>
+      </div>{/* end centering shell */}
     </>
   );
 }
@@ -1004,8 +1336,8 @@ function ComparisonBar({ items, onRemove, onClear, onCompare }) {
   if (!items.length) return null;
   return (
     <motion.div
-      initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-      transition={{ type: "spring", stiffness: 300, damping: 28 }}
+      initial={{ y:"100%" }} animate={{ y:0 }} exit={{ y:"100%" }}
+      transition={{ type:"spring", stiffness:300, damping:28 }}
       className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-xl"
     >
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center gap-3">
@@ -1050,13 +1382,13 @@ function InlineAd({ product, type }) {
     return (
       <div className="col-span-full">
         <div className="rounded-xl overflow-hidden flex items-center"
-          style={{ background: "linear-gradient(120deg,#111827 0%,#1e1b4b 100%)", minHeight: 100 }}>
+          style={{ background:"linear-gradient(120deg,#111827 0%,#1e1b4b 100%)", minHeight:100 }}>
           <div className="flex-1 px-5 py-4 z-10">
             <p className="text-[9px] font-bold uppercase tracking-widest text-indigo-300 mb-1">Featured</p>
             <p className="text-white font-bold text-sm leading-snug line-clamp-1 mb-1">{product.name}</p>
             <div className="flex items-center gap-2">
               <span className="text-white font-black">{formatMoneyCents(product.priceCents)}</span>
-              <span className="text-indigo-300 text-xs line-through">{formatMoneyCents(Math.round(product.priceCents * 1.5))}</span>
+              <span className="text-indigo-300 text-xs line-through">{formatMoneyCents(Math.round(product.priceCents*1.5))}</span>
             </div>
           </div>
           <div className="w-20 h-24 flex-shrink-0 overflow-hidden">
@@ -1114,9 +1446,9 @@ function ViewMoreBtn({ onClick, loading, allLoaded, count }) {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ProductsPage() {
-  const navigate = useNavigate();
+  const navigate       = useNavigate();
   const [searchParams] = useSearchParams();
-  const searchTerm = searchParams.get("search") || "";
+  const searchTerm     = searchParams.get("search") || "";
 
   // ── API ────────────────────────────────────────────────────────────────────
   const url = searchTerm ? `/api/products?search=${encodeURIComponent(searchTerm)}` : "/api/products";
@@ -1130,7 +1462,7 @@ export default function ProductsPage() {
   );
 
   // ── Filter state ───────────────────────────────────────────────────────────
-  const [filters, setFilters] = useState({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget });
+  const [filters, setFilters] = useState({ sort:"default", rating:null, inStock:false, onSale:false, budget:maxBudget });
   const [selectedCategory, setSelectedCategory] = useState("All");
   useEffect(() => { setFilters((f) => ({ ...f, budget: maxBudget })); }, [maxBudget]);
   useEffect(() => { setSelectedCategory("All"); }, [searchTerm]);
@@ -1140,7 +1472,7 @@ export default function ProductsPage() {
 
   // ── Pagination ─────────────────────────────────────────────────────────────
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingMore, setLoadingMore]   = useState(false);
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [selectedCategory, filters, searchTerm]);
 
   const handleViewMore = useCallback(() => {
@@ -1152,14 +1484,14 @@ export default function ProductsPage() {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   // ── Comparison ─────────────────────────────────────────────────────────────
-  const [compareItems, setCompareItems] = useState([]);
+  const [compareItems,    setCompareItems]    = useState([]);
   const [compareModalOpen, setCompareModalOpen] = useState(false);
 
   const toggleCompare = useCallback((product) => {
     setCompareItems((prev) => {
       const exists = prev.find((p) => p.id === product.id);
-      if (exists) return prev.filter((p) => p.id !== product.id);
-      if (prev.length >= 2) return prev;
+      if (exists)         return prev.filter((p) => p.id !== product.id);
+      if (prev.length>=2) return prev;
       return [...prev, product];
     });
   }, []);
@@ -1183,46 +1515,46 @@ export default function ProductsPage() {
       r = r.filter((p) => p.name?.toLowerCase().includes(q) ||
         (Array.isArray(p.keywords) && p.keywords.some((k) => k.toLowerCase().includes(q))));
     }
-    r = r.filter((p) => (p.priceCents || 0) <= filters.budget);
-    if (filters.rating !== null) r = r.filter((p) => (p.rating?.stars || 0) >= filters.rating);
+    r = r.filter((p) => (p.priceCents||0) <= filters.budget);
+    if (filters.rating !== null) r = r.filter((p) => (p.rating?.stars||0) >= filters.rating);
     if (filters.inStock) r = r.filter((p) => p.priceCents > 0);
-    if (filters.onSale) r = r.filter((p) => p.priceCents < 2000);
+    if (filters.onSale)  r = r.filter((p) => p.priceCents < 2000);
     const s = filters.sort;
-    if (s === "price-asc") r.sort((a, b) => a.priceCents - b.priceCents);
-    if (s === "price-desc") r.sort((a, b) => b.priceCents - a.priceCents);
-    if (s === "rating") r.sort((a, b) => (b.rating?.stars || 0) - (a.rating?.stars || 0));
-    if (s === "newest") r.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    if (s==="price-asc")  r.sort((a,b)=>a.priceCents-b.priceCents);
+    if (s==="price-desc") r.sort((a,b)=>b.priceCents-a.priceCents);
+    if (s==="rating")     r.sort((a,b)=>(b.rating?.stars||0)-(a.rating?.stars||0));
+    if (s==="newest")     r.sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
     return r;
   }, [allProducts, selectedCategory, filters]);
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
-  const allLoaded = visibleCount >= filteredProducts.length;
+  const allLoaded       = visibleCount >= filteredProducts.length;
 
   const activeFilterCount = useMemo(
-    () => (selectedCategory !== "All" ? 1 : 0) + (filters.rating !== null ? 1 : 0) + (filters.inStock ? 1 : 0) +
-      (filters.onSale ? 1 : 0) + (filters.sort !== "default" ? 1 : 0) + (filters.budget < maxBudget ? 1 : 0),
+    () => (selectedCategory!=="All"?1:0)+(filters.rating!==null?1:0)+(filters.inStock?1:0)+
+          (filters.onSale?1:0)+(filters.sort!=="default"?1:0)+(filters.budget<maxBudget?1:0),
     [filters, selectedCategory, maxBudget]
   );
 
-  const compareIds = useMemo(() => new Set(compareItems.map((p) => p.id)), [compareItems]);
+  const compareIds    = useMemo(() => new Set(compareItems.map((p)=>p.id)), [compareItems]);
   const canAddCompare = compareItems.length < 2;
 
   // ── Build grid items with inline ads ──────────────────────────────────────
   const gridItems = useMemo(() => {
     const items = [];
     visibleProducts.forEach((product, i) => {
-      items.push({ type: "product", product, idx: i });
-      if ((i + 1) % AD_INTERVAL === 0 && i < visibleProducts.length - 1) {
-        const adType = Math.floor(i / AD_INTERVAL) % 2 === 0 ? "featured" : "deal";
-        const adProduct = allProducts[(i + 5) % Math.max(allProducts.length, 1)] || null;
-        items.push({ type: "ad", adType, adProduct, idx: i });
+      items.push({ type:"product", product, idx:i });
+      if ((i+1) % AD_INTERVAL === 0 && i < visibleProducts.length - 1) {
+        const adType    = Math.floor(i/AD_INTERVAL) % 2 === 0 ? "featured" : "deal";
+        const adProduct = allProducts[(i+5) % Math.max(allProducts.length,1)] || null;
+        items.push({ type:"ad", adType, adProduct, idx:i });
       }
     });
     return items;
   }, [visibleProducts, allProducts]);
 
   const resetAll = useCallback(() => {
-    setFilters({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget });
+    setFilters({ sort:"default", rating:null, inStock:false, onSale:false, budget:maxBudget });
     setSelectedCategory("All");
   }, [maxBudget]);
 
@@ -1250,10 +1582,11 @@ export default function ProductsPage() {
           {/* ── Mobile filter button ── */}
           <button
             onClick={() => setMobileFilterOpen(true)}
-            className={`lg:hidden flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full border transition-all flex-shrink-0 ${activeFilterCount > 0
-              ? "bg-gray-900 text-white border-gray-900"
-              : "bg-white text-gray-700 border-gray-300 hover:border-gray-600"
-              }`}
+            className={`lg:hidden flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full border transition-all flex-shrink-0 ${
+              activeFilterCount > 0
+                ? "bg-gray-900 text-white border-gray-900"
+                : "bg-white text-gray-700 border-gray-300 hover:border-gray-600"
+            }`}
           >
             <IconFilter className="w-3.5 h-3.5" />
             Filter {activeFilterCount > 0 && `(${activeFilterCount})`}
@@ -1299,14 +1632,15 @@ export default function ProductsPage() {
           <div className="flex-1 min-w-0 w-full">
 
             {/* Category pills */}
-            <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3 no-scrollbar" style={{ scrollbarWidth: "none" }}>
+            <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3 no-scrollbar" style={{ scrollbarWidth:"none" }}>
               {CATEGORIES.map((cat) => (
                 <button key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`flex-shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all ${selectedCategory === cat
-                    ? "bg-gray-900 text-white border-gray-900"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
-                    }`}
+                  className={`flex-shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all ${
+                    selectedCategory === cat
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                  }`}
                 >{cat}</button>
               ))}
             </div>
@@ -1339,7 +1673,7 @@ export default function ProductsPage() {
             {isLoading && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {Array(PAGE_SIZE).fill(0).map((_, i) => (
-                  <div key={i} className="animate-pulse bg-gray-100 rounded-lg" style={{ paddingTop: "135%" }} />
+                  <div key={i} className="animate-pulse bg-gray-100 rounded-lg" style={{ paddingTop:"135%" }} />
                 ))}
               </div>
             )}
@@ -1398,15 +1732,15 @@ export default function ProductsPage() {
         {mobileFilterOpen && (
           <>
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
               onClick={() => setMobileFilterOpen(false)}
               className="fixed inset-0 z-50 bg-black/40 lg:hidden"
             />
             <motion.div
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              initial={{ y:"100%" }} animate={{ y:0 }} exit={{ y:"100%" }}
+              transition={{ type:"spring", stiffness:300, damping:30 }}
               className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl lg:hidden overflow-hidden"
-              style={{ maxHeight: "90vh" }}
+              style={{ maxHeight:"90vh" }}
             >
               <div className="sticky top-0 bg-white px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
                 <div className="w-10 h-1 bg-gray-200 rounded-full" />
@@ -1417,7 +1751,7 @@ export default function ProductsPage() {
                   <IconClose className="w-4 h-4 text-gray-600" />
                 </button>
               </div>
-              <div className="px-5 py-4 overflow-y-auto pg-slim" style={{ maxHeight: "calc(90vh - 120px)" }}>
+              <div className="px-5 py-4 overflow-y-auto pg-slim" style={{ maxHeight:"calc(90vh - 120px)" }}>
                 <FilterPanel
                   filters={filters} setFilters={setFilters}
                   maxBudget={maxBudget}

@@ -19,7 +19,7 @@ import CartPage from "../Features/Cart/CartPage";
 
 
 
-const isLoggedIn = true; // Mock authentication state, replace with real auth logic as needed
+const isLoggedIn = false; // Mock authentication state, replace with real auth logic as needed
 
 
 const router = createBrowserRouter(
