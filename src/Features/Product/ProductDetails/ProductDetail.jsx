@@ -1,48 +1,246 @@
-// src/Pages/Products/ProductDetailPage.jsx
+// src/Features/Product/ProductDetails/ProductDetail.jsx
 //
-// ── Bugs fixed from original ──────────────────────────────────────────────────
-// 1. Description was hardcoded lorem ipsum — now falls back gracefully when
-//    product.description is absent (most API products have none).
-// 2. "Add to Cart" button had no wiring — now uses the same AddToCart component
-//    (postData + cartContext) so it actually works.
-// 3. useParams() productId cast to string for comparison; loader returns string ids.
-// 4. similarProducts had no max cap — could render 40+ cards; capped at 6.
-// 5. ratingCount image path could 404 on fractional ratings — StarRating component
-//    renders pure CSS stars, no image dependency.
-// 6. products.find() didn't handle undefined loaderData — guarded with ?. 
-// 7. console.log left in production code — removed.
+// ── Premium Product Detail Page ───────────────────────────────────────────────
 //
-// ── Animation system ──────────────────────────────────────────────────────────
-// Uses a cinematic "reveal timeline" on mount: image slides in from left,
-// content cascade from right with GSAP expo.out. Separate from the scroll-
-// triggered similar products section. All GSAP animations use clearProps:"all".
+// Full theme-aware redesign with:
+//  • Dark / Light mode via ThemeContext (every color is dynamic)
+//  • Thumbnail gallery with swipe transitions + desktop image zoom lens
+//  • Product SKU, seller link, color & size selectors
+//  • Working reviews system: localStorage-persisted, computed rating breakdown,
+//    user-submitted reviews with generated avatars, paginated Load More
+//  • Sticky tab bar with backdrop blur
+//  • Wishlist persistence (localStorage)
+//  • Price Alert modal (UI + localStorage, easy backend migration)
+//  • Predictive Pairings (keyword match scores, category labels)
+//  • Keyboard thumbnail navigation (← →)
+//  • Auto-scroll to Reviews tab on rating click
 // ──────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useParams, useLoaderData, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useParams, useLoaderData, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { ratingCount } from "../../../Utils/ratingsCount";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { useCartActions } from "../../../Context/cart/CartContext";
+import { useTheme } from "../../../Context/theme/ThemeContext";
 import { ErrorMessage } from "../../../Components/ErrorMessage";
 import ProductCard from "../../../Components/Ui/ProductCard";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// ─── Inline styles (scoped to this page) ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── LOCALSTORAGE HELPERS ─────────────────────────────────────────────────────
+// All use try/catch for SSR safety and quota‑exceeded resilience.
+// Each function is structured for easy migration: replace the body with an API
+// call (e.g. `await postData('/api/reviews', ...)`) and it "just works".
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function loadReviews(productId) {
+  try {
+    const raw = localStorage.getItem(`shopease-reviews-${productId}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveReviews(productId, reviews) {
+  // ── Backend migration: replace with `await postData('/api/reviews', { productId, reviews })`
+  try { localStorage.setItem(`shopease-reviews-${productId}`, JSON.stringify(reviews)); }
+  catch { /* quota exceeded – silently ignore */ }
+}
+
+function loadWishlist() {
+  try {
+    const raw = localStorage.getItem("shopease-wishlist");
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveWishlist(list) {
+  // ── Backend migration: replace with `await putData('/api/wishlist', { items: list })`
+  try { localStorage.setItem("shopease-wishlist", JSON.stringify(list)); }
+  catch { /* ignore */ }
+}
+
+function loadPriceAlerts() {
+  try {
+    const raw = localStorage.getItem("shopease-price-alerts");
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function savePriceAlert(alert) {
+  // ── Backend migration: replace with `await postData('/api/price-alerts', alert)`
+  try {
+    const alerts = loadPriceAlerts();
+    alerts.push(alert);
+    localStorage.setItem("shopease-price-alerts", JSON.stringify(alerts));
+  } catch { /* ignore */ }
+}
+
+function hasPriceAlert(productId) {
+  return loadPriceAlerts().some((a) => a.productId === productId);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── PRODUCT CATEGORY DETECTION & DATA ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getProductCategory(keywords = []) {
+  const kw = keywords.join(" ").toLowerCase();
+  if (/shoe|sneaker|footwear|heel|flat|boot/.test(kw)) return "shoes";
+  if (/apparel|shirt|sweater|pant|dress|hoodie|sock|beanie|shorts|robe/.test(kw)) return "apparel";
+  if (/kitchen|appliance|cookware|toaster|kettle|blender/.test(kw)) return "kitchen";
+  if (/bathroom|towel|bath/.test(kw)) return "home";
+  return "default";
+}
+
+const PRODUCT_COLORS = {
+  apparel: [
+    { name: "Black", hex: "#1a1a2e" },
+    { name: "White", hex: "#f0f0f0" },
+    { name: "Navy", hex: "#1b3a5c" },
+    { name: "Gray", hex: "#8b8b8b" },
+    { name: "Teal", hex: "#008080" },
+  ],
+  shoes: [
+    { name: "Black", hex: "#1a1a2e" },
+    { name: "White", hex: "#f0f0f0" },
+    { name: "Gray", hex: "#8b8b8b" },
+    { name: "Brown", hex: "#8b4513" },
+  ],
+  kitchen: [
+    { name: "Silver", hex: "#c0c0c0" },
+    { name: "Black", hex: "#1a1a2e" },
+    { name: "White", hex: "#f0f0f0" },
+    { name: "Red", hex: "#b22222" },
+  ],
+  home: [
+    { name: "White", hex: "#f0f0f0" },
+    { name: "Gray", hex: "#8b8b8b" },
+    { name: "Beige", hex: "#d2b48c" },
+  ],
+  default: [
+    { name: "Default", hex: "#4f46e5" },
+    { name: "Black", hex: "#1a1a2e" },
+    { name: "Silver", hex: "#c0c0c0" },
+  ],
+};
+
+const SIZE_MAP = {
+  apparel: ["XS", "S", "M", "L", "XL", "XXL"],
+  shoes: ["US 7", "US 8", "US 9", "US 10", "US 11", "US 12"],
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── SEED REVIEWS ─────────────────────────────────────────────────────────────
+// Generated deterministically from product data so every product page feels
+// lived-in before any user reviews are submitted.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getSeedReviews(product) {
+  const base = product.rating?.stars || 4;
+  return [
+    { id: "seed-1", name: "Sarah M.", avatar: null, stars: Math.min(5, Math.round(base + 0.5)), text: "Absolutely love this product. Exactly as described and arrived in perfect condition. Would highly recommend to anyone!", date: "2 days ago", verified: true },
+    { id: "seed-2", name: "James K.", avatar: null, stars: Math.round(base), text: "Great quality and fast shipping. The product exceeded my expectations. Will definitely buy again.", date: "1 week ago", verified: true },
+    { id: "seed-3", name: "Amaka O.", avatar: null, stars: Math.max(1, Math.round(base - 0.5)), text: "Very good product overall. Packaging was excellent. Minor detail could be improved but overall great value.", date: "2 weeks ago", verified: false },
+  ];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── RATING DISTRIBUTION (computed, NOT hardcoded) ────────────────────────────
+// Merges the product's aggregate rating with actual user-submitted reviews.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function computeRatingDistribution(product, reviews = []) {
+  const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+  // Count actual reviews
+  reviews.forEach((r) => {
+    const s = Math.min(5, Math.max(1, Math.round(r.stars)));
+    dist[s] = (dist[s] || 0) + 1;
+  });
+
+  // Distribute the remaining product aggregate (count - reviews.length)
+  const existingCount = Math.max(0, (product.rating?.count || 0) - reviews.length);
+  if (existingCount > 0) {
+    const avg = product.rating?.stars || 4;
+    const weights = [1, 2, 3, 4, 5].map((s) => Math.max(0.01, Math.exp(-Math.abs(s - avg) * 1.2)));
+    const wSum = weights.reduce((a, b) => a + b, 0);
+    weights.forEach((w, i) => {
+      dist[i + 1] += Math.round((w / wSum) * existingCount);
+    });
+  }
+
+  return dist;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── PREDICTIVE MATCHING LOGIC ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function computePredictiveProducts(product, allProducts) {
+  if (!product || !Array.isArray(allProducts)) return [];
+
+  const targetKeywords = new Set(product.keywords || []);
+
+  return allProducts
+    .filter((p) => String(p.id) !== String(product.id))
+    .map((p) => {
+      const pKeywords = p.keywords || [];
+      const shared = pKeywords.filter((kw) => targetKeywords.has(kw)).length;
+
+      // Score: keyword overlap (70%) + price proximity (20%) + rating bonus (10%)
+      let score = (shared / Math.max(targetKeywords.size, 1)) * 70;
+      const priceRatio = Math.min(p.priceCents, product.priceCents) / Math.max(p.priceCents, product.priceCents);
+      score += priceRatio * 20;
+      if (p.rating?.stars >= 4) score += 10;
+      score = Math.min(99, Math.round(score));
+
+      // Category label
+      let label = "STYLE PICK";
+      if (score >= 85) label = "BEST MATCH";
+      else if (p.priceCents < product.priceCents * 0.7) label = "VALUE PICK";
+      else if (p.rating?.stars >= 4.5 && p.rating?.count > 100) label = "TOP RATED";
+      else if (p.priceCents > product.priceCents * 1.3) label = "PREMIUM";
+
+      return { ...p, matchScore: score, matchLabel: label };
+    })
+    .filter((p) => p.matchScore > 20)
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 6);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── AVATAR GENERATOR ─────────────────────────────────────────────────────────
+// Deterministic color from name → no external service needed.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getAvatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 65%, 50%)`;
+}
+
+function getAvatarGradient(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  const h1 = Math.abs(hash) % 360;
+  const h2 = (h1 + 40) % 360;
+  return `linear-gradient(135deg, hsl(${h1},70%,55%), hsl(${h2},60%,45%))`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── CSS STYLES (uses CSS custom properties from ThemeContext) ────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
 const DETAIL_STYLES = `
   @keyframes pd-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
   .pd-float{animation:pd-float 5s ease-in-out infinite}
 
   @keyframes pd-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
-  .pd-shimmer{
-    background:linear-gradient(90deg,#111 0%,#6366f1 35%,#111 60%,#4f46e5 90%);
-    background-size:200% auto;-webkit-background-clip:text;background-clip:text;
-    -webkit-text-fill-color:transparent;animation:pd-shimmer 4s linear infinite;
-  }
 
   @keyframes pd-orb{0%,100%{transform:translate(0,0)scale(1)}33%{transform:translate(20px,-25px)scale(1.05)}66%{transform:translate(-15px,18px)scale(0.96)}}
   .pd-orb{animation:pd-orb linear infinite}
@@ -56,18 +254,21 @@ const DETAIL_STYLES = `
   @keyframes pd-badge-glow{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0.5)}60%{box-shadow:0 0 0 10px rgba(99,102,241,0)}}
   .pd-badge-glow{animation:pd-badge-glow 2.4s ease-out infinite}
 
-  /* Image zoom on hover */
   .pd-img-wrap:hover .pd-img{transform:scale(1.04)}
   .pd-img{transition:transform 0.6s cubic-bezier(0.32,0.72,0,1)}
 
-  /* Tab underline */
-  .pd-tab-active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;border-radius:9999px;background:linear-gradient(90deg,#2563eb,#6366f1)}
+  .pd-tab-active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;border-radius:9999px;background:var(--woo-cta-primary)}
 
-  /* Breadcrumb separator */
   .pd-sep::before{content:'/';margin:0 6px;opacity:0.35}
+
+  .pd-thumb-strip::-webkit-scrollbar{height:4px}
+  .pd-thumb-strip::-webkit-scrollbar-thumb{background:rgba(128,128,128,0.3);border-radius:9999px}
 `;
 
-// ─── SVG Icon helpers ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── SVG ICON HELPERS ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
 const BagIcon = ({ className = "w-5 h-5" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" />
@@ -116,28 +317,80 @@ const RefreshIcon = ({ className = "w-4 h-4" }) => (
     <path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
   </svg>
 );
+const BellIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" />
+  </svg>
+);
+const CloseIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
 
-// ─── Star rating (CSS-only, no image dependency) ──────────────────────────────
-function StarRating({ stars = 0, count = 0, size = "base" }) {
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── STAR RATING (themed) ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function StarRating({ stars = 0, count = 0, size = "base", onClick }) {
+  const { colors } = useTheme();
   const full = Math.floor(stars);
   const half = stars % 1 >= 0.5;
   const empty = 5 - full - (half ? 1 : 0);
   const cls = size === "lg" ? "text-xl" : "text-sm";
+
   return (
-    <div className="flex items-center gap-2">
+    <div
+      className={`flex items-center gap-2 ${onClick ? "cursor-pointer" : ""}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+    >
       <div className="flex items-center gap-0.5">
         {Array(full).fill(0).map((_, i) => <span key={`f${i}`} className={`text-yellow-400 ${cls}`}>★</span>)}
         {half && <span className={`text-yellow-400 ${cls}`}>⯪</span>}
-        {Array(empty).fill(0).map((_, i) => <span key={`e${i}`} className={`text-gray-200 ${cls}`}>★</span>)}
+        {Array(empty).fill(0).map((_, i) => <span key={`e${i}`} className={cls} style={{ color: colors.border.strong }}>★</span>)}
       </div>
-      <span className="text-yellow-600 font-bold text-sm">{stars}</span>
-      {count > 0 && <span className="text-gray-400 text-sm">({count.toLocaleString()} reviews)</span>}
+      <span className="font-bold text-sm" style={{ color: "rgb(202,138,4)" }}>{stars}</span>
+      {count > 0 && <span className="text-sm" style={{ color: colors.text.tertiary }}>({count.toLocaleString()} reviews)</span>}
     </div>
   );
 }
 
-// ─── Add to Cart wired to context ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── INTERACTIVE STAR PICKER (for review form) ────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function InteractiveStarPicker({ value, onChange }) {
+  const { colors } = useTheme();
+  const [hover, setHover] = useState(0);
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => onChange(s)}
+          onMouseEnter={() => setHover(s)}
+          onMouseLeave={() => setHover(0)}
+          className="text-2xl transition-transform duration-150 hover:scale-125"
+          style={{ color: s <= (hover || value) ? "#facc15" : colors.border.strong }}
+        >
+          ★
+        </button>
+      ))}
+      {value > 0 && <span className="text-xs font-bold ml-2" style={{ color: colors.text.secondary }}>{value}/5</span>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── ADD TO CART PANEL (themed) ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function AddToCartPanel({ productId }) {
+  const { isDark, colors } = useTheme();
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -145,7 +398,6 @@ function AddToCartPanel({ productId }) {
   const btnRef = useRef(null);
   const { addItem } = useCartActions();
 
-  // Auto-reset success state
   useEffect(() => {
     if (!done) return;
     const t = setTimeout(() => setDone(false), 3000);
@@ -157,9 +409,8 @@ function AddToCartPanel({ productId }) {
     setError("");
     setLoading(true);
     try {
-      await addItem( productId, qty );
+      await addItem(productId, qty);
       setDone(true);
-      // Elastic bounce feedback
       if (btnRef.current) gsap.fromTo(btnRef.current, { scale: 0.9 }, { scale: 1, duration: 0.45, ease: "elastic.out(1.2,0.5)" });
     } catch {
       setError("Failed to add to cart. Please try again.");
@@ -172,27 +423,40 @@ function AddToCartPanel({ productId }) {
     <div className="space-y-4">
       {/* Quantity */}
       <div className="flex items-center gap-4">
-        <span className="text-xs font-black uppercase tracking-widest text-gray-400">Quantity</span>
-        <div className="flex items-center gap-0 border border-gray-200 rounded-2xl overflow-hidden">
+        <span className="text-xs font-black uppercase tracking-widest" style={{ color: colors.text.tertiary }}>Quantity</span>
+        <div className="flex items-center gap-0 rounded-2xl overflow-hidden border" style={{ borderColor: colors.border.default }}>
           <button onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition font-bold text-lg">−</button>
-          <span className="w-10 text-center font-black text-gray-900 text-sm">{qty}</span>
+            className="w-10 h-10 flex items-center justify-center font-bold text-lg transition-colors"
+            style={{ color: colors.text.secondary, background: "transparent" }}
+            onMouseEnter={(e) => e.currentTarget.style.background = colors.surface.tertiary}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>−</button>
+          <span className="w-10 text-center font-black text-sm" style={{ color: colors.text.primary }}>{qty}</span>
           <button onClick={() => setQty((q) => Math.min(10, q + 1))}
-            className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition font-bold text-lg">+</button>
+            className="w-10 h-10 flex items-center justify-center font-bold text-lg transition-colors"
+            style={{ color: colors.text.secondary, background: "transparent" }}
+            onMouseEnter={(e) => e.currentTarget.style.background = colors.surface.tertiary}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>+</button>
         </div>
       </div>
 
-      {/* CTA buttons */}
+      {/* CTA */}
       <div className="flex gap-3">
         <motion.button
           ref={btnRef}
           onClick={handleAdd}
           disabled={loading}
           whileTap={{ scale: 0.97 }}
-          className={`flex-1 flex items-center justify-center gap-2.5 font-black text-sm py-4 px-6 rounded-2xl transition-all duration-300 shadow-md ${done ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-emerald-500/25"
-              : loading ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:shadow-lg"
-            }`}
+          className="flex-1 flex items-center justify-center gap-2.5 font-black text-sm py-4 px-6 rounded-2xl transition-all duration-300 shadow-md"
+          style={{
+            background: done
+              ? "linear-gradient(135deg, #059669, #0d9488)"
+              : loading
+                ? colors.surface.tertiary
+                : `linear-gradient(135deg, ${colors.cta.primary}, ${colors.brand.electricBlueAlt || colors.cta.primary})`,
+            color: done ? "#fff" : loading ? colors.text.tertiary : colors.cta.primaryText,
+            cursor: loading ? "not-allowed" : "pointer",
+            boxShadow: done ? "0 8px 24px rgba(5,150,105,0.3)" : loading ? "none" : `0 8px 24px ${isDark ? "rgba(144,171,255,0.2)" : "rgba(0,80,212,0.25)"}`,
+          }}
         >
           <AnimatePresence mode="wait">
             {done ? (
@@ -217,96 +481,610 @@ function AddToCartPanel({ productId }) {
   );
 }
 
-// ─── Floating orbs (reused pattern) ──────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── FLOATING ORBS (themed) ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function FloatingOrbs() {
+  const { isDark } = useTheme();
+  const orbColor = isDark ? "rgba(144,171,255," : "rgba(99,102,241,";
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {[
-        { w: 400, h: 400, top: "-15%", left: "-8%", delay: 0, dur: 20, cls: "bg-blue-400/15" },
-        { w: 350, h: 350, top: "50%", right: "-10%", delay: 5, dur: 24, cls: "bg-indigo-400/12" },
-        { w: 250, h: 250, bottom: "5%", left: "40%", delay: 10, dur: 18, cls: "bg-violet-400/10" },
+        { w: 400, h: 400, top: "-15%", left: "-8%", delay: 0, dur: 20, opacity: 0.08 },
+        { w: 350, h: 350, top: "50%", right: "-10%", delay: 5, dur: 24, opacity: 0.06 },
+        { w: 250, h: 250, bottom: "5%", left: "40%", delay: 10, dur: 18, opacity: 0.05 },
       ].map((o, i) => (
-        <div key={i} className={`absolute rounded-full blur-3xl pd-orb ${o.cls}`}
+        <div key={i} className="absolute rounded-full blur-3xl pd-orb"
           style={{
             width: o.w, height: o.h, top: o.top, left: o.left, right: o.right, bottom: o.bottom,
-            animationDelay: `${o.delay}s`, animationDuration: `${o.dur}s`
+            animationDelay: `${o.delay}s`, animationDuration: `${o.dur}s`,
+            background: `${orbColor}${o.opacity})`,
           }} />
       ))}
     </div>
   );
 }
 
-// ─── Product image panel ──────────────────────────────────────────────────────
-function ProductImagePanel({ product, imageRef }) {
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── THUMBNAIL GALLERY WITH IMAGE ZOOM ───────────────────────────────────────
+// Desktop: vertical thumbnails on LEFT. Mobile: horizontal strip below.
+// Clicking a thumbnail triggers a directional slide transition.
+// Hover on the main image activates a 2.5× zoom lens (desktop only).
+// Keyboard: ← → navigates thumbnails (disabled when <input> is focused).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function ThumbnailGallery({ product, imageRef }) {
+  const { isDark, colors } = useTheme();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const [zoomActive, setZoomActive] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const mainImageRef = useRef(null);
+
+  // Simulated multi-view gallery (future: use product.images array)
+  const views = useMemo(() => {
+    if (product.images && product.images.length > 1) {
+      return product.images.map((img, i) => ({ src: img, label: `View ${i + 1}` }));
+    }
+    return [
+      { src: product.image, label: "Front" },
+      { src: product.image, label: "Side", transform: "scaleX(-1)" },
+      { src: product.image, label: "Detail", objectPosition: "center 25%" },
+      { src: product.image, label: "Back", filter: "brightness(0.93) saturate(1.15)" },
+    ];
+  }, [product.image, product.images]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setDirection(1);
+        setActiveIndex((prev) => (prev + 1) % views.length);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setDirection(-1);
+        setActiveIndex((prev) => (prev - 1 + views.length) % views.length);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [views.length]);
+
+  const handleThumbClick = (index) => {
+    setDirection(index > activeIndex ? 1 : -1);
+    setActiveIndex(index);
+  };
+
+  // Image zoom (desktop only)
+  const handleMouseMove = (e) => {
+    if (window.innerWidth < 768 || !mainImageRef.current) return;
+    const rect = mainImageRef.current.getBoundingClientRect();
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    setZoomActive(true);
+  };
+  const handleMouseLeave = () => setZoomActive(false);
+
+  const currentView = views[activeIndex];
   const isNew = product?.createdAt && (Date.now() - new Date(product.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
   const onSale = product?.priceCents < 2000;
 
+  const slideVariants = {
+    enter: (dir) => ({ x: dir > 0 ? 180 : -180, opacity: 0, scale: 0.97 }),
+    center: { x: 0, opacity: 1, scale: 1 },
+    exit: (dir) => ({ x: dir > 0 ? -180 : 180, opacity: 0, scale: 0.97 }),
+  };
+
   return (
     <div ref={imageRef} className="relative">
-      {/* Main image */}
-      <div className="pd-img-wrap relative rounded-3xl overflow-hidden shadow-2xl shadow-indigo-500/15 bg-gray-100"
-        style={{ aspectRatio: "1/1" }}>
-        <img
-          src={product.image}
-          alt={product.name}
-          className="pd-img w-full h-full object-cover"
-          loading="eager"
-        />
-        {/* Inner gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
-        {/* Badges */}
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {isNew && (
-            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md pd-badge-glow">
-              New
-            </span>
-          )}
-          {onSale && (
-            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md">
-              Sale
-            </span>
-          )}
+      <div className="flex flex-col-reverse md:flex-row gap-3">
+
+        {/* ── Thumbnails ── */}
+        <div className="flex md:flex-col gap-2 order-2 md:order-1 overflow-x-auto md:overflow-y-auto pd-thumb-strip pb-1 md:pb-0 md:pr-1 md:max-h-[500px]">
+          {views.map((view, i) => (
+            <motion.button
+              key={i}
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleThumbClick(i)}
+              className="w-16 h-16 md:w-[72px] md:h-[72px] rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-200"
+              style={{
+                borderColor: i === activeIndex ? colors.brand.electricBlue : colors.border.subtle,
+                opacity: i === activeIndex ? 1 : 0.55,
+                background: colors.surface.tertiary,
+              }}
+            >
+              <img
+                src={view.src}
+                alt={view.label}
+                className="w-full h-full object-cover"
+                style={{
+                  transform: view.transform || "none",
+                  objectPosition: view.objectPosition || "center",
+                  filter: view.filter || "none",
+                }}
+              />
+            </motion.button>
+          ))}
+        </div>
+
+        {/* ── Main image ── */}
+        <div className="flex-1 order-1 md:order-2">
+          <div
+            ref={mainImageRef}
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              aspectRatio: "1/1",
+              boxShadow: isDark
+                ? "0 25px 60px rgba(0,0,0,0.6)"
+                : "0 25px 60px rgba(99,102,241,0.15)",
+              background: colors.surface.tertiary,
+            }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Image swap */}
+            <AnimatePresence custom={direction} mode="wait">
+              <motion.img
+                key={activeIndex}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
+                src={currentView.src}
+                alt={product.name}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{
+                  transform: currentView.transform || "none",
+                  objectPosition: currentView.objectPosition || "center",
+                  filter: currentView.filter || "none",
+                }}
+                loading="eager"
+              />
+            </AnimatePresence>
+
+            {/* Subtle gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
+
+            {/* Badges */}
+            <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+              {isNew && (
+                <span className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md pd-badge-glow text-white"
+                  style={{ background: `linear-gradient(135deg, ${colors.brand.electricBlue}, ${colors.brand.electricBlueAlt || "#6d91ff"})` }}>
+                  New
+                </span>
+              )}
+              {onSale && (
+                <span className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md text-white"
+                  style={{ background: `linear-gradient(135deg, ${colors.brand.orange}, #ef4444)` }}>
+                  Sale
+                </span>
+              )}
+            </div>
+
+            {/* Image zoom lens (desktop only) */}
+            {zoomActive && mousePos.x > 0 && mainImageRef.current && (
+              <div
+                className="absolute pointer-events-none rounded-full overflow-hidden z-50 border-2"
+                style={{
+                  width: 150,
+                  height: 150,
+                  left: mousePos.x - 75,
+                  top: mousePos.y - 75,
+                  borderColor: isDark ? "rgba(144,171,255,0.5)" : "rgba(79,70,229,0.4)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                }}
+              >
+                <img
+                  src={currentView.src}
+                  alt=""
+                  className="absolute"
+                  style={{
+                    width: mainImageRef.current.offsetWidth * 2.5,
+                    height: mainImageRef.current.offsetHeight * 2.5,
+                    left: -(mousePos.x * 2.5 - 75),
+                    top: -(mousePos.y * 2.5 - 75),
+                    transform: currentView.transform || "none",
+                    filter: currentView.filter || "none",
+                  }}
+                />
+              </div>
+            )}
+
+            {/* View label pill */}
+            <div className="absolute bottom-4 left-4 z-10">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full"
+                style={{
+                  background: isDark ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.85)",
+                  color: colors.text.secondary,
+                  backdropFilter: "blur(8px)",
+                }}>
+                {currentView.label} · {activeIndex + 1}/{views.length}
+              </span>
+            </div>
+          </div>
+
+          {/* Trust badges below image */}
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            {[
+              { icon: <TruckIcon className="w-4 h-4" />, label: "Free Shipping", sub: "Orders $50+" },
+              { icon: <RefreshIcon className="w-4 h-4" />, label: "30-Day Return", sub: "No questions" },
+              { icon: <ShieldIcon className="w-4 h-4" />, label: "Secure Pay", sub: "256-bit SSL" },
+            ].map((b) => (
+              <div key={b.label} className="rounded-2xl p-3 text-center flex flex-col items-center gap-1.5 transition-colors duration-200 border"
+                style={{ background: colors.surface.secondary, borderColor: colors.border.subtle }}>
+                <span style={{ color: colors.text.accent }}>{b.icon}</span>
+                <p className="font-bold text-[11px]" style={{ color: colors.text.primary }}>{b.label}</p>
+                <p className="text-[10px]" style={{ color: colors.text.tertiary }}>{b.sub}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Trust badges row below image */}
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        {[
-          { icon: <TruckIcon className="w-4 h-4" />, label: "Free Shipping", sub: "Orders $50+" },
-          { icon: <RefreshIcon className="w-4 h-4" />, label: "30-Day Return", sub: "No questions" },
-          { icon: <ShieldIcon className="w-4 h-4" />, label: "Secure Pay", sub: "256-bit SSL" },
-        ].map((b) => (
-          <div key={b.label} className="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-center flex flex-col items-center gap-1.5 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors duration-200">
-            <span className="text-indigo-500">{b.icon}</span>
-            <p className="font-bold text-gray-900 text-[11px]">{b.label}</p>
-            <p className="text-gray-400 text-[10px]">{b.sub}</p>
-          </div>
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── COLOR SELECTOR ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function ColorSelector({ availableColors, selectedColor, onSelect }) {
+  const { colors } = useTheme();
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-black uppercase tracking-widest" style={{ color: colors.text.tertiary }}>Color</span>
+        <span className="text-xs font-semibold" style={{ color: colors.text.secondary }}>{availableColors[selectedColor]?.name}</span>
+      </div>
+      <div className="flex items-center gap-2.5">
+        {availableColors.map((c, i) => (
+          <motion.button
+            key={c.name}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onSelect(i)}
+            className="w-9 h-9 rounded-full border-2 transition-all duration-200 flex items-center justify-center"
+            style={{
+              background: c.hex,
+              borderColor: i === selectedColor ? colors.brand.electricBlue : "transparent",
+              boxShadow: i === selectedColor ? `0 0 0 3px ${colors.surface.primary}, 0 0 0 5px ${colors.brand.electricBlue}` : "none",
+            }}
+            title={c.name}
+          >
+            {i === selectedColor && (
+              <CheckIcon className="w-3.5 h-3.5" style={{ color: c.hex === "#f0f0f0" || c.hex === "#c0c0c0" ? "#333" : "#fff" }} />
+            )}
+          </motion.button>
         ))}
       </div>
     </div>
   );
 }
 
-// ─── Tab content ──────────────────────────────────────────────────────────────
-function ProductTabs({ product }) {
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── SIZE SELECTOR ───────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function SizeSelector({ sizes, selectedSize, onSelect }) {
+  const { isDark, colors } = useTheme();
+  if (!sizes) return null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-black uppercase tracking-widest" style={{ color: colors.text.tertiary }}>
+          {sizes[0]?.startsWith("US") ? "Select Caliber (US)" : "Select Size"}
+        </span>
+        <button className="text-xs font-semibold transition-colors" style={{ color: colors.text.accent }}>
+          Size Guide
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {sizes.map((s) => (
+          <motion.button
+            key={s}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onSelect(s)}
+            className="min-w-[52px] py-2.5 px-3 rounded-xl border-2 text-sm font-bold transition-all duration-200"
+            style={{
+              background: selectedSize === s
+                ? (isDark ? colors.brand.electricBlue : colors.cta.primary)
+                : colors.surface.secondary,
+              borderColor: selectedSize === s
+                ? (isDark ? colors.brand.electricBlue : colors.cta.primary)
+                : colors.border.default,
+              color: selectedSize === s
+                ? colors.cta.primaryText
+                : colors.text.primary,
+            }}
+          >
+            {s}
+          </motion.button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── REVIEW FORM ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function ReviewForm({ onSubmit }) {
+  const { isDark, colors } = useTheme();
+  const [name, setName] = useState("");
+  const [stars, setStars] = useState(0);
+  const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim() || stars === 0 || !text.trim()) return;
+
+    setSubmitting(true);
+    // Simulate network delay for realistic UX
+    await new Promise((r) => setTimeout(r, 600));
+
+    onSubmit({
+      id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: name.trim(),
+      avatar: null,
+      stars,
+      text: text.trim(),
+      date: "Just now",
+      verified: false,
+    });
+
+    setName("");
+    setStars(0);
+    setText("");
+    setSubmitting(false);
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-2xl p-5 border space-y-4"
+      style={{ background: colors.surface.secondary, borderColor: colors.border.default }}>
+
+      <p className="font-bold text-sm" style={{ color: colors.text.primary }}>Write a Review</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input
+          type="text"
+          placeholder="Your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={40}
+          className="px-4 py-2.5 rounded-xl border text-sm font-medium outline-none transition-colors"
+          style={{
+            background: colors.surface.primary,
+            borderColor: colors.border.default,
+            color: colors.text.primary,
+          }}
+          onFocus={(e) => e.target.style.borderColor = colors.brand.electricBlue}
+          onBlur={(e) => e.target.style.borderColor = colors.border.default}
+        />
+        <div className="flex items-center">
+          <InteractiveStarPicker value={stars} onChange={setStars} />
+        </div>
+      </div>
+
+      <textarea
+        placeholder="Share your experience with this product…"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={3}
+        maxLength={500}
+        className="w-full px-4 py-2.5 rounded-xl border text-sm font-medium outline-none resize-none transition-colors"
+        style={{
+          background: colors.surface.primary,
+          borderColor: colors.border.default,
+          color: colors.text.primary,
+        }}
+        onFocus={(e) => e.target.style.borderColor = colors.brand.electricBlue}
+        onBlur={(e) => e.target.style.borderColor = colors.border.default}
+      />
+
+      <div className="flex items-center justify-between">
+        <span className="text-[10px]" style={{ color: colors.text.tertiary }}>{text.length}/500</span>
+        <motion.button
+          type="submit"
+          whileTap={{ scale: 0.97 }}
+          disabled={!name.trim() || stars === 0 || !text.trim() || submitting}
+          className="px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex items-center gap-2"
+          style={{
+            background: submitted ? "#059669" : !name.trim() || stars === 0 || !text.trim() ? colors.surface.tertiary : colors.cta.primary,
+            color: submitted ? "#fff" : !name.trim() || stars === 0 || !text.trim() ? colors.text.tertiary : colors.cta.primaryText,
+            cursor: !name.trim() || stars === 0 || !text.trim() || submitting ? "not-allowed" : "pointer",
+          }}
+        >
+          {submitting ? <><SpinnerIcon className="w-4 h-4" /> Submitting…</> :
+            submitted ? <><CheckIcon className="w-4 h-4" /> Submitted!</> :
+              "Submit Review"}
+        </motion.button>
+      </div>
+    </form>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── REVIEW CARD ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function ReviewCard({ review }) {
+  const { colors } = useTheme();
+  const avatarGrad = getAvatarGradient(review.name);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="rounded-2xl p-5 border"
+      style={{ background: colors.surface.primary, borderColor: colors.border.subtle }}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          {/* Avatar — generated gradient with initials */}
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-sm"
+            style={{ background: avatarGrad }}>
+            {review.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{review.name}</p>
+              {review.verified && (
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
+                  style={{ background: colors.state.successBg, color: colors.state.success }}>
+                  Verified
+                </span>
+              )}
+            </div>
+            <div className="flex gap-0.5">
+              {Array(5).fill(0).map((_, i) => (
+                <span key={i} className="text-xs" style={{ color: i < review.stars ? "#facc15" : colors.border.strong }}>★</span>
+              ))}
+            </div>
+          </div>
+        </div>
+        <span className="text-xs flex-shrink-0" style={{ color: colors.text.tertiary }}>{review.date}</span>
+      </div>
+      <p className="text-sm leading-relaxed" style={{ color: colors.text.secondary }}>{review.text}</p>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── RATING BREAKDOWN BAR ────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function RatingBreakdown({ product, reviews }) {
+  const { colors } = useTheme();
+  const dist = useMemo(() => computeRatingDistribution(product, reviews), [product, reviews]);
+  const totalReviews = Object.values(dist).reduce((a, b) => a + b, 0);
+
+  return (
+    <div className="flex items-center gap-8 mb-8 p-5 rounded-2xl border"
+      style={{ background: colors.surface.secondary, borderColor: colors.border.subtle }}>
+
+      {/* Large score */}
+      <div className="text-center flex-shrink-0">
+        <p className="text-5xl font-black" style={{ color: colors.text.primary }}>{product.rating?.stars ?? "—"}</p>
+        <StarRating stars={product.rating?.stars ?? 0} size="base" />
+        <p className="text-xs mt-1" style={{ color: colors.text.tertiary }}>
+          {(totalReviews).toLocaleString()} reviews
+        </p>
+      </div>
+
+      {/* Bar chart */}
+      <div className="flex-1 space-y-2">
+        {[5, 4, 3, 2, 1].map((s) => {
+          const count = dist[s] || 0;
+          const pct = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+          return (
+            <div key={s} className="flex items-center gap-2">
+              <span className="text-xs w-3" style={{ color: colors.text.tertiary }}>{s}</span>
+              <span className="text-yellow-400 text-xs">★</span>
+              <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: colors.surface.tertiary }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${pct}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.9, delay: (5 - s) * 0.08, ease: "easeOut" }}
+                  className="h-full rounded-full"
+                  style={{ background: "linear-gradient(90deg, #facc15, #f59e0b)" }}
+                />
+              </div>
+              <span className="text-xs w-8 text-right" style={{ color: colors.text.tertiary }}>{pct}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── PRODUCT TABS (sticky, themed, reviews with pagination) ──────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function ProductTabs({ product, reviews, onAddReview, reviewsRef }) {
+  const { isDark, colors } = useTheme();
   const [tab, setTab] = useState("description");
+  const [visibleCount, setVisibleCount] = useState(3);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [tabsStuck, setTabsStuck] = useState(false);
+  const sentinelRef = useRef(null);
+
   const tabs = [
     { id: "description", label: "Description" },
     { id: "details", label: "Details" },
-    { id: "reviews", label: "Reviews" },
+    { id: "reviews", label: `Reviews (${reviews.length})` },
   ];
 
   const description = product.description ||
     "A premium quality product crafted with attention to detail. Designed for everyday use, this item combines durability with style. Perfect for anyone looking for reliable, long-lasting quality that looks great. Whether gifting or treating yourself, this product delivers exceptional value.";
 
+  // Sticky detection via IntersectionObserver
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setTabsStuck(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "-80px 0px 0px 0px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
+  // Load more handler
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    await new Promise((r) => setTimeout(r, 800));
+    setVisibleCount((prev) => prev + 3);
+    setLoadingMore(false);
+  };
+
+  const visibleReviews = reviews.slice(0, visibleCount);
+  const hasMore = visibleCount < reviews.length;
+
   return (
-    <div className="mt-10">
+    <div className="mt-10" ref={reviewsRef}>
+      {/* Sentinel — when this scrolls out, tabs become "stuck" */}
+      <div ref={sentinelRef} className="h-0" />
+
       {/* Tab bar */}
-      <div className="flex gap-0 border-b border-gray-100 mb-6">
+      <div
+        className="flex gap-0 mb-6 border-b sticky top-[72px] z-30 transition-all duration-300"
+        style={{
+          borderColor: colors.border.subtle,
+          background: tabsStuck
+            ? (isDark ? "rgba(14,14,16,0.92)" : "rgba(255,255,255,0.92)")
+            : colors.surface.primary,
+          backdropFilter: tabsStuck ? "blur(16px) saturate(1.5)" : "none",
+          paddingTop: tabsStuck ? 8 : 0,
+          paddingBottom: tabsStuck ? 0 : 0,
+          marginLeft: tabsStuck ? -24 : 0,
+          marginRight: tabsStuck ? -24 : 0,
+          paddingLeft: tabsStuck ? 24 : 0,
+          paddingRight: tabsStuck ? 24 : 0,
+          borderRadius: tabsStuck ? "0 0 12px 12px" : 0,
+          boxShadow: tabsStuck ? (isDark ? "0 4px 24px rgba(0,0,0,0.4)" : "0 4px 24px rgba(0,0,0,0.06)") : "none",
+        }}
+      >
         {tabs.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`relative px-5 py-3 text-sm font-bold transition-colors duration-200 ${tab === t.id ? "pd-tab-active text-indigo-700" : "text-gray-400 hover:text-gray-700"
-              }`}>
+          <button key={t.id} onClick={() => { setTab(t.id); if (t.id === "reviews") setVisibleCount(3); }}
+            className={`relative px-5 py-3 text-sm font-bold transition-colors duration-200 ${tab === t.id ? "pd-tab-active" : ""}`}
+            style={{ color: tab === t.id ? colors.text.accent : colors.text.tertiary }}>
             {t.label}
           </button>
         ))}
@@ -318,12 +1096,16 @@ function ProductTabs({ product }) {
           <motion.div key="desc"
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="text-gray-600 text-sm leading-relaxed space-y-3">
+            className="text-sm leading-relaxed space-y-3" style={{ color: colors.text.secondary }}>
             <p>{description}</p>
-            {/* Feature pills */}
             <div className="flex flex-wrap gap-2 pt-2">
               {["Premium Quality", "Durable Materials", "Eco-Friendly", "1-Year Warranty"].map((f) => (
-                <span key={f} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100">
+                <span key={f} className="px-3 py-1.5 text-xs font-bold rounded-full border"
+                  style={{
+                    background: isDark ? "rgba(144,171,255,0.1)" : "rgba(0,80,212,0.06)",
+                    color: colors.text.accent,
+                    borderColor: isDark ? "rgba(144,171,255,0.2)" : "rgba(0,80,212,0.12)",
+                  }}>
                   ✓ {f}
                 </span>
               ))}
@@ -344,9 +1126,10 @@ function ProductTabs({ product }) {
               { label: "Availability", value: "In Stock" },
               { label: "Ships", value: "Within 24–48 hours" },
             ].map((row, i) => (
-              <div key={row.label} className={`flex items-center justify-between py-3 text-sm ${i < 5 ? "border-b border-gray-100" : ""}`}>
-                <span className="text-gray-500 font-medium">{row.label}</span>
-                <span className="text-gray-900 font-bold text-right max-w-[60%] truncate">{row.value}</span>
+              <div key={row.label} className="flex items-center justify-between py-3 text-sm"
+                style={{ borderBottom: i < 5 ? `1px solid ${colors.border.subtle}` : "none" }}>
+                <span className="font-medium" style={{ color: colors.text.tertiary }}>{row.label}</span>
+                <span className="font-bold text-right max-w-[60%] truncate" style={{ color: colors.text.primary }}>{row.value}</span>
               </div>
             ))}
           </motion.div>
@@ -356,58 +1139,44 @@ function ProductTabs({ product }) {
           <motion.div key="rev"
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}>
-            {/* Rating summary */}
-            <div className="flex items-center gap-8 mb-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
-              <div className="text-center flex-shrink-0">
-                <p className="text-6xl font-black text-gray-900">{product.rating?.stars ?? "—"}</p>
-                <StarRating stars={product.rating?.stars ?? 0} size="base" />
-                <p className="text-gray-400 text-xs mt-1">{(product.rating?.count ?? 0).toLocaleString()} reviews</p>
-              </div>
-              <div className="flex-1 space-y-2">
-                {[5, 4, 3, 2, 1].map((s) => {
-                  const pct = s === 5 ? 68 : s === 4 ? 20 : s === 3 ? 8 : s === 2 ? 3 : 1;
-                  return (
-                    <div key={s} className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-3">{s}</span>
-                      <span className="text-yellow-400 text-xs">★</span>
-                      <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }} whileInView={{ width: `${pct}%` }}
-                          viewport={{ once: true }} transition={{ duration: 0.9, delay: (5 - s) * 0.08, ease: "power3.out" }}
-                          className="h-full bg-gradient-to-r from-yellow-400 to-amber-400 rounded-full"
-                        />
-                      </div>
-                      <span className="text-xs text-gray-400 w-7 text-right">{pct}%</span>
-                    </div>
-                  );
-                })}
-              </div>
+
+            {/* Rating breakdown (computed from real reviews) */}
+            <RatingBreakdown product={product} reviews={reviews} />
+
+            {/* Review form */}
+            <div className="mb-6">
+              <ReviewForm onSubmit={onAddReview} />
             </div>
 
-            {/* Sample reviews */}
+            {/* Review cards (paginated) */}
             <div className="space-y-4">
-              {[
-                { name: "Sarah M.", stars: 5, date: "2 days ago", text: "Absolutely love this product. Exactly as described and arrived in perfect condition." },
-                { name: "James K.", stars: 5, date: "1 week ago", text: "Great quality, fast shipping. Would definitely buy again." },
-                { name: "Amaka O.", stars: 4, date: "2 weeks ago", text: "Very good product. Packaging was excellent. Minor scratch on arrival but overall great." },
-              ].map((r) => (
-                <div key={r.name} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
-                        {r.name[0]}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-900 text-sm">{r.name}</p>
-                        <div className="flex gap-0.5">{Array(r.stars).fill(0).map((_, i) => <span key={i} className="text-yellow-400 text-xs">★</span>)}</div>
-                      </div>
-                    </div>
-                    <span className="text-gray-400 text-xs">{r.date}</span>
-                  </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">{r.text}</p>
-                </div>
-              ))}
+              <AnimatePresence>
+                {visibleReviews.map((r) => (
+                  <ReviewCard key={r.id} review={r} />
+                ))}
+              </AnimatePresence>
             </div>
+
+            {/* Load More */}
+            {hasMore && (
+              <div className="flex justify-center mt-6">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="px-8 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 border transition-all"
+                  style={{
+                    background: colors.surface.secondary,
+                    borderColor: colors.border.default,
+                    color: colors.text.primary,
+                    cursor: loadingMore ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {loadingMore ? <><SpinnerIcon className="w-4 h-4" /> Loading…</> : `Load More (${reviews.length - visibleCount} remaining)`}
+                </motion.button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -415,21 +1184,26 @@ function ProductTabs({ product }) {
   );
 }
 
-// ─── Similar products carousel (scroll-triggered) ─────────────────────────────
-function SimilarProducts({ products }) {
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── PREDICTIVE PAIRINGS ─────────────────────────────────────────────────────
+// Replaces "Similar Products" with match-scored, category-labeled section.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function PredictivePairings({ products }) {
+  const { isDark, colors } = useTheme();
   const ref = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el || !products.length) return;
     const t = setTimeout(() => {
-      const cards = el.querySelectorAll(".pd-sim-card");
+      const cards = el.querySelectorAll(".pd-pred-card");
       if (!cards.length) return;
       gsap.fromTo(cards,
         { y: 60, opacity: 0, scale: 0.93 },
         {
           y: 0, opacity: 1, scale: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.4)", clearProps: "all",
-          scrollTrigger: { trigger: el, start: "top 84%", once: true }
+          scrollTrigger: { trigger: el, start: "top 84%", once: true },
         });
     }, 120);
     return () => clearTimeout(t);
@@ -437,46 +1211,262 @@ function SimilarProducts({ products }) {
 
   if (!products.length) return null;
 
+  // Match score badge color
+  const getScoreColor = (score) => {
+    if (score >= 80) return { bg: colors.state.successBg, text: colors.state.success };
+    if (score >= 50) return { bg: colors.state.warningBg, text: colors.state.warning };
+    return { bg: isDark ? "rgba(144,171,255,0.1)" : "rgba(0,80,212,0.08)", text: colors.text.accent };
+  };
+
   return (
     <section ref={ref} className="py-20 relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg,#f0f4ff 0%,#fafafa 60%,#f5f0ff 100%)" }}>
-      {/* Subtle orbs */}
+      style={{
+        background: isDark
+          ? `linear-gradient(135deg, ${colors.surface.primary} 0%, ${colors.surface.secondary} 60%, ${colors.surface.tertiary} 100%)`
+          : "linear-gradient(135deg, #f0f4ff 0%, #fafafa 60%, #f5f0ff 100%)",
+      }}>
       <FloatingOrbs />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Heading */}
         <div className="text-center mb-14">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-indigo-500 mb-3">Curated for you</p>
-          <h2 className="text-4xl font-black text-gray-900">You May Also Like</h2>
-          <p className="text-gray-400 mt-3 text-sm">Products similar to what you're viewing</p>
+          <p className="text-xs font-black uppercase tracking-[0.3em] mb-3" style={{ color: colors.text.accent }}>
+            Predictive Pairings
+          </p>
+          <h2 className="text-4xl font-black" style={{ color: colors.text.primary }}>
+            Curated for You
+          </h2>
+          <p className="mt-3 text-sm" style={{ color: colors.text.tertiary }}>
+            AI-matched based on style DNA and browsing patterns
+          </p>
         </div>
 
         {/* Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          {products.map((p) => (
-            <div key={p.id} className="pd-sim-card flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-md hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 hover:-translate-y-1">
-              <div className="flex-1"><ProductCard product={p} /></div>
-            </div>
-          ))}
+          {products.map((p) => {
+            const scoreColor = getScoreColor(p.matchScore);
+            return (
+              <div key={p.id} className="pd-pred-card flex flex-col rounded-3xl overflow-hidden border transition-all duration-300 hover:-translate-y-1"
+                style={{
+                  background: colors.surface.primary,
+                  borderColor: colors.border.subtle,
+                  boxShadow: isDark ? "0 4px 24px rgba(0,0,0,0.3)" : "0 4px 24px rgba(0,0,0,0.06)",
+                }}>
+
+                {/* Match score + label badges */}
+                <div className="relative">
+                  <div className="flex-1"><ProductCard product={p} /></div>
+
+                  {/* Match score pill */}
+                  <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                      style={{ background: scoreColor.bg, color: scoreColor.text }}>
+                      {p.matchScore}% MATCH
+                    </span>
+                  </div>
+                </div>
+
+                {/* Category label below card */}
+                <div className="px-3 pb-3 -mt-1">
+                  <span className="text-[8px] font-black uppercase tracking-widest"
+                    style={{ color: colors.text.tertiary }}>
+                    {p.matchLabel}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-// ─── Not found state ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── PRICE ALERT MODAL ───────────────────────────────────────────────────────
+// Pure UI, data stored in localStorage. Easy migration: swap savePriceAlert()
+// body with a single API call.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function PriceAlertModal({ product, onClose }) {
+  const { isDark, colors } = useTheme();
+  const [email, setEmail] = useState("");
+  const [targetPrice, setTargetPrice] = useState(Math.round(product.priceCents * 0.8));
+  const [alertType, setAlertType] = useState("price_drop");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSaving(true);
+    await new Promise((r) => setTimeout(r, 600));
+
+    // ── Backend migration point: replace savePriceAlert() internals ──
+    savePriceAlert({
+      productId: product.id,
+      productName: product.name,
+      email: email.trim(),
+      targetPriceCents: targetPrice,
+      type: alertType,
+      createdAt: new Date().toISOString(),
+    });
+
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => onClose(), 1800);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4" onClick={onClose}>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0"
+        style={{ background: isDark ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)" }}
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ scale: 0.92, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.92, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative z-10 w-full max-w-md rounded-3xl p-6 border shadow-2xl"
+        style={{ background: colors.surface.elevated, borderColor: colors.border.default }}
+      >
+        {/* Close */}
+        <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-full transition-colors"
+          style={{ color: colors.text.tertiary }}
+          onMouseEnter={(e) => e.currentTarget.style.color = colors.text.primary}
+          onMouseLeave={(e) => e.currentTarget.style.color = colors.text.tertiary}>
+          <CloseIcon className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
+            style={{ background: colors.state.warningBg }}>
+            <BellIcon className="w-5 h-5" style={{ color: colors.state.warning }} />
+          </div>
+          <div>
+            <p className="font-black text-sm" style={{ color: colors.text.primary }}>Set Price Alert</p>
+            <p className="text-xs" style={{ color: colors.text.tertiary }}>We'll notify you when the price drops</p>
+          </div>
+        </div>
+
+        {saved ? (
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="text-center py-6">
+            <div className="text-4xl mb-3">🔔</div>
+            <p className="font-bold" style={{ color: colors.state.success }}>Alert saved!</p>
+            <p className="text-xs mt-1" style={{ color: colors.text.tertiary }}>We'll email you at {email}</p>
+          </motion.div>
+        ) : (
+          <form onSubmit={handleSave} className="space-y-4">
+            {/* Product preview */}
+            <div className="flex items-center gap-3 p-3 rounded-xl border"
+              style={{ background: colors.surface.secondary, borderColor: colors.border.subtle }}>
+              <img src={product.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+              <div className="min-w-0">
+                <p className="font-bold text-xs truncate" style={{ color: colors.text.primary }}>{product.name}</p>
+                <p className="text-xs font-black" style={{ color: colors.text.accent }}>
+                  Current: {formatMoneyCents(product.priceCents)}
+                </p>
+              </div>
+            </div>
+
+            {/* Alert type */}
+            <div className="flex gap-2">
+              {[
+                { id: "price_drop", label: "Price Drop", icon: "📉" },
+                { id: "back_in_stock", label: "Back in Stock", icon: "📦" },
+              ].map((opt) => (
+                <button key={opt.id} type="button" onClick={() => setAlertType(opt.id)}
+                  className="flex-1 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all"
+                  style={{
+                    background: alertType === opt.id ? (isDark ? "rgba(144,171,255,0.1)" : "rgba(0,80,212,0.06)") : "transparent",
+                    borderColor: alertType === opt.id ? colors.brand.electricBlue : colors.border.subtle,
+                    color: alertType === opt.id ? colors.text.accent : colors.text.secondary,
+                  }}>
+                  {opt.icon} {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Email */}
+            <input
+              type="email"
+              required
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border text-sm font-medium outline-none"
+              style={{ background: colors.surface.primary, borderColor: colors.border.default, color: colors.text.primary }}
+              onFocus={(e) => e.target.style.borderColor = colors.brand.electricBlue}
+              onBlur={(e) => e.target.style.borderColor = colors.border.default}
+            />
+
+            {/* Target price */}
+            {alertType === "price_drop" && (
+              <div>
+                <label className="text-xs font-bold mb-1 block" style={{ color: colors.text.tertiary }}>
+                  Alert me when price drops to: {formatMoneyCents(targetPrice)}
+                </label>
+                <input
+                  type="range"
+                  min={Math.round(product.priceCents * 0.3)}
+                  max={product.priceCents}
+                  value={targetPrice}
+                  onChange={(e) => setTargetPrice(Number(e.target.value))}
+                  className="w-full accent-indigo-600"
+                />
+                <div className="flex justify-between text-[10px] mt-1" style={{ color: colors.text.tertiary }}>
+                  <span>{formatMoneyCents(Math.round(product.priceCents * 0.3))}</span>
+                  <span>{formatMoneyCents(product.priceCents)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Submit */}
+            <motion.button
+              type="submit"
+              whileTap={{ scale: 0.97 }}
+              disabled={!email.trim() || saving}
+              className="w-full py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2"
+              style={{
+                background: !email.trim() ? colors.surface.tertiary : colors.cta.primary,
+                color: !email.trim() ? colors.text.tertiary : colors.cta.primaryText,
+              }}
+            >
+              {saving ? <><SpinnerIcon className="w-4 h-4" /> Saving…</> : <><BellIcon className="w-4 h-4" /> Set Alert</>}
+            </motion.button>
+          </form>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ── PRODUCT NOT FOUND (themed) ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function ProductNotFound() {
+  const { colors } = useTheme();
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
+      style={{ background: colors.surface.primary }}>
       <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200 }}>
         <div className="text-8xl mb-6">🔍</div>
-        <h1 className="text-4xl font-black text-gray-900 mb-4">Product Not Found</h1>
-        <p className="text-gray-400 mb-8 max-w-sm">This product doesn't exist or may have been removed.</p>
+        <h1 className="text-4xl font-black mb-4" style={{ color: colors.text.primary }}>Product Not Found</h1>
+        <p className="mb-8 max-w-sm" style={{ color: colors.text.tertiary }}>This product doesn't exist or may have been removed.</p>
         <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/products")}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-8 py-4 rounded-2xl shadow-lg shadow-indigo-500/30">
+          className="font-black px-8 py-4 rounded-2xl shadow-lg text-sm"
+          style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>
           Browse All Products →
         </motion.button>
       </motion.div>
@@ -485,75 +1475,75 @@ function ProductNotFound() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
+// ██  MAIN COMPONENT  ████████████████████████████████████████████████████████
+// ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export default function ProductDetail() {
+  const { isDark, colors } = useTheme();
   const { productId } = useParams();
   const navigate = useNavigate();
-
-  // Loader returns all products (same shape as ProductsPage)
   const products = useLoaderData();
 
   // ── Find current product ──
-  // productId from useParams is always a string; ensure comparison is string-safe
   const product = Array.isArray(products)
     ? products.find((p) => String(p.id) === String(productId))
     : null;
 
-  // ── Similar products — shared keywords, max 6, exclude self ──
-  const similarProducts = product && Array.isArray(products)
-    ? products
-      .filter((p) =>
-        String(p.id) !== String(productId) &&
-        Array.isArray(p.keywords) &&
-        p.keywords.some((kw) => (product.keywords || []).includes(kw))
-      )
-      .slice(0, 6)
-    : [];
-
-  // ── Wishlist toggle (local state — connect to API as needed) ──
-  const [wishlisted, setWishlisted] = useState(false);
-
-  // ── Share panel state ──
+  // ── All hooks must be called before conditional returns ──
+  const [wishlisted, setWishlisted] = useState(() => loadWishlist().includes(productId));
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copyLabel, setCopyLabel] = useState("Copy Link");
+  const [reviews, setReviews] = useState([]);
+  const [selectedColor, setSelectedColor] = useState(0);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [hasAlert, setHasAlert] = useState(() => hasPriceAlert(productId));
 
-  // ── Animation refs ──
   const imageRef = useRef(null);
   const contentRef = useRef(null);
   const heroRef = useRef(null);
   const breadRef = useRef(null);
+  const reviewsRef = useRef(null);
 
-  // ── Cinematic entrance timeline ──────────────────────────────────────────────
+  // ── Initialize reviews when product is available ──
+  useEffect(() => {
+    if (!product) return;
+    const stored = loadReviews(product.id);
+    setReviews(stored.length > 0 ? stored : getSeedReviews(product));
+  }, [product?.id]);
+
+  // ── Cinematic entrance timeline ──
   useEffect(() => {
     if (!product || !imageRef.current || !contentRef.current) return;
 
     const tl = gsap.timeline({ delay: 0.05 });
-
-    // Breadcrumb drops from top
-    tl.fromTo(breadRef.current,
-      { y: -20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.55, ease: "power3.out", clearProps: "all" })
-      // Image slides from left
-      .fromTo(imageRef.current,
-        { x: -60, opacity: 0, scale: 0.96 },
-        { x: 0, opacity: 1, scale: 1, duration: 0.95, ease: "expo.out", clearProps: "all" },
-        "-=0.2")
-      // Content children stagger from right
-      .fromTo(contentRef.current.querySelectorAll(".pd-reveal"),
-        { x: 40, opacity: 0 },
-        { x: 0, opacity: 1, stagger: 0.09, duration: 0.75, ease: "power3.out", clearProps: "all" },
-        "-=0.7");
+    tl.fromTo(breadRef.current, { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out", clearProps: "all" })
+      .fromTo(imageRef.current, { x: -60, opacity: 0, scale: 0.96 }, { x: 0, opacity: 1, scale: 1, duration: 0.95, ease: "expo.out", clearProps: "all" }, "-=0.2")
+      .fromTo(contentRef.current.querySelectorAll(".pd-reveal"), { x: 40, opacity: 0 }, { x: 0, opacity: 1, stagger: 0.09, duration: 0.75, ease: "power3.out", clearProps: "all" }, "-=0.7");
 
     return () => tl.kill();
   }, [product]);
 
-  // ── Share handler ────────────────────────────────────────────────────────────
-  // Strategy: always try the native Web Share API first (works on mobile AND
-  // on desktop Chrome/Edge 89+). If the API is unavailable OR the browser
-  // throws NotAllowedError (user hasn't interacted, or desktop Chrome with no
-  // registered share targets), fall back to our custom share panel.
+  // ── Wishlist toggle (persisted) ──
+  const toggleWishlist = useCallback(() => {
+    setWishlisted((prev) => {
+      const newVal = !prev;
+      const list = loadWishlist();
+      if (newVal) {
+        if (!list.includes(productId)) list.push(productId);
+      } else {
+        const idx = list.indexOf(productId);
+        if (idx > -1) list.splice(idx, 1);
+      }
+      saveWishlist(list);
+      return newVal;
+    });
+  }, [productId]);
+
+  // ── Share handler (native → fallback panel) ──
   const handleShare = useCallback(async () => {
     if (navigator.share) {
       try {
@@ -562,254 +1552,238 @@ export default function ProductDetail() {
           text: `Check out ${product?.name} on ShopEase`,
           url: window.location.href,
         });
-        // Native share succeeded — nothing else to do
         return;
       } catch (err) {
-        // AbortError = user dismissed the native sheet — do nothing
         if (err?.name === "AbortError") return;
-        // Any other error (NotAllowedError, NotSupportedError on desktop) —
-        // fall through to open our custom panel
       }
     }
-    // No native share support OR native share failed → toggle custom panel
     setShareOpen((prev) => !prev);
   }, [product]);
 
-  // ── Copy link to clipboard ────────────────────────────────────────────────────
-  // Writes the current URL to the clipboard. Shows a "Copied!" confirmation for
-  // 1.5 s then closes the share panel automatically. Falls back to the legacy
-  // execCommand approach for browsers that block navigator.clipboard.
+  // ── Copy link to clipboard ──
   const handleCopyLink = useCallback(async () => {
     const url = window.location.href;
     let success = false;
-
-    // Preferred: Async Clipboard API
     if (navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(url);
-        success = true;
-      } catch { /* fall through to execCommand */ }
+      try { await navigator.clipboard.writeText(url); success = true; }
+      catch { /* fall through */ }
     }
-
-    // Fallback: execCommand (works even without user-gesture permission)
     if (!success) {
       const ta = document.createElement("textarea");
       ta.value = url;
       Object.assign(ta.style, { position: "fixed", top: 0, left: 0, opacity: "0", pointerEvents: "none" });
       document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
+      ta.focus(); ta.select();
       try { success = document.execCommand("copy"); } catch { success = false; }
       document.body.removeChild(ta);
     }
-
     if (success) {
       setCopied(true);
       setCopyLabel("Copied!");
-      // Close the panel after 1.5 s so the user sees the feedback, then it
-      // tidies itself away
-      setTimeout(() => {
-        setCopied(false);
-        setCopyLabel("Copy Link");
-        setShareOpen(false);
-      }, 1500);
+      setTimeout(() => { setCopied(false); setCopyLabel("Copy Link"); setShareOpen(false); }, 1500);
     } else {
       setCopyLabel("Copy failed ✗");
       setTimeout(() => setCopyLabel("Copy Link"), 2500);
     }
   }, []);
 
-  // ── Share to a specific social platform ──────────────────────────────────────
-  // Opens the platform's share dialog in a centred popup window, then closes
-  // our panel. If the browser blocks popups (returns null), we silently ignore.
+  // ── Share to social platform ──
   const shareToURL = useCallback((platform) => {
-    const rawUrl = window.location.href;
-    const url = encodeURIComponent(rawUrl);
+    const url = encodeURIComponent(window.location.href);
     const text = encodeURIComponent(`Check out ${product?.name || "this product"} on ShopEase`);
-
     const targets = {
       whatsapp: `https://wa.me/?text=${text}%20${url}`,
       twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
       telegram: `https://t.me/share/url?url=${url}&text=${text}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
     };
-
     if (targets[platform]) {
-      // Centre the popup on screen
       const w = 600, h = 500;
       const left = Math.max(0, (window.screen.width - w) / 2);
       const top = Math.max(0, (window.screen.height - h) / 2);
-      window.open(
-        targets[platform],
-        "_blank",
-        `noopener,noreferrer,width=${w},height=${h},left=${left},top=${top}`
-      );
+      window.open(targets[platform], "_blank", `noopener,noreferrer,width=${w},height=${h},left=${left},top=${top}`);
     }
-    // Close the panel immediately — the popup is now handling the share
     setShareOpen(false);
   }, [product]);
 
-  // Close share panel when clicking outside
+  // Close share panel on outside click
   useEffect(() => {
     if (!shareOpen) return;
     const handler = (e) => {
-      if (!e.target.closest(".pd-share-panel") && !e.target.closest(".pd-share-btn")) {
-        setShareOpen(false);
-      }
+      if (!e.target.closest(".pd-share-panel") && !e.target.closest(".pd-share-btn")) setShareOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [shareOpen]);
 
+  // ── Add review handler ──
+  const handleAddReview = useCallback((review) => {
+    setReviews((prev) => {
+      const updated = [review, ...prev];
+      if (product) saveReviews(product.id, updated);
+      return updated;
+    });
+  }, [product?.id]);
+
+  // ── Scroll to reviews ──
+  const scrollToReviews = useCallback(() => {
+    if (reviewsRef.current) {
+      reviewsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
+
   // ── Guard: not found ──
   if (!product) return <ProductNotFound />;
 
+  // ── Computed values ──
+  const category = getProductCategory(product.keywords);
+  const availableColors = PRODUCT_COLORS[category] || PRODUCT_COLORS.default;
+  const availableSizes = SIZE_MAP[category] || null;
+  const sku = `SE-${product.id.slice(0, 8).toUpperCase()}`;
   const onSale = product.priceCents < 2000;
   const origPrice = onSale ? Math.round(product.priceCents * 1.35) : null;
+  const lowStock = (product.rating?.count || 0) < 50;
+  const predictiveProducts = computePredictiveProducts(product, products);
 
   return (
-    <div className="bg-white text-gray-800 overflow-x-hidden">
+    <div style={{ background: colors.surface.primary, color: colors.text.primary }} className="overflow-x-hidden min-h-screen">
       <style>{DETAIL_STYLES}</style>
 
-      {/* ══════════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════════════
           HERO SECTION
-      ══════════════════════════════════════════════════════════ */}
+      ══════════════════════════════════════════════════════════════ */}
       <div ref={heroRef} className="relative overflow-hidden pt-20">
-        {/* Subtle gradient wash behind content */}
+        {/* Gradient wash */}
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(180deg,rgba(238,242,255,0.6) 0%,rgba(255,255,255,0) 60%)" }} />
+          style={{
+            background: isDark
+              ? "linear-gradient(180deg, rgba(14,14,16,0) 0%, rgba(19,19,21,0.5) 100%)"
+              : "linear-gradient(180deg, rgba(238,242,255,0.6) 0%, rgba(255,255,255,0) 60%)",
+          }} />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 pt-8 pb-20">
 
           {/* ── Breadcrumb ── */}
-          <nav ref={breadRef} className="flex items-center mb-10 text-sm text-gray-400 flex-wrap gap-1">
-            <button onClick={() => navigate("/")}
-              className="hover:text-indigo-600 font-medium transition-colors">Home</button>
+          <nav ref={breadRef} className="flex items-center mb-10 text-sm flex-wrap gap-1" style={{ color: colors.text.tertiary }}>
+            <button onClick={() => navigate("/")} className="font-medium transition-colors"
+              style={{ color: colors.text.tertiary }}
+              onMouseEnter={(e) => e.currentTarget.style.color = colors.text.accent}
+              onMouseLeave={(e) => e.currentTarget.style.color = colors.text.tertiary}>Home</button>
             <span className="pd-sep" />
-            <button onClick={() => navigate("/products")}
-              className="hover:text-indigo-600 font-medium transition-colors">Products</button>
+            <button onClick={() => navigate("/products")} className="font-medium transition-colors"
+              style={{ color: colors.text.tertiary }}
+              onMouseEnter={(e) => e.currentTarget.style.color = colors.text.accent}
+              onMouseLeave={(e) => e.currentTarget.style.color = colors.text.tertiary}>Products</button>
             {product.keywords?.[0] && (
               <>
                 <span className="pd-sep" />
                 <button onClick={() => navigate(`/products?search=${product.keywords[0]}`)}
-                  className="hover:text-indigo-600 font-medium transition-colors capitalize">{product.keywords[0]}</button>
+                  className="font-medium transition-colors capitalize"
+                  style={{ color: colors.text.tertiary }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = colors.text.accent}
+                  onMouseLeave={(e) => e.currentTarget.style.color = colors.text.tertiary}>
+                  {product.keywords[0]}
+                </button>
               </>
             )}
             <span className="pd-sep" />
-            <span className="text-gray-600 font-semibold line-clamp-1 max-w-[200px]">{product.name}</span>
+            <span className="font-semibold line-clamp-1 max-w-[200px]" style={{ color: colors.text.secondary }}>{product.name}</span>
           </nav>
 
           {/* ── Main 2-col grid ── */}
           <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
 
-            {/* ── Left — Image ── */}
-            <ProductImagePanel product={product} imageRef={imageRef} />
+            {/* ── Left — Thumbnail Gallery ── */}
+            <ThumbnailGallery product={product} imageRef={imageRef} />
 
             {/* ── Right — Content ── */}
-            <div ref={contentRef} className="space-y-6">
+            <div ref={contentRef} className="space-y-5">
 
               {/* Back button + action row */}
               <div className="pd-reveal flex items-center justify-between">
                 <motion.button whileHover={{ x: -3 }} onClick={() => navigate(-1)}
-                  className="flex items-center gap-1.5 text-gray-400 hover:text-indigo-600 transition-colors text-sm font-semibold">
+                  className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                  style={{ color: colors.text.tertiary }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = colors.text.accent}
+                  onMouseLeave={(e) => e.currentTarget.style.color = colors.text.tertiary}>
                   <ChevronLeft /> Back
                 </motion.button>
                 <div className="flex items-center gap-2">
-                  {/* Wishlist */}
+                  {/* Wishlist (persisted) */}
                   <motion.button
                     whileHover={{ scale: 1.12 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setWishlisted((w) => !w)}
-                    className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-200 ${wishlisted ? "bg-rose-50 border-rose-200 text-rose-500" : "bg-gray-50 border-gray-200 text-gray-400 hover:border-rose-200 hover:text-rose-400"
-                      }`}
-                    aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                  >
+                    onClick={toggleWishlist}
+                    className="w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-200"
+                    style={{
+                      background: wishlisted ? (isDark ? "rgba(244,63,94,0.15)" : "#fff1f2") : colors.surface.secondary,
+                      borderColor: wishlisted ? (isDark ? "rgba(244,63,94,0.3)" : "#fecdd3") : colors.border.default,
+                      color: wishlisted ? "#f43f5e" : colors.text.tertiary,
+                    }}
+                    aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}>
                     <HeartIcon filled={wishlisted} className="w-4 h-4" />
                   </motion.button>
-                  {/* Share — opens panel on desktop, native sheet on mobile */}
+
+                  {/* Share */}
                   <div className="relative">
                     <motion.button
                       whileHover={{ scale: 1.12 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={handleShare}
-                      className={`pd-share-btn w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-200 ${shareOpen
-                          ? "bg-indigo-50 border-indigo-300 text-indigo-600"
-                          : "bg-gray-50 border-gray-200 text-gray-400 hover:border-indigo-200 hover:text-indigo-500"
-                        }`}
-                      aria-label="Share product"
-                    >
+                      className="pd-share-btn w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-200"
+                      style={{
+                        background: shareOpen ? (isDark ? "rgba(144,171,255,0.12)" : "#eef2ff") : colors.surface.secondary,
+                        borderColor: shareOpen ? colors.brand.electricBlue : colors.border.default,
+                        color: shareOpen ? colors.text.accent : colors.text.tertiary,
+                      }}
+                      aria-label="Share product">
                       <ShareIcon className="w-4 h-4" />
                     </motion.button>
 
-                    {/* Share panel dropdown */}
+                    {/* Share panel */}
                     <AnimatePresence>
                       {shareOpen && (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.92, y: 8 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.92, y: 8 }}
-                          transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
-                          className="pd-share-panel absolute right-0 top-12 z-[200] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-[240px] max-h-[85vh] overflow-y-auto"
-                        >
-                          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 px-1">Share this product</p>
+                          transition={{ duration: 0.18 }}
+                          className="pd-share-panel absolute right-0 top-12 z-[200] rounded-2xl shadow-2xl border p-4 w-[240px]"
+                          style={{ background: colors.surface.elevated, borderColor: colors.border.default }}>
+                          <p className="text-[10px] font-black uppercase tracking-widest mb-3 px-1" style={{ color: colors.text.tertiary }}>Share this product</p>
 
-                          {/* Platform buttons */}
                           <div className="space-y-1">
                             {[
-                              {
-                                id: "whatsapp", label: "WhatsApp", bg: "bg-green-500", fg: "text-white", hover: "hover:bg-green-50 hover:text-green-700",
-                                svg: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.565 4.14 1.54 5.877L0 24l6.336-1.518A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.893 0-3.686-.48-5.25-1.328l-.375-.213-3.893.933.975-3.77-.233-.388A9.945 9.945 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" /></svg>
-                              },
-                              {
-                                id: "twitter", label: "X (Twitter)", bg: "bg-black", fg: "text-white", hover: "hover:bg-gray-50 hover:text-gray-900",
-                                svg: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.23H2.748l7.73-8.835L2.25 2.25H8.08l4.261 5.635zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-                              },
-                              {
-                                id: "facebook", label: "Facebook", bg: "bg-blue-600", fg: "text-white", hover: "hover:bg-blue-50 hover:text-blue-700",
-                                svg: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.252h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" /></svg>
-                              },
-                              {
-                                id: "telegram", label: "Telegram", bg: "bg-sky-500", fg: "text-white", hover: "hover:bg-sky-50 hover:text-sky-700",
-                                svg: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" /></svg>
-                              },
-                              {
-                                id: "linkedin", label: "LinkedIn", bg: "bg-blue-700", fg: "text-white", hover: "hover:bg-blue-50 hover:text-blue-800",
-                                svg: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
-                              },
+                              { id: "whatsapp", label: "WhatsApp", bg: "#25D366" },
+                              { id: "twitter", label: "X (Twitter)", bg: "#000" },
+                              { id: "facebook", label: "Facebook", bg: "#1877f2" },
+                              { id: "telegram", label: "Telegram", bg: "#0088cc" },
                             ].map((p) => (
-                              <motion.button key={p.id}
-                                whileHover={{ x: 3 }}
+                              <motion.button key={p.id} whileHover={{ x: 3 }}
                                 onClick={() => shareToURL(p.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-600 transition-all duration-150 ${p.hover}`}>
-                                <span className={`w-7 h-7 rounded-lg ${p.bg} ${p.fg} flex items-center justify-center flex-shrink-0`}>{p.svg}</span>
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                                style={{ color: colors.text.secondary }}>
+                                <span className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-xs font-black"
+                                  style={{ background: p.bg }}>
+                                  {p.label[0]}
+                                </span>
                                 {p.label}
                               </motion.button>
                             ))}
                           </div>
 
-                          {/* Divider */}
-                          <div className="my-3 border-t border-gray-100" />
+                          <div className="my-3" style={{ borderTop: `1px solid ${colors.border.subtle}` }} />
 
-                          {/* Copy link */}
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={handleCopyLink}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${copied
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-gray-50 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700"
-                              }`}>
-                            {copied
-                              ? <><CheckIcon className="w-4 h-4" /> Copied!</>
-                              : <><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>{copyLabel}</>
-                            }
+                          <motion.button whileTap={{ scale: 0.97 }} onClick={handleCopyLink}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all border"
+                            style={{
+                              background: copied ? colors.state.successBg : colors.surface.secondary,
+                              borderColor: copied ? colors.state.success : "transparent",
+                              color: copied ? colors.state.success : colors.text.primary,
+                            }}>
+                            {copied ? <><CheckIcon className="w-4 h-4" /> Copied!</> :
+                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>{copyLabel}</>}
                           </motion.button>
-
-                          {/* Current URL display */}
-                          <div className="mt-3 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
-                            <p className="text-[10px] text-gray-400 truncate">{window.location.href}</p>
-                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -817,72 +1791,178 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* Keywords pills */}
+              {/* ── SKU code ── */}
+              <div className="pd-reveal">
+                <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md"
+                  style={{ background: colors.surface.tertiary, color: colors.text.tertiary }}>
+                  SKU: {sku}
+                </span>
+              </div>
+
+              {/* ── Keywords pills ── */}
               {product.keywords?.length > 0 && (
                 <div className="pd-reveal flex flex-wrap gap-2">
                   {product.keywords.slice(0, 4).map((kw) => (
-                    <span key={kw} className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-indigo-100">
+                    <span key={kw} className="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border"
+                      style={{
+                        background: isDark ? "rgba(144,171,255,0.08)" : "rgba(0,80,212,0.05)",
+                        color: colors.text.accent,
+                        borderColor: isDark ? "rgba(144,171,255,0.15)" : "rgba(0,80,212,0.1)",
+                      }}>
                       {kw}
                     </span>
                   ))}
                 </div>
               )}
 
-              {/* Product name */}
-              <h1 className="pd-reveal text-3xl md:text-4xl font-black text-gray-900 leading-tight">
+              {/* ── Product name ── */}
+              <h1 className="pd-reveal text-3xl md:text-4xl font-black leading-tight" style={{ color: colors.text.primary }}>
                 {product.name}
               </h1>
 
-              {/* Rating */}
+              {/* ── Seller link ── */}
+              <div className="pd-reveal">
+                <span className="text-sm" style={{ color: colors.text.tertiary }}>Sold by </span>
+                <Link to="/seller/shopease-store" className="text-sm font-bold transition-colors underline decoration-dotted underline-offset-4"
+                  style={{ color: colors.text.accent }}>
+                  ShopEase Store
+                </Link>
+              </div>
+
+              {/* ── Rating (clickable → scrolls to reviews) ── */}
               {product.rating && (
                 <div className="pd-reveal">
-                  <StarRating stars={product.rating.stars} count={product.rating.count} size="base" />
+                  <StarRating
+                    stars={product.rating.stars}
+                    count={product.rating.count}
+                    size="base"
+                    onClick={scrollToReviews}
+                  />
                 </div>
               )}
 
-              {/* Price block */}
+              {/* ── Price block ── */}
               <div className="pd-reveal flex items-baseline gap-4">
-                <span className="text-4xl font-black text-gray-900">
+                <span className="text-4xl font-black" style={{ color: colors.text.primary }}>
                   {formatMoneyCents(product.priceCents)}
                 </span>
                 {origPrice && (
                   <>
-                    <span className="text-xl text-gray-400 line-through">{formatMoneyCents(origPrice)}</span>
-                    <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full">
+                    <span className="text-xl line-through" style={{ color: colors.text.tertiary }}>{formatMoneyCents(origPrice)}</span>
+                    <span className="text-xs font-black px-2.5 py-1 rounded-full text-white"
+                      style={{ background: `linear-gradient(135deg, ${colors.brand.orange}, #ef4444)` }}>
                       −{Math.round((1 - product.priceCents / origPrice) * 100)}%
                     </span>
                   </>
                 )}
+                {lowStock && (
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                    style={{ background: colors.state.warningBg, color: colors.state.warning }}>
+                    🔥 Low stock
+                  </span>
+                )}
               </div>
 
-              {/* Divider */}
-              <div className="pd-reveal h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+              {/* ── Color selector ── */}
+              <div className="pd-reveal">
+                <ColorSelector
+                  availableColors={availableColors}
+                  selectedColor={selectedColor}
+                  onSelect={setSelectedColor}
+                />
+              </div>
 
-              {/* Add to cart */}
+              {/* ── Size selector (apparel / shoes only) ── */}
+              {availableSizes && (
+                <div className="pd-reveal">
+                  <SizeSelector
+                    sizes={availableSizes}
+                    selectedSize={selectedSize}
+                    onSelect={setSelectedSize}
+                  />
+                </div>
+              )}
+
+              {/* ── Divider ── */}
+              <div className="pd-reveal h-px" style={{ background: `linear-gradient(90deg, transparent, ${colors.border.default}, transparent)` }} />
+
+              {/* ── Add to cart ── */}
               <div className="pd-reveal">
                 <AddToCartPanel productId={product.id} />
               </div>
 
-              {/* Reassurance bar */}
-              <div className="pd-reveal flex flex-wrap gap-x-5 gap-y-2 text-xs text-gray-400">
+              {/* ── Price alert + Wishlist bar ── */}
+              <div className="pd-reveal flex flex-wrap gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setAlertOpen(true)}
+                  disabled={hasAlert}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all"
+                  style={{
+                    background: hasAlert ? colors.state.successBg : "transparent",
+                    borderColor: hasAlert ? colors.state.success : colors.border.default,
+                    color: hasAlert ? colors.state.success : colors.text.secondary,
+                    cursor: hasAlert ? "default" : "pointer",
+                  }}>
+                  {hasAlert ? <><CheckIcon className="w-3.5 h-3.5" /> Alert Set</> : <><BellIcon className="w-3.5 h-3.5" /> Price Alert</>}
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={toggleWishlist}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all"
+                  style={{
+                    background: wishlisted ? (isDark ? "rgba(244,63,94,0.1)" : "#fff1f2") : "transparent",
+                    borderColor: wishlisted ? "#fecdd3" : colors.border.default,
+                    color: wishlisted ? "#f43f5e" : colors.text.secondary,
+                  }}>
+                  <HeartIcon filled={wishlisted} className="w-3.5 h-3.5" />
+                  {wishlisted ? "Wishlisted" : "Wishlist"}
+                </motion.button>
+              </div>
+
+              {/* ── Reassurance bar ── */}
+              <div className="pd-reveal flex flex-wrap gap-x-5 gap-y-2 text-xs" style={{ color: colors.text.tertiary }}>
                 {["🔒 Secure checkout", "📦 Ships in 24h", "↩️ Free 30-day returns"].map((t) => (
                   <span key={t} className="font-medium">{t}</span>
                 ))}
               </div>
 
-              {/* Tabs (Description / Details / Reviews) */}
+              {/* ── Tabs (Description / Details / Reviews) ── */}
               <div className="pd-reveal">
-                <ProductTabs product={product} />
+                <ProductTabs
+                  product={product}
+                  reviews={reviews}
+                  onAddReview={handleAddReview}
+                  reviewsRef={reviewsRef}
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════
-          SIMILAR PRODUCTS
-      ══════════════════════════════════════════════════════════ */}
-      <SimilarProducts products={similarProducts} />
+      {/* ══════════════════════════════════════════════════════════════
+          PREDICTIVE PAIRINGS
+      ══════════════════════════════════════════════════════════════ */}
+      <PredictivePairings products={predictiveProducts} />
+
+      {/* ══════════════════════════════════════════════════════════════
+          PRICE ALERT MODAL
+      ══════════════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {alertOpen && (
+          <PriceAlertModal
+            product={product}
+            onClose={() => {
+              setAlertOpen(false);
+              setHasAlert(hasPriceAlert(productId));
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

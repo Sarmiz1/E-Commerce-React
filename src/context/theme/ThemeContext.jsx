@@ -16,6 +16,24 @@
 // The ThemeProvider also injects a "data-theme" attribute on <html> and a CSS
 // variable sheet so Tailwind `dark:` classes work alongside raw CSS.
 
+// src/Context/ThemeContext.jsx
+//
+// ── Woosho Theme System ────────────────────────────────────────────────────────
+// Provides light / dark mode switching with the full Woosho color palette.
+// Persists user preference to localStorage.
+// Every page in the project should consume this context.
+//
+// Usage:
+//   import { useTheme } from "../Context/ThemeContext";
+//   const { isDark, toggle, colors } = useTheme();
+//
+//   // Access any token:
+//   colors.brand.electricBlue   →  "#0050d4" | "#90abff"
+//   colors.surface.primary      →  "#FFFFFF"  | "#0E0E10"
+//
+// The ThemeProvider also injects a "data-theme" attribute on <html> and a CSS
+// variable sheet so Tailwind `dark:` classes work alongside raw CSS.
+
 import {
   createContext, useContext, useState, useEffect, useMemo,
 } from "react";
