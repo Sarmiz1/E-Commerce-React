@@ -20,7 +20,7 @@ export default defineConfig({
   },
 
   build: {
-    outDir: './Ecommerce-backend-ai-main',   // Fixed typo + removed trailing slash
-    emptyOutDir: true                        // Safely clear the folder before build
+    outDir: './dist',
+    emptyOutDir: true
   }
 })
