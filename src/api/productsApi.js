@@ -1,10 +1,35 @@
-import { getData } from "./apiClients";
+// src/api/productsApi.js
+import { supabase } from "../supabaseClient";
+import { handleResponse } from "./apiClients";
 
 export const ProductsAPI = {
-  getAll: () => getData("/products"),
+  // Fetch active catalog with all color/size variants and images attached
+  getAll: () =>
+    handleResponse(
+      supabase
+        .from("products")
+        .select("*, product_variants(*), product_images(*)")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+    ),
 
-  getById: (id) => getData(`/products/${id}`),
+  // Fetch single product details with relations mapped
+  getById: (id) =>
+    handleResponse(
+      supabase
+        .from("products")
+        .select("*, product_variants(*), product_images(*)")
+        .eq("id", id)
+        .single()
+    ),
 
+  // Predictive pairings utilizing standard PostgreSQL array overlaps for keywords
   getByKeywords: (keywordsArray) =>
-    getData(`/products?keywords=${keywordsArray.join(",")}`),
+    handleResponse(
+      supabase
+        .from("products")
+        .select("*, product_variants(*), product_images(*)")
+        .eq("is_active", true)
+        .overlaps("keywords", keywordsArray)
+    ),
 };

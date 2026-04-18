@@ -1,59 +1,81 @@
 // src/api/cartApi.js
-//
-// ── Fixes applied ──────────────────────────────────────────────────────────────
-//  1. `load` was using bare `axios.get` instead of the shared `api` instance,
-//     bypassing the base URL, default headers, and error interceptor. Changed
-//     to use `getData` from apiClients so all requests go through one pipe.
-//
-//  2. `load` returned `res.data` (the axios response body). CartContext then
-//     did `setCart(res.data)` — a double-unwrap that always produced `undefined`.
-//     `getData` / `request` already unwraps `response.data`, so `load` now
-//     returns the value directly. CartContext just does `setCart(items)`.
-//
-//  3. Method was named `updateQuantity` in CartAPI but CartContext called
-//     `CartAPI.update` — a TypeError at runtime. Standardised to `update`.
-//
-//  4. Parameter naming standardised:
-//       add / update / remove all accept `productId` to match the cart item
-//       shape used in CartContext (`{ productId, quantity }`).
-//       If your REST API uses a separate cart-item `id`, swap productId → itemId
-//       in the URL path only; keep everything else consistent.
-//
-//  5. `load` no longer appends `?expand=product` by default — pass `params` if
-//     you need it, or set it as a constant below. Keeps the function pure.
-// ─────────────────────────────────────────────────────────────────────────────
-
-import { getData, postData, putData, deleteData } from "./apiClients";
-
-// ── Optional query params sent on every cart load ─────────────────────────────
-// Set to "" if your API doesn't support query expansion.
-const LOAD_PARAMS = "?expand=product";
+import { supabase } from "../supabaseClient";
+import { handleResponse } from "./apiClients";
 
 export const CartAPI = {
 
-  // ── Load all cart items ─────────────────────────────────────────────────────
-  // Returns the bare array (or whatever shape your API returns at the root).
-  // CartContext is responsible for normalising to an array via Array.isArray.
-  load: () => getData(`/cart-items${LOAD_PARAMS}`),
+  // Loads the user's active cart. If none exists, creates one silently.
+  load: async (userId) => {
+    // 1. Find explicit active cart
+    let { data: cart } = await supabase
+      .from("carts")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .single();
 
-  // ── Add a product to the cart ───────────────────────────────────────────────
-  add: (productId, quantity = 1) =>
-    postData("/cart-items", { productId, quantity }),
+    // 2. Fallback creation if none exist (First time shopper)
+    if (!cart) {
+      const { data: newCart, error } = await supabase
+        .from("carts")
+        .insert({ user_id: userId, status: "active" })
+        .select("id")
+        .single();
+        
+      if (error) throw new Error(error.message);
+      cart = newCart;
+    }
 
-  // ── Update quantity of an existing cart item ────────────────────────────────
-  // Renamed from `updateQuantity` → `update` to match CartContext call-site.
-  update: (productId, quantity) =>
-    putData(`/cart-items/${productId}`, { quantity }),
+    // 3. Hydrate relations (Fetching products AND their selected variants)
+    return handleResponse(
+      supabase
+        .from("cart_items")
+        .select(`
+          id,
+          cart_id,
+          quantity,
+          product_id,
+          variant_id,
+          products (*),
+          product_variants (*)
+        `)
+        .eq("cart_id", cart.id)
+    ).then(items => ({ cartId: cart.id, items })); // Return cartId alongside items for React Context
+  },
 
-  // ── Remove a single item from the cart ─────────────────────────────────────
-  remove: (productId) =>
-    deleteData(`/cart-items/${productId}`),
+  // Because of our custom DB Constraint unique(cart_id, variant_id), Supabase 
+  // allows us to run upsert() here natively to handle quantity accumulations!
+  add: (cartId, productId, variantId, quantity = 1) =>
+    handleResponse(
+      supabase
+        .from("cart_items")
+        .upsert(
+          { cart_id: cartId, product_id: productId, variant_id: variantId, quantity },
+          { onConflict: 'cart_id, variant_id' }
+        )
+    ),
 
-  // ── Clear the entire cart ───────────────────────────────────────────────────
-  clear: () =>
-    deleteData("/cart-items"),
+  update: (cartItemId, quantity) =>
+    handleResponse(
+      supabase
+        .from("cart_items")
+        .update({ quantity })
+        .eq("id", cartItemId)
+    ),
 
-  // ── Update delivery / shipping details ─────────────────────────────────────
-  updateDelivery: (deliveryData) =>
-    putData("/cart/delivery", deliveryData),
+  remove: (cartItemId) =>
+    handleResponse(
+      supabase
+        .from("cart_items")
+        .delete()
+        .eq("id", cartItemId)
+    ),
+
+  clear: (cartId) =>
+    handleResponse(
+      supabase
+        .from("cart_items")
+        .delete()
+        .eq("cart_id", cartId)
+    )
 };
