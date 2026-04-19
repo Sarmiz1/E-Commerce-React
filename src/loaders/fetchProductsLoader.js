@@ -3,8 +3,9 @@ import { ProductsAPI } from "../api/productsApi";
 export const fetchProductsLoader = async () => {
   try {
     const products = await ProductsAPI.getAll();
-    return products;
-  } catch {
+    return products || [];
+  } catch (err) {
+    console.error("fetchProductsLoader Error:", err);
     throw new Response("Failed to fetch products", {
       status: 500,
     });

@@ -52,10 +52,8 @@ import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import ProductCard from "../../Components/Ui/ProductCard";
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Mocked Cart
-import { mockedCart } from "../../Data/mockedCart";
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Mocked Cart removed
+// import { mockedCart } from "../../Data/mockedCart";
 
 
 gsap.registerPlugin(ScrollTrigger);
@@ -297,7 +295,7 @@ function CartRow({ item,
     setPrevQty(item.quantity);
   }, [item.quantity, prevQty]);
 
-  const price = item?.product.priceCents || 0;
+  const price = item?.products?.price_cents || 0;
   const lineTotal = price * item.quantity;
 
   // Swipe-to-delete gesture via drag
@@ -339,8 +337,12 @@ function CartRow({ item,
           {/* Product image */}
           <Link to={`/products/${item.product?.id}`} className="flex-shrink-0">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 hover:scale-105 transition-transform duration-300">
-              {item.product?.image && (
-                <img src={item.product.image} alt={item.product.name}
+              {item.products?.image && (
+                <img src={item.products.image} alt={item.products.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/200x200?text=No+Image";
+                  }}
                   className="w-full h-full object-cover" loading="lazy" />
               )}
             </div>
@@ -348,22 +350,22 @@ function CartRow({ item,
 
           {/* Details */}
           <div className="flex-1 min-w-0">
-            <Link to={`/products/${item.product?.id}`}>
+            <Link to={`/products/${item.products?.id}`}>
               <p className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 hover:text-indigo-700 transition-colors">
-                {item.product?.name || "Product"}
+                {item.products?.name || "Product"}
               </p>
             </Link>
 
             {/* Star rating */}
-            {item.product?.rating?.stars > 0 && (
+            {item.products?.rating_stars > 0 && (
               <div className="flex items-center gap-1 mt-1">
                 {Array(5).fill(0).map((_, i) => (
-                  <svg key={i} className={`w-3 h-3 ${i < Math.floor(item.product.rating.stars) ? "text-yellow-400" : "text-gray-200"}`}
+                  <svg key={i} className={`w-3 h-3 ${i < Math.floor(item.products.rating_stars) ? "text-yellow-400" : "text-gray-200"}`}
                     fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 ))}
-                <span className="text-gray-400 text-[10px] ml-0.5">({item.product.rating.count})</span>
+                <span className="text-gray-400 text-[10px] ml-0.5">({item.products.rating_count})</span>
               </div>
             )}
 
@@ -400,7 +402,7 @@ function CartRow({ item,
             <motion.button
               whileHover={{ scale: 1.12, color: "#ef4444" }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => onRemove(item.id, item.product?.name)}
+              onClick={() => onRemove(item.id, item.products?.name)}
               disabled={isRemoving}
               className="text-gray-300 hover:text-red-400 transition-colors disabled:opacity-40"
             >
@@ -548,11 +550,11 @@ function SavedForLater({ items, onMoveToCart }) {
           >
             {console.log("SavedForLater", item)}
             <div className="aspect-square bg-gray-50 overflow-hidden">
-              {item.product?.image && <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />}
+              {item.products?.image && <img src={item.products.image} alt={item.products.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400" />}
             </div>
             <div className="p-3">
-              <p className="text-xs font-bold text-gray-800 line-clamp-1">{item.product?.name}</p>
-              <p className="text-indigo-600 font-black text-sm mt-0.5">{formatMoneyCents(item.product?.priceCents)}</p>
+              <p className="text-xs font-bold text-gray-800 line-clamp-1">{item.products?.name}</p>
+              <p className="text-indigo-600 font-black text-sm mt-0.5">{formatMoneyCents(item.products?.price_cents)}</p>
               <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                 onClick={() => onMoveToCart(item)}
                 className="w-full mt-2 bg-gray-900 text-white text-xs font-black py-2 rounded-xl hover:bg-indigo-700 transition-colors">
@@ -700,14 +702,9 @@ export default function CartPage() {
 
   // ── Cart data from API ───o──────────────────────────────────────────────────
   const { updateQuantity, removeItem, addItem } = useCartActions();
-  const { loading, error } = useCartState();
+  const { cart, loading, error } = useCartState();
 
-  //++++++++++++++++++++++++++++++++++++
-  // Mocked Cart
-  const cart = mockedCart
-  //++++++++++++++++++++++++++++++++++++++++++
-
-  console.log(cart)
+  // console.log(cart)
 
   useShowErrorBoundary(error);
 
@@ -737,13 +734,13 @@ export default function CartPage() {
 
   // IDs of products already in cart (for deduplication in recommendations)
   const cartProductIds = useMemo(
-    () => new Set(localCart.map((i) => String(i.product?.id))),
+    () => new Set(localCart.map((i) => String(i.products?.id))),
     [localCart]
   );
 
   // ── Totals ─────────────────────────────────────────────────────────────────
   const subtotal = useMemo(
-    () => localCart.reduce((s, i) => s + (i.product?.priceCents || 0) * i.quantity, 0),
+    () => localCart.reduce((s, i) => s + (i.products?.price_cents || 0) * i.quantity, 0),
     [localCart]
   );
   const discount = useMemo(() => {
@@ -819,7 +816,7 @@ export default function CartPage() {
 
     try {
       await addItem(
-        itemToRestore.data.product?.id,
+        itemToRestore.data.products?.id,
         itemToRestore.data.quantity
       );
       // provider handles API + sync internally
@@ -834,7 +831,7 @@ export default function CartPage() {
     if (exists) return;
 
     try {
-      await handleRemove(item.id, item.product?.name);
+      await handleRemove(item.id, item.products?.name);
       setSavedForLater(prev => [...prev, item]);
     } catch {
       // do nothing
@@ -852,7 +849,7 @@ export default function CartPage() {
 
     try {
       await addItem(
-        item.product?.id,
+        item.products?.id,
         item.quantity
       );
       // provider handles API + cart sync

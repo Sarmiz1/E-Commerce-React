@@ -1,31 +1,23 @@
-import { ButtonPrimary } from "../../../Components/Ui/ButtonPrimary"; 
+import { ButtonPrimary } from "../../../Components/Ui/ButtonPrimary";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
-import { postData } from "../../../api/postData";
-import { useContext, useState } from "react";
-import { CartActionsContext } from "../../../Context/cartContext";
-import { ErrorMessage } from "../../../Components/ErrorMessage"; 
+import { useCartActions } from "../../../Hooks/useCartActions";
+
 
 function OrderProductDetails({ orderedProduct }) {
   const navigateToCheckOut = useNavigate();
   const [errorMessage, setErrorMessage] = useState('')
-  const { loadCart } = useContext(CartActionsContext) || null;
-
   const {
     quantity,
-    estimatedDeliveryTimeMs,
-    product: { image, name, id },
+    products: { image, name, id },
   } = orderedProduct;
+
+  const { addToCart } = useCartActions();
 
   const handleAddToCart = async (id) => {
     try {
       setErrorMessage(null);
-      await postData(`/api/cart-items`, {
-        productId: id,
-        quantity: 1,
-      });
-
-      await loadCart();
+      await addToCart(id, 1);
       navigateToCheckOut("/checkout");
 
     } catch (error) {
@@ -51,8 +43,8 @@ function OrderProductDetails({ orderedProduct }) {
             </div>
 
             <div className="text-sm">
-              <span className="letterSpacingSm">Arriving</span> on:{" "}
-              {formatDate(estimatedDeliveryTimeMs)}
+              <span className="letterSpacingSm">Purchase</span> Date:{" "}
+              {new Date(orderedProduct.created_at).toLocaleDateString()}
             </div>
 
             <div className="text-sm">
@@ -89,7 +81,7 @@ function OrderProductDetails({ orderedProduct }) {
           </Link>
 
         </div>
-        <ErrorMessage  errorMessage={errorMessage}/>
+        <ErrorMessage errorMessage={errorMessage} />
       </div>
     </section>
   );

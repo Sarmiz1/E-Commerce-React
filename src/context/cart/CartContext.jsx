@@ -1,4 +1,4 @@
-// src/Context/CartContext.jsx
+// src/Context/cart/CartContext.jsx
 //
 // ── Bugs fixed ────────────────────────────────────────────────────────────────
 //
@@ -56,6 +56,7 @@ import {
 
 import { CartAPI } from "../../api/cartApi";
 import { CartStorage } from "./cartStorage";
+import { useAuth } from "../auth/AuthContext";
 
 // ── Helper: always produce an array from whatever the API returns ──────────────
 // Handles: plain array, { items: [...] }, { data: [...] }, null, undefined.
@@ -79,10 +80,18 @@ const CartActionsContext = createContext(null);
    PROVIDER
 ============================================================================= */
 export function CartProvider({ children }) {
+  const { user } = useAuth();
+  
+  const [cartId, setCartId] = useState(null);
   const [cart, setCart] = useState(() => toArray(CartStorage.load()));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [loadingIds, setLoadingIds] = useState(() => new Set());
+
+  const cartIdRef = useRef(cartId);
+  useEffect(() => {
+    cartIdRef.current = cartId;
+  }, [cartId]);
 
   // ── Ref mirror — lets stable callbacks read current cart without being
   //   listed as a dep (avoids recreating fns on every cart update).
@@ -92,54 +101,54 @@ export function CartProvider({ children }) {
     CartStorage.save(cart);   // sync storage alongside the ref
   }, [cart]);
 
-
-
-
   // ── Per-item loading helpers ───────────────────────────────────────────────
-  const startLoading = useCallback((productId) =>
-    setLoadingIds((prev) => { const s = new Set(prev); s.add(productId); return s; }), []);
+  const startLoading = useCallback((itemId) =>
+    setLoadingIds((prev) => { const s = new Set(prev); s.add(itemId); return s; }), []);
 
-  const stopLoading = useCallback((productId) =>
-    setLoadingIds((prev) => { const s = new Set(prev); s.delete(productId); return s; }), []);
+  const stopLoading = useCallback((itemId) =>
+    setLoadingIds((prev) => { const s = new Set(prev); s.delete(itemId); return s; }), []);
 
   /* ==========================================================================
      LOAD CART — fetches fresh state from the server
   ========================================================================== */
   const loadCart = useCallback(async () => {
+    if (!user?.id) return;
     setLoading(true);
     setError(null);
     try {
-      const res = await CartAPI.load();
-      setCart(toArray(res.data));          // ← FIX: was setCart(res.data) → undefined
+      const res = await CartAPI.load(user.id);
+      setCartId(res.cartId);
+      setCart(toArray(res.items));
     } catch (err) {
       setError(err.message || "Failed to load cart");
       setCart([]);
     } finally {
       setLoading(false);
     }
-  }, []); // no deps — CartAPI is a stable module reference
+  }, [user?.id]);
 
-
-  // Load Cart
+  // Load Cart exclusively when User dictates, or initializes
   useEffect(() => {
-    (async () => {
-      await loadCart();
-      console.log(cart)
-    })();
-  }, []);
+    loadCart();
+  }, [loadCart]);
 
   /* ==========================================================================
      ADD ITEM — optimistic + server confirm
   ========================================================================== */
-  const addItem = useCallback(async (productId, quantity = 1) => {
+  const addItem = useCallback(async (productId, variantId, quantity = 1) => {
+    const currentCartId = cartIdRef.current;
+    if (!currentCartId) { 
+        console.warn("No active cart found to add item to.");
+        return; 
+    }
     const tempId = `temp-${Date.now()}-${Math.random()}`;
 
     // Optimistic update
     setCart((prev) => {
-      const exists = prev.find((i) => i.productId === productId);
+      const exists = prev.find((i) => i.product_id === productId && i.variant_id === variantId);
       if (exists) {
         return prev.map((i) =>
-          i.productId === productId
+          (i.product_id === productId && i.variant_id === variantId)
             ? { ...i, quantity: i.quantity + quantity }
             : i
         );
@@ -147,47 +156,48 @@ export function CartProvider({ children }) {
       return [
         ...prev,
         {
-          id: tempId,        // ✅ TEMP ID (fixes duplicate key error)
-          productId,
+          id: tempId,
+          product_id: productId,
+          variant_id: variantId,
           quantity,
-          isTemp: true       // optional but useful for debugging
+          isTemp: true
         }
       ];
     });
 
-    startLoading(productId);
+    startLoading(tempId);
     try {
-      await CartAPI.add(productId, quantity);
+      await CartAPI.add(currentCartId, productId, variantId, quantity);
+      await loadCart(); // Resolve temp IDs to DB actual IDs!
     } catch {
-      // Revert to server truth on failure
       await loadCart();
     } finally {
-      stopLoading(productId);
+      stopLoading(tempId);
     }
   }, [loadCart, startLoading, stopLoading]);
 
   /* ==========================================================================
      REMOVE ITEM — optimistic + server confirm
   ========================================================================== */
-  const removeItem = useCallback(async (productId) => {
+  const removeItem = useCallback(async (itemId) => {
     // Capture current cart via ref (no stale closure, no dep on cart state)
     const snapshot = cartRef.current;
 
-    setCart((prev) => prev.filter((i) => i.productId !== productId));
-    startLoading(productId);
+    setCart((prev) => prev.filter((i) => i.id !== itemId));
+    startLoading(itemId);
     try {
-      await CartAPI.remove(productId);
+      await CartAPI.remove(itemId);
     } catch {
-      setCart(toArray(snapshot));     // ← FIX: rollback using ref snapshot
+      setCart(toArray(snapshot));     // ← rollback using ref snapshot
     } finally {
-      stopLoading(productId);
+      stopLoading(itemId);
     }
-  }, [startLoading, stopLoading]);    // ← FIX: no [cart] dep → stable reference
+  }, [startLoading, stopLoading]);
 
   /* ==========================================================================
      UPDATE QUANTITY — optimistic + server confirm, no extra load() call
   ========================================================================== */
-  const updateQuantity = useCallback(async (productId, quantity) => {
+  const updateQuantity = useCallback(async (itemId, quantity) => {
     if (quantity < 1) return;
 
     // Snapshot via ref before the optimistic update
@@ -195,21 +205,18 @@ export function CartProvider({ children }) {
 
     setCart((prev) =>
       prev.map((i) =>
-        i.productId === productId ? { ...i, quantity } : i
+        i.id === itemId ? { ...i, quantity } : i
       )
     );
-    startLoading(productId);
+    startLoading(itemId);
     try {
-      await CartAPI.update(productId, quantity); // ← FIX: was CartAPI.update (didn't exist)
-      // No extra CartAPI.load() call — optimistic state is already correct.
-      // The previous version called load() and then setCart(freshCart.data)
-      // which was a second double-unwrap producing undefined.
+      await CartAPI.update(itemId, quantity); 
     } catch {
       setCart(toArray(snapshot));     // ← FIX: rollback, no stale closure
     } finally {
-      stopLoading(productId);
+      stopLoading(itemId);
     }
-  }, [startLoading, stopLoading]);    // ← FIX: no [cart] dep → stable reference
+  }, [startLoading, stopLoading]); 
 
   /* ==========================================================================
      UPDATE DELIVERY
@@ -217,37 +224,41 @@ export function CartProvider({ children }) {
   const updateDelivery = useCallback(async (deliveryData) => {
     setLoading(true);
     try {
-      await CartAPI.updateDelivery(deliveryData);
-      await loadCart();               // delivery change can affect shipping cost
+      console.log("Mock Delivery Data Update: ", deliveryData);
     } catch (err) {
       setError(err.message || "Failed to update delivery");
     } finally {
       setLoading(false);
     }
-  }, [loadCart]);
+  }, []);
 
   /* ==========================================================================
      CLEAR CART
   ========================================================================== */
   const clearCart = useCallback(async () => {
-    const snapshot = cartRef.current; // ← FIX: was capturing `cart` from closure
+    const currentCartId = cartIdRef.current;
+    if(!currentCartId) return;
+    
+    const snapshot = cartRef.current; 
 
     setCart([]);
     try {
-      await CartAPI.clear();
+      await CartAPI.clear(currentCartId);
       CartStorage.clear();
     } catch {
       setCart(toArray(snapshot));
     }
-  }, []);                             // ← FIX: no [cart] dep → stable reference
+  }, []);
 
   /* ==========================================================================
      DERIVED VALUES
   ========================================================================== */
   // Computed once per cart change; consumers use these instead of re-computing.
   const cartCount = useMemo(() => cart.reduce((n, i) => n + i.quantity, 0), [cart]);
+  
+  // Notice we look into `products.price_cents` or similar based on backend relationships
   const cartSubtotal = useMemo(
-    () => cart.reduce((n, i) => n + (i.priceCents || i.product?.priceCents || 0) * i.quantity, 0),
+    () => cart.reduce((n, i) => n + (i.products?.price_cents || 0) * i.quantity, 0),
     [cart]
   );
 
@@ -256,13 +267,14 @@ export function CartProvider({ children }) {
   ========================================================================== */
   // State context: re-renders subscribers only when actual data changes.
   const stateValue = useMemo(() => ({
+    cartId,
     cart,
     loading,
     loadingIds,
     error,
     cartCount,
     cartSubtotal,
-  }), [cart, loading, loadingIds, error, cartCount, cartSubtotal]);
+  }), [cartId, cart, loading, loadingIds, error, cartCount, cartSubtotal]);
 
   // Action context: stable references — subscribing to this never triggers
   // a re-render due to cart state changes.

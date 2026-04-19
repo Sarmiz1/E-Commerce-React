@@ -29,7 +29,7 @@ import { OrderAPI } from "../../api/orderApi";
 
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
-import { mockedCart } from "../../Data/mockedCart";
+// import { mockedCart } from "../../Data/mockedCart";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -203,7 +203,15 @@ function CartItemRow({ item, onUpdateQty, onRemove, removing }) {
       {/* Product image */}
       <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
         {item.image
-          ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+          ? <img 
+              src={item.image} 
+              alt={item.name} 
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://placehold.co/200x200?text=No+Image";
+              }}
+              className="w-full h-full object-cover" 
+            />
           : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
         }
       </div>
@@ -211,8 +219,8 @@ function CartItemRow({ item, onUpdateQty, onRemove, removing }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">{item.name || item.productId}</p>
-        <p className="font-black text-indigo-700 text-base mt-1">{formatMoneyCents((item.priceCents || 0) * item.quantity)}</p>
-        <p className="text-gray-400 text-[11px]">{formatMoneyCents(item.priceCents || 0)} each</p>
+        <p className="font-black text-indigo-700 text-base mt-1">{formatMoneyCents((item.products?.price_cents || 0) * item.quantity)}</p>
+        <p className="text-gray-400 text-[11px]">{formatMoneyCents(item.products?.price_cents || 0)} each</p>
 
         {/* Qty controls */}
         <div className="flex items-center gap-2 mt-2">
@@ -238,7 +246,7 @@ function CartItemRow({ item, onUpdateQty, onRemove, removing }) {
 
 // ─── Order summary sidebar ────────────────────────────────────────────────────
 function OrderSummary({ cart, shipping, coupon, shippingOptions, selectedShipping, onShippingChange, step }) {
-  const subtotal = useMemo(() => cart.reduce((a, i) => a + (i.priceCents || 0) * i.quantity, 0), [cart]);
+  const subtotal = useMemo(() => cart.reduce((a, i) => a + (i.products?.price_cents || 0) * i.quantity, 0), [cart]);
   const shipPrice = selectedShipping === "free" ? 0 : (shippingOptions.find(s => s.id === selectedShipping)?.price ?? 499);
   const couponDisc = useMemo(() => {
     if (!coupon) return 0;
@@ -266,13 +274,25 @@ function OrderSummary({ cart, shipping, coupon, shippingOptions, selectedShippin
         {cart.map((item) => (
           <div key={item.id || item.productId} className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden">
-              {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-sm">📦</div>}
+              {item.image ? (
+                <img 
+                  src={item.image} 
+                  alt="" 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/100x100?text=Error";
+                  }}
+                  className="w-full h-full object-cover" 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm">📦</div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-gray-700 line-clamp-1">{item.name || item.productId}</p>
               <p className="text-[10px] text-gray-400">×{item.quantity}</p>
             </div>
-            <p className="text-xs font-black text-gray-900 flex-shrink-0">{formatMoneyCents((item.priceCents || 0) * item.quantity)}</p>
+            <p className="text-xs font-black text-gray-900 flex-shrink-0">{formatMoneyCents((item.products?.price_cents || 0) * item.quantity)}</p>
           </div>
         ))}
       </div>
@@ -751,13 +771,8 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(0);
 
   // ── Fetch live cart from API ──────────────────────────────────────────────
-  const { cart: cartDataW, error: cartError, loading: cartLoading } = useCartState();
+  const { cart: cartData, error: cartError, loading: cartLoading, cartId } = useCartState();
   useShowErrorBoundary(cartError);
-
-  //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  //    Mocked cart
-  const cartData = mockedCart
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   // Cart Actions from Api
   const { updateQuantity , removeItem } = useCartActions();
@@ -895,7 +910,7 @@ export default function CheckoutPage() {
 
   // ── Compute totals for order ──────────────────────────────────────────────
   const computeTotal = useCallback(() => {
-    const subtotal = cart.reduce((a, i) => a + (i.priceCents || 0) * i.quantity, 0);
+    const subtotal = cart.reduce((a, i) => a + (i.products?.price_cents || 0) * i.quantity, 0);
     const shipPrice = selectedShipping === "free" ? 0 : (SHIPPING_TIERS.find(s => s.id === selectedShipping)?.price ?? 499);
     const couponDisc = coupon?.type === "percent" ? Math.round(subtotal * coupon.value / 100)
       : coupon?.type === "flat" ? coupon.value
@@ -924,34 +939,14 @@ export default function CheckoutPage() {
     try {
       const total = computeTotal();
 
-      const payload = {
-        items: cart.map(i => ({
-          productId: i.productId || i.id,
-          quantity: i.quantity,
-        })),
-
-        shipping: {
-          method: selectedShipping,
-          address: {
-            name: form.name,
-            phone: form.phone,
-            address: form.address,
-            city: form.city,
-            zip: form.zip,
-            country: form.country,
-          },
-        },
-
-        payment: {
-          last4: form.cardNumber.replace(/\s/g, "").slice(-4),
-          brand: detectCardType(form.cardNumber) || "card",
-        },
-
-        couponCode: coupon?.code || null,
-        totalCents: total,
-      };
-
-      const result = await OrderAPI.createOrder(payload);
+      // Because we use Supabase RPC, we only need cartId and couponCode.
+      // Addresses/Payments are snapshotted or updated after the RPC call in a real app,
+      // but for this RPC it strictly needs these 3:
+      const result = await OrderAPI.createOrder({ 
+        cartId, 
+        userId: "550e8400-e29b-41d4-a716-446655440000", // Fallback for demo or pull from Auth context
+        couponCode: coupon?.code || null 
+      });
 
       setOrderNumber(
         result?.orderNumber ||

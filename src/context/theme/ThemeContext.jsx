@@ -42,9 +42,9 @@ import {
 const PALETTE = {
   light: {
     brand: {
-      electricBlue:  "#0050d4",
-      electricBlueAlt: "#4880ff",
-      neonGreen:     "#00cc78",          // toned down for light bg readability
+      electricBlue:  "#3b82f6",          // Woosho Signature Blue
+      electricBlueAlt: "#60a5fa",
+      neonGreen:     "#10b981",          // toned down for light bg readability
       gold:          "#c49a00",
       orange:        "#e54f00",
     },
@@ -86,9 +86,9 @@ const PALETTE = {
   },
   dark: {
     brand: {
-      electricBlue:  "#90abff",
-      electricBlueAlt: "#6d91ff",
-      neonGreen:     "#00FF94",
+      electricBlue:  "#60a5fa",
+      electricBlueAlt: "#3b82f6",
+      neonGreen:     "#34d399",
       gold:          "#FFD700",
       orange:        "#FF5E00",
     },
@@ -161,10 +161,17 @@ export function ThemeProvider({ children }) {
   // Persist + apply data-theme to <html> for Tailwind dark: class support
   useEffect(() => {
     try { localStorage.setItem("woosho-theme", isDark ? "dark" : "light"); } catch { /* ignore */ }
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    // Also set Tailwind dark class on <html>
-    if (isDark) document.documentElement.classList.add("dark");
-    else        document.documentElement.classList.remove("dark");
+    
+    const root = document.documentElement;
+    root.setAttribute("data-theme", isDark ? "dark" : "light");
+    
+    if (isDark) {
+      root.classList.add("dark");
+      root.classList.remove("light");
+    } else {
+      root.classList.remove("dark");
+      root.classList.add("light");
+    }
   }, [isDark]);
 
   const toggle = () => setIsDark((d) => !d);

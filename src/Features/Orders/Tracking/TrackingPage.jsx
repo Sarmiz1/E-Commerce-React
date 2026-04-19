@@ -36,6 +36,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 
+
+
 gsap.registerPlugin(ScrollTrigger);
 
 // ─── Page-scoped keyframes (tr- prefix) ──────────────────────────────────────
@@ -145,10 +147,10 @@ function statusPct(status) {
 }
 
 /** Human-readable ETA */
-function computeETA(status, createdAt) {
+function computeETA(status, created_at) {
   if (status === "delivered") return "Delivered";
   if (status === "cancelled") return "Cancelled";
-  const base = createdAt ? new Date(createdAt) : new Date();
+  const base = created_at ? new Date(created_at) : new Date();
   const fmt = (d) => new Date(base.getTime() + d * 86400000)
     .toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
   if (status === "shipped") return `Today – ${fmt(1)}`;
@@ -381,9 +383,9 @@ function HoloCard({ order }) {
         <div className="grid grid-cols-2 gap-3">
           {[
             ["Status", (order?.status || "—").charAt(0).toUpperCase() + (order?.status || "").slice(1)],
-            ["ETA", computeETA(order?.status, order?.createdAt)],
-            ["Items", `${order?.items?.length ?? 0} item${(order?.items?.length ?? 0) !== 1 ? "s" : ""}`],
-            ["Value", formatMoneyCents(order?.total ?? 0)],
+            ["ETA", computeETA(order?.status, order?.created_at)],
+            ["Items", `${order?.order_items?.length ?? 0} item${(order?.order_items?.length ?? 0) !== 1 ? "s" : ""}`],
+            ["Value", formatMoneyCents(order?.total_cents ?? 0)],
           ].map(([k, v]) => (
             <div key={k}>
               <p className="text-white/45 text-[9px] uppercase tracking-widest mb-0.5">{k}</p>
@@ -468,9 +470,9 @@ function Ticker({ order }) {
   const msgs = useMemo(() => {
     const base = [
       `Tracking #${(order?.id || "").slice(0, 10)} · Status: ${order?.status}`,
-      `ETA: ${computeETA(order?.status, order?.createdAt)}`,
-      `${order?.items?.length ?? 0} item${(order?.items?.length ?? 0) !== 1 ? "s" : ""} in this shipment`,
-      `Order value: ${formatMoneyCents(order?.total ?? 0)}`,
+      `ETA: ${computeETA(order?.status, order?.created_at)}`,
+      `${order?.order_items?.length ?? 0} item${(order?.order_items?.length ?? 0) !== 1 ? "s" : ""} in this shipment`,
+      `Order value: ${formatMoneyCents(order?.total_cents ?? 0)}`,
       "Refreshes automatically every 30 seconds",
       "Free 30-day returns · 24/7 support available",
     ];
@@ -526,15 +528,19 @@ function ItemList({ items }) {
           <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-white/8 border border-white/10">
             {item.product?.image && (
               <img src={item.product.image} alt={item.product.name}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://placehold.co/100x100?text=No+Image";
+                }}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm line-clamp-1">{item.product?.name || "Product"}</p>
+            <p className="font-bold text-white text-sm line-clamp-1">{item.products?.name || "Product"}</p>
             <p className="text-white/35 text-xs mt-0.5">Qty: {item.quantity}</p>
           </div>
           <p className="font-black text-white/75 text-sm flex-shrink-0 pt-0.5">
-            {formatMoneyCents((item.product?.priceCents || 0) * item.quantity)}
+            {formatMoneyCents(item.total_cents)}
           </p>
         </div>
       ))}
@@ -554,7 +560,7 @@ function SupportForm({ orderId }) {
     if (!msg.trim()) { setError("Enter a message first."); return; }
     setLoading(true); setError("");
     try {
-      await postData("/api/support/tracking", { message: msg, orderId });
+      console.log("Support Ticket (Simulated):", { message: msg, orderId });
       setSent(true);
     } catch {
       setError("Failed to send. Please try again.");
@@ -660,7 +666,7 @@ export default function TrackingPage() {
   const [updatedAt, setUpdatedAt] = useState(null);
   const inputRef = useRef(null);
 
-  
+
 
   // ── Derive tracked order from local cache ─────────────────────────────────
   const trackedOrder = useMemo(() => {
@@ -668,7 +674,7 @@ export default function TrackingPage() {
     const q = trackedId.toLowerCase();
     return orders.find((o) =>
       o.id?.toLowerCase().includes(q) ||
-      (o.items || []).some((i) => i.product?.name?.toLowerCase().includes(q))
+      (o.order_items || []).some((i) => i.products?.name?.toLowerCase().includes(q))
     ) ?? null;
   }, [trackedId, orders]);
 

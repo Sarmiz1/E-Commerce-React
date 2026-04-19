@@ -49,12 +49,12 @@ import AddToCart from "./AddToCart";
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function isNewProduct(product) {
-  if (!product?.createdAt) return false;
-  return Date.now() - new Date(product.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
+  if (!product?.created_at) return false;
+  return Date.now() - new Date(product.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
 }
 
 function isOnSale(product) {
-  return Boolean(product?.priceCents && product.priceCents < 2000);
+  return Boolean(product?.price_cents && product.price_cents < 2000);
 }
 
 function Badge({ label, colorClass }) {
@@ -100,8 +100,16 @@ function StandardCard({ product }) {
         className="group bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100/80 flex flex-col h-full"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-          <img src={product.image} alt={product.name} loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null; 
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}
@@ -118,10 +126,10 @@ function StandardCard({ product }) {
           <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors duration-200">
             {product.name}
           </h3>
-          <Stars rating={product.rating?.stars ?? 0} count={product.rating?.count ?? 0} />
+          <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} />
           <div className="mt-auto pt-2 flex items-end justify-between">
-            <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.priceCents)}</p>
-            {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.priceCents * 1.35))}</p>}
+            <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
+            {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
           </div>
           <AddToCart productId={product.id} variant="primary" />
         </div>
@@ -143,8 +151,16 @@ function HorizontalCard({ product }) {
         className="group flex gap-4 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100/80"
       >
         <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0">
-          <img src={product.image} alt={product.name} loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          />
         </div>
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div>
@@ -152,11 +168,11 @@ function HorizontalCard({ product }) {
               {product.name}
             </h3>
             <div className="mt-1">
-              <Stars rating={product.rating?.stars ?? 0} count={product.rating?.count ?? 0} />
+              <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} />
             </div>
           </div>
           <div className="flex items-center justify-between mt-2 gap-2">
-            <p className="font-black text-gray-900 text-base">{formatMoneyCents(product.priceCents)}</p>
+            <p className="font-black text-gray-900 text-base">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="pill" />
           </div>
         </div>
@@ -180,8 +196,16 @@ function OverlayCard({ product }) {
         className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl"
         style={{ aspectRatio: "3/4" }}
       >
-        <img src={product.image} alt={product.name} loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <img 
+          src={product.image} 
+          alt={product.name} 
+          loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "https://placehold.co/600x600?text=No+Image";
+          }}
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
         {onSale && (
           <div className="absolute top-3 left-3 z-10">
@@ -191,7 +215,7 @@ function OverlayCard({ product }) {
         <div className="absolute bottom-0 left-0 right-0 p-4 z-10 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
           <p className="text-white font-bold text-sm line-clamp-1 mb-1">{product.name}</p>
           <div className="flex items-center justify-between">
-            <p className="font-black text-white text-lg">{formatMoneyCents(product.priceCents)}</p>
+            <p className="font-black text-white text-lg">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="ghost" className="!py-1.5 !px-3 !text-xs" />
           </div>
         </div>
@@ -215,8 +239,16 @@ function CompactCard({ product }) {
         className="group bg-gray-50 rounded-2xl overflow-hidden hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100/60"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "1/1" }}>
-          <img src={product.image} alt={product.name} loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          />
           {onSale && (
             <div className="absolute top-2 right-2">
               <Badge label="Sale" colorClass="bg-gradient-to-r from-orange-500 to-red-500" />
@@ -227,9 +259,9 @@ function CompactCard({ product }) {
           <p className="font-bold text-gray-900 text-xs line-clamp-1 mb-0.5 group-hover:text-indigo-700 transition-colors">
             {product.name}
           </p>
-          <Stars rating={product.rating?.stars ?? 0} count={0} />
+          <Stars rating={product.rating_stars ?? 0} count={0} />
           <div className="flex items-center justify-between mt-2">
-            <p className="font-black text-indigo-600 text-sm">{formatMoneyCents(product.priceCents)}</p>
+            <p className="font-black text-indigo-600 text-sm">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="icon" />
           </div>
         </div>
@@ -251,17 +283,25 @@ function GhostCard({ product }) {
         className="group relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl overflow-hidden hover:bg-white/15 hover:border-white/30 transition-all duration-300"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-          <img src={product.image} alt={product.name} loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
         </div>
         <div className="p-4">
           <h3 className="font-bold text-white text-sm line-clamp-1 mb-1 group-hover:text-indigo-300 transition-colors">
             {product.name}
           </h3>
-          <Stars rating={product.rating?.stars ?? 0} count={product.rating?.count ?? 0} light />
+          <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} light />
           <div className="flex items-center justify-between mt-3">
-            <p className="font-black text-white text-base">{formatMoneyCents(product.priceCents)}</p>
+            <p className="font-black text-white text-base">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="ghost" />
           </div>
         </div>
@@ -287,8 +327,16 @@ function NavigateCard({ product }) {
         className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-shadow duration-300 flex flex-col h-full border border-gray-100/80"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-          <img src={product.image} alt={product.name} loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img 
+            src={product.image} 
+            alt={product.name} 
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}
@@ -305,10 +353,10 @@ function NavigateCard({ product }) {
           <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors duration-200">
             {product.name}
           </h3>
-          <Stars rating={product.rating?.stars ?? 0} count={product.rating?.count ?? 0} />
+          <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} />
           <div className="mt-auto pt-2 flex items-end justify-between">
-            <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.priceCents)}</p>
-            {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.priceCents * 1.35))}</p>}
+            <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
+            {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
           </div>
         </div>
       </motion.div>
@@ -331,8 +379,16 @@ function StaticCard({ product }) {
       className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100/80 flex flex-col"
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-        <img src={product.image} alt={product.name} loading="lazy"
-          className="w-full h-full object-cover" />
+        <img 
+          src={product.image} 
+          alt={product.name} 
+          loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "https://placehold.co/600x600?text=No+Image";
+          }}
+          className="w-full h-full object-cover" 
+        />
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}
           {onSale && <Badge label="Sale" colorClass="bg-gradient-to-r from-orange-500 to-red-500" />}
@@ -340,10 +396,10 @@ function StaticCard({ product }) {
       </div>
       <div className="p-5 flex flex-col gap-2 flex-1">
         <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{product.name}</h3>
-        <Stars rating={product.rating?.stars ?? 0} count={product.rating?.count ?? 0} />
+        <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} />
         <div className="mt-auto pt-2 flex items-end justify-between">
-          <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.priceCents)}</p>
-          {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.priceCents * 1.35))}</p>}
+          <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
+          {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
         </div>
         {/* AddToCart intentionally absent — static variant is display-only */}
       </div>
@@ -369,16 +425,24 @@ function customWideCard({ product }) {
     >
       <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
         <Link to={`/products/${product.id}`} className="cursor-pointer">
-          <img src={product?.image} alt={product?.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img 
+            src={product?.image} 
+            alt={product?.name} 
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://placehold.co/600x600?text=No+Image";
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          />
         </Link>
       </div>
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>
           <h3 className="font-bold text-gray-900 text-sm line-clamp-2 leading-tight">{product?.name}</h3>
-          <Stars rating={product?.rating?.stars || 0} />
+          <Stars rating={product?.rating_stars || 0} />
         </div>
         <div className="flex items-center justify-between mt-2">
-          <p className="font-black text-gray-900">{formatMoneyCents(product?.priceCents)}</p>
+          <p className="font-black text-gray-900">{formatMoneyCents(product?.price_cents)}</p>
           {/* <AddToCart productId={product?.id} /> */}
           {/* <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => handleAdd(e, product?.id)}
             className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Add</motion.button> */}

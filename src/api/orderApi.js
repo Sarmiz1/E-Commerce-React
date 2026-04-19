@@ -24,6 +24,7 @@ export const OrderAPI = {
           *,
           order_items (
             *,
+            products (*),
             product_variants (*)
           )
         `)
@@ -36,8 +37,23 @@ export const OrderAPI = {
     handleResponse(
       supabase
         .from("orders")
-        .select("*")
+        .select(`
+          *,
+          order_items (
+            *,
+            products (*)
+          )
+        `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
+    ),
+
+  // Cancels an order
+  cancelOrder: (orderId) =>
+    handleResponse(
+      supabase
+        .from("orders")
+        .update({ status: "cancelled" })
+        .eq("id", orderId)
     )
 };

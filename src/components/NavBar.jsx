@@ -457,16 +457,17 @@
 
 
 // src/components/Navbar.jsx
-import  { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useRegisterCartIcon } from "../Context/cart/CartAnimationContext";
-import { getData } from "../api/apiClients";
+// import { getData } from "../api/apiClients";
 import { formatMoneyCents } from "../Utils/formatMoneyCents";
 import { useCartState } from "../Context/cart/CartContext";
 import { mockedCart } from "../Data/mockedCart";
+const getData = null
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -865,10 +866,10 @@ function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave })
                     <span className="flex-1 text-left">{link.label}</span>
                     {link.badge && (
                       <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${link.badge === "New" ? "bg-blue-100 text-blue-600"
-                          : link.badge === "Hot" ? "bg-orange-100 text-orange-600"
-                            : link.badge === "Sale" ? "bg-red-100 text-red-600"
-                              : typeof link.badge === "number" || /^\d+$/.test(link.badge) ? "bg-gray-100 text-gray-500"
-                                : "bg-yellow-100 text-yellow-600"
+                        : link.badge === "Hot" ? "bg-orange-100 text-orange-600"
+                          : link.badge === "Sale" ? "bg-red-100 text-red-600"
+                            : typeof link.badge === "number" || /^\d+$/.test(link.badge) ? "bg-gray-100 text-gray-500"
+                              : "bg-yellow-100 text-yellow-600"
                         }`}>
                         {link.badge}
                       </span>
@@ -1180,8 +1181,8 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                   <button
                     onClick={() => { navigate(link.href); setActiveMenu(null); }}
                     className={`nb-navlink transition-all duration-200 ${isTop
-                        ? `text-white/80 hover:text-white ${isActive ? "bg-white/12 text-white" : "hover:bg-white/10"}`
-                        : `text-gray-600 hover:text-gray-900 ${isActive ? "bg-gray-100 text-gray-900 font-bold" : "hover:bg-gray-100/80"}`
+                      ? `text-white/80 hover:text-white ${isActive ? "bg-white/12 text-white" : "hover:bg-white/10"}`
+                      : `text-gray-600 hover:text-gray-900 ${isActive ? "bg-gray-100 text-gray-900 font-bold" : "hover:bg-gray-100/80"}`
                       } ${link.accent ? (isTop ? "!text-orange-300 font-black" : "!text-orange-500 font-black") : ""}`}
                   >
                     {link.accent && <span className="text-xs">🔥</span>}
@@ -1535,8 +1536,8 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                                   transition={{ delay: i * 0.035 }}
                                   onClick={() => { navigate(`/products/${product.id}`); setSearchOpen(false); }}
                                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 group text-left ${focusedIdx === i
-                                      ? "bg-indigo-50 ring-2 ring-inset ring-indigo-200"
-                                      : "hover:bg-gray-50"
+                                    ? "bg-indigo-50 ring-2 ring-inset ring-indigo-200"
+                                    : "hover:bg-gray-50"
                                     }`}
                                 >
                                   {/* Product thumbnail */}

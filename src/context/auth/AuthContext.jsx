@@ -1,6 +1,6 @@
 // src/Context/auth/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../../../supabaseClient';
+import { supabase } from '../../supabaseClient';
 
 const AuthContext = createContext({});
 
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   const signIn = async (email, password) => {
     return await supabase.auth.signInWithPassword({ email, password });
   };
-  
+
   const signUp = async (email, password) => {
     return await supabase.auth.signUp({ email, password });
   };
@@ -45,22 +45,22 @@ export const AuthProvider = ({ children }) => {
   const loginGuest = async () => {
     const guestEmail = "guest_tester@shopease.local";
     const guestPass = "supa_strong_password_123!";
-    
+
     // Attempt Login
     let { data, error } = await supabase.auth.signInWithPassword({
-        email: guestEmail,
-        password: guestPass
+      email: guestEmail,
+      password: guestPass
     });
-    
+
     // If user doesn't exist, register them silently.
     if (error && error.message.includes("Invalid login credentials")) {
-        const res = await supabase.auth.signUp({
-            email: guestEmail,
-            password: guestPass
-        });
-        return res;
+      const res = await supabase.auth.signUp({
+        email: guestEmail,
+        password: guestPass
+      });
+      return res;
     }
-    
+
     return { data, error };
   };
 

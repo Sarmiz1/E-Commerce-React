@@ -28,13 +28,14 @@ import { useTheme } from "../../../Context/theme/ThemeContext";
 import { ErrorMessage } from "../../../Components/ErrorMessage";
 import ProductCard from "../../../Components/Ui/ProductCard";
 
+
+
 gsap.registerPlugin(ScrollTrigger);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ── LOCALSTORAGE HELPERS ─────────────────────────────────────────────────────
 // All use try/catch for SSR safety and quota‑exceeded resilience.
-// Each function is structured for easy migration: replace the body with an API
-// call (e.g. `await postData('/api/reviews', ...)`) and it "just works".
+// call (e.g. `await SupabaseClient.from('reviews').insert(...)`) and it "just works".
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function loadReviews(productId) {
@@ -45,7 +46,7 @@ function loadReviews(productId) {
 }
 
 function saveReviews(productId, reviews) {
-  // ── Backend migration: replace with `await postData('/api/reviews', { productId, reviews })`
+  // ── Database migration: reviews are handled via supabase products/product_reviews tables.
   try { localStorage.setItem(`shopease-reviews-${productId}`, JSON.stringify(reviews)); }
   catch { /* quota exceeded – silently ignore */ }
 }
@@ -140,7 +141,7 @@ const SIZE_MAP = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function getSeedReviews(product) {
-  const base = product.rating?.stars || 4;
+  const base = product.rating_stars || 4;
   return [
     { id: "seed-1", name: "Sarah M.", avatar: null, stars: Math.min(5, Math.round(base + 0.5)), text: "Absolutely love this product. Exactly as described and arrived in perfect condition. Would highly recommend to anyone!", date: "2 days ago", verified: true },
     { id: "seed-2", name: "James K.", avatar: null, stars: Math.round(base), text: "Great quality and fast shipping. The product exceeded my expectations. Will definitely buy again.", date: "1 week ago", verified: true },
@@ -163,9 +164,9 @@ function computeRatingDistribution(product, reviews = []) {
   });
 
   // Distribute the remaining product aggregate (count - reviews.length)
-  const existingCount = Math.max(0, (product.rating?.count || 0) - reviews.length);
+  const existingCount = Math.max(0, (product.rating_count || 0) - reviews.length);
   if (existingCount > 0) {
-    const avg = product.rating?.stars || 4;
+    const avg = product.rating_stars || 4;
     const weights = [1, 2, 3, 4, 5].map((s) => Math.max(0.01, Math.exp(-Math.abs(s - avg) * 1.2)));
     const wSum = weights.reduce((a, b) => a + b, 0);
     weights.forEach((w, i) => {
@@ -193,17 +194,17 @@ function computePredictiveProducts(product, allProducts) {
 
       // Score: keyword overlap (70%) + price proximity (20%) + rating bonus (10%)
       let score = (shared / Math.max(targetKeywords.size, 1)) * 70;
-      const priceRatio = Math.min(p.priceCents, product.priceCents) / Math.max(p.priceCents, product.priceCents);
+      const priceRatio = Math.min(p.price_cents, product.price_cents) / Math.max(p.price_cents, product.price_cents);
       score += priceRatio * 20;
-      if (p.rating?.stars >= 4) score += 10;
+      if (p.rating_stars >= 4) score += 10;
       score = Math.min(99, Math.round(score));
 
       // Category label
       let label = "STYLE PICK";
       if (score >= 85) label = "BEST MATCH";
-      else if (p.priceCents < product.priceCents * 0.7) label = "VALUE PICK";
-      else if (p.rating?.stars >= 4.5 && p.rating?.count > 100) label = "TOP RATED";
-      else if (p.priceCents > product.priceCents * 1.3) label = "PREMIUM";
+      else if (p.price_cents < product.price_cents * 0.7) label = "VALUE PICK";
+      else if (p.rating_stars >= 4.5 && p.rating_count > 100) label = "TOP RATED";
+      else if (p.price_cents > product.price_cents * 1.3) label = "PREMIUM";
 
       return { ...p, matchScore: score, matchLabel: label };
     })
@@ -389,7 +390,7 @@ function InteractiveStarPicker({ value, onChange }) {
 // ── ADD TO CART PANEL (themed) ───────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function AddToCartPanel({ productId }) {
+function AddToCartPanel({ productId, variantId }) {
   const { isDark, colors } = useTheme();
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -409,7 +410,7 @@ function AddToCartPanel({ productId }) {
     setError("");
     setLoading(true);
     try {
-      await addItem(productId, qty);
+      await addItem(productId, variantId, qty);
       setDone(true);
       if (btnRef.current) gsap.fromTo(btnRef.current, { scale: 0.9 }, { scale: 1, duration: 0.45, ease: "elastic.out(1.2,0.5)" });
     } catch {
@@ -524,8 +525,11 @@ function ThumbnailGallery({ product, imageRef }) {
 
   // Simulated multi-view gallery (future: use product.images array)
   const views = useMemo(() => {
-    if (product.images && product.images.length > 1) {
-      return product.images.map((img, i) => ({ src: img, label: `View ${i + 1}` }));
+    if (product.product_images && product.product_images.length > 0) {
+      return product.product_images.map((img, i) => ({ 
+        src: img.image_url, 
+        label: `View ${i + 1}` 
+      }));
     }
     return [
       { src: product.image, label: "Front" },
@@ -533,7 +537,7 @@ function ThumbnailGallery({ product, imageRef }) {
       { src: product.image, label: "Detail", objectPosition: "center 25%" },
       { src: product.image, label: "Back", filter: "brightness(0.93) saturate(1.15)" },
     ];
-  }, [product.image, product.images]);
+  }, [product.image, product.product_images]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -568,8 +572,8 @@ function ThumbnailGallery({ product, imageRef }) {
   const handleMouseLeave = () => setZoomActive(false);
 
   const currentView = views[activeIndex];
-  const isNew = product?.createdAt && (Date.now() - new Date(product.createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
-  const onSale = product?.priceCents < 2000;
+  const isNew = product?.created_at && (Date.now() - new Date(product.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000;
+  const onSale = product?.price_cents < 2000;
 
   const slideVariants = {
     enter: (dir) => ({ x: dir > 0 ? 180 : -180, opacity: 0, scale: 0.97 }),
@@ -599,6 +603,10 @@ function ThumbnailGallery({ product, imageRef }) {
               <img
                 src={view.src}
                 alt={view.label}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://placehold.co/200x200?text=Error";
+                }}
                 className="w-full h-full object-cover"
                 style={{
                   transform: view.transform || "none",
@@ -637,6 +645,10 @@ function ThumbnailGallery({ product, imageRef }) {
                 transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
                 src={currentView.src}
                 alt={product.name}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://placehold.co/600x600?text=No+Image";
+                }}
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{
                   transform: currentView.transform || "none",
@@ -682,6 +694,10 @@ function ThumbnailGallery({ product, imageRef }) {
                 <img
                   src={currentView.src}
                   alt=""
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/600x600?text=No+Image";
+                  }}
                   className="absolute"
                   style={{
                     width: mainImageRef.current.offsetWidth * 2.5,
@@ -1367,7 +1383,15 @@ function PriceAlertModal({ product, onClose }) {
             {/* Product preview */}
             <div className="flex items-center gap-3 p-3 rounded-xl border"
               style={{ background: colors.surface.secondary, borderColor: colors.border.subtle }}>
-              <img src={product.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+              <img 
+                src={product.image} 
+                alt="" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://placehold.co/100x100?text=No+Image";
+                }}
+                className="w-12 h-12 rounded-lg object-cover" 
+              />
               <div className="min-w-0">
                 <p className="font-bold text-xs truncate" style={{ color: colors.text.primary }}>{product.name}</p>
                 <p className="text-xs font-black" style={{ color: colors.text.accent }}>
@@ -1484,12 +1508,7 @@ export default function ProductDetail() {
   const { isDark, colors } = useTheme();
   const { productId } = useParams();
   const navigate = useNavigate();
-  const products = useLoaderData();
-
-  // ── Find current product ──
-  const product = Array.isArray(products)
-    ? products.find((p) => String(p.id) === String(productId))
-    : null;
+  const { product, similarProducts } = useLoaderData();
 
   // ── All hooks must be called before conditional returns ──
   const [wishlisted, setWishlisted] = useState(() => loadWishlist().includes(productId));
@@ -1643,7 +1662,7 @@ export default function ProductDetail() {
   const onSale = product.priceCents < 2000;
   const origPrice = onSale ? Math.round(product.priceCents * 1.35) : null;
   const lowStock = (product.rating?.count || 0) < 50;
-  const predictiveProducts = computePredictiveProducts(product, products);
+  const predictiveProducts = similarProducts;
 
   return (
     <div style={{ background: colors.surface.primary, color: colors.text.primary }} className="overflow-x-hidden min-h-screen">
@@ -1888,7 +1907,7 @@ export default function ProductDetail() {
 
               {/* ── Add to cart ── */}
               <div className="pd-reveal">
-                <AddToCartPanel productId={product.id} />
+                <AddToCartPanel productId={product.id} variantId={product.variants?.[0]?.id || null} />
               </div>
 
               {/* ── Price alert + Wishlist bar ── */}

@@ -31,11 +31,14 @@ import {
   useState, useEffect, useRef, useCallback, useMemo
 } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { postData } from "../../api/apiClients";
 import { useLoaderData, useNavigate, useNavigation } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
+import { OrderAPI } from "../../api/orderApi";
+import { useCartActions } from "../../Context/cart/CartContext";
+
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -475,7 +478,7 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
             <h2 className="font-black text-gray-900 text-lg">#{order.id?.slice(0, 12) || "N/A"}</h2>
             <div className="flex items-center gap-2 mt-1.5">
               <StatusBadge status={order.status} />
-              <span className="text-gray-400 text-xs">{new Date(order.createdAt || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+              <span className="text-gray-400 text-xs">{new Date(order.created_at || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
             </div>
           </div>
           <button
@@ -515,24 +518,34 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.22 }}
                 className="space-y-4">
-                {(order.items || []).map((item, i) => (
+                {(order.order_items || []).map((item, i) => (
                   <motion.div key={item.id || i}
                     initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.06 }}
                     className="flex gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-100 group hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200">
                     <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-white border border-gray-100">
-                      {item.product?.image && <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />}
+                      {item.products?.image && (
+                        <img 
+                          src={item.products.image} 
+                          alt={item.products.name} 
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://placehold.co/200x200?text=No+Image";
+                          }}
+                          className="w-full h-full object-cover" 
+                        />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 text-sm line-clamp-2 leading-snug">{item.product?.name || "Product"}</p>
+                      <p className="font-bold text-gray-900 text-sm line-clamp-2 leading-snug">{item.products?.name || item.product_name}</p>
                       <p className="text-gray-400 text-xs mt-0.5">Qty: {item.quantity}</p>
                     </div>
                     <p className="font-black text-gray-900 text-sm flex-shrink-0">
-                      {formatMoneyCents((item.product?.priceCents || 0) * item.quantity)}
+                      {formatMoneyCents(item.total_cents)}
                     </p>
                   </motion.div>
                 ))}
-                {(!order.items || !order.items.length) && (
+                {(!order.order_items || !order.order_items.length) && (
                   <div className="text-center py-12 text-gray-400">
                     <div className="text-4xl mb-3">📦</div>
                     <p className="text-sm font-semibold">No item details available</p>
@@ -595,7 +608,7 @@ function OrderDrawer({ order, onClose, onCancel, onReorder, isCancelling }) {
                   ))}
                   <div className="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-gray-200 mt-2">
                     <span>Total</span>
-                    <span className="text-indigo-700">{formatMoneyCents(order.total)}</span>
+                    <span className="text-indigo-700">{formatMoneyCents(order.total_cents)}</span>
                   </div>
                 </div>
 
@@ -725,21 +738,21 @@ function OrderCard({ order, index, onOpen }) {
         </div>
 
         {/* Product images strip */}
-        {order.items?.length > 0 && (
+        {order.order_items?.length > 0 && (
           <div className="flex items-center gap-2 mb-4">
             <div className="flex -space-x-3">
-              {order.items.slice(0, 4).map((item, i) => (
+              {order.order_items.slice(0, 4).map((item, i) => (
                 <div key={i} className="w-10 h-10 rounded-xl border-2 border-white overflow-hidden bg-gray-100 shadow-sm flex-shrink-0">
-                  {item.product?.image && <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />}
+                  {item.products?.image && <img src={item.products.image} alt={item.products.name} className="w-full h-full object-cover" />}
                 </div>
               ))}
-              {order.items.length > 4 && (
+              {order.order_items.length > 4 && (
                 <div className="w-10 h-10 rounded-xl border-2 border-white bg-gray-100 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <span className="text-gray-500 text-[10px] font-black">+{order.items.length - 4}</span>
+                  <span className="text-gray-500 text-[10px] font-black">+{order.order_items.length - 4}</span>
                 </div>
               )}
             </div>
-            <p className="text-gray-400 text-xs ml-1">{order.items.length} item{order.items.length !== 1 ? "s" : ""}</p>
+            <p className="text-gray-400 text-xs ml-1">{order.order_items.length} item{order.order_items.length !== 1 ? "s" : ""}</p>
           </div>
         )}
 
@@ -748,12 +761,12 @@ function OrderCard({ order, index, onOpen }) {
           <div>
             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Ordered</p>
             <p className="text-sm font-bold text-gray-700">
-              {new Date(order.createdAt || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+              {new Date(order.created_at || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
             </p>
           </div>
           <div className="text-right">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
-            <p className="text-lg font-black text-gray-900">{formatMoneyCents(order.total)}</p>
+            <p className="text-lg font-black text-gray-900">{formatMoneyCents(order.total_cents)}</p>
           </div>
         </div>
 
@@ -888,44 +901,41 @@ export default function OrdersPage() {
     setCancelTarget(orderId);
   }, []);
 
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  //          NO ORDER API YET THIS IS JUST A MOCKUP
-  // ── Confirm cancel → POST to API ──────────────────────────────────────────
   const handleCancelConfirm = useCallback(async () => {
     if (!cancelTarget) return;
     setIsCancelling(true);
     try {
-      await postData(`/api/orders/${cancelTarget}/cancel`, {});
+      await OrderAPI.cancelOrder(cancelTarget);
       setCancelTarget(null);
       closeDrawer();
-    } catch {
-      // Error handled silently — API layer should surface to ErrorBoundary
+      // Optionally refresh data or update local state
+      navigate(".", { replace: true }); // Triggers loader refresh
+    } catch (err) {
+      console.error("Cancel Order Error:", err);
     } finally {
       setIsCancelling(false);
     }
-  }, [cancelTarget, closeDrawer]);
+  }, [cancelTarget, closeDrawer, navigate]);
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  //          NO ORDER API YET THIS IS JUST A MOCKUP
-  // ── Re-order: add all items from an order back to cart ────────────────────
+  const { addItem } = useCartActions();
   const handleReorder = useCallback(async (order) => {
     setReorderLoading(true);
     try {
-      // Add each line item back to cart concurrently
+      // Add each line item back to cart concurrently using Context
       await Promise.all(
         (order.items || []).map((item) =>
-          postData("/api/cart-items", { productId: item.product?.id, quantity: item.quantity })
+          addItem(item.product_id, item.variant_id, item.quantity)
         )
       );
       navigate("/cart");
-    } catch {
-      // noop — user can navigate to products manually
+    } catch (err) {
+      console.error("Re-order Error:", err);
     } finally {
       setReorderLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, addItem]);
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 

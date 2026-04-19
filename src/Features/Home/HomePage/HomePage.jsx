@@ -191,14 +191,22 @@ function BestSellersSection({ products, isLoading }) {
                 whileHover={{ y: -8 }}
                 className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
                 <div className="relative h-[420px] overflow-hidden">
-                  <img src={top.image} alt={top.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img 
+                    src={top.image} 
+                    alt={top.name} 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://placehold.co/800x600?text=No+Image";
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   <div className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 text-xs font-black px-3 py-1.5 rounded-full">#1 BEST SELLER</div>
                   <div className="absolute bottom-0 left-0 right-0 p-7 text-white">
-                    <Stars rating={top.rating?.stars || 0} />
+                    <Stars rating={top.rating_stars || 0} />
                     <h3 className="font-black text-2xl mt-2 mb-1 leading-tight">{top.name}</h3>
                     <div className="flex items-center justify-between mt-4">
-                      <span className="font-black text-3xl">{formatMoneyCents(top.priceCents)}</span>
+                      <span className="font-black text-3xl">{formatMoneyCents(top.price_cents)}</span>
                       <AddToCart productId={top?.id} variant="ghost" />
                     </div>
                   </div>
@@ -639,11 +647,11 @@ function DealOfTheDay({ product, isLoading }) {
             </div>
             <h2 className="hp-dotd text-4xl md:text-5xl font-black leading-tight mb-4">{product.name}</h2>
             <div className="hp-dotd flex items-baseline gap-4 mb-6">
-              <span className="text-4xl font-black text-white">{formatMoneyCents(product.priceCents)}</span>
-              <span className="text-gray-500 line-through text-xl">{formatMoneyCents(Math.round(product.priceCents * 1.4))}</span>
+              <span className="text-4xl font-black text-white">{formatMoneyCents(product.price_cents)}</span>
+              <span className="text-gray-500 line-through text-xl">{formatMoneyCents(Math.round(product.price_cents * 1.4))}</span>
               <span className="bg-green-500 text-white text-xs font-black px-2.5 py-1 rounded-full">−30% OFF</span>
             </div>
-            <Stars rating={product.rating?.stars || 0} />
+            <Stars rating={product.rating_stars || 0} />
             {/* Progress bar */}
             <div className="hp-dotd mt-8">
               <div className="flex justify-between text-xs text-gray-400 mb-2">

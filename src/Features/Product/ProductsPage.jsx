@@ -1,91 +1,5 @@
 // src/Pages/Products/ProductsPage.jsx
 //
-// ── Complete redesign addressing every reported issue ─────────────────────────
-//
-//  ✓ Layout    : Full-width 4-col grid (like SHEIN). No wasted space. No waves.
-//                Ads placed inline at fixed product intervals.
-//  ✓ Compare   : Functional modal — side-by-side comparison with winner highlights.
-//  ✓ View More : Replaces product-count. Loads PAGE_SIZE more per click.
-//  ✓ Live Ticker: Real setInterval rotation every 4 s using actual product data.
-//  ✓ Budget bands: Slim pill-style buttons, not big cards.
-//  ✓ Hover images: Cycles product.images[] on hover with a smooth cross-fade.
-//  ✓ Responsive : Single FilterSidebar, mobile bottom-sheet, grid 2→3→4 cols.
-//  ✓ AddToCart  : Toned-down: dark bg, no gradient, no shadow theatrics.
-//  ✓ Filter chips: Active filters shown inline above grid; URL-synced.
-//  ✓ Logic     : Sort, category, budget, rating, stock, sale — all combined.
-//
-// ── Live Ticker — how it actually works ──────────────────────────────────────
-//  A setInterval fires every 4 seconds. It picks the next product cyclically
-//  (using an index ref so it doesn't cause re-renders) and appends a new
-//  activity event to a capped queue (max 8 items). The CSS marquee then
-//  animates the full list. The product names are REAL — from the API. The
-//  event type (bought/wishlisted/added) rotates through ACTIVITY_EVENTS.
-//  Result: a believable, data-driven activity stream without WebSockets.
-//
-// ── Image hover cycling — how it works ────────────────────────────────────────
-//  ProductCard receives a product object. If product.images is an array with
-//  >1 entry, the HoverCard component starts a 700ms interval on mouseEnter
-//  that steps through the images array. On mouseLeave the index resets to 0.
-//  If only one image exists nothing happens — the product just sits static.
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// src/Pages/Products/ProductsPage.jsx
-//
-// ── All reported issues fixed ─────────────────────────────────────────────────
-//
-//  ✓ Custom scrollbar       : System scrollbars hidden globally; thin styled ones.
-//  ✓ Header collision       : Removed sticky from page header. Navbar handles top.
-//  ✓ FilterSidebar layout   : Rendered ONCE. Desktop aside + mobile sheet are
-//                             completely separate DOM elements, no fighting.
-//  ✓ Mobile no filter way   : Floating "Filter" pill button, always visible.
-//  ✓ FilterSidebar scroll   : Custom slim scrollbar, all content clearly visible.
-//  ✓ Mobile grid full-width : Sidebar never occupies space in mobile flex row.
-//  ✓ Image hover flicker    : Stacked <img> elements with CSS opacity transition.
-//                             No JS fading state = zero flicker. Video supported.
-//  ✓ Compare modal offscreen: Fixed `left-1/2 -translate-x-1/2` centering.
-//  ✓ ProductDetailModal     : SHEIN-style, thumbnail strip, size/color/qty pickers.
-//  ✓ Cart+ icon             : Replaces "Add to cart" text. Opens detail modal.
-//  ✓ Add to cart in modal   : Real API call with size/color/quantity.
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// src/Pages/Products/ProductsPage.jsx
-//
-// ── All reported issues fixed ─────────────────────────────────────────────────
-//
-//  ✓ Custom scrollbar       : System scrollbars hidden globally; thin styled ones.
-//  ✓ Header collision       : Removed sticky from page header. Navbar handles top.
-//  ✓ FilterSidebar layout   : Rendered ONCE. Desktop aside + mobile sheet are
-//                             completely separate DOM elements, no fighting.
-//  ✓ Mobile no filter way   : Floating "Filter" pill button, always visible.
-//  ✓ FilterSidebar scroll   : Custom slim scrollbar, all content clearly visible.
-//  ✓ Mobile grid full-width : Sidebar never occupies space in mobile flex row.
-//  ✓ Image hover flicker    : Stacked <img> elements with CSS opacity transition.
-//                             No JS fading state = zero flicker. Video supported.
-//  ✓ Compare modal offscreen: Fixed `left-1/2 -translate-x-1/2` centering.
-//  ✓ ProductDetailModal     : SHEIN-style, thumbnail strip, size/color/qty pickers.
-//  ✓ Cart+ icon             : Replaces "Add to cart" text. Opens detail modal.
-//  ✓ Add to cart in modal   : Real API call with size/color/quantity.
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// src/Pages/Products/ProductsPage.jsx
-//
-// ── All reported issues fixed ─────────────────────────────────────────────────
-//
-//  ✓ Custom scrollbar       : System scrollbars hidden globally; thin styled ones.
-//  ✓ Header collision       : Removed sticky from page header. Navbar handles top.
-//  ✓ FilterSidebar layout   : Rendered ONCE. Desktop aside + mobile sheet are
-//                             completely separate DOM elements, no fighting.
-//  ✓ Mobile no filter way   : Floating "Filter" pill button, always visible.
-//  ✓ FilterSidebar scroll   : Custom slim scrollbar, all content clearly visible.
-//  ✓ Mobile grid full-width : Sidebar never occupies space in mobile flex row.
-//  ✓ Image hover flicker    : Stacked <img> elements with CSS opacity transition.
-//                             No JS fading state = zero flicker. Video supported.
-//  ✓ Compare modal offscreen: Fixed `left-1/2 -translate-x-1/2` centering.
-//  ✓ ProductDetailModal     : SHEIN-style, thumbnail strip, size/color/qty pickers.
-//  ✓ Cart+ icon             : Replaces "Add to cart" text. Opens detail modal.
-//  ✓ Add to cart in modal   : Real API call with size/color/quantity.
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// src/Pages/Products/ProductsPage.jsx
-//
 // ── All reported issues fixed ─────────────────────────────────────────────────
 //
 //  ✓ Custom scrollbar       : System scrollbars hidden globally; thin styled ones.
@@ -102,18 +16,21 @@
 //  ✓ Cart+ icon             : Replaces "Add to cart" text. Opens detail modal.
 //  ✓ Add to cart in modal   : Real API call with size/color/quantity.
 
-import {
+
+import React, {
   useState, useMemo, useEffect, useRef, useCallback,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate, Link, useLoaderData, useNavigation } from "react-router-dom";
 
-import { postData } from "../../api/apiClients";
-import { useFetchData } from "../../Hooks/useFetch";
+// import { useFetchData } from "../../Hooks/useFetch";
+
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { useCartActions } from "../../Context/cart/CartContext";
-import { useTheme } from "../../Context/ThemeContext";
+import { useTheme } from "../../Context/theme/ThemeContext";
+
+
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 24;
@@ -308,7 +225,8 @@ function deriveProductOptions(product) {
 
 /** Extract all available images from a product object */
 function getProductImages(product) {
-  const all = [product?.image, ...(product?.images || product?.imageList || [])].filter(Boolean);
+  const supabaseImages = product?.product_images?.map(img => img.image_url) || [];
+  const all = [product?.image, ...supabaseImages, ...(product?.images || product?.imageList || [])].filter(Boolean);
   return [...new Set(all)];
 }
 
@@ -460,44 +378,30 @@ function LiveTicker({ products }) {
 function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }) {
   const { isDark, colors } = useTheme();
   const images = useMemo(() => getProductImages(product), [product]);
-  const [imgIdx, setImgIdx] = useState(0);
   const [showVid, setShowVid] = useState(false);
-  const intervalRef = useRef(null);
   const videoRef = useRef(null);
 
-  /** On mouse enter: cycle images or play video */
+  /** On mouse enter: play video if exists */
   const handleMouseEnter = useCallback(() => {
     if (product.video && videoRef.current) {
       setShowVid(true);
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => { });
-      return;
     }
-    if (images.length <= 1) return;
-    let i = 0;
-    intervalRef.current = setInterval(() => {
-      i = (i + 1) % images.length;
-      setImgIdx(i);
-    }, 750);
-  }, [images, product.video]);
+  }, [product.video]);
 
-  /** On mouse leave: stop and reset */
+  /** On mouse leave: stop video */
   const handleMouseLeave = useCallback(() => {
-    clearInterval(intervalRef.current);
     if (product.video && videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
       setShowVid(false);
-      return;
     }
-    setImgIdx(0);
   }, [product.video]);
 
-  useEffect(() => () => clearInterval(intervalRef.current), []);
-
-  const onSale = product.priceCents < 2000;
-  const isNew = product.createdAt &&
-    Date.now() - new Date(product.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000;
+  const onSale = product.price_cents < 2000;
+  const isNew = product.created_at &&
+    Date.now() - new Date(product.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
 
   /**
    * Compare button click handler.
@@ -533,7 +437,12 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
             src={src}
             alt={i === 0 ? product.name : ""}
             loading={i === 0 ? "eager" : "lazy"}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-400 ${i === imgIdx && !showVid ? "opacity-100" : "opacity-0"}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out group-hover:scale-105 transform origin-center ${showVid
+              ? "opacity-0"
+              : i === 0
+                ? "opacity-100" // Base image never fades out, preventing the 'flashing' ghost effect
+                : (i === 1 ? "opacity-0 group-hover:opacity-100" : "opacity-0 hidden")
+              }`}
           />
         ))}
 
@@ -542,12 +451,9 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
             ref={videoRef}
             src={product.video}
             muted loop playsInline
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${showVid ? "opacity-100" : "opacity-0"}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out group-hover:scale-105 transform origin-center ${showVid ? "opacity-100 z-10" : "opacity-0 pointer-events-none"}`}
           />
         )}
-
-        {/* Scale-up overlay on hover */}
-        <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-105 pointer-events-none" />
 
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
@@ -569,7 +475,13 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
         {images.length > 1 && (
           <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
             {images.slice(0, 5).map((_, i) => (
-              <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === imgIdx ? "w-3 bg-white" : "w-1 bg-white/50"}`} />
+              <div
+                key={i}
+                className={`h-1 rounded-full transition-all duration-300 ${i === 0 ? "w-3 bg-white group-hover:w-1 group-hover:bg-white/50" :
+                  i === 1 ? "w-1 bg-white/50 group-hover:w-3 group-hover:bg-white" :
+                    "w-1 bg-white/50"
+                  }`}
+              />
             ))}
           </div>
         )}
@@ -601,14 +513,14 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
         </Link>
 
         {/* Stars */}
-        {product.rating?.stars > 0 && (
+        {product.rating_stars > 0 && (
           <div className="flex items-center gap-1">
             <div className="flex" style={{ color: colors.brand.gold || "#f59e0b" }}>
               {Array(5).fill(0).map((_, i) => (
-                <IconStar key={i} filled={i < Math.floor(product.rating.stars)} className="w-2.5 h-2.5" />
+                <IconStar key={i} filled={i < Math.floor(product.rating_stars)} className="w-2.5 h-2.5" />
               ))}
             </div>
-            <span className="text-[10px]" style={{ color: colors.text.tertiary }}>({product.rating.count || 0})</span>
+            <span className="text-[10px]" style={{ color: colors.text.tertiary }}>({product.rating_count || 0})</span>
           </div>
         )}
 
@@ -616,11 +528,11 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
         <div className="flex items-center justify-between gap-2 mt-auto pt-1">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="font-bold text-sm" style={{ color: colors.text.primary }}>
-              {formatMoneyCents(product.priceCents)}
+              {formatMoneyCents(product.price_cents)}
             </span>
             {onSale && (
               <span className="text-[10px] line-through" style={{ color: colors.text.tertiary }}>
-                {formatMoneyCents(Math.round(product.priceCents * 1.35))}
+                {formatMoneyCents(Math.round(product.price_cents * 1.35))}
               </span>
             )}
           </div>
@@ -813,9 +725,9 @@ function ActiveFilterChips({ filters, selectedCategory, setFilters, setSelectedC
 }
 
 // ─── ProductDetailModal ────────────────────────────────────────────────────────
-function ProductDetailModal({ product, onClose }) {
+const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, ref) => {
   const navigate = useNavigate();
-  const images = useMemo(() => getProductImages(product), [product]);
+  const images = useMemo(() => getProductImages(product).slice(0, 4), [product]);
   const { sizes, colors, sizeType: detectedSizeType, productType } = useMemo(
     () => deriveProductOptions(product), [product]
   );
@@ -893,12 +805,7 @@ function ProductDetailModal({ product, onClose }) {
     }
   }, [selectedImg, images.length, goToImage]);
 
-  // ── Body scroll lock ──────────────────────────────────────────────────────
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
-  }, []);
+
 
   // ── Keyboard: Escape = close, arrows = prev/next image ────────────────────
   useEffect(() => {
@@ -925,12 +832,16 @@ function ProductDetailModal({ product, onClose }) {
         ...(selectedColor && { color: typeof selectedColor === "object" ? selectedColor.label : selectedColor }),
       });
       setAddState("success");
-      setTimeout(() => setAddState("idle"), 2500);
+      // Notify parent (comparison tray) so it can auto-clear
+      setTimeout(() => {
+        setAddState("idle");
+        onCartAdded?.(); // optional callback — called when coming from comparison
+      }, 1600);
     } catch {
       setAddState("error");
       setTimeout(() => setAddState("idle"), 2500);
     }
-  }, [addState, product.id, qty, selectedSize, selectedColor]);
+  }, [addState, product.id, qty, selectedSize, selectedColor, onCartAdded]);
 
   /** Navigate to product page — don't close modal until route changes to avoid flicker */
   const handleViewDetails = useCallback((e) => {
@@ -941,7 +852,7 @@ function ProductDetailModal({ product, onClose }) {
     setTimeout(onClose, 120);
   }, [navigate, product.id, onClose]);
 
-  const onSale = product.priceCents < 2000;
+  const onSale = product.price_cents < 2000;
   const currentColorLabel = selectedColor
     ? (typeof selectedColor === "object" ? selectedColor.label : selectedColor)
     : null;
@@ -954,32 +865,35 @@ function ProductDetailModal({ product, onClose }) {
   };
 
   return (
-    <>
+    <motion.div ref={ref} className="fixed inset-0 z-[1100]" style={{ pointerEvents: 'none' }}>
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.35 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        style={{ zIndex: 1100 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"
       />
 
       {/* Centering shell
           z-[1101] — above navbar (typically z-30 to z-50) on ALL screen sizes */}
       <div
-        className="fixed inset-0 flex items-end md:items-center justify-center pointer-events-none"
-        style={{ zIndex: 1101 }}
+        className="absolute inset-0 flex items-end md:items-center justify-center pointer-events-none"
       >
         <motion.div
-          initial={{ opacity: 0, y: 48 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 48 }}
-          transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
+          initial={{ opacity: 0, y: 60 }}
+          animate={{
+            opacity: 1, y: 0,
+            transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] }
+          }}
+          exit={{
+            opacity: 0, y: 40,
+            transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }
+          }}
           onClick={(e) => e.stopPropagation()}
           className="pointer-events-auto bg-white shadow-2xl overflow-hidden
                      w-full rounded-t-2xl
                      md:rounded-2xl md:w-[min(960px,96vw)]"
-          style={{ maxHeight: "92vh" }}
+          style={{ maxHeight: "92dvh", willChange: "transform, opacity" }}
         >
           {/* ── Close X button — always on top, always clickable ── */}
           <button
@@ -991,19 +905,19 @@ function ProductDetailModal({ product, onClose }) {
             <IconClose className="w-4 h-4 text-gray-700" />
           </button>
 
-          <div className="flex flex-col md:flex-row" style={{ maxHeight: "92vh" }}>
+          <div className="flex flex-col md:flex-row" style={{ maxHeight: "92dvh" }}>
 
             {/* ══════════════════════════════════════════════════════
                 LEFT: Image gallery — 58% width, thumbnail strip
             ══════════════════════════════════════════════════════ */}
-            <div className="md:w-[58%] flex md:flex-row flex-col-reverse overflow-hidden flex-shrink-0 bg-gray-50">
+            <div className="md:w-[60%] lg:w-[62%] md:-mt-5 flex flex-col-reverse md:block relative overflow-hidden flex-shrink-0 bg-gray-50 lg:-mt-5">
 
               {/* Thumbnail strip — vertical on desktop, horizontal on mobile */}
               <div className="
-                flex flex-row md:flex-col gap-1.5
+                flex flex-row md:flex-col gap-2.5
                 overflow-x-auto md:overflow-y-auto md:overflow-x-hidden
-                p-2
-                md:w-[72px] md:flex-shrink-0
+                p-3 md:py-8 md:px-3
+                md:w-[96px] md:flex-shrink-0 md:absolute md:left-0 md:top-0 md:bottom-0 z-10
                 bg-gray-100/60
               "
                 style={{ scrollbarWidth: "thin" }}
@@ -1014,10 +928,10 @@ function ProductDetailModal({ product, onClose }) {
                     type="button"
                     onClick={() => goToImage(i, i > selectedImg ? 1 : -1)}
                     className={`
-                      flex-shrink-0 rounded-lg overflow-hidden border-2
+                      flex-shrink-0 rounded-[10px] overflow-hidden border-[2.5px]
                       transition-all duration-200 cursor-pointer
-                      w-14 h-14 md:w-full md:h-16
-                      hover:opacity-100 hover:scale-105 hover:shadow-md
+                      w-[72px] h-[72px] md:w-full md:h-auto
+                      hover:opacity-100 hover:scale-[1.03] hover:shadow-md
                       ${selectedImg === i
                         ? "border-gray-900 opacity-100 scale-100 shadow-sm"
                         : "border-transparent opacity-55 hover:border-gray-400"}
@@ -1034,10 +948,10 @@ function ProductDetailModal({ product, onClose }) {
                 ))}
               </div>
 
-              {/* Main image — vertical padding so it never fills the full height */}
+              {/* Main image — perfectly locked dimensions to prevent layout shift shakes on entrance */}
               <div
-                className="flex-1 relative overflow-hidden bg-white flex items-center justify-center"
-                style={{ minHeight: 280, maxHeight: "60vh" }}
+                className="relative overflow-hidden flex items-center justify-center w-full md:w-[calc(100%-96px)] md:ml-[96px]"
+                style={{ aspectRatio: '1/1', maxHeight: '65dvh' }}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
                 onClick={() => setIsZoomed((z) => !z)}
@@ -1099,13 +1013,13 @@ function ProductDetailModal({ product, onClose }) {
               </div>
             </div>
 
-            {/* ══════════════════════════════════════════════════════
-                RIGHT: Product details — scrollable
-            ══════════════════════════════════════════════════════ */}
             <div
-              className="md:w-[42%] flex flex-col overflow-y-auto p-5 md:p-6 gap-4"
-              style={{ scrollbarWidth: "thin", maxHeight: "92vh" }}
+              className="md:w-[42%] flex flex-col overflow-hidden md:overflow-y-auto p-0 md:p-6 md:gap-4"
+              style={{ scrollbarWidth: "thin", maxHeight: "92dvh" }}
             >
+
+              {/* Scrollable product info area — everything above quantity */}
+              <div className="flex-1 overflow-y-auto p-5 pb-2 md:p-0 md:pb-0 space-y-4" style={{ scrollbarWidth: "thin" }}>
 
               {/* Name */}
               <div className="pr-8"> {/* pr-8 leaves room for X button */}
@@ -1114,9 +1028,9 @@ function ProductDetailModal({ product, onClose }) {
               </div>
 
               {/* Short description (API field or smart fallback) */}
-              {(product.description || product.shortDescription) && (
+              {(product.description || product.short_description) && (
                 <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
-                  {product.shortDescription || product.description}
+                  {product.short_description || product.description}
                 </p>
               )}
 
@@ -1124,37 +1038,37 @@ function ProductDetailModal({ product, onClose }) {
               <div className="flex items-center gap-1.5 text-xs">
                 <span className="text-gray-400">Sold by</span>
                 <Link
-                  to={product.sellerId ? `/sellers/${product.sellerId}` : "/sellers"}
+                  to={product.seller_id ? `/sellers/${product.seller_id}` : "/sellers"}
                   onClick={handleViewDetails}
                   className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
                 >
-                  {product.sellerName || product.brand || "ShopEase Store"}
+                  {product.seller_name || product.brand || "ShopEase Store"}
                 </Link>
               </div>
 
               {/* Rating */}
-              {product.rating?.stars > 0 && (
+              {product.rating_stars > 0 && (
                 <div className="flex items-center gap-2">
                   <div className="flex">
                     {Array(5).fill(0).map((_, i) => (
-                      <IconStar key={i} filled={i < Math.round(product.rating.stars)} className="w-3.5 h-3.5 text-amber-400" />
+                      <IconStar key={i} filled={i < Math.round(product.rating_stars)} className="w-3.5 h-3.5 text-amber-400" />
                     ))}
                   </div>
                   <span className="text-xs text-gray-500">
-                    <span className="font-semibold text-gray-700">{product.rating.stars}</span>
-                    {" "}({(product.rating.count || 0).toLocaleString()} reviews)
+                    <span className="font-semibold text-gray-700">{product.rating_stars}</span>
+                    {" "}({(product.rating_count || 0).toLocaleString()} reviews)
                   </span>
                 </div>
               )}
 
               {/* Price */}
               <div className="flex items-baseline gap-2.5 flex-wrap">
-                <span className="text-2xl font-black text-gray-900">{formatMoneyCents(product.priceCents)}</span>
+                <span className="text-2xl font-black text-gray-900">{formatMoneyCents(product.price_cents)}</span>
                 {onSale && (
                   <>
-                    <span className="text-sm text-gray-400 line-through">{formatMoneyCents(Math.round(product.priceCents * 1.35))}</span>
+                    <span className="text-sm text-gray-400 line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</span>
                     <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-                      -{Math.round((1 - product.priceCents / Math.round(product.priceCents * 1.35)) * 100)}%
+                      -{Math.round((1 - product.price_cents / Math.round(product.price_cents * 1.35)) * 100)}%
                     </span>
                   </>
                 )}
@@ -1248,6 +1162,10 @@ function ProductDetailModal({ product, onClose }) {
                   </p>
                 </div>
               )}
+              </div> {/* end scrollable info area */}
+
+              {/* ── Fixed bottom bar on mobile: Quantity + CTA ── */}
+              <div className="sticky bottom-0 bg-white/95 backdrop-blur-md border-t border-gray-100 p-4 md:p-0 md:border-0 md:bg-transparent md:backdrop-blur-none md:static space-y-3 md:space-y-4 flex-shrink-0">
 
               {/* ── Quantity ── */}
               <div>
@@ -1325,145 +1243,802 @@ function ProductDetailModal({ product, onClose }) {
                   </button>
                 </div>
               </div>
+              </div> {/* end fixed bottom bar */}
             </div>
           </div>
         </motion.div>
       </div>
-    </>
+    </motion.div>
   );
+});
+
+// ─── Smart Comparison Engine ─────────────────────────────────────────────────
+//
+// ARCHITECTURE
+// ─────────────────────────────────────────────────────────────────────────────
+// analyzeProducts(a, b) → pure function, no API needed.
+//   1. Detects product category from name + keywords.
+//   2. Runs category-specific attribute scoring.
+//   3. Identifies only MEANINGFUL differences (ignores near-ties).
+//   4. Produces: verdicts[], useCases[], valueSummary, decisionSummary.
+//
+// The ComparisonModal renders the output of analyzeProducts() as a rich,
+// editorial-style decision assistant — not a data table.
+//
+// Product shape expected:
+//   id, name, image, price_cents, rating_stars, rating_count,
+//   keywords[], category, brand, description, shortDescription
+
+// ── Category detection ────────────────────────────────────────────────────────
+const CATEGORY_SIGNALS = {
+  fashion: /cloth|shirt|dress|top|blouse|pant|jean|skirt|jacket|coat|suit|sweater|hoodie|tee|wear|legging|shorts|fashion|apparel|outfit/i,
+  footwear: /shoe|boot|sneaker|heel|sandal|slipper|trainer|footwear|kick/i,
+  electronics: /phone|laptop|tablet|computer|tv|camera|speaker|headphone|earphone|watch|smartwatch|gadget|tech|electronic|device|wireless|bluetooth|charger|cable/i,
+  beauty: /serum|cream|moisturi|lipstick|foundation|mascara|perfume|fragrance|skincare|haircare|shampoo|conditioner|lotion|beauty|makeup/i,
+  sports: /sport|gym|fitness|yoga|running|training|workout|athletic|ball|racket|weight|dumbbell/i,
+  home: /furniture|sofa|chair|table|lamp|curtain|pillow|mattress|cookware|kitchen|decor|home|shelf|wardrobe/i,
+  toys: /toy|game|puzzle|lego|doll|action figure|board game|kids|children|baby/i,
+  books: /book|novel|textbook|guide|manual|fiction|non-fiction|autobiography/i,
+};
+
+function detectCategory(product) {
+  const text = [product.name, product.category, ...(product.keywords || [])].join(' ');
+  for (const [cat, rx] of Object.entries(CATEGORY_SIGNALS)) {
+    if (rx.test(text)) return cat;
+  }
+  return 'general';
+}
+
+// ── Value-for-money scoring ───────────────────────────────────────────────────
+// Returns a 0-100 score combining rating quality and price efficiency.
+function valueScore(product) {
+  const price = product.price_cents || 0;
+  const stars = product.rating_stars || 0;
+  const reviews = Math.min(product.rating_count || 0, 5000);
+  if (!price) return 0;
+  // Higher stars + more reviews at lower price = better value
+  const qualityPts = stars * 20;                           // 0–100
+  const reviewPts = (reviews / 5000) * 30;               // 0–30 (trust signal)
+  const pricePts = Math.max(0, 40 - (price / 10000));   // decreases with price
+  return Math.round(qualityPts + reviewPts + pricePts);
+}
+
+// ── Popularity signal ─────────────────────────────────────────────────────────
+function popularityLabel(count) {
+  if (!count) return null;
+  if (count >= 10000) return 'Highly Popular';
+  if (count >= 1000) return 'Popular';
+  if (count >= 100) return 'Gaining Traction';
+  return 'New Arrival';
+}
+
+// ── Price difference framing ──────────────────────────────────────────────────
+function priceDiffContext(cheapCents, expCents) {
+  const diff = expCents - cheapCents;
+  const pctMore = Math.round((diff / cheapCents) * 100);
+  if (pctMore >= 100) return `${pctMore}% more expensive — a significant premium`;
+  if (pctMore >= 50) return `${pctMore}% more — worth scrutinising what you get extra`;
+  if (pctMore >= 20) return `${pctMore}% more — moderate premium`;
+  return `${pctMore}% more — a small difference`;
+}
+
+// ── Main analysis engine ──────────────────────────────────────────────────────
+function analyzeProducts(a, b) {
+  const catA = detectCategory(a);
+  const catB = detectCategory(b);
+  const cat = catA !== 'general' ? catA : catB;
+
+  const priceA = a.price_cents || 0;
+  const priceB = b.price_cents || 0;
+  const starsA = a.rating_stars || 0;
+  const starsB = b.rating_stars || 0;
+  const countA = a.rating_count || 0;
+  const countB = b.rating_count || 0;
+  const vsA = valueScore(a);
+  const vsB = valueScore(b);
+
+  const cheaper = priceA < priceB ? 'a' : priceB < priceA ? 'b' : 'tie';
+  const higherStar = starsA > starsB ? 'a' : starsB > starsA ? 'b' : 'tie';
+  const moreReviewed = countA > countB ? 'a' : countB > countA ? 'b' : 'tie';
+  const betterValue = vsA > vsB ? 'a' : vsB > vsA ? 'b' : 'tie';
+
+  // ── Build insight rows ────────────────────────────────────────────────────
+  const insights = [];
+
+  // Price
+  if (cheaper !== 'tie') {
+    const cheap = cheaper === 'a' ? priceA : priceB;
+    const exp = cheaper === 'a' ? priceB : priceA;
+    const diff = exp - cheap;
+    const pctCtx = priceDiffContext(cheap, exp);
+    insights.push({
+      icon: '💰',
+      label: 'Price',
+      winA: cheaper === 'a',
+      winB: cheaper === 'b',
+      text:
+        cheaper === 'a'
+          ? `Left is the budget pick — saves you ${formatMoneyCents(diff)} (${pctCtx}).`
+          : `Right is the budget pick — saves you ${formatMoneyCents(diff)} (${pctCtx}).`,
+      detail: Math.abs(diff) < 500
+        ? 'Prices are close — let rating and reviews guide you.'
+        : null,
+    });
+  } else {
+    insights.push({
+      icon: '💰', label: 'Price', winA: false, winB: false,
+      text: 'Both are priced the same — other factors matter more here.',
+    });
+  }
+
+  // Rating quality
+  const starDiff = Math.abs(starsA - starsB);
+  if (starDiff >= 0.3) {
+    const winner = higherStar;
+    const better = winner === 'a' ? starsA : starsB;
+    const worse = winner === 'a' ? starsB : starsA;
+    insights.push({
+      icon: '⭐',
+      label: 'Quality Rating',
+      winA: winner === 'a',
+      winB: winner === 'b',
+      text:
+        winner === 'a'
+          ? `Left scores ${better}★ vs Right's ${worse}★ — a meaningful quality gap.`
+          : `Right scores ${better}★ vs Left's ${worse}★ — a meaningful quality gap.`,
+      detail: starDiff >= 0.8 ? 'This is a large difference. Buyers consistently rate one higher.' : null,
+    });
+  } else if (starsA && starsB) {
+    insights.push({
+      icon: '⭐', label: 'Quality Rating', winA: false, winB: false,
+      text: `Both rate similarly (${starsA}★ vs ${starsB}★) — comparable quality.`,
+    });
+  }
+
+  // Social proof / trust
+  const countDiff = Math.abs(countA - countB);
+  if (countDiff > 50 || (countA === 0) !== (countB === 0)) {
+    const winner = moreReviewed;
+    const more = winner === 'a' ? countA : countB;
+    const less = winner === 'a' ? countB : countA;
+    const popL = popularityLabel(more);
+    insights.push({
+      icon: '🗣️',
+      label: 'Buyer Trust',
+      winA: winner === 'a',
+      winB: winner === 'b',
+      text:
+        winner === 'a'
+          ? `Left has ${more.toLocaleString()} reviews vs ${less.toLocaleString()} — ${popL} and battle-tested.`
+          : `Right has ${more.toLocaleString()} reviews vs ${less.toLocaleString()} — ${popL} and battle-tested.`,
+      detail: less === 0 ? 'The other product has no reviews yet — higher risk for the buyer.' : null,
+    });
+  }
+
+  // Value for money (composite)
+  if (Math.abs(vsA - vsB) >= 8) {
+    insights.push({
+      icon: '📊',
+      label: 'Value for Money',
+      winA: betterValue === 'a',
+      winB: betterValue === 'b',
+      text:
+        betterValue === 'a'
+          ? `Left delivers more per dollar spent — better overall value proposition.`
+          : `Right delivers more per dollar spent — better overall value proposition.`,
+      detail:
+        cheaper !== betterValue && cheaper !== 'tie'
+          ? 'Interestingly, the pricier option scores better on overall value — higher quality justifies the cost.'
+          : null,
+    });
+  }
+
+  // ── Category-specific insights ────────────────────────────────────────────
+  if (cat === 'fashion' || cat === 'footwear') {
+    const textA = [a.name, ...(a.keywords || [])].join(' ').toLowerCase();
+    const textB = [b.name, ...(b.keywords || [])].join(' ').toLowerCase();
+    const casualA = /casual|everyday|street|daily|relaxed|lounge/.test(textA);
+    const casualB = /casual|everyday|street|daily|relaxed|lounge/.test(textB);
+    const formalA = /formal|office|occasion|smart|elegant|business/.test(textA);
+    const formalB = /formal|office|occasion|smart|elegant|business/.test(textB);
+    if (casualA !== casualB || formalA !== formalB) {
+      insights.push({
+        icon: '👕',
+        label: 'Style Fit',
+        winA: false,
+        winB: false,
+        text:
+          casualA && !casualB
+            ? 'Left leans casual/everyday. Right may suit more varied occasions.'
+            : !casualA && casualB
+              ? 'Right leans casual/everyday. Left may suit more varied occasions.'
+              : formalA && !formalB
+                ? 'Left suits formal or office settings better.'
+                : 'Right suits formal or office settings better.',
+      });
+    }
+  }
+
+  if (cat === 'electronics') {
+    const textA = [a.name, ...(a.keywords || [])].join(' ').toLowerCase();
+    const textB = [b.name, ...(b.keywords || [])].join(' ').toLowerCase();
+    const hasWarrantyA = /warranty|guarantee|year|month/.test(textA);
+    const hasWarrantyB = /warranty|guarantee|year|month/.test(textB);
+    if (hasWarrantyA !== hasWarrantyB) {
+      insights.push({
+        icon: '🔧',
+        label: 'Warranty Signal',
+        winA: hasWarrantyA,
+        winB: hasWarrantyB,
+        text:
+          hasWarrantyA
+            ? 'Left mentions warranty — better long-term protection for your purchase.'
+            : 'Right mentions warranty — better long-term protection for your purchase.',
+      });
+    }
+  }
+
+  // ── Use-case recommendations ──────────────────────────────────────────────
+  const useCases = [];
+
+  // Budget buyer
+  if (cheaper !== 'tie') {
+    const budgetWinner = cheaper === 'a' ? 'Left' : 'Right';
+    const budgetLoser = cheaper === 'a' ? 'Right' : 'Left';
+    useCases.push({
+      icon: '💸',
+      persona: 'Budget Buyer',
+      pick: budgetWinner,
+      why: `${budgetWinner} costs less${higherStar === (cheaper === 'a' ? 'b' : 'a') ? ', though the pricier option has better ratings' : ' without a meaningful quality trade-off'}.`,
+    });
+  }
+
+  // Quality seeker
+  if (higherStar !== 'tie' && starDiff >= 0.3) {
+    const qualWinner = higherStar === 'a' ? 'Left' : 'Right';
+    useCases.push({
+      icon: '🏆',
+      persona: 'Quality Seeker',
+      pick: qualWinner,
+      why: `${qualWinner} is consistently rated higher — the safer choice if quality matters most.`,
+    });
+  }
+
+  // Reliable / proven choice
+  if (moreReviewed !== 'tie' && countDiff > 100) {
+    const reliableWinner = moreReviewed === 'a' ? 'Left' : 'Right';
+    useCases.push({
+      icon: '🛡️',
+      persona: 'Risk-Averse Buyer',
+      pick: reliableWinner,
+      why: `${reliableWinner} has far more buyer feedback — less uncertainty about what you're getting.`,
+    });
+  }
+
+  // Best all-round
+  if (betterValue !== 'tie') {
+    const allRoundWinner = betterValue === 'a' ? 'Left' : 'Right';
+    useCases.push({
+      icon: '✨',
+      persona: 'Best All-Round',
+      pick: allRoundWinner,
+      why: `Balancing price, quality, and trust — ${allRoundWinner} is the stronger overall package.`,
+    });
+  }
+
+  // ── Final decision ────────────────────────────────────────────────────────
+  const totalWinsA = [cheaper === 'a', higherStar === 'a', moreReviewed === 'a', betterValue === 'a'].filter(Boolean).length;
+  const totalWinsB = [cheaper === 'b', higherStar === 'b', moreReviewed === 'b', betterValue === 'b'].filter(Boolean).length;
+  const overallWinner = totalWinsA > totalWinsB ? 'a' : totalWinsB > totalWinsA ? 'b' : 'tie';
+
+  let decisionSummary;
+  if (overallWinner === 'tie') {
+    // Force a directional suggestion even in ties — never say "both are good"
+    if (starsA >= starsB && priceA <= priceB) {
+      decisionSummary = { winner: 'a', reason: `Left matches or beats Right on every measure that matters — it's the logical pick.` };
+    } else if (starsB >= starsA && priceB <= priceA) {
+      decisionSummary = { winner: 'b', reason: `Right matches or beats Left on every measure that matters — it's the logical pick.` };
+    } else {
+      decisionSummary = {
+        winner: cheaper === 'a' ? 'a' : 'b',
+        reason: `When products are this evenly matched, price wins the tie-break. Go with the cheaper option and keep the saving.`,
+      };
+    }
+  } else if (overallWinner === 'a') {
+    decisionSummary = {
+      winner: 'a',
+      reason:
+        priceA > priceB
+          ? `Left costs more but earns it — higher rated, more trusted, better value in the long run.`
+          : `Left wins on price AND quality. Unless Right offers something specific you need, Left is the clear choice.`,
+    };
+  } else {
+    decisionSummary = {
+      winner: 'b',
+      reason:
+        priceB > priceA
+          ? `Right costs more but earns it — higher rated, more trusted, better value in the long run.`
+          : `Right wins on price AND quality. Unless Left offers something specific you need, Right is the clear choice.`,
+    };
+  }
+
+  return { insights, useCases, decisionSummary, overallWinner, cat };
 }
 
 // ─── ComparisonModal ──────────────────────────────────────────────────────────
-// FIX: was off-screen. Now uses `left-1/2 -translate-x-1/2` centering that
-// works at ALL screen sizes. Width capped with `min()` to fit mobile.
-function ComparisonModal({ items, onClose }) {
+const ComparisonModal = React.forwardRef(({ items, onClose, onPickProduct }, ref) => {
+  const { isDark, colors } = useTheme();
   if (items.length < 2) return null;
   const [a, b] = items;
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
+  const [hoveredImg, setHoveredImg] = useState(null);
+  const [tab, setTab] = useState('analysis'); // 'analysis' | 'details'
 
-  const Row = ({ label, valA, valB, winA, winB }) => (
-    <div className="grid grid-cols-[1fr_64px_1fr] gap-2 items-stretch py-2.5 border-b border-gray-100 last:border-0">
-      <div className={`text-sm text-center px-2 py-1.5 rounded-lg ${winA ? "bg-green-50 text-green-700 font-bold" : "text-gray-700"}`}>{valA}</div>
-      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-center text-center">{label}</div>
-      <div className={`text-sm text-center px-2 py-1.5 rounded-lg ${winB ? "bg-green-50 text-green-700 font-bold" : "text-gray-700"}`}>{valB}</div>
-    </div>
+  // Run the analysis engine — pure computation, instant
+  const { insights, useCases, decisionSummary, overallWinner, cat } = useMemo(
+    () => analyzeProducts(a, b),
+    [a, b]
   );
 
-  return (
-    <>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm" />
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const productLabel = (side) => (side === 'a' ? a.name : b.name);
+  const WINNER_COLOR = colors.brand.electricBlue;
 
-      {/* Centering shell — flexbox centres the modal; Framer Motion only
-          animates scale/opacity on the inner div so transform never conflicts */}
-      <div className="fixed inset-0 z-[81] flex items-center justify-center p-4 pointer-events-none">
+  // ── Insight row ────────────────────────────────────────────────────────────
+  const renderInsightRow = (insight, idx) => (
+    <motion.div
+      key={`insight-${idx}`}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: idx * 0.07, duration: 0.3 }}
+      className="rounded-xl p-3.5 mb-2.5"
+      style={{
+        background: colors.surface.secondary,
+        border: `1px solid ${colors.border.subtle}`,
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: colors.text.tertiary }}>
+              {insight.label}
+            </p>
+            {insight.winA && (
+              <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                style={{ background: WINNER_COLOR + '22', color: WINNER_COLOR }}>
+                ← Left wins
+              </span>
+            )}
+            {insight.winB && (
+              <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                style={{ background: WINNER_COLOR + '22', color: WINNER_COLOR }}>
+                Right wins →
+              </span>
+            )}
+            {!insight.winA && !insight.winB && (
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: colors.surface.tertiary, color: colors.text.tertiary }}>
+                Comparable
+              </span>
+            )}
+          </div>
+          <p className="text-sm leading-snug" style={{ color: colors.text.primary }}>
+            {insight.text}
+          </p>
+          {insight.detail && (
+            <p className="text-xs mt-1 leading-snug" style={{ color: colors.text.tertiary }}>
+              {insight.detail}
+            </p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // ── Use-case chip ──────────────────────────────────────────────────────────
+  const renderUseCaseChip = (useCase, idx) => {
+    const isA = useCase.pick === 'Left';
+    return (
+      <motion.div
+        key={`usecase-${idx}`}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: idx * 0.08, duration: 0.3 }}
+        className="rounded-xl p-3.5"
+        style={{
+          background: colors.surface.secondary,
+          border: `1px solid ${colors.border.subtle}`,
+        }}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-base">{useCase.icon}</span>
+          <p className="text-xs font-black" style={{ color: colors.text.primary }}>{useCase.persona}</p>
+          <span className="ml-auto text-[9px] font-black px-2 py-0.5 rounded-full flex-shrink-0"
+            style={{ background: WINNER_COLOR + '22', color: WINNER_COLOR }}>
+            → {useCase.pick}
+          </span>
+        </div>
+        <p className="text-xs leading-snug" style={{ color: colors.text.secondary }}>
+          {useCase.why}
+        </p>
+      </motion.div>
+    );
+  };
+
+  return (
+    <motion.div ref={ref} className="fixed inset-0 z-[1090]" style={{ pointerEvents: 'none' }}>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        transition={{ duration: 0.35 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/55 backdrop-blur-sm pointer-events-auto"
+      />
+
+      {/* Centering shell */}
+      <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-5 pointer-events-none">
         <motion.div
-          initial={{ opacity: 0, scale: .95, y: 16 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: .95, y: 16 }}
-          transition={{ type: "spring", stiffness: 320, damping: 28 }}
+          initial={{ opacity: 0, y: 60 }}
+          animate={{
+            opacity: 1, y: 0,
+            transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] }
+          }}
+          exit={{
+            opacity: 0, y: 40,
+            transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }
+          }}
           onClick={(e) => e.stopPropagation()}
-          className="pointer-events-auto bg-white rounded-2xl shadow-2xl overflow-hidden w-full"
-          style={{ maxWidth: 600, maxHeight: "85vh" }}
+          className="pointer-events-auto rounded-2xl shadow-2xl overflow-hidden w-full flex flex-col"
+          style={{
+            maxWidth: 660,
+            maxHeight: '92vh',
+            background: colors.surface.elevated || colors.surface.primary,
+            border: `1px solid ${colors.border.subtle}`,
+          }}
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+          {/* ── Header ── */}
+          <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+            style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
             <div>
-              <h2 className="font-bold text-gray-900 text-base">Compare Products</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Green = better value</p>
+              <h2 className="font-black text-base" style={{ color: colors.text.primary }}>
+                Decision Engine
+              </h2>
+              <p className="text-[11px] mt-0.5" style={{ color: colors.text.tertiary }}>
+                AI-powered · {cat.charAt(0).toUpperCase() + cat.slice(1)} category
+              </p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-              <IconClose className="w-3.5 h-3.5 text-gray-500" />
+            <button type="button" onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: colors.surface.secondary }}>
+              <IconClose className="w-3.5 h-3.5" style={{ color: colors.text.secondary }} />
             </button>
           </div>
 
-          <div className="overflow-y-auto pg-slim" style={{ maxHeight: "calc(85vh - 64px)" }}>
-            <div className="p-5">
-              {/* Product headers */}
-              <div className="grid grid-cols-2 gap-4 mb-5">
-                {[a, b].map((p) => (
-                  <div key={p.id} className="text-center">
-                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 border border-gray-100 mb-2">
-                      <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                    </div>
-                    <p className="text-xs font-semibold text-gray-800 line-clamp-2">{p.name}</p>
+          {/* ── Product headers — always visible ── */}
+          <div className="flex-shrink-0 px-5 pt-4 pb-0">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { p: a, side: 'a', isWinner: overallWinner === 'a' },
+                { p: b, side: 'b', isWinner: overallWinner === 'b' },
+              ].map(({ p, side, isWinner }) => (
+                <div key={p.id} className="flex flex-col items-center gap-2">
+                  {/* Image with hover and overlaid badge */}
+                  <motion.div
+                    className="relative w-full rounded-xl overflow-hidden cursor-pointer flex-shrink-0"
+                    style={{
+                      height: 140, // Reduced fixed height to save vertical modal space
+                      background: colors.surface.tertiary,
+                      border: `2px solid ${isWinner ? WINNER_COLOR : colors.border.subtle}`,
+                      boxShadow: isWinner ? `0 0 0 3px ${WINNER_COLOR}30` : 'none',
+                    }}
+                    whileHover={{ scale: 1.03 }}
+                    transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+                    onHoverStart={() => setHoveredImg(side)}
+                    onHoverEnd={() => setHoveredImg(null)}
+                    onClick={() => onPickProduct(p)}
+                  >
+                    {isWinner && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute top-2 left-2 z-10 text-[9px] font-black px-2 py-0.5 rounded-full shadow-md"
+                        style={{ background: WINNER_COLOR, color: isDark ? '#0E0E10' : '#fff' }}
+                      >
+                        ✦ Top Choice
+                      </motion.span>
+                    )}
+                    <motion.img
+                      src={p.image}
+                      alt={p.name}
+                      className="w-full h-full object-cover"
+                      animate={{ filter: hoveredImg === side ? 'brightness(1.1) scale(1.04)' : 'brightness(1)' }}
+                      transition={{ duration: 0.25 }}
+                      onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x300?text=No+Image'; }}
+                    />
+                  </motion.div>
+
+                  {/* Name + price */}
+                  <div className="text-center w-full px-1">
+                    <p className="text-xs font-semibold line-clamp-1" style={{ color: colors.text.primary }}>
+                      {p.name}
+                    </p>
+                    <p className="text-sm font-black mt-0.5"
+                      style={{ color: isWinner ? WINNER_COLOR : colors.text.primary }}>
+                      {formatMoneyCents(p.price_cents)}
+                    </p>
                   </div>
-                ))}
-              </div>
-
-              <Row label="Price"
-                valA={formatMoneyCents(a.priceCents)} valB={formatMoneyCents(b.priceCents)}
-                winA={a.priceCents < b.priceCents} winB={b.priceCents < a.priceCents} />
-              <Row label="Rating"
-                valA={a.rating?.stars ? `${a.rating.stars}★` : "—"} valB={b.rating?.stars ? `${b.rating.stars}★` : "—"}
-                winA={(a.rating?.stars || 0) > (b.rating?.stars || 0)} winB={(b.rating?.stars || 0) > (a.rating?.stars || 0)} />
-              <Row label="Reviews"
-                valA={(a.rating?.count || 0).toLocaleString()} valB={(b.rating?.count || 0).toLocaleString()}
-                winA={(a.rating?.count || 0) > (b.rating?.count || 0)} winB={(b.rating?.count || 0) > (a.rating?.count || 0)} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 px-5 pb-5 border-t border-gray-100 pt-4">
-              {[a, b].map((p) => (
-                <div key={p.id} className="space-y-2">
-                  <button
-                    onClick={() => { /* open quick view for this product */ }}
-                    className="w-full py-2.5 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-gray-700 transition-colors"
-                  >Add to Cart</button>
-                  <Link to={`/products/${p.id}`} onClick={onClose}
-                    className="block text-center text-xs text-gray-400 hover:text-gray-700 underline transition-colors">
-                    View details
-                  </Link>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* ── Tab switcher ── */}
+          <div className="flex-shrink-0 px-5 pt-3 pb-0">
+            <div className="flex rounded-xl overflow-hidden" style={{ background: colors.surface.secondary }}>
+              {[
+                { id: 'analysis', label: '🧠 Analysis' },
+                { id: 'usecases', label: '🎯 Who Should Pick' },
+                { id: 'details', label: '📊 Side by Side' },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTab(t.id)}
+                  className="flex-1 py-2 text-[11px] font-bold transition-all duration-200"
+                  style={{
+                    background: tab === t.id ? colors.cta.primary : 'transparent',
+                    color: tab === t.id ? colors.cta.primaryText : colors.text.tertiary,
+                    borderRadius: '10px',
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Scrollable body ── */}
+          <div className="flex-1 overflow-y-auto pg-slim px-5 py-4" style={{ minHeight: 0 }}>
+            <AnimatePresence mode="wait">
+
+              {/* ── ANALYSIS TAB ── */}
+              {tab === 'analysis' && (
+                <motion.div key="analysis"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}>
+
+                  {/* Insights */}
+                  {insights.map((insight, i) => renderInsightRow(insight, i))}
+
+                  {/* Decision summary block */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: insights.length * 0.07 + 0.1, duration: 0.35 }}
+                    className="rounded-2xl p-4 mt-3 mb-2"
+                    style={{
+                      background: isDark
+                        ? `linear-gradient(135deg, ${WINNER_COLOR}18 0%, ${colors.surface.tertiary} 100%)`
+                        : `linear-gradient(135deg, ${WINNER_COLOR}10 0%, #f8faff 100%)`,
+                      border: `1.5px solid ${WINNER_COLOR}40`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-base">⚖️</span>
+                      <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: WINNER_COLOR }}>
+                        Verdict
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold leading-snug" style={{ color: colors.text.primary }}>
+                      {decisionSummary.winner === 'a'
+                        ? `Choose: ${a.name.slice(0, 40)}${a.name.length > 40 ? '…' : ''}`
+                        : `Choose: ${b.name.slice(0, 40)}${b.name.length > 40 ? '…' : ''}`}
+                    </p>
+                    <p className="text-xs mt-1.5 leading-relaxed" style={{ color: colors.text.secondary }}>
+                      {decisionSummary.reason}
+                    </p>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* ── WHO SHOULD PICK TAB ── */}
+              {tab === 'usecases' && (
+                <motion.div key="usecases"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}>
+                  <p className="text-xs mb-3" style={{ color: colors.text.tertiary }}>
+                    Based on the product data, here's who each one suits best:
+                  </p>
+                  {useCases.length > 0
+                    ? useCases.map((uc, i) => renderUseCaseChip(uc, i))
+                    : (
+                      <p className="text-sm text-center py-8" style={{ color: colors.text.tertiary }}>
+                        Not enough product data to generate use-case recommendations.
+                      </p>
+                    )
+                  }
+                </motion.div>
+              )}
+
+              {/* ── SIDE BY SIDE TAB ── */}
+              {tab === 'details' && (
+                <motion.div key="details"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}>
+
+                  {[
+                    { label: 'Price', valA: formatMoneyCents(a.price_cents), valB: formatMoneyCents(b.price_cents), winA: a.price_cents < b.price_cents, winB: b.price_cents < a.price_cents },
+                    { label: 'Rating', valA: a.rating_stars ? `${a.rating_stars} ★` : '—', valB: b.rating_stars ? `${b.rating_stars} ★` : '—', winA: (a.rating_stars || 0) > (b.rating_stars || 0), winB: (b.rating_stars || 0) > (a.rating_stars || 0) },
+                    { label: 'Reviews', valA: (a.rating_count || 0).toLocaleString(), valB: (b.rating_count || 0).toLocaleString(), winA: (a.rating_count || 0) > (b.rating_count || 0), winB: (b.rating_count || 0) > (a.rating_count || 0) },
+                    { label: 'Value Score', valA: `${valueScore(a)}/100`, valB: `${valueScore(b)}/100`, winA: valueScore(a) > valueScore(b), winB: valueScore(b) > valueScore(a) },
+                    { label: 'Category', valA: detectCategory(a), valB: detectCategory(b), winA: false, winB: false },
+                  ].map((row, i) => (
+                    <div key={i} className="py-2.5" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
+                      <div className="grid items-center" style={{ gridTemplateColumns: '1fr 80px 1fr', gap: 8 }}>
+                        {/* Left */}
+                        <div className="flex items-center justify-end gap-1.5">
+                          {row.winA && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full"
+                              style={{ background: WINNER_COLOR + '22', color: WINNER_COLOR }}>↑</span>
+                          )}
+                          <span className="text-sm text-right"
+                            style={{ fontWeight: row.winA ? 700 : 400, color: row.winA ? colors.text.primary : colors.text.secondary }}>
+                            {row.valA}
+                          </span>
+                        </div>
+                        {/* Centre */}
+                        <p className="text-[9px] font-black uppercase tracking-wider text-center"
+                          style={{ color: colors.text.tertiary }}>{row.label}</p>
+                        {/* Right */}
+                        <div className="flex items-center justify-start gap-1.5">
+                          <span className="text-sm"
+                            style={{ fontWeight: row.winB ? 700 : 400, color: row.winB ? colors.text.primary : colors.text.secondary }}>
+                            {row.valB}
+                          </span>
+                          {row.winB && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full"
+                              style={{ background: WINNER_COLOR + '22', color: WINNER_COLOR }}>↑</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+
+            </AnimatePresence>
+          </div>
+
+          {/* ── Pick CTAs — always visible at the bottom ── */}
+          <div className="flex-shrink-0 grid grid-cols-2 gap-3 px-5 py-4"
+            style={{ borderTop: `1px solid ${colors.border.subtle}` }}>
+            {[a, b].map((p, idx) => {
+              const side = idx === 0 ? 'a' : 'b';
+              const isTop = overallWinner === side;
+              return (
+                <div key={p.id} className="flex flex-col gap-1.5">
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.96 }}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => onPickProduct(p)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all"
+                    style={{
+                      background: isTop ? colors.cta.primary : colors.surface.secondary,
+                      color: isTop ? colors.cta.primaryText : colors.text.primary,
+                      border: `1.5px solid ${isTop ? colors.cta.primary : colors.border.default}`,
+                    }}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                      <line x1="3" y1="6" x2="21" y2="6" />
+                      <path d="M9 12l2 2 4-4" />
+                    </svg>
+                    {isTop ? '✦ Pick This' : 'Pick This'}
+                  </motion.button>
+                  <Link
+                    to={`/products/${p.id}`}
+                    className="block text-center text-[11px] py-0.5 transition-colors"
+                    style={{ color: colors.text.tertiary }}
+                  >
+                    View details →
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
         </motion.div>
-      </div>{/* end centering shell */}
-    </>
+      </div>
+    </motion.div>
   );
-}
+});
 
 // ─── ComparisonBar ────────────────────────────────────────────────────────────
 function ComparisonBar({ items, onRemove, onClear, onCompare }) {
+  const { colors } = useTheme();
   if (!items.length) return null;
   return (
     <motion.div
       initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-xl"
+      className="fixed bottom-0 left-0 right-0 z-40 shadow-xl"
+      style={{
+        background: colors.surface.elevated || colors.surface.primary,
+        borderTop: `1px solid ${colors.border.default}`,
+      }}
     >
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center gap-3">
-        <p className="text-xs font-bold text-gray-600 flex-shrink-0">Compare ({items.length}/2)</p>
+        <p className="text-xs font-bold flex-shrink-0" style={{ color: colors.text.secondary }}>
+          Compare ({items.length}/2)
+        </p>
         <div className="flex items-center gap-2 flex-1 overflow-x-auto pg-slim">
           {items.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 flex-shrink-0">
-              <img src={p.image} alt="" className="w-7 h-7 rounded-md object-cover flex-shrink-0" />
+            <div key={p.id}
+              className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 flex-shrink-0"
+              style={{
+                background: colors.surface.secondary,
+                border: `1px solid ${colors.border.default}`,
+              }}
+            >
+              <img
+                src={p.image}
+                alt=""
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://placehold.co/100x100?text=Error";
+                }}
+                className="w-7 h-7 rounded-md object-cover flex-shrink-0"
+              />
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-gray-800 max-w-[80px] truncate">{p.name}</p>
-                <p className="text-xs text-gray-500">{formatMoneyCents(p.priceCents)}</p>
+                <p className="text-xs font-semibold max-w-[80px] truncate" style={{ color: colors.text.primary }}>
+                  {p.name}
+                </p>
+                <p className="text-xs" style={{ color: colors.text.tertiary }}>
+                  {formatMoneyCents(p.price_cents)}
+                </p>
               </div>
-              <button onClick={() => onRemove(p.id)} className="text-gray-400 hover:text-red-500 transition-colors ml-1 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => onRemove(p.id)}
+                className="ml-1 flex-shrink-0 transition-colors"
+                style={{ color: colors.text.tertiary }}
+              >
                 <IconClose className="w-3 h-3" />
               </button>
             </div>
           ))}
           {items.length < 2 && (
-            <div className="border border-dashed border-gray-300 rounded-lg px-3 py-1.5 flex-shrink-0">
-              <p className="text-[11px] text-gray-400 whitespace-nowrap">+ One more</p>
+            <div className="rounded-lg px-3 py-1.5 flex-shrink-0"
+              style={{ border: `1.5px dashed ${colors.border.default}` }}>
+              <p className="text-[11px] whitespace-nowrap" style={{ color: colors.text.tertiary }}>
+                + Pick one more
+              </p>
             </div>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {items.length === 2 && (
-            <button onClick={onCompare}
-              className="bg-gray-900 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap">
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={onCompare}
+              className="text-xs font-bold px-4 py-2 rounded-lg whitespace-nowrap transition-colors"
+              style={{ background: colors.cta.primary, color: colors.cta.primaryText }}
+            >
               Compare Now
-            </button>
+            </motion.button>
           )}
-          <button onClick={onClear} className="text-xs text-gray-400 hover:text-red-500 underline transition-colors">Clear</button>
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-xs underline transition-colors"
+            style={{ color: colors.text.tertiary }}
+          >
+            Clear
+          </button>
         </div>
       </div>
     </motion.div>
@@ -1521,9 +2096,9 @@ function InlineAd({ product, type, allProducts }) {
                 {product.name}
               </h3>
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-xl font-black text-white">{formatMoneyCents(product.priceCents)}</span>
+                <span className="text-xl font-black text-white">{formatMoneyCents(product.price_cents)}</span>
                 <span className="text-sm line-through opacity-50 text-white">
-                  {formatMoneyCents(Math.round(product.priceCents * 1.6))}
+                  {formatMoneyCents(Math.round(product.price_cents * 1.6))}
                 </span>
                 <span className="text-[10px] font-bold px-2.5 py-1 rounded-full"
                   style={{ background: colors.brand.neonGreen, color: "#0E0E10" }}>
@@ -1585,10 +2160,10 @@ function InlineAd({ product, type, allProducts }) {
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="text-right">
               <p className="font-black text-base" style={{ color: isDark ? colors.brand.gold : "#92400e" }}>
-                {formatMoneyCents(product.priceCents)}
+                {formatMoneyCents(product.price_cents)}
               </p>
               <p className="text-[10px] line-through" style={{ color: colors.text.tertiary }}>
-                {formatMoneyCents(Math.round(product.priceCents * 1.5))}
+                {formatMoneyCents(Math.round(product.price_cents * 1.5))}
               </p>
             </div>
             <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors"
@@ -1643,15 +2218,17 @@ export default function ProductsPage() {
   const searchTerm = searchParams.get("search") || "";
 
   // ── API ────────────────────────────────────────────────────────────────────
-  const url = searchTerm ? `/api/products?search=${encodeURIComponent(searchTerm)}` : "/api/products";
-  const { fetchedData, isLoading, error } = useFetchData(url);
-  useShowErrorBoundary(error);
-  const allProducts = useMemo(() => Array.isArray(fetchedData) ? fetchedData : [], [fetchedData]);
-
+  const navigation = useNavigation();
+  const productsFromLoader = useLoaderData();
+  const allProducts = useMemo(() => Array.isArray(productsFromLoader) ? productsFromLoader : [], [productsFromLoader]);
+  const isLoading = navigation.state === "loading";
   const maxBudget = useMemo(
-    () => allProducts.length ? Math.max(...allProducts.map((p) => p.priceCents || 0), 1000) : 10000,
+    () => allProducts.length ? Math.max(...allProducts.map((p) => p.price_cents || 0), 1000) : 10000,
     [allProducts]
   );
+
+
+
 
   // ── Filter state ───────────────────────────────────────────────────────────
   const [filters, setFilters] = useState({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget });
@@ -1707,15 +2284,15 @@ export default function ProductsPage() {
       r = r.filter((p) => p.name?.toLowerCase().includes(q) ||
         (Array.isArray(p.keywords) && p.keywords.some((k) => k.toLowerCase().includes(q))));
     }
-    r = r.filter((p) => (p.priceCents || 0) <= filters.budget);
-    if (filters.rating !== null) r = r.filter((p) => (p.rating?.stars || 0) >= filters.rating);
-    if (filters.inStock) r = r.filter((p) => p.priceCents > 0);
-    if (filters.onSale) r = r.filter((p) => p.priceCents < 2000);
+    r = r.filter((p) => (p.price_cents || 0) <= filters.budget);
+    if (filters.rating !== null) r = r.filter((p) => (p.rating_stars || 0) >= filters.rating);
+    if (filters.inStock) r = r.filter((p) => (p.price_cents || 0) > 0);
+    if (filters.onSale) r = r.filter((p) => (p.price_cents || 0) < 2000);
     const s = filters.sort;
-    if (s === "price-asc") r.sort((a, b) => a.priceCents - b.priceCents);
-    if (s === "price-desc") r.sort((a, b) => b.priceCents - a.priceCents);
-    if (s === "rating") r.sort((a, b) => (b.rating?.stars || 0) - (a.rating?.stars || 0));
-    if (s === "newest") r.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    if (s === "price-asc") r.sort((a, b) => (a.price_cents || 0) - (b.price_cents || 0));
+    if (s === "price-desc") r.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
+    if (s === "rating") r.sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
+    if (s === "newest") r.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     return r;
   }, [allProducts, selectedCategory, filters]);
 
@@ -1828,7 +2405,7 @@ export default function ProductsPage() {
 
           {/* ── Desktop sidebar — ONLY rendered on lg+, never on mobile ── */}
           <aside className="hidden lg:block w-52 xl:w-56 flex-shrink-0 self-start sticky top-4">
-            <div className="max-h-[calc(100vh-5rem)] overflow-y-auto pg-slim pr-1 rounded-xl p-4"
+            <div className="max-h-[calc(100vh-5rem)] overflow-y-auto pg-slim rounded-xl p-5"
               style={{ background: colors.surface.secondary, border: `1px solid ${colors.border.subtle}` }}>
               <FilterPanel
                 filters={filters} setFilters={setFilters}
@@ -1971,8 +2548,7 @@ export default function ProductsPage() {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl shadow-2xl lg:hidden overflow-hidden"
-              style={{ background: colors.surface.elevated || colors.surface.primary }}
-              style={{ maxHeight: "90vh" }}
+              style={{ background: colors.surface.elevated || colors.surface.primary, maxHeight: "90vh" }}
             >
               <div className="sticky top-0 px-5 pt-4 pb-3 flex items-center justify-between"
                 style={{ background: colors.surface.elevated || colors.surface.primary, borderBottom: `1px solid ${colors.border.subtle}` }}>
@@ -2020,7 +2596,14 @@ export default function ProductsPage() {
       {/* ── Comparison modal ── */}
       <AnimatePresence>
         {compareModalOpen && compareItems.length === 2 && (
-          <ComparisonModal items={compareItems} onClose={() => setCompareModalOpen(false)} />
+          <ComparisonModal
+            key="comparison-modal"
+            items={compareItems}
+            onClose={() => setCompareModalOpen(false)}
+            onPickProduct={(product) => {
+              setQuickViewProduct(product);
+            }}
+          />
         )}
       </AnimatePresence>
 
@@ -2028,8 +2611,14 @@ export default function ProductsPage() {
       <AnimatePresence>
         {quickViewProduct && (
           <ProductDetailModal
+            key="product-detail-modal"
             product={quickViewProduct}
             onClose={() => setQuickViewProduct(null)}
+            onCartAdded={() => {
+              setCompareItems([]);
+              setCompareModalOpen(false);
+              setQuickViewProduct(null);
+            }}
           />
         )}
       </AnimatePresence>

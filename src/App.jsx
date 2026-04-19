@@ -1,5 +1,4 @@
 import './App.css'
-import { supabase } from './supabaseClient'
 import { RouterProvider } from 'react-router-dom'
 import { CartProvider } from './Context/cart/CartContext'
 import { IconContext } from 'react-icons'
