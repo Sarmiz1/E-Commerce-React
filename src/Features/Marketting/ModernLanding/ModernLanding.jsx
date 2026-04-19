@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -16,6 +16,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function ModernLanding() {
   const mainRef = useRef(null);
+  const [step, setStep] = useState(1)
 
   useEffect(() => {
     // Add Scroll Spy URL updater
@@ -119,6 +120,13 @@ export default function ModernLanding() {
       </div>
 
       <ModernFooter />
+{/* 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        Test Ground
+ 
+*/}
+
+{/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
       <ModernAiFloatingWidget />
     </main>
     </>

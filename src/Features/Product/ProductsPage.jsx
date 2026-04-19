@@ -144,6 +144,15 @@ const PG_STYLES = `
   .pg-slim::-webkit-scrollbar { width:4px; height:4px; }
   .pg-slim::-webkit-scrollbar-thumb { background:var(--woo-border-default,#e5e7eb); border-radius:9999px; }
   .pg-slim::-webkit-scrollbar-thumb:hover { background:var(--woo-border-strong,#d1d5db); }
+
+  /* ── Premium Dropdown & Toggles ── */
+  .pg-dropdown-item { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+  .pg-dropdown-item:active { scale: 0.98; }
+  
+  .pg-toggle-knob {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
 `;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -552,6 +561,92 @@ function HoverCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }
   );
 }
 
+// ─── PremiumDropdown ──────────────────────────────────────────────────────────
+function PremiumDropdown({ value, options, onChange, label, className = "" }) {
+  const { colors, isDark } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const selectedOption = options.find((o) => o.value === value) || options[0];
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className={`relative ${className}`} ref={containerRef}>
+      {label && <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.text.tertiary }}>{label}</p>}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer transition-all duration-300 border"
+        style={{
+          background: colors.surface.primary,
+          borderColor: isOpen ? colors.brand.electricBlue : colors.border.default,
+          color: colors.text.primary,
+          boxShadow: isOpen ? `0 0 0 3px ${colors.brand.electricBlue}15` : "none",
+        }}
+      >
+        <span className="truncate font-medium">{selectedOption.label}</span>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="opacity-40"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+        </motion.div>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 4, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute z-[100] left-0 right-0 rounded-xl overflow-hidden shadow-2xl border backdrop-blur-xl"
+            style={{
+              background: isDark ? "rgba(25, 25, 28, 0.92)" : "rgba(255, 255, 255, 0.92)",
+              borderColor: colors.border.default,
+            }}
+          >
+            <div className="py-1.5 max-h-64 overflow-y-auto pg-slim">
+              {options.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm pg-dropdown-item flex items-center justify-between group"
+                  style={{
+                    color: value === option.value ? colors.brand.electricBlue : colors.text.primary,
+                    background: value === option.value ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)") : "transparent",
+                  }}
+                >
+                  <span className={`transition-all duration-300 ${value === option.value ? "translate-x-1 font-bold" : "group-hover:translate-x-1"}`}>
+                    {option.label}
+                  </span>
+                  {value === option.value && (
+                    <motion.span layoutId="active-check" className="w-1.5 h-1.5 rounded-full" style={{ background: colors.brand.electricBlue }} />
+                  )}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── FilterPanel (pure content, shared by desktop aside and mobile sheet) ─────
 function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSelectedCategory }) {
   const { colors } = useTheme();
@@ -592,17 +687,12 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
       </div>
 
       {/* Sort */}
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.text.tertiary }}>Sort by</p>
-        <select
-          value={filters.sort}
-          onChange={(e) => setFilters((f) => ({ ...f, sort: e.target.value }))}
-          className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer transition-colors"
-          style={{ background: colors.surface.primary, border: `1px solid ${colors.border.default}`, color: colors.text.primary }}
-        >
-          {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-      </div>
+      <PremiumDropdown
+        label="Sort by"
+        value={filters.sort}
+        options={SORT_OPTIONS}
+        onChange={(val) => setFilters((f) => ({ ...f, sort: val }))}
+      />
 
       {/* Category */}
       <div>
@@ -677,19 +767,29 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
       </div>
 
       {/* Toggles */}
-      <div className="space-y-3">
+      <div className="space-y-4 pt-2">
         {[{ key: "inStock", label: "In Stock Only" }, { key: "onSale", label: "On Sale" }].map(({ key, label }) => (
-          <label key={key} className="flex items-center justify-between cursor-pointer">
-            <span className="text-sm" style={{ color: colors.text.primary }}>{label}</span>
-            <motion.button
-              whileTap={{ scale: 0.85 }}
+          <label key={key} className="flex items-center justify-between cursor-pointer group">
+            <span className="text-sm font-medium transition-colors group-hover:text-gray-900" style={{ color: colors.text.secondary }}>{label}</span>
+            <div
+              className="relative w-10 h-[22px] rounded-full transition-all duration-500 ease-in-out border shadow-inner"
+              style={{ 
+                background: filters[key] ? colors.cta.primary : colors.surface.tertiary,
+                borderColor: filters[key] ? colors.cta.primary : colors.border.default,
+              }}
               onClick={() => setFilters((f) => ({ ...f, [key]: !f[key] }))}
-              className="relative w-10 h-5.5 rounded-full transition-colors duration-300"
-              style={{ background: filters[key] ? colors.cta.primary : colors.border.default, height: '22px' }}
               role="switch" aria-checked={filters[key]}
             >
-              <span className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${filters[key] ? "translate-x-[20px]" : "translate-x-[3px]"}`} />
-            </motion.button>
+              <motion.div
+                layout
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="absolute top-[2.5px] w-4 h-4 rounded-full bg-white shadow-lg pg-toggle-knob"
+                style={{ 
+                  left: filters[key] ? "auto" : "3px",
+                  right: filters[key] ? "3px" : "auto",
+                }}
+              />
+            </div>
           </label>
         ))}
       </div>
@@ -2472,18 +2572,12 @@ export default function ProductsPage() {
           </motion.button>
 
           {/* Sort select */}
-          <select
+          <PremiumDropdown
             value={filters.sort}
-            onChange={(e) => setFilters((f) => ({ ...f, sort: e.target.value }))}
-            className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer flex-shrink-0 transition-colors"
-            style={{
-              background: colors.surface.secondary,
-              border: `1px solid ${colors.border.default}`,
-              color: colors.text.primary,
-            }}
-          >
-            {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
+            options={SORT_OPTIONS}
+            onChange={(val) => setFilters((f) => ({ ...f, sort: val }))}
+            className="w-40"
+          />
 
           {/* Clear search */}
           {searchTerm && (

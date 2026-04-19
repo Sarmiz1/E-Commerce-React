@@ -25,8 +25,31 @@ import { useCartActions } from "../../../Context/cart/CartContext";
 import { useTheme } from "../../../Context/theme/ThemeContext";
 import { ErrorMessage } from "../../../Components/ErrorMessage";
 import ProductCard from "../../../Components/Ui/ProductCard";
+import { getDominantColor, injectDynamicTheme } from "../../../Utils/dynamicTheme";
 
 gsap.registerPlugin(ScrollTrigger);
+
+// ── Magnetic Interaction Hook ────────────────────────────────────────────────
+function useMagnetic(ref, strength = 0.4) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const move = (e) => {
+      const { clientX, clientY } = e;
+      const { left, top, width, height } = el.getBoundingClientRect();
+      const x = (clientX - (left + width / 2)) * strength;
+      const y = (clientY - (top + height / 2)) * strength;
+      gsap.to(el, { x, y, duration: 0.6, ease: "power2.out" });
+    };
+    const reset = () => gsap.to(el, { x: 0, y: 0, duration: 0.8, ease: "elastic.out(1.1, 0.5)" });
+    el.addEventListener("mousemove", move);
+    el.addEventListener("mouseleave", reset);
+    return () => {
+      el.removeEventListener("mousemove", move);
+      el.removeEventListener("mouseleave", reset);
+    };
+  }, [ref, strength]);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LOCALSTORAGE HELPERS
@@ -207,7 +230,7 @@ const DETAIL_STYLES = `
   .pd-img-wrap:hover .pd-img{transform:scale(1.04)}
   .pd-img{transition:transform 0.6s cubic-bezier(0.32,0.72,0,1)}
 
-  .pd-tab-active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;border-radius:9999px;background:var(--woo-cta-primary)}
+  .pd-tab-active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;border-radius:9999px;background:var(--pd-accent-primary, var(--woo-cta-primary))}
 
   .pd-sep::before{content:'/';margin:0 6px;opacity:0.35}
 
@@ -229,6 +252,13 @@ const DETAIL_STYLES = `
   /* Live pulse dot */
   @keyframes pd-live{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}55%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
   .pd-live{animation:pd-live 2s ease-out infinite}
+
+  /* Premium Unmask Reveal */
+  .pd-unmask {
+    mask-image: linear-gradient(to right, black 50%, transparent 50%);
+    mask-size: 200% 100%;
+    mask-position: 100% 0;
+  }
 `;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -469,10 +499,9 @@ function ProductIntelPanel({ product }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-      className="mt-5 rounded-2xl overflow-hidden border"
+      className="mt-5 rounded-2xl overflow-hidden border glass-premium"
       style={{
-        background: colors.surface.secondary,
-        borderColor: colors.border.subtle,
+        borderColor: "rgba(255, 255, 255, 0.1)",
       }}
     >
       {/* Header */}
@@ -644,6 +673,8 @@ function AddToCartPanel({ productId, variantId, atcRef }) {
     return () => clearTimeout(t);
   }, [done]);
 
+  useMagnetic(btnRef, 0.4);
+
   const handleAdd = async () => {
     if (loading) return;
     setError("");
@@ -684,13 +715,13 @@ function AddToCartPanel({ productId, variantId, atcRef }) {
         ref={btnRef}
         onClick={handleAdd}
         disabled={loading}
-        whileTap={{ scale: 0.97 }}
-        className="w-full flex items-center justify-center gap-2.5 font-black text-sm py-4 px-6 rounded-2xl transition-all duration-300 shadow-md"
+        whileTap={{ scale: 0.95 }}
+        className="w-full flex items-center justify-center gap-2.5 font-black text-sm py-4 px-6 rounded-2xl transition-all duration-300 shadow-md relative overflow-hidden"
         style={{
           background: done
             ? "linear-gradient(135deg, #059669, #0d9488)"
             : loading ? colors.surface.tertiary
-              : `linear-gradient(135deg, ${colors.cta.primary}, ${colors.brand.electricBlueAlt || colors.cta.primary})`,
+              : `linear-gradient(135deg, var(--pd-accent-primary, ${colors.cta.primary}), var(--pd-accent-soft, ${colors.brand.electricBlueAlt || colors.cta.primary}))`,
           color: done ? "#fff" : loading ? colors.text.tertiary : colors.cta.primaryText,
           cursor: loading ? "not-allowed" : "pointer",
           boxShadow: done ? "0 8px 24px rgba(5,150,105,0.3)" : loading ? "none"
@@ -1749,6 +1780,13 @@ export default function ProductDetail() {
   const scrollToReviews = useCallback(() => {
     if (reviewsRef.current) reviewsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
+
+  useEffect(() => {
+    if (!product?.image) return;
+    getDominantColor(product.image).then(colors => {
+      injectDynamicTheme(colors);
+    });
+  }, [product?.image]);
 
   if (!product) return <ProductNotFound />;
 
