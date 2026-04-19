@@ -582,8 +582,12 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
           )}
         </span>
         {activeCount > 0 && (
-          <button onClick={resetAll} className="text-xs underline transition-colors"
-            style={{ color: colors.text.tertiary }}>{`Reset`}</button>
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={resetAll} 
+            className="text-xs font-semibold px-2.5 py-1 bg-gray-100 rounded-md transition-all hover:bg-gray-200"
+            style={{ color: colors.text.secondary }}>{`Reset`}</motion.button>
         )}
       </div>
 
@@ -605,15 +609,17 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
         <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.text.tertiary }}>Category</p>
         <div className="space-y-0.5">
           {CATEGORIES.map((cat) => (
-            <button key={cat}
+            <motion.button 
+              key={cat}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setSelectedCategory(cat)}
-              className="w-full text-left px-2.5 py-1.5 rounded-md text-sm transition-all duration-150 font-medium"
+              className="w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-300 font-medium hover:bg-gray-50"
               style={
                 selectedCategory === cat
                   ? { background: colors.cta.primary, color: colors.cta.primaryText, fontWeight: 600 }
                   : { background: "transparent", color: colors.text.secondary }
               }
-            >{cat}</button>
+            >{cat}</motion.button>
           ))}
         </div>
       </div>
@@ -637,13 +643,15 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
             { label: "< $50", max: 5000 },
             { label: "All", max: maxBudget },
           ].map((b) => (
-            <button key={b.label}
+            <motion.button 
+              key={b.label}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setFilters((f) => ({ ...f, budget: b.max }))}
-              className={`px-2.5 py-1 text-xs rounded-full border transition-all ${filters.budget === b.max
-                ? "bg-gray-900 text-white border-gray-900"
-                : "text-gray-500 border-gray-200 hover:border-gray-400"
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-300 hover:shadow-sm ${filters.budget === b.max
+                ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                : "text-gray-500 border-gray-200 hover:border-gray-400 hover:bg-gray-50"
                 }`}
-            >{b.label}</button>
+            >{b.label}</motion.button>
           ))}
         </div>
       </div>
@@ -653,15 +661,17 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
         <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.text.tertiary }}>Min Rating</p>
         <div className="grid grid-cols-4 gap-1">
           {[null, 3, 4, 4.5].map((r) => (
-            <button key={String(r)}
+            <motion.button 
+              key={String(r)}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setFilters((f) => ({ ...f, rating: r }))}
-              className="py-1.5 text-xs rounded-md border transition-all"
+              className="py-1.5 text-xs font-semibold rounded-md border transition-all duration-300 hover:shadow-sm"
               style={
                 filters.rating === r
                   ? { background: colors.brand.gold || "#d97706", color: "#fff", borderColor: colors.brand.gold || "#d97706" }
                   : { background: "transparent", color: colors.text.tertiary, borderColor: colors.border.default }
               }
-            >{r === null ? "Any" : `${r}+★`}</button>
+            >{r === null ? "Any" : `${r}+★`}</motion.button>
           ))}
         </div>
       </div>
@@ -671,14 +681,15 @@ function FilterPanel({ filters, setFilters, maxBudget, selectedCategory, setSele
         {[{ key: "inStock", label: "In Stock Only" }, { key: "onSale", label: "On Sale" }].map(({ key, label }) => (
           <label key={key} className="flex items-center justify-between cursor-pointer">
             <span className="text-sm" style={{ color: colors.text.primary }}>{label}</span>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.85 }}
               onClick={() => setFilters((f) => ({ ...f, [key]: !f[key] }))}
-              className="relative w-9 h-5 rounded-full transition-colors"
-              style={{ background: filters[key] ? colors.cta.primary : colors.border.default }}
+              className="relative w-10 h-5.5 rounded-full transition-colors duration-300"
+              style={{ background: filters[key] ? colors.cta.primary : colors.border.default, height: '22px' }}
               role="switch" aria-checked={filters[key]}
             >
-              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${filters[key] ? "translate-x-4" : "translate-x-0.5"}`} />
-            </button>
+              <span className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${filters[key] ? "translate-x-[20px]" : "translate-x-[3px]"}`} />
+            </motion.button>
           </label>
         ))}
       </div>
@@ -744,6 +755,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
   const [qty, setQty] = useState(1);
   const [wishlisted, setWishlisted] = useState(false);
   const [addState, setAddState] = useState("idle"); // idle|loading|success|error
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   // ── Touch swipe tracking (mobile horizontal swipe) ────────────────────────
   const touchStartX = useRef(null);
@@ -807,7 +819,16 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
 
 
 
-  // ── Keyboard: Escape = close, arrows = prev/next image ────────────────────
+  // ── Body Scroll Lock ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
+  // ── Keyboard ───────────────────────────────────────────────────────────────
   useEffect(() => {
     const h = (e) => {
       if (e.key === "Escape") onClose();
@@ -817,7 +838,9 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
       if (e.key === "ArrowUp") goToImage((selectedImg - 1 + images.length) % images.length, -1);
     };
     window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
+    return () => {
+      window.removeEventListener("keydown", h);
+    };
   }, [onClose, selectedImg, images.length, goToImage]);
 
   /** Add to cart — real API call with size/color/qty */
@@ -857,21 +880,22 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
     ? (typeof selectedColor === "object" ? selectedColor.label : selectedColor)
     : null;
 
-  // ── Image slide variants — direction-aware ────────────────────────────────
+  // ── Image slide variants — direction-aware (no scale to avoid jitter with object-cover) ──
   const imgVariants = {
-    enter: (dir) => ({ x: dir > 0 ? "60%" : "-60%", opacity: 0, scale: 0.96 }),
-    center: { x: 0, opacity: 1, scale: 1, transition: { duration: 0.32, ease: [0.32, 0.72, 0, 1] } },
-    exit: (dir) => ({ x: dir > 0 ? "-60%" : "60%", opacity: 0, scale: 0.96, transition: { duration: 0.22, ease: "easeIn" } }),
+    enter: (dir) => ({ x: dir > 0 ? "25%" : "-25%", opacity: 0 }),
+    center: { x: 0, opacity: 1, transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] } },
+    exit: (dir) => ({ x: dir > 0 ? "-10%" : "10%", opacity: 0, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] } }),
   };
 
   return (
     <motion.div ref={ref} className="fixed inset-0 z-[1100]" style={{ pointerEvents: 'none' }}>
       {/* Backdrop */}
       <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        transition={{ duration: 0.35 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
+        exit={{ opacity: 0, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md pointer-events-auto"
       />
 
       {/* Centering shell
@@ -880,44 +904,59 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
         className="absolute inset-0 flex items-end md:items-center justify-center pointer-events-none"
       >
         <motion.div
-          initial={{ opacity: 0, y: 60 }}
+          initial={{ opacity: 0, y: 80, scale: 0.92, filter: "blur(8px)" }}
           animate={{
-            opacity: 1, y: 0,
-            transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] }
+            opacity: 1, y: 0, scale: 1, filter: "blur(0px)",
+            transition: {
+              duration: 0.5,
+              ease: [0.16, 1, 0.3, 1],
+              opacity: { duration: 0.35, ease: "easeOut" },
+              scale: { duration: 0.55, ease: [0.34, 1.56, 0.64, 1] },
+              filter: { duration: 0.4, ease: "easeOut" },
+            }
           }}
           exit={{
-            opacity: 0, y: 40,
-            transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }
+            opacity: 0, y: 30, scale: 0.97, filter: "blur(4px)",
+            transition: {
+              duration: 0.42,
+              ease: [0.4, 0, 0.2, 1],
+              opacity: { duration: 0.35, delay: 0.04 },
+              scale: { duration: 0.42 },
+              filter: { duration: 0.3 },
+            }
           }}
           onClick={(e) => e.stopPropagation()}
-          className="pointer-events-auto bg-white shadow-2xl overflow-hidden
-                     w-full rounded-t-2xl
-                     md:rounded-2xl md:w-[min(960px,96vw)]"
-          style={{ maxHeight: "92dvh", willChange: "transform, opacity" }}
+          className="pointer-events-auto bg-white shadow-2xl overflow-hidden flex flex-col
+                     w-full h-[100dvh] max-h-[100dvh] rounded-none
+                     md:h-auto md:max-h-[92dvh] md:rounded-2xl md:w-[min(960px,96vw)]"
+          style={{ willChange: "transform, opacity, filter" }}
         >
           {/* ── Close X button — always on top, always clickable ── */}
-          <button
+          <motion.button
             type="button"
             onClick={onClose}
-            className="absolute top-3 right-3 z-50 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-gray-100 flex items-center justify-center transition-colors border border-gray-200"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1, transition: { delay: 0.25, duration: 0.3, ease: [0.34, 1.56, 0.64, 1] } }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
+            className="absolute top-3 right-3 z-50 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-gray-100 hover:scale-110 active:scale-95 flex items-center justify-center transition-all duration-200 border border-gray-200"
             aria-label="Close"
           >
             <IconClose className="w-4 h-4 text-gray-700" />
-          </button>
+          </motion.button>
 
-          <div className="flex flex-col md:flex-row" style={{ maxHeight: "92dvh" }}>
+          <div className="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-y-hidden" style={{ minHeight: 0 }}>
 
             {/* ══════════════════════════════════════════════════════
                 LEFT: Image gallery — 58% width, thumbnail strip
             ══════════════════════════════════════════════════════ */}
-            <div className="md:w-[60%] lg:w-[62%] md:-mt-5 flex flex-col-reverse md:block relative overflow-hidden flex-shrink-0 bg-gray-50 lg:-mt-5">
+            <div className="md:w-[60%] lg:w-[62%] flex flex-col-reverse justify-end lg:block relative overflow-hidden flex-shrink-0 bg-gray-50">
 
-              {/* Thumbnail strip — vertical on desktop, horizontal on mobile */}
+              {/* Thumbnail strip — vertical on desktop, horizontal on mobile/tablet */}
               <div className="
-                flex flex-row md:flex-col gap-2.5
-                overflow-x-auto md:overflow-y-auto md:overflow-x-hidden
-                p-3 md:py-8 md:px-3
-                md:w-[96px] md:flex-shrink-0 md:absolute md:left-0 md:top-0 md:bottom-0 z-10
+                flex flex-row lg:flex-col gap-2.5
+                overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden
+                p-3 lg:py-8 lg:px-3
+                lg:w-[96px] lg:flex-shrink-0 lg:absolute lg:left-0 lg:top-0 lg:bottom-0 z-10
                 bg-gray-100/60
               "
                 style={{ scrollbarWidth: "thin" }}
@@ -930,7 +969,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
                     className={`
                       flex-shrink-0 rounded-[10px] overflow-hidden border-[2.5px]
                       transition-all duration-200 cursor-pointer
-                      w-[72px] h-[72px] md:w-full md:h-auto
+                      w-[72px] h-[72px] lg:w-full lg:h-auto
                       hover:opacity-100 hover:scale-[1.03] hover:shadow-md
                       ${selectedImg === i
                         ? "border-gray-900 opacity-100 scale-100 shadow-sm"
@@ -950,29 +989,35 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
 
               {/* Main image — perfectly locked dimensions to prevent layout shift shakes on entrance */}
               <div
-                className="relative overflow-hidden flex items-center justify-center w-full md:w-[calc(100%-96px)] md:ml-[96px]"
-                style={{ aspectRatio: '1/1', maxHeight: '65dvh' }}
+                className="relative overflow-hidden flex items-center justify-center
+                           w-full h-[55dvh]
+                           md:h-auto md:aspect-square
+                           lg:aspect-auto lg:h-full lg:w-[calc(100%-96px)] lg:ml-[96px]"
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
                 onClick={() => setIsZoomed((z) => !z)}
               >
-                <AnimatePresence custom={imgDirection} mode="wait">
-                  <motion.img
+                <AnimatePresence custom={imgDirection}>
+                  <motion.div
                     key={selectedImg}
                     custom={imgDirection}
                     variants={imgVariants}
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    src={images[selectedImg]}
-                    alt={product.name}
-                    className={`
-                      w-full py-4 md:py-8 object-contain cursor-zoom-in
-                      transition-transform duration-300
-                      ${isZoomed ? "scale-150 cursor-zoom-out" : "scale-100"}
-                    `}
-                    draggable={false}
-                  />
+                    className="absolute inset-0"
+                  >
+                    <img
+                      src={images[selectedImg]}
+                      alt={product.name}
+                      className={`
+                        w-full h-full object-cover
+                        transition-transform duration-500 ease-out
+                        ${isZoomed ? "scale-[1.8] cursor-zoom-out" : "scale-100 cursor-zoom-in"}
+                      `}
+                      draggable={false}
+                    />
+                  </motion.div>
                 </AnimatePresence>
 
                 {/* Arrow buttons — desktop only (mobile uses swipe) */}
@@ -1014,77 +1059,75 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
             </div>
 
             <div
-              className="md:w-[42%] flex flex-col overflow-hidden md:overflow-y-auto p-0 md:p-6 md:gap-4"
-              style={{ scrollbarWidth: "thin", maxHeight: "92dvh" }}
+              className="md:w-[42%] flex flex-col md:overflow-hidden p-0 md:p-6 md:gap-4"
             >
 
               {/* Scrollable product info area — everything above quantity */}
-              <div className="flex-1 overflow-y-auto p-5 pb-2 md:p-0 md:pb-0 space-y-4" style={{ scrollbarWidth: "thin" }}>
+              <div className="flex-1 md:overflow-y-auto p-5 pb-2 md:p-0 md:pb-0 space-y-4 md:pr-4" style={{ scrollbarWidth: "thin", minHeight: 0 }}>
 
-              {/* Name */}
-              <div className="pr-8"> {/* pr-8 leaves room for X button */}
-                <p className="text-[10px] text-gray-400 mb-0.5 font-mono">SKU: {String(product.id || "N/A").slice(0, 14)}</p>
-                <h2 className="text-[17px] font-bold text-gray-900 leading-snug">{product.name}</h2>
-              </div>
+                {/* Name */}
+                <div className="pr-8"> {/* pr-8 leaves room for X button */}
+                  <p className="text-xs text-gray-400 mb-0.5 font-mono">SKU: {String(product.id || "N/A").slice(0, 14)}</p>
+                  <h2 className="text-xl font-bold text-gray-900 leading-snug">{product.name}</h2>
+                </div>
 
-              {/* Short description (API field or smart fallback) */}
-              {(product.description || product.short_description) && (
+                {/* Short description (API field or smart fallback) */}
                 <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
-                  {product.short_description || product.description}
+                  {product.short_description || product.description || "Premium quality product with exceptional craftsmanship and attention to detail."}
                 </p>
-              )}
 
-              {/* Seller name — clickable to seller page */}
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-gray-400">Sold by</span>
-                <Link
-                  to={product.seller_id ? `/sellers/${product.seller_id}` : "/sellers"}
-                  onClick={handleViewDetails}
-                  className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
-                >
-                  {product.seller_name || product.brand || "ShopEase Store"}
-                </Link>
-              </div>
+                {/* Seller name — clickable to seller page */}
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-gray-400">Sold by</span>
+                  <Link
+                    to={product.seller_id ? `/sellers/${product.seller_id}` : "/sellers"}
+                    onClick={handleViewDetails}
+                    className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
+                  >
+                    {product.seller_name || product.brand || "ShopEase Store"}
+                  </Link>
+                </div>
 
-              {/* Rating */}
-              {product.rating_stars > 0 && (
+                {/* Rating */}
                 <div className="flex items-center gap-2">
                   <div className="flex">
                     {Array(5).fill(0).map((_, i) => (
-                      <IconStar key={i} filled={i < Math.round(product.rating_stars)} className="w-3.5 h-3.5 text-amber-400" />
+                      <IconStar key={i} filled={i < Math.round(product.rating_stars || 0)} className="w-3.5 h-3.5 text-amber-400" />
                     ))}
                   </div>
                   <span className="text-xs text-gray-500">
-                    <span className="font-semibold text-gray-700">{product.rating_stars}</span>
+                    <span className="font-semibold text-gray-700">{product.rating_stars || 0}</span>
                     {" "}({(product.rating_count || 0).toLocaleString()} reviews)
                   </span>
                 </div>
-              )}
 
-              {/* Price */}
-              <div className="flex items-baseline gap-2.5 flex-wrap">
-                <span className="text-2xl font-black text-gray-900">{formatMoneyCents(product.price_cents)}</span>
-                {onSale && (
-                  <>
-                    <span className="text-sm text-gray-400 line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</span>
-                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-                      -{Math.round((1 - product.price_cents / Math.round(product.price_cents * 1.35)) * 100)}%
-                    </span>
-                  </>
-                )}
-              </div>
+                {/* Price */}
+                <div className="flex items-baseline gap-2.5 flex-wrap">
+                  <span className="text-2xl font-black text-gray-900">{formatMoneyCents(product.price_cents)}</span>
+                  {onSale && (
+                    <>
+                      <span className="text-sm text-gray-400 line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</span>
+                      <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                        -{Math.round((1 - product.price_cents / Math.round(product.price_cents * 1.35)) * 100)}%
+                      </span>
+                    </>
+                  )}
+                </div>
 
-              <div className="h-px bg-gray-100" />
+                <div className="h-px bg-gray-100" />
 
-              {/* ── Color picker ── */}
-              {colors && colors.length > 0 && (
+                {/* ── Color picker ── */}
                 <div>
                   <p className="text-xs font-bold text-gray-700 mb-2">
                     Colour
                     {currentColorLabel && <span className="ml-1.5 font-normal text-gray-500">· {currentColorLabel}</span>}
                   </p>
                   <div className="flex flex-wrap gap-2.5">
-                    {colors.map((col) => {
+                    {(colors && colors.length > 0 ? colors : [
+                      { hex: "#1a1a2e", label: "Midnight" },
+                      { hex: "#e2e8f0", label: "Silver" },
+                      { hex: "#2d3436", label: "Charcoal" },
+                    ]).map((col) => {
                       const val = col.hex || col;
                       const label = col.label || col;
                       const isSelected = selectedColor === col;
@@ -1104,145 +1147,200 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
                     })}
                   </div>
                 </div>
-              )}
 
-              {/* ── Size picker with system toggle ── */}
-              {displaySizes && displaySizes.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                    <p className="text-xs font-bold text-gray-700">
-                      Size
-                      {selectedSize && <span className="ml-1.5 font-normal text-gray-500">· {selectedSize}</span>}
-                    </p>
-                    <div className="flex items-center gap-1">
-                      {/* Size system toggle — only show if we know the product type */}
-                      {availableSystems && availableSystems.map((sys) => (
-                        <button
-                          key={sys}
-                          type="button"
-                          onClick={() => { setSizeSystem(sys); setSelectedSize(null); }}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${sizeSystem === sys
-                            ? "bg-gray-900 text-white"
-                            : "text-gray-400 hover:text-gray-700 border border-gray-200"
-                            }`}
-                        >
-                          {sys}
-                        </button>
-                      ))}
-                      <button className="text-[10px] text-indigo-500 underline ml-1 hover:text-indigo-700 transition-colors">
-                        Guide
-                      </button>
+                {/* ── Size picker with system toggle ── */}
+                {(() => {
+                  const sizesToShow = displaySizes && displaySizes.length > 0 ? displaySizes : ["XS", "S", "M", "L", "XL"]; return (
+                    <div>
+                      <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                        <p className="text-xs font-bold text-gray-700">
+                          Size
+                          {selectedSize && <span className="ml-1.5 font-normal text-gray-500">· {selectedSize}</span>}
+                        </p>
+                        <div className="flex items-center gap-1">
+                          {/* Size system toggle — only show if we know the product type */}
+                          {availableSystems && availableSystems.map((sys) => (
+                            <button
+                              key={sys}
+                              type="button"
+                              onClick={() => { setSizeSystem(sys); setSelectedSize(null); }}
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded transition-all ${sizeSystem === sys
+                                ? "bg-gray-900 text-white"
+                                : "text-gray-400 hover:text-gray-700 border border-gray-200"
+                                }`}
+                            >
+                              {sys}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setShowSizeGuide(!showSizeGuide)}
+                            className={`text-[11px] underline ml-1 transition-colors ${showSizeGuide ? "text-indigo-700 font-bold" : "text-indigo-500 hover:text-indigo-700"}`}
+                          >
+                            Guide
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {sizesToShow.map((sz, idx) => {
+                          // Also show original size in parentheses if different system
+                          const original = sizes?.[idx];
+                          const showBoth = original && original !== sz && sizeSystem !== detectedSizeType;
+                          return (
+                            <motion.button
+                              key={`${sz}-${idx}`}
+                              type="button"
+                              whileTap={{ scale: 0.92 }}
+                              onClick={() => setSelectedSize(sz === selectedSize ? null : sz)}
+                              className={`min-w-[42px] px-3 py-2 text-xs font-semibold rounded-lg border transition-all duration-150 ${selectedSize === sz
+                                ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                                : "bg-white text-gray-700 border-gray-200 hover:border-gray-600 hover:bg-gray-50"
+                                }`}
+                            >
+                              {sz}
+                              {showBoth && <span className="text-[9px] opacity-60 ml-0.5">({original})</span>}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-1.5">
+                        👍 96% of buyers found this true to size
+                      </p>
+
+                      <AnimatePresence>
+                        {showSizeGuide && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1, transition: { duration: 0.35, ease: [0.34, 1.56, 0.64, 1] } }}
+                            exit={{ height: 0, opacity: 0, transition: { duration: 0.25, ease: "easeIn" } }}
+                            className="overflow-hidden mt-3"
+                          >
+                            {(() => {
+                              const pt = productType && SIZE_TABLES[productType] ? productType : "apparel";
+                              const table = SIZE_TABLES[pt];
+                              if (!table) return null;
+                              
+                              return (
+                                <div className="bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden text-xs">
+                                  <div className="bg-gray-50/80 px-4 py-2.5 border-b border-gray-100 flex justify-between items-center">
+                                    <h4 className="font-bold text-gray-800 capitalize">{pt} Size Guide</h4>
+                                    <span className="text-[10px] text-gray-400 font-normal">Measurements in exact units</span>
+                                  </div>
+                                  <div className="overflow-x-auto pg-slim">
+                                    <table className="w-full text-left border-collapse">
+                                      <thead>
+                                        <tr>
+                                          {Object.keys(table).map(sys => (
+                                            <th key={sys} className={`py-2.5 px-3 border-b border-gray-100 font-semibold text-center whitespace-nowrap bg-gray-50/30 ${sizeSystem === sys ? "text-indigo-600 font-bold" : "text-gray-500"}`}>
+                                              {sys}
+                                            </th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {table.Standard.map((_, i) => (
+                                          <tr key={i} className="hover:bg-gray-50/50 transition-colors group">
+                                            {Object.keys(table).map(sys => (
+                                              <td key={sys} className={`py-2 px-3 border-b border-gray-50 text-center font-mono text-[11px] ${sizeSystem === sys ? "text-indigo-700 font-medium bg-indigo-50/30 group-hover:bg-indigo-50/50" : "text-gray-600"}`}>
+                                                {table[sys][i] || "-"}
+                                              </td>
+                                            ))}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {displaySizes.map((sz, idx) => {
-                      // Also show original size in parentheses if different system
-                      const original = sizes?.[idx];
-                      const showBoth = original && original !== sz && sizeSystem !== detectedSizeType;
-                      return (
-                        <motion.button
-                          key={`${sz}-${idx}`}
-                          type="button"
-                          whileTap={{ scale: 0.92 }}
-                          onClick={() => setSelectedSize(sz === selectedSize ? null : sz)}
-                          className={`min-w-[42px] px-3 py-2 text-xs font-semibold rounded-lg border transition-all duration-150 ${selectedSize === sz
-                            ? "bg-gray-900 text-white border-gray-900 shadow-sm"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-600 hover:bg-gray-50"
-                            }`}
-                        >
-                          {sz}
-                          {showBoth && <span className="text-[9px] opacity-60 ml-0.5">({original})</span>}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[10px] text-gray-400 mt-1.5">
-                    👍 96% of buyers found this true to size
-                  </p>
-                </div>
-              )}
+                  );
+                })()}
               </div> {/* end scrollable info area */}
 
               {/* ── Fixed bottom bar on mobile: Quantity + CTA ── */}
-              <div className="sticky bottom-0 bg-white/95 backdrop-blur-md border-t border-gray-100 p-4 md:p-0 md:border-0 md:bg-transparent md:backdrop-blur-none md:static space-y-3 md:space-y-4 flex-shrink-0">
+              <div className="sticky bottom-0 bg-white/95 backdrop-blur-md border-t border-gray-100 p-4 md:p-0 md:border-0 md:bg-transparent md:backdrop-blur-none md:static space-y-3 md:space-y-4 flex-shrink-0 z-20">
 
-              {/* ── Quantity ── */}
-              <div>
-                <p className="text-xs font-bold text-gray-700 mb-2">Quantity</p>
-                <div className="flex items-center border border-gray-200 rounded-lg w-fit overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
-                    className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors text-lg font-bold select-none"
-                  >−</button>
-                  <span className="w-10 text-center text-sm font-bold text-gray-900 tabular-nums select-none">{qty}</span>
-                  <button
-                    type="button"
-                    onClick={() => setQty((q) => Math.min(20, q + 1))}
-                    className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
-                  >
-                    <IconPlus className="w-3.5 h-3.5" />
-                  </button>
+                {/* ── Quantity ── */}
+                <div>
+                  <p className="text-xs font-bold text-gray-700 mb-2">Quantity</p>
+                  <div className="flex items-center border border-gray-200 rounded-lg w-fit overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors text-lg font-bold select-none"
+                    >−</button>
+                    <span className="w-10 text-center text-sm font-bold text-gray-900 tabular-nums select-none">{qty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQty((q) => Math.min(20, q + 1))}
+                      className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <IconPlus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* ── CTA buttons ── */}
-              <div className="space-y-2.5 mt-auto pt-2">
+                {/* ── CTA buttons ── */}
+                <div className="space-y-2.5 mt-auto pt-2">
 
-                {/* Add to cart */}
-                <motion.button
-                  type="button"
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleAddToCart}
-                  disabled={addState === "loading"}
-                  className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors ${addState === "success" ? "bg-emerald-600 text-white"
-                    : addState === "error" ? "bg-red-500 text-white"
-                      : addState === "loading" ? "bg-gray-300 text-gray-500 cursor-default"
-                        : "bg-gray-900 text-white hover:bg-gray-700"
-                    }`}
-                >
-                  {addState === "loading" && <IconSpinner className="w-4 h-4" />}
-                  {addState === "success" ? "✓ Added to Cart!"
-                    : addState === "error" ? "Failed — Try again"
-                      : addState === "loading" ? "Adding…"
-                        : "Add to Cart"}
-                </motion.button>
-
-                {/* Wishlist + View Details row */}
-                <div className="flex items-center gap-2">
-                  {/* Wishlist button */}
+                  {/* Add to cart */}
                   <motion.button
                     type="button"
-                    whileTap={{ scale: 0.88 }}
-                    onClick={() => setWishlisted((w) => !w)}
-                    className={`flex-shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center transition-all duration-200 ${wishlisted
-                      ? "bg-red-50 border-red-300 text-red-500"
-                      : "border-gray-200 text-gray-400 hover:border-red-200 hover:text-red-400"
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleAddToCart}
+                    disabled={addState === "loading"}
+                    className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-colors ${addState === "success" ? "bg-emerald-600 text-white"
+                      : addState === "error" ? "bg-red-500 text-white"
+                        : addState === "loading" ? "bg-gray-300 text-gray-500 cursor-default"
+                          : "bg-gray-900 text-white hover:bg-gray-700"
                       }`}
-                    aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
                   >
-                    <svg
-                      className="w-5 h-5 transition-transform duration-200"
-                      style={{ transform: wishlisted ? "scale(1.2)" : "scale(1)" }}
-                      fill={wishlisted ? "currentColor" : "none"}
-                      stroke="currentColor" strokeWidth="1.8"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-                    </svg>
+                    {addState === "loading" && <IconSpinner className="w-4 h-4" />}
+                    {addState === "success" ? "✓ Added to Cart!"
+                      : addState === "error" ? "Failed — Try again"
+                        : addState === "loading" ? "Adding…"
+                          : "Add to Cart"}
                   </motion.button>
 
-                  {/* View full details — no close-then-navigate flicker */}
-                  <button
-                    type="button"
-                    onClick={handleViewDetails}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-all"
-                  >
-                    View Full Details <IconChevRight className="w-4 h-4" />
-                  </button>
+                  {/* Wishlist + View Details row */}
+                  <div className="flex items-center gap-2">
+                    {/* Wishlist button */}
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.88 }}
+                      onClick={() => setWishlisted((w) => !w)}
+                      className={`flex-shrink-0 w-11 h-11 rounded-xl border flex items-center justify-center transition-all duration-200 ${wishlisted
+                        ? "bg-red-50 border-red-300 text-red-500"
+                        : "border-gray-200 text-gray-400 hover:border-red-200 hover:text-red-400"
+                        }`}
+                      aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <svg
+                        className="w-5 h-5 transition-transform duration-200"
+                        style={{ transform: wishlisted ? "scale(1.2)" : "scale(1)" }}
+                        fill={wishlisted ? "currentColor" : "none"}
+                        stroke="currentColor" strokeWidth="1.8"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                      </svg>
+                    </motion.button>
+
+                    {/* View full details — no close-then-navigate flicker */}
+                    <button
+                      type="button"
+                      onClick={handleViewDetails}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:border-gray-400 transition-all"
+                    >
+                      View Full Details <IconChevRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
               </div> {/* end fixed bottom bar */}
             </div>
           </div>
@@ -2331,9 +2429,10 @@ export default function ProductsPage() {
   const { isDark, colors } = useTheme();
 
   return (
-    <div className="min-h-screen transition-colors duration-300"
+    <div className="min-h-screen transition-colors duration-300 pt-20"
       style={{ background: colors.surface.primary, color: colors.text.primary }}>
       <style>{PG_STYLES}</style>
+
 
       {/* ── Live ticker (real-time product activity) ── */}
       {!isLoading && allProducts.length > 0 && <LiveTicker products={allProducts} />}
@@ -2357,9 +2456,11 @@ export default function ProductsPage() {
           </div>
 
           {/* ── Mobile filter button ── */}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
             onClick={() => setMobileFilterOpen(true)}
-            className="lg:hidden flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-full border transition-all flex-shrink-0"
+            className="lg:hidden flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full border transition-all duration-300 flex-shrink-0 shadow-sm"
             style={{
               background: activeFilterCount > 0 ? colors.cta.primary : colors.surface.secondary,
               borderColor: activeFilterCount > 0 ? colors.cta.primary : colors.border.default,
@@ -2368,7 +2469,7 @@ export default function ProductsPage() {
           >
             <IconFilter className="w-3.5 h-3.5" />
             Filter {activeFilterCount > 0 && `(${activeFilterCount})`}
-          </button>
+          </motion.button>
 
           {/* Sort select */}
           <select
@@ -2421,15 +2522,17 @@ export default function ProductsPage() {
             {/* Category pills */}
             <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3 no-scrollbar" style={{ scrollbarWidth: "none" }}>
               {CATEGORIES.map((cat) => (
-                <button key={cat}
+                <motion.button 
+                  key={cat}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => setSelectedCategory(cat)}
-                  className="flex-shrink-0 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all duration-200"
+                  className="flex-shrink-0 text-xs font-bold px-4 py-2 rounded-full border transition-all duration-300 hover:shadow-sm"
                   style={
                     selectedCategory === cat
                       ? { background: colors.cta.primary, color: colors.cta.primaryText, borderColor: colors.cta.primary }
                       : { background: colors.surface.secondary, color: colors.text.secondary, borderColor: colors.border.default }
                   }
-                >{cat}</button>
+                >{cat}</motion.button>
               ))}
             </div>
 
@@ -2567,14 +2670,16 @@ export default function ProductsPage() {
                   selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
                 />
               </div>
-              <div className="px-5 py-4 border-t border-gray-100 bg-white">
-                <button
+              <div className="px-5 py-4 border-t border-gray-100 bg-white shadow-[0_-8px_30px_rgba(0,0,0,0.06)] relative z-10">
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => setMobileFilterOpen(false)}
-                  className="w-full font-bold py-3 rounded-xl text-sm transition-colors"
+                  className="w-full font-bold py-3.5 rounded-xl text-sm transition-all duration-300 shadow-md flex items-center justify-center gap-2 group"
                   style={{ background: colors.cta.primary, color: colors.cta.primaryText }}
                 >
                   Show {filteredProducts.length} results
-                </button>
+                  <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </motion.button>
               </div>
             </motion.div>
           </>

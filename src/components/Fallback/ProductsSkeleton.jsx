@@ -4,7 +4,7 @@ import { SkeletonStyles, SkBlock, skCls } from "./SkeletonBase";
 
 export default function ProductsSkeleton() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-20">
       <SkeletonStyles />
 
       {/* ── Live ticker bar ── */}
