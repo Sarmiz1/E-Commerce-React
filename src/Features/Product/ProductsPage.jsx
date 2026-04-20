@@ -12,6 +12,10 @@ import ProductCard from "./Components/ProductCard";
 import FilterSidebar, { ActiveFilterChips } from "./Components/FilterSidebar";
 import ProductDetailModal from "./Components/ProductDetailModal";
 
+// Hooks
+import { useProductsFilter } from "./Hooks/useProductsFilter";
+import { useCompare } from "./Hooks/useCompare";
+
 // Constants
 import { PAGE_SIZE, AD_INTERVAL, SORT_OPTIONS, CATEGORIES } from "./constants";
 
@@ -113,7 +117,7 @@ function InlineAd({ product, type, allProducts }) {
   if (type === "featured") {
     return (
       <div className="col-span-full sm:col-span-2">
-        <Link to={`/products/${product.id}`} className="block group h-full">
+        <Link to={`/products/${product.slug || product.id}`} className="block group h-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -179,7 +183,7 @@ function InlineAd({ product, type, allProducts }) {
 
   return (
     <div className="col-span-full sm:col-span-2">
-      <Link to={`/products/${product.id}`} className="block h-full group">
+      <Link to={`/products/${product.slug || product.id}`} className="block h-full group">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -255,6 +259,7 @@ function ViewMoreBtn({ onClick, loading, allLoaded, count }) {
 // COMPARISON MODAL
 // ═══════════════════════════════════════════════════════════════════════════════
 function CompareModal({ items, onClose, onRemove }) {
+  const navigate = useNavigate();
   const { colors, isDark } = useTheme();
   if (items.length < 2) return null;
   const [a, b] = items;
@@ -267,38 +272,65 @@ function CompareModal({ items, onClose, onRemove }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1200] flex items-end md:items-center justify-center" style={{ pointerEvents: "none" }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-md pointer-events-auto" />
-      <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }} className="relative z-10 w-full max-w-2xl mx-4 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col max-h-[85vh]" style={{ background: colors.surface.elevated }}>
-        <div className="flex items-center justify-between p-4 md:p-5 border-b shrink-0" style={{ borderColor: colors.border.subtle }}>
-          <h3 className="text-lg font-bold" style={{ color: colors.text.primary }}>Compare Products</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: colors.surface.tertiary }}><IconClose /></button>
+      <motion.div 
+        initial={{ y: "100%" }} 
+        animate={{ y: 0 }} 
+        exit={{ y: "100%" }} 
+        transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.8 }}
+        className="relative z-10 w-full h-[100dvh] rounded-none md:h-auto md:max-h-[85vh] md:max-w-3xl md:mx-4 md:rounded-3xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col" 
+        style={{ background: colors.surface.elevated }}
+      >
+        <div className="flex items-center justify-between p-5 md:p-6 border-b shrink-0" style={{ borderColor: colors.border.subtle }}>
+          <div>
+            <h3 className="text-xl font-serif font-bold" style={{ color: colors.text.primary }}>Compare Matches</h3>
+            <p className="text-[10px] uppercase tracking-widest mt-1" style={{ color: colors.text.tertiary }}>AI Machine Analysis</p>
+          </div>
+          <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110" style={{ background: colors.surface.tertiary }}><IconClose /></button>
         </div>
-        <div className="overflow-y-auto flex-1">
-          <div className="grid grid-cols-2 gap-2 md:gap-4 p-4 md:p-5">
+        
+        <div className="overflow-y-auto flex-1 pg-slim">
+          <div className="grid grid-cols-2 gap-4 md:gap-6 p-5 md:p-6">
             {[a, b].map((p) => (
-              <div key={p.id} className="text-center">
-                <div className="rounded-xl overflow-hidden mb-2 md:mb-3 aspect-square" style={{ background: colors.surface.tertiary }}>
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+              <div key={p.id} className="text-center group">
+                <div className="rounded-2xl overflow-hidden mb-4 aspect-square relative border" style={{ background: colors.surface.tertiary, borderColor: colors.border.subtle }}>
+                  <img src={p.image} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                 </div>
-                <p className="text-xs md:text-sm font-bold line-clamp-2" style={{ color: colors.text.primary }}>{p.name}</p>
-                <p className="text-base md:text-lg font-black mt-1" style={{ color: colors.text.primary }}>{formatMoneyCents(p.price_cents)}</p>
+                <p className="text-sm md:text-base font-bold line-clamp-2 leading-tight mb-2" style={{ color: colors.text.primary }}>{p.name}</p>
+                <p className="text-xl md:text-2xl font-black" style={{ color: colors.text.primary }}>{formatMoneyCents(p.price_cents)}</p>
               </div>
             ))}
           </div>
-          <div className="px-4 md:px-5 pb-4 md:pb-5">
+          
+          <div className="px-5 md:px-6 pb-5 md:pb-6">
             {rows.map(({ label, render }) => (
-              <div key={label} className="grid grid-cols-[1fr_1fr] gap-2 md:gap-4 py-2.5 border-t text-center" style={{ borderColor: colors.border.subtle }}>
+              <div key={label} className="grid grid-cols-[1fr_1fr] gap-4 md:gap-6 py-4 border-t text-center" style={{ borderColor: colors.border.subtle }}>
                 {[a, b].map((p) => (
                   <div key={p.id}>
-                    <p className="text-[10px] uppercase tracking-widest font-bold mb-0.5" style={{ color: colors.text.tertiary }}>{label}</p>
-                    <p className="text-xs md:text-sm font-bold" style={{ color: colors.text.primary }}>{render(p)}</p>
+                    <p className="text-[10px] uppercase tracking-widest font-bold mb-1" style={{ color: colors.text.tertiary }}>{label}</p>
+                    <p className="text-sm md:text-base font-bold" style={{ color: colors.text.primary }}>{render(p)}</p>
                   </div>
                 ))}
               </div>
             ))}
           </div>
         </div>
-        <div className="flex gap-3 p-4 md:p-5 border-t shrink-0" style={{ borderColor: colors.border.subtle }}>
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl font-bold text-sm" style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Done</button>
+        
+        <div className="grid grid-cols-2 gap-4 p-5 md:p-6 border-t shrink-0" style={{ borderColor: colors.border.subtle, background: isDark ? 'rgba(30,30,34,0.5)' : 'rgba(249,250,251,0.5)' }}>
+          {[a, b].map((p) => (
+            <motion.button 
+              key={`pick-${p.id}`}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => {
+                onClose();
+                navigate(`/products/${p.slug || p.id}`);
+              }}
+              className="py-4 rounded-2xl font-bold text-sm md:text-base shadow-lg transition-colors border" 
+              style={{ background: colors.cta.primary, color: colors.cta.primaryText, borderColor: 'rgba(255,255,255,0.1)' }}
+            >
+              Pick {p.name.split(' ')[0]}
+            </motion.button>
+          ))}
         </div>
       </motion.div>
     </motion.div>
@@ -316,23 +348,14 @@ export default function ProductsPage() {
   const productsFromLoader = useLoaderData();
   const allProducts = useMemo(() => Array.isArray(productsFromLoader) ? productsFromLoader : [], [productsFromLoader]);
   const isLoading = navigation.state === "loading";
-  const maxBudget = useMemo(() => allProducts.length ? Math.max(...allProducts.map((p) => p.price_cents || 0), 1000) : 10000, [allProducts]);
+  
+  const { filters, setFilters, selectedCategory, setSelectedCategory, maxBudget, filteredProducts } = useProductsFilter(allProducts);
+  const { compareList, showCompare, setShowCompare, toggleCompare, removeCompare, clearCompare } = useCompare();
 
-  const [filters, setFilters] = useState({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget });
-
-  useEffect(() => {
-    setFilters((f) => {
-      if (f.budget === 10000 || f.budget === 0) return { ...f, budget: maxBudget };
-      return f;
-    });
-  }, [maxBudget]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
-  const [compareList, setCompareList] = useState([]);
-  const [showCompare, setShowCompare] = useState(false);
 
   // Hide body scrollbar when any modal is open
   useEffect(() => {
@@ -348,14 +371,6 @@ export default function ProductsPage() {
 
   // Stable callbacks
   const handleQuickView = useCallback((p) => setQuickViewProduct(p), []);
-  const handleToggleCompare = useCallback((product) => {
-    setCompareList((prev) => {
-      const exists = prev.find((p) => p.id === product.id);
-      if (exists) return prev.filter((p) => p.id !== product.id);
-      if (prev.length >= 2) return prev;
-      return [...prev, product];
-    });
-  }, []);
   const handleLoadMore = useCallback(() => {
     setLoadingMore(true);
     setTimeout(() => { setVisibleCount((v) => v + PAGE_SIZE); setLoadingMore(false); }, 600);
@@ -379,24 +394,6 @@ export default function ProductsPage() {
       );
     }
   }, [isLoading, selectedCategory, filters.sort]);
-
-  const filteredProducts = useMemo(() => {
-    let r = [...allProducts];
-    if (selectedCategory !== "All") {
-      const q = selectedCategory.toLowerCase();
-      r = r.filter((p) => p.name?.toLowerCase().includes(q) || (Array.isArray(p.keywords) && p.keywords.some((k) => k.toLowerCase().includes(q))));
-    }
-    r = r.filter((p) => (p.price_cents || 0) <= filters.budget);
-    if (filters.rating !== null) r = r.filter((p) => (p.rating_stars || 0) >= filters.rating);
-    if (filters.inStock) r = r.filter((p) => (p.price_cents || 0) > 0);
-    if (filters.onSale) r = r.filter((p) => (p.price_cents || 0) < 2000);
-    const s = filters.sort;
-    if (s === "price-asc") r.sort((a, b) => (a.price_cents || 0) - (b.price_cents || 0));
-    else if (s === "price-desc") r.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
-    else if (s === "rating") r.sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
-    else if (s === "newest") r.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    return r;
-  }, [allProducts, selectedCategory, filters]);
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
   const gridItems = useMemo(() => {
@@ -446,15 +443,18 @@ export default function ProductsPage() {
       <div className="max-w-screen-xl mx-auto px-6 py-8">
         <div className="flex gap-10">
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 h-fit">
-            <FilterSidebar 
-              filters={filters} 
-              setFilters={setFilters} 
-              maxBudget={maxBudget} 
-              selectedCategory={selectedCategory} 
-              setSelectedCategory={setSelectedCategory}
-              matchingCount={filteredProducts.length}
-            />
+          <aside className="hidden lg:block w-[280px] flex-shrink-0 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pg-slim pr-3 pb-8">
+            <div className="rounded-[24px] p-6 shadow-xl relative overflow-hidden" style={{ background: isDark ? 'rgba(26,26,26,0.6)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', border: `1px solid ${colors.border.subtle}` }}>
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${colors.cta.primary}15 0%, transparent 70%)` }} />
+              <FilterSidebar 
+                filters={filters} 
+                setFilters={setFilters} 
+                maxBudget={maxBudget} 
+                selectedCategory={selectedCategory} 
+                setSelectedCategory={setSelectedCategory}
+                matchingCount={filteredProducts.length}
+              />
+            </div>
           </aside>
 
           {/* Main Content */}
@@ -502,7 +502,7 @@ export default function ProductsPage() {
               {gridItems.map((item) => (
                 item.type === "ad" 
                   ? <InlineAd key={`ad-${item.idx}`} product={item.adProduct} type={item.adType} allProducts={allProducts} />
-                  : <ProductCard key={item.product.id} product={item.product} onQuickView={handleQuickView} onToggleCompare={handleToggleCompare} isCompared={compareList.some((c) => c.id === item.product.id)} canAdd={compareList.length < 2} />
+                  : <ProductCard key={item.product.id} product={item.product} onQuickView={handleQuickView} onToggleCompare={toggleCompare} isCompared={compareList.some((c) => c.id === item.product.id)} canAdd={compareList.length < 2} />
               ))}
               
               <ViewMoreBtn 
@@ -516,7 +516,7 @@ export default function ProductsPage() {
             {/* Comparison floating bar */}
             <AnimatePresence>
               {compareList.length > 0 && (
-                <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-fit max-w-[95vw] px-3 sm:px-5 py-2 sm:py-3 rounded-2xl shadow-2xl border backdrop-blur-xl" style={{ background: isDark ? 'rgba(30,30,34,0.95)' : 'rgba(255,255,255,0.95)', borderColor: colors.border.default }}>
+                <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="fixed bottom-0 sm:bottom-6 left-0 sm:left-1/2 sm:-translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-fit px-3 sm:px-5 py-4 sm:py-3 rounded-t-3xl sm:rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-2xl border-t sm:border backdrop-blur-xl" style={{ background: isDark ? 'rgba(30,30,34,0.95)' : 'rgba(255,255,255,0.95)', borderColor: colors.border.default }}>
                   <span className="text-[10px] sm:text-xs font-bold shrink-0" style={{ color: colors.text.secondary }}>{compareList.length}/2<span className="hidden sm:inline"> selected</span></span>
                   <div className="flex items-center gap-2">
                     {compareList.map((p) => (
@@ -526,7 +526,7 @@ export default function ProductsPage() {
                     ))}
                   </div>
                   <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCompare(true)} disabled={compareList.length < 2} className="px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all disabled:opacity-40 shrink-0" style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Compare</motion.button>
-                  <button onClick={() => setCompareList([])} className="text-[10px] sm:text-xs font-bold shrink-0" style={{ color: colors.text.tertiary }}>Clear</button>
+                  <button onClick={clearCompare} className="text-[10px] sm:text-xs font-bold shrink-0" style={{ color: colors.text.tertiary }}>Clear</button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -561,7 +561,7 @@ export default function ProductsPage() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showCompare && <CompareModal items={compareList} onClose={() => setShowCompare(false)} onRemove={(id) => setCompareList((p) => p.filter((x) => x.id !== id))} />}
+        {showCompare && <CompareModal items={compareList} onClose={() => setShowCompare(false)} onRemove={removeCompare} />}
       </AnimatePresence>
     </div>
   );

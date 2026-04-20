@@ -169,9 +169,9 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
 
   const handleViewDetails = useCallback((e) => {
     e.preventDefault();
-    navigate(`/products/${product.id}`);
+    navigate(`/products/${product.slug || product.id}`);
     setTimeout(onClose, 120);
-  }, [navigate, product.id, onClose]);
+  }, [navigate, product, onClose]);
 
   const onSale = product.price_cents < 2000;
   const currentColorLabel = selectedColor
@@ -196,11 +196,12 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
 
       <div className="absolute inset-0 flex items-end md:items-center justify-center pointer-events-none">
         <motion.div
-          initial={{ opacity: 0, y: 80, scale: 0.92 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 30, scale: 0.97 }}
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.8 }}
           onClick={(e) => e.stopPropagation()}
-          className="pointer-events-auto shadow-2xl overflow-hidden flex flex-col w-full h-[100dvh] max-h-[100dvh] rounded-none md:h-auto md:max-h-[92dvh] md:rounded-2xl md:w-[min(960px,96vw)]"
+          className="pointer-events-auto shadow-2xl overflow-hidden flex flex-col w-full h-[100dvh] max-h-[100dvh] rounded-none md:h-auto md:max-h-[92dvh] md:rounded-3xl md:w-[min(960px,96vw)]"
           style={{ background: themeColors.surface.elevated }}
         >
           <button
@@ -235,8 +236,8 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
             </div>
 
             {/* Info */}
-            <div className="md:w-[40%] flex flex-col md:overflow-hidden p-6 gap-4">
-              <div className="flex-1 md:overflow-y-auto space-y-4 pg-slim pr-2">
+            <div className="md:w-[40%] flex flex-col relative md:overflow-hidden pb-32 md:pb-0">
+              <div className="flex-1 md:overflow-y-auto space-y-4 pg-slim p-6">
                 <div>
                    <p className="text-[10px] mb-1 font-mono uppercase tracking-widest" style={{ color: themeColors.text.tertiary }}>SKU: {String(product.id).slice(0, 8)}</p>
                    <h2 className="text-2xl font-serif font-bold leading-tight" style={{ color: themeColors.text.primary }}>{product.name}</h2>
@@ -267,9 +268,19 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
                 <div className="space-y-4">
                   <div>
                     <p className="text-xs font-bold mb-2 uppercase tracking-wider" style={{ color: themeColors.text.secondary }}>Colour {currentColorLabel && <span className="ml-1 font-normal" style={{ color: themeColors.text.tertiary }}>· {currentColorLabel}</span>}</p>
-                    <div className="flex flex-wrap gap-2.5">
+                    <div className="flex flex-wrap gap-3">
                       {(colors || [{ hex: "#1a1a2e", label: "Midnight" }, { hex: "#f8fafc", label: "Silver" }]).map((col) => (
-                        <button key={col.label} type="button" onClick={() => setSelectedColor(col)} className={`w-8 h-8 rounded-full border-2 transition-all ${selectedColor === col ? "scale-110 shadow-lg" : "hover:scale-105"}`} style={{ background: col.hex, borderColor: selectedColor === col ? themeColors.text.primary : themeColors.border.subtle }} />
+                        <button 
+                          key={col.label} 
+                          type="button" 
+                          onClick={() => setSelectedColor(col)} 
+                          className={`w-8 h-8 rounded-full transition-all ${selectedColor === col ? "scale-110 shadow-lg" : "hover:scale-105 opacity-80 hover:opacity-100"}`} 
+                          style={{ 
+                            background: col.hex, 
+                            border: `1px solid ${themeColors.border.subtle}`,
+                            boxShadow: selectedColor === col ? `0 0 0 2px ${themeColors.surface.elevated}, 0 0 0 4px ${themeColors.text.primary}` : undefined 
+                          }} 
+                        />
                       ))}
                     </div>
                   </div>
@@ -309,7 +320,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose, onCartAdded }, 
               </div>
 
               {/* Bottom Actions */}
-              <div className="pt-4 space-y-3" style={{ borderTop: `1px solid ${themeColors.border.subtle}` }}>
+              <div className="fixed bottom-0 left-0 right-0 md:static p-6 pt-4 space-y-3 z-50 md:z-auto transition-all" style={{ background: themeColors.surface.elevated, borderTop: `1px solid ${themeColors.border.subtle}`, boxShadow: isDark ? '0 -10px 30px rgba(0,0,0,0.5)' : '0 -10px 30px rgba(0,0,0,0.05)' }}>
                 <div className="flex items-center justify-between">
                    <p className="text-xs font-bold uppercase tracking-wider" style={{ color: themeColors.text.secondary }}>Quantity</p>
                    <div className="flex items-center rounded-xl overflow-hidden" style={{ border: `1px solid ${themeColors.border.default}`, background: isDark ? themeColors.surface.tertiary : 'rgba(249,250,251,0.5)' }}>

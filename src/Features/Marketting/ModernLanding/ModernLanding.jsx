@@ -6,9 +6,10 @@ import ModernNavbar from './Components/ModernNavbar';
 import ModernHero from './Components/ModernHero';
 import ModernPainPoints from './Components/ModernPainPoints';
 import ModernPlatform from './Components/ModernPlatform';
-import ModernAiChat from './Components/ModernAiChat';
+import ModernAiChat from '../../AiAssistant/ModernAiChat';
 import ModernCategories from './Components/ModernCategories';
 import ModernWhy from './Components/ModernWhy';
+import ModernGallery from './Components/ModernGallery';
 import { ModernCTA, ModernFooter } from './Components/ModernFooter';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -19,7 +20,7 @@ export default function ModernLanding() {
 
   useEffect(() => {
     // Add Scroll Spy URL updater
-    const sections = ['hero', 'pain-points', 'platform', 'ai-chat', 'categories', 'why-woosho', 'cta'];
+    const sections = ['hero', 'pain-points', 'platform', 'ai-chat', 'gallery', 'categories', 'why-woosho', 'cta'];
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -104,6 +105,10 @@ export default function ModernLanding() {
 
       <div id="ai-chat">
         <ModernAiChat />
+      </div>
+
+      <div id="gallery">
+        <ModernGallery />
       </div>
 
       <div id="categories">

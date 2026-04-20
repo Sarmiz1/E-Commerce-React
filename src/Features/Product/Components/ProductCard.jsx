@@ -107,7 +107,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
       }}
     >
       {/* Image area */}
-      <Link to={`/products/${product.id}`} className="relative block overflow-hidden" style={{ paddingTop: "128%", background: colors.surface.tertiary }}>
+      <Link to={`/products/${product.slug || product.id}`} className="relative block overflow-hidden" style={{ paddingTop: "128%", background: colors.surface.tertiary }}>
         {images.map((src, i) => (
           <img
             key={i}
@@ -183,7 +183,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
 
       {/* Product info */}
       <div className="p-3 flex flex-col gap-1.5 flex-1">
-        <Link to={`/products/${product.id}`}>
+        <Link to={`/products/${product.slug || product.id}`}>
           <p className="text-xs line-clamp-2 leading-snug transition-colors font-medium"
             style={{ color: colors.text.primary }}
           >{product.name}</p>

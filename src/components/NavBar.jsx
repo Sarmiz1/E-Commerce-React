@@ -1101,7 +1101,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
     } else if (e.key === "Enter" && focusedIdx >= 0 && searchResults[focusedIdx]) {
       e.preventDefault();
       const product = searchResults[focusedIdx];
-      navigate(`/products/${product.id}`);
+      navigate(`/products/${product.slug || product.id}`);
       setSearchOpen(false);
     } else if (e.key === "Escape") {
       setSearchOpen(false);
@@ -1534,7 +1534,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                                   initial={{ opacity: 0, x: -8 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   transition={{ delay: i * 0.035 }}
-                                  onClick={() => { navigate(`/products/${product.id}`); setSearchOpen(false); }}
+                                  onClick={() => { navigate(`/products/${product.slug || product.id}`); setSearchOpen(false); }}
                                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-150 group text-left ${focusedIdx === i
                                     ? "bg-indigo-50 ring-2 ring-inset ring-indigo-200"
                                     : "hover:bg-gray-50"

@@ -2,7 +2,10 @@ import { ProductsAPI } from "../api/productsApi";
 
 export const productDetailsLoader = async ({ params }) => {
   try {
-    const product = await ProductsAPI.getById(params.productId);
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.productId);
+    const product = isUUID 
+      ? await ProductsAPI.getById(params.productId)
+      : await ProductsAPI.getBySlug(params.productId);
 
     if (!product) {
       throw new Response("Product not found", { status: 404 });

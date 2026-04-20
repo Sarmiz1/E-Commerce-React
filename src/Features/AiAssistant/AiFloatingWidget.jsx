@@ -8,7 +8,8 @@ export default function AiFloatingWidget() {
   const { isDark, colors } = useTheme();
 
   useEffect(() => {
-    if (isOpen) {
+    const isMobile = window.innerWidth < 768;
+    if (isOpen && isMobile) {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
     } else {

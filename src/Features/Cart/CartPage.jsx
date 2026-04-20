@@ -335,7 +335,7 @@ function CartRow({ item,
         {/* Product Display */}
         <div className="flex gap-4 items-start">
           {/* Product image */}
-          <Link to={`/products/${item.product?.id}`} className="flex-shrink-0">
+          <Link to={`/products/${item.product?.slug || item.product?.id}`} className="flex-shrink-0">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 hover:scale-105 transition-transform duration-300">
               {item.products?.image && (
                 <img src={item.products.image} alt={item.products.name}
@@ -350,7 +350,7 @@ function CartRow({ item,
 
           {/* Details */}
           <div className="flex-1 min-w-0">
-            <Link to={`/products/${item.products?.id}`}>
+            <Link to={`/products/${item.products?.slug || item.products?.id}`}>
               <p className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 hover:text-indigo-700 transition-colors">
                 {item.products?.name || "Product"}
               </p>

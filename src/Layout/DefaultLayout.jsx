@@ -8,7 +8,7 @@ export default function DefaultLayout() {
   
   return (
     <>
-      {/* <Navbar /> */}
+      <Navbar />
       {/* <Suspense fallback={
         <div className="bg-slate-300 h-screen flex justify-center items-center overflow-hidden">
         </div>

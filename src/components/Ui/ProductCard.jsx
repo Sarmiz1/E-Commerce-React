@@ -68,13 +68,13 @@ function Badge({ label, colorClass }) {
 // ── NavigableWrapper ───────────────────────────────────────────────────────────
 // Makes the entire card area navigate to /products/:id on click.
 // Smart exclusion: AddToCart button clicks and anchor clicks are passed through.
-function NavigableWrapper({ productId, children }) {
+function NavigableWrapper({ product, children }) {
   const navigate = useNavigate();
 
   const handleClick = (e) => {
     if (e.target.closest("[data-testid='add-to-cart-btn']")) return;
     if (e.target.closest("a[href]")) return;
-    navigate(`/products/${productId}`);
+    navigate(`/products/${product.slug || product.id}`);
   };
 
   return (
@@ -92,7 +92,7 @@ function StandardCard({ product }) {
   const onSale = isOnSale(product);
 
   return (
-    <NavigableWrapper productId={product.id}>
+    <NavigableWrapper product={product}>
       <motion.div
         data-product-image={product.image}
         whileHover={{ y: -10, boxShadow: "0 32px 64px rgba(79,70,229,0.14)" }}
@@ -143,7 +143,7 @@ function StandardCard({ product }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function HorizontalCard({ product }) {
   return (
-    <NavigableWrapper productId={product.id}>
+    <NavigableWrapper product={product}>
       <motion.div
         data-product-image={product.image}
         whileHover={{ x: 4, boxShadow: "0 8px 32px rgba(79,70,229,0.10)" }}
@@ -188,7 +188,7 @@ function OverlayCard({ product }) {
   const onSale = isOnSale(product);
 
   return (
-    <NavigableWrapper productId={product.id}>
+    <NavigableWrapper product={product}>
       <motion.div
         data-product-image={product.image}
         whileHover={{ y: -8, scale: 1.02 }}
@@ -231,7 +231,7 @@ function CompactCard({ product }) {
   const onSale = isOnSale(product);
 
   return (
-    <NavigableWrapper productId={product.id}>
+    <NavigableWrapper product={product}>
       <motion.div
         data-product-image={product.image}
         whileHover={{ y: -5, scale: 1.03 }}
@@ -275,7 +275,7 @@ function CompactCard({ product }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function GhostCard({ product }) {
   return (
-    <NavigableWrapper productId={product.id}>
+    <NavigableWrapper product={product}>
       <motion.div
         data-product-image={product.image}
         whileHover={{ y: -10, scale: 1.02 }}
@@ -319,7 +319,7 @@ function NavigateCard({ product }) {
   const onSale = isOnSale(product);
 
   return (
-    <Link to={`/products/${product.id}`}
+    <Link to={`/products/${product.slug || product.id}`}
       className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
       <motion.div
         whileHover={{ y: -8, boxShadow: "0 20px 48px rgba(79,70,229,0.12)" }}
@@ -424,7 +424,7 @@ function customWideCard({ product }) {
       className="hp-prod-card group flex gap-4 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300"
     >
       <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
-        <Link to={`/products/${product.id}`} className="cursor-pointer">
+        <Link to={`/products/${product?.slug || product?.id}`} className="cursor-pointer">
           <img 
             src={product?.image} 
             alt={product?.name} 

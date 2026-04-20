@@ -1,53 +1,48 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useMemo } from "react";
+import { motion } from "framer-motion";
 import { useTheme } from "../../../Context/theme/ThemeContext";
-import { ACTIVITY_TEMPLATES, TICKER_MS } from "../constants";
+import { ACTIVITY_TEMPLATES } from "../constants";
 
 export default function LiveTicker({ products }) {
-  const [events, setEvents] = useState([]);
-  const productIdx = useRef(0);
-  const templateIdx = useRef(0);
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
-  useEffect(() => {
-    if (!products.length) return;
-    // Seed initial events
-    const seed = Array.from({ length: 6 }, (_, i) => ({
-      id: i,
-      emoji: ACTIVITY_TEMPLATES[i % ACTIVITY_TEMPLATES.length].emoji,
-      text: ACTIVITY_TEMPLATES[i % ACTIVITY_TEMPLATES.length].tpl
-        .replace("[name]", (products[i % products.length]?.name || "Item").slice(0, 28)),
-    }));
-    setEvents(seed);
-
-    const id = setInterval(() => {
-      productIdx.current = (productIdx.current + 1) % products.length;
-      templateIdx.current = (templateIdx.current + 1) % ACTIVITY_TEMPLATES.length;
-      const p = products[productIdx.current];
-      const tpl = ACTIVITY_TEMPLATES[templateIdx.current];
-      setEvents((prev) => [
-        ...prev.slice(-7),
-        { id: Date.now(), emoji: tpl.emoji, text: tpl.tpl.replace("[name]", (p?.name || "Item").slice(0, 28)) },
-      ]);
-    }, TICKER_MS);
-
-    return () => clearInterval(id);
+  // Pre-generate a large stable list to loop infinitely without state updates
+  const events = useMemo(() => {
+    if (!products || !products.length) return [];
+    return Array.from({ length: 40 }, (_, i) => {
+      const p = products[i % products.length];
+      const tpl = ACTIVITY_TEMPLATES[i % ACTIVITY_TEMPLATES.length];
+      return { 
+        id: `ticker-ev-${i}`, 
+        emoji: tpl.emoji, 
+        text: tpl.tpl.replace("[name]", (p?.name || "Premium Item").slice(0, 28)) 
+      };
+    });
   }, [products]);
 
   if (!events.length) return null;
   const doubled = [...events, ...events];
 
   return (
-    <div className="bg-gray-900 border-b border-gray-800 overflow-hidden py-1.5 flex-shrink-0">
-      <div className="flex whitespace-nowrap pg-ticker select-none">
+    <div className="border-b overflow-hidden py-2 flex-shrink-0 relative" style={{ background: isDark ? '#09090b' : '#f8fafc', borderColor: colors.border.subtle }}>
+      {/* Subtle gradient fades on edges */}
+      <div className="absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${isDark ? '#09090b' : '#f8fafc'}, transparent)` }} />
+      <div className="absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${isDark ? '#09090b' : '#f8fafc'}, transparent)` }} />
+      
+      <motion.div 
+        className="flex whitespace-nowrap select-none w-max"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ repeat: Infinity, ease: "linear", duration: 80 }}
+      >
         {doubled.map((ev, i) => (
-          <span key={`${ev.id}-${i}`} className="inline-flex items-center gap-2 px-5 text-[11px] text-gray-400 flex-shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block pg-dot flex-shrink-0" />
+          <span key={`${ev.id}-${i}`} className="inline-flex items-center gap-2 px-6 text-xs font-medium flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: colors.text.secondary }}>
+            <span className="w-1.5 h-1.5 rounded-full inline-block pg-dot flex-shrink-0" style={{ background: colors.state?.success || '#22c55e' }} />
             <span>{ev.emoji}</span>
             <span>{ev.text}</span>
-            <span className="text-gray-700 mx-1">·</span>
+            <span className="mx-2 opacity-40">·</span>
           </span>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
