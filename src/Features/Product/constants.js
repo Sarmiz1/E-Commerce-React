@@ -1,4 +1,4 @@
-export const PAGE_SIZE = 28;
+export const PAGE_SIZE = 24;
 export const AD_INTERVAL = 12;
 export const TICKER_MS = 4000;
 

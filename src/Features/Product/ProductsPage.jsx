@@ -516,7 +516,7 @@ export default function ProductsPage() {
             {/* Comparison floating bar */}
             <AnimatePresence>
               {compareList.length > 0 && (
-                <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-max max-w-[95vw] px-3 sm:px-5 py-2 sm:py-3 rounded-2xl shadow-2xl border backdrop-blur-xl" style={{ background: isDark ? 'rgba(30,30,34,0.95)' : 'rgba(255,255,255,0.95)', borderColor: colors.border.default }}>
+                <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-fit max-w-[95vw] px-3 sm:px-5 py-2 sm:py-3 rounded-2xl shadow-2xl border backdrop-blur-xl" style={{ background: isDark ? 'rgba(30,30,34,0.95)' : 'rgba(255,255,255,0.95)', borderColor: colors.border.default }}>
                   <span className="text-[10px] sm:text-xs font-bold shrink-0" style={{ color: colors.text.secondary }}>{compareList.length}/2<span className="hidden sm:inline"> selected</span></span>
                   <div className="flex items-center gap-2">
                     {compareList.map((p) => (
