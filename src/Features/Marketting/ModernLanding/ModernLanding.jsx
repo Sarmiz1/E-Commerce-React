@@ -10,7 +10,6 @@ import ModernAiChat from './Components/ModernAiChat';
 import ModernCategories from './Components/ModernCategories';
 import ModernWhy from './Components/ModernWhy';
 import { ModernCTA, ModernFooter } from './Components/ModernFooter';
-import ModernAiFloatingWidget from './Components/ModernAiFloatingWidget';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -127,7 +126,6 @@ export default function ModernLanding() {
 */}
 
 {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
-      <ModernAiFloatingWidget />
     </main>
     </>
   );

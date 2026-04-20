@@ -1,4 +1,4 @@
 export const formatMoneyCents = (priceCent) => {
-
-  return `$${((priceCent / 100).toFixed(2))}`
-}
+  if (priceCent == null || isNaN(priceCent)) return "$0.00";
+  return `$${((priceCent / 100).toFixed(2))}`;
+};
