@@ -24,6 +24,7 @@ import BrandDetail from "../Features/Brands/BrandDetail";
 import OtherPage from "../Features/OtherPage/OtherPage";
 import AnalyticsPage from "../Features/Analytics/AnalyticsPage";
 import SupportPage from "../Features/Support/SupportPage";
+import AboutPage from "../Features/About/AboutPage";
 
 // Per-page skeleton fallbacks
 import {
@@ -94,6 +95,12 @@ const router = createBrowserRouter(
         <Route
           path="analytics"
           element={<AnalyticsPage />}
+        />
+
+        {/* About Page */}
+        <Route
+          path="about"
+          element={<AboutPage />}
         />
 
         {/* analytics pages */}

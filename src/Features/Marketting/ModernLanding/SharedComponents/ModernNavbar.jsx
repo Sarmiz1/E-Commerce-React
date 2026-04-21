@@ -13,6 +13,7 @@ const DEFAULT_LINKS = [
   { label: 'Support', href: '/support' },
   { label: 'Analytics', href: '/analytics' },
   { label: 'Sell', href: '/seller' },
+  { label: 'About', href: '/about' },
 ];
 
 export default function ModernNavbar({ navLinks = DEFAULT_LINKS, pageView = 'isNotHome' }) {
