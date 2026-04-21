@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Suspense } from "react";
+import Footer from "../Components/Footer";
 
 import Navbar from "../Components/Navbar";
 
@@ -15,6 +16,7 @@ export default function DefaultLayout() {
       }> */}
         <Outlet />  {/* This renders the route element */}
       {/* </Suspense > */}
+      <Footer />
     </>
   );
 }

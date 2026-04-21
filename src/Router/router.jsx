@@ -17,6 +17,13 @@ import NotFoundPage from "../Components/NotFoundPage";
 import FallbackPage from "../Components/FallbackPage";
 import CartPage from "../Features/Cart/CartPage";
 import SellerLanding from "../Features/Marketting/WooShoSeller/SellerLanding";
+import SellerDashboard from "../Features/SellerDashboard/SellerDashboard";
+import BuyerDashboard from "../Features/BuyerDashboard/BuyerDashboard";
+import BrandsPage from "../Features/Brands/BrandsPage";
+import BrandDetail from "../Features/Brands/BrandDetail";
+import OtherPage from "../Features/OtherPage/OtherPage";
+import AnalyticsPage from "../Features/Analytics/AnalyticsPage";
+import SupportPage from "../Features/Support/SupportPage";
 
 // Per-page skeleton fallbacks
 import {
@@ -57,13 +64,49 @@ const router = createBrowserRouter(
             element={<LandingPage />}
           />
         )}
+        
       </Route>
 
-      {/* Seller landing page */}
-      <Route path="/seller" element={<LandingLayout />}>
-        <Route index element={<SellerLanding />} />
+
+      {/* All app pages */}
+      <Route element={<LandingLayout />}>
+        {/* Brands Routes */}
+        <Route 
+          path="/brands" 
+          element={<BrandsPage />} 
+        >
+          <Route path=":brandId" element={<BrandDetail />} />
+        </Route>
+
+        {/* Seller landing page */}
+        <Route
+          path="sellers"
+          element={<SellerLanding />}
+        />
+
+        {/* Support Page */}
+        <Route
+          path="support"
+          element={<SupportPage />}
+        />
+
+        {/* Analytics Page */}
+        <Route
+          path="analytics"
+          element={<AnalyticsPage />}
+        />
+
+        {/* analytics pages */}
+        <Route path="analytics" element={<AnalyticsPage />} />
+
+        {/* Dashboards */}
+        <Route path="dashboard/seller" element={<SellerDashboard />} />
+        <Route path="dashboard/buyer" element={<BuyerDashboard />} />
       </Route>
 
+
+
+  
       {/* All app pages */}
       <Route element={<DefaultLayout />}>
         <Route path="checkout" element={<CheckoutPage />} />

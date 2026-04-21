@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import ModernNavbar from '../ModernLanding/Components/ModernNavbar';
+import ModernNavbar from '../ModernLanding/SharedComponents/ModernNavbar';
 import Section1_Hero from './Components/Section1_Hero';
 import Section2_PainClock from './Components/Section2_PainClock';
 import Section3_Dream from './Components/Section3_Dream';
@@ -60,7 +60,12 @@ export default function SellerLanding() {
 
   return (
     <div ref={mainRef} className="bg-[#0A0A0A] text-white min-h-screen relative selection:bg-blue-600/30" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <ModernNavbar />
+      <ModernNavbar navLinks={[
+        { label: 'Shop',       href: '/products'         },
+        { label: 'Features',   href: '#seller-features'  },
+        { label: 'Pricing',    href: '#seller-pricing'   },
+        { label: 'Get Started',href: '#seller-cta'       },
+      ]} />
 
       {/* V1: The Living Feed Hero */}
       <section id="seller-hero" className="seller-section min-h-screen w-full relative">

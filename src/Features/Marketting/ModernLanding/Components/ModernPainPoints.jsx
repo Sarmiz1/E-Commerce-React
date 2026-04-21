@@ -40,16 +40,20 @@ const ModernPainPoints = memo(function ModernPainPoints() {
     <section className="py-24 bg-gray-50 dark:bg-[#131315] transition-colors relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-20">
-          <motion.span 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
             className="text-blue-600 font-bold tracking-widest text-xs uppercase"
           >
             The Status Quo
           </motion.span>
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.h2
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+            viewport={{ once: true }}
             className="text-4xl md:text-6xl font-bold mt-4 text-gray-900 dark:text-white"
           >
             Online Commerce is Broken.
@@ -60,9 +64,9 @@ const ModernPainPoints = memo(function ModernPainPoints() {
           {points.map((section, idx) => (
             <motion.div
               key={section.title}
-              initial={{ opacity: 0, x: idx === 0 ? -40 : 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: idx * 0.2 }}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: idx * 0.08 }}
               viewport={{ once: true }}
               className="glass-card p-10 rounded-[32px] relative overflow-hidden group"
             >

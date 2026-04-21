@@ -1,86 +1,42 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, Suspense, lazy } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-import ModernNavbar from './Components/ModernNavbar';
+import ModernNavbar from './SharedComponents/ModernNavbar';
 import ModernHero from './Components/ModernHero';
-import ModernPainPoints from './Components/ModernPainPoints';
-import ModernPlatform from './Components/ModernPlatform';
-import ModernAiChat from '../../AiAssistant/ModernAiChat';
-import ModernCategories from './Components/ModernCategories';
-import ModernWhy from './Components/ModernWhy';
-import ModernGallery from './Components/ModernGallery';
-import { ModernCTA, ModernFooter } from './Components/ModernFooter';
+
+// Lazy load below-the-fold components for performance
+const ModernPainPoints = lazy(() => import('./Components/ModernPainPoints'));
+const ModernPlatform = lazy(() => import('./Components/ModernPlatform'));
+const ModernAiChat = lazy(() => import('../../AiAssistant/ModernAiChat.jsx'));
+const ModernCategories = lazy(() => import('./Components/ModernCategories'));
+const ModernWhy = lazy(() => import('./Components/ModernWhy'));
+const ModernGallery = lazy(() => import('./Components/ModernGallery'));
+const ModernCTA = lazy(() => import('./SharedComponents/ModernFooter').then(module => ({ default: module.ModernCTA })));
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function ModernLanding() {
   const mainRef = useRef(null);
-  const [step, setStep] = useState(1)
 
-  useEffect(() => {
-    // Add Scroll Spy URL updater
-    const sections = ['hero', 'pain-points', 'platform', 'ai-chat', 'gallery', 'categories', 'why-woosho', 'cta'];
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          window.history.replaceState(null, '', `#${entry.target.id}`);
-        }
-      });
-    }, {
-      rootMargin: "-40% 0px -59% 0px" // Triggers exactly when an element enters the 40% vertical sweet spot
-    });
-
-    sections.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Chained Animation: Pain Points
-      gsap.from("#pain-points", {
-        scrollTrigger: {
-          trigger: "#pain-points",
-          start: "top 95%",
-          once: true,
-        },
-        opacity: 0,
-        y: 30,
-        duration: 0.5,
-        ease: "power2.out"
-      });
+      const REVEAL = { opacity: 0, y: 56, duration: 0.65, ease: 'power4.out' };
+      const sections = [
+        '#pain-points', '#platform', '#ai-chat',
+        '#gallery', '#categories', '#why-woosho', '#cta',
+      ];
 
-      // 2. Chained Animation: Platform
-      gsap.from("#platform", {
-        scrollTrigger: {
-          trigger: "#platform",
-          start: "top 95%",
-          once: true,
-        },
-        opacity: 0,
-        y: 30,
-        duration: 0.5,
-        ease: "power2.out"
+      sections.forEach((id) => {
+        gsap.from(id, {
+          ...REVEAL,
+          scrollTrigger: {
+            trigger: id,
+            start: 'top 88%',
+            toggleActions: 'play none none none',
+          },
+        });
       });
-
-      // 3. AI Chat Entrance
-      gsap.from("#ai-chat", {
-        scrollTrigger: {
-          trigger: "#ai-chat",
-          start: "top 95%",
-          once: true,
-        },
-        opacity: 0,
-        y: 30,
-        duration: 0.5,
-        ease: "power2.out"
-      });
-
     }, mainRef);
 
     return () => ctx.revert();
@@ -88,42 +44,43 @@ export default function ModernLanding() {
 
   return (
     <>
-      <ModernNavbar />
+      <ModernNavbar pageView = 'home'/>
       <main ref={mainRef} className="bg-white dark:bg-[#0E0E10] selection:bg-blue-600/30">
       
       <div id="hero">
         <ModernHero />
       </div>
 
-      <div id="pain-points">
-        <ModernPainPoints />
-      </div>
+      <Suspense fallback={<div className="h-screen w-full flex items-center justify-center text-gray-500">Loading...</div>}>
+        <div id="pain-points">
+          <ModernPainPoints />
+        </div>
 
-      <div id="platform">
-        <ModernPlatform />
-      </div>
+        <div id="platform">
+          <ModernPlatform />
+        </div>
 
-      <div id="ai-chat">
-        <ModernAiChat />
-      </div>
+        <div id="ai-chat">
+          <ModernAiChat />
+        </div>
 
-      <div id="gallery">
-        <ModernGallery />
-      </div>
+        <div id="gallery">
+          <ModernGallery />
+        </div>
 
-      <div id="categories">
-        <ModernCategories />
-      </div>
+        <div id="categories">
+          <ModernCategories />
+        </div>
 
-      <div id="why-woosho">
-        <ModernWhy />
-      </div>
+        <div id="why-woosho">
+          <ModernWhy />
+        </div>
 
-      <div id="cta">
-        <ModernCTA />
-      </div>
+        <div id="cta">
+          <ModernCTA />
+        </div>
 
-      <ModernFooter />
+      </Suspense>
 {/* 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                         Test Ground

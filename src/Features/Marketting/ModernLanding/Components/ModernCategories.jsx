@@ -1,51 +1,52 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import fashionImg from '../../../../assets/marketing/cat-fashion.png';
 import sneakersImg from '../../../../assets/marketing/cat-sneakers.png';
 
-export default function ModernCategories() {
+const ModernCategories = memo(function ModernCategories() {
   const categories = [
     {
       title: "High Fashion",
       desc: "Curated luxury collections",
       image: fashionImg,
       size: "large",
-      link: "/products"
+      link: "/high-fashion"
     },
     {
       title: "Sneakers",
       desc: "Limited drops & grail kicks",
       image: sneakersImg,
       size: "small",
-      link: "/products"
+      link: "/sneakers"
     },
     {
       title: "Electronics",
       desc: "Next-gen tech gear",
       image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800",
       size: "small",
-      link: "/products"
+      link: "/electronics"
     },
     {
       title: "Beauty",
       desc: "Ethical & effective care",
       image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&q=80&w=800",
       size: "medium",
-      link: "/products"
+      link: "/beauty"
     },
     {
       title: "Accessories",
       desc: "The finishing touches",
       image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800",
       size: "medium",
-      link: "/products"
+      link: "/accessories"
     },
     {
       title: "Home Decor",
       desc: "Minimalist living spaces",
       image: "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&q=80&w=800",
       size: "medium",
-      link: "/products"
+      link: "/home-decor"
     }
   ];
 
@@ -108,4 +109,6 @@ export default function ModernCategories() {
       </div>
     </section>
   );
-}
+});
+
+export default ModernCategories;

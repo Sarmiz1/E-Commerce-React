@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Zap, Lock, Globe, BarChart3, Users } from 'lucide-react';
 
-export default function ModernWhy() {
+const ModernWhy = memo(function ModernWhy() {
   const benefits = [
     {
       group: "For Buyers",
@@ -27,9 +28,11 @@ export default function ModernWhy() {
     <section id="why-woosho" className="py-24 bg-gray-50 dark:bg-[#131315] transition-colors overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.h2
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
             className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white"
           >
             Why Woosho Works
@@ -39,11 +42,12 @@ export default function ModernWhy() {
 
         <div className="grid md:grid-cols-2 gap-12">
           {benefits.map((group, gIdx) => (
-            <motion.div 
+            <motion.div
                key={group.group}
-               initial={{ opacity: 0, scale: 0.95 }}
-               whileInView={{ opacity: 1, scale: 1 }}
-               transition={{ delay: gIdx * 0.2 }}
+               initial={{ opacity: 0, y: 36 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: gIdx * 0.07 }}
+               viewport={{ once: true }}
                className="p-10 rounded-[40px] bg-white dark:bg-[#19191C] border border-gray-100 dark:border-white/5"
             >
               <h3 className={`text-2xl font-bold mb-10 ${gIdx === 0 ? 'text-blue-600' : 'text-green-500'}`}>
@@ -75,4 +79,6 @@ export default function ModernWhy() {
       </div>
     </section>
   );
-}
+});
+
+export default ModernWhy;
