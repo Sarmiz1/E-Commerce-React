@@ -27,6 +27,10 @@ import SupportPage from "../Features/Support/SupportPage";
 import AboutPage from "../Features/About/AboutPage";
 import CareersPage from "../Features/Careers/CareersPage";
 import ApplicationForm from "../Features/Careers/ApplicationForm";
+import ContactPage from "../Features/Contact/ContactPage";
+import PressPage from "../Features/Press/PressPage";
+import AdminSimpleDashboard from "../Features/AdminDashboard/AdminSimpleDashboard/AdminSimpleDashboard";
+import AdminModernDashboard from "../Features/AdminDashboard/AdminModernDashboard/AdminModernDashboard";
 
 // Per-page skeleton fallbacks
 import {
@@ -83,7 +87,7 @@ const router = createBrowserRouter(
 
         {/* Seller landing page */}
         <Route
-          path="sellers"
+          path="sell"
           element={<SellerLanding />}
         />
 
@@ -113,6 +117,29 @@ const router = createBrowserRouter(
         <Route
           path="careers/apply"
           element={<ApplicationForm />}
+        />
+
+        {/* Contact Page */}
+        <Route
+          path="contact"
+          element={<ContactPage />}
+        />
+
+        {/* Press Page */}
+        <Route
+          path="press"
+          element={<PressPage />}
+        />
+
+        {/* Admin Dashboard (Woosho OS) */}
+        <Route
+          path="admin"
+          element={<AdminModernDashboard />}
+        />
+
+        <Route
+          path="adminsimp"
+          element={<AdminSimpleDashboard />}
         />
 
         {/* analytics pages */}
