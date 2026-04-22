@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTheme } from '../../Context/theme/ThemeContext';
 import { Link } from 'react-router-dom';
 import { 
   Search, Package, CreditCard, User, RotateCcw, 
@@ -40,18 +41,10 @@ const SYSTEM_STATUS = [
 
 export default function SupportPage() {
   const [openFaq, setOpenFaq] = useState(null);
-
-  // Force light mode styling for the support page for a professional, Stripe-like feel.
-  React.useEffect(() => {
-    document.documentElement.classList.remove('dark');
-    document.body.style.backgroundColor = '#FAFAFA';
-    return () => {
-      document.body.style.backgroundColor = '';
-    };
-  }, []);
+  const { isDark, colors } = useTheme();
 
   return (
-    <div className="bg-[#FAFAFA] text-gray-900 min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen" style={{ fontFamily: "'Inter', sans-serif", background: isDark ? '#0a0a0a' : '#FAFAFA', color: isDark ? '#f9fafb' : '#111827' }}>
       <ModernNavbar navLinks={[
         { label: 'Shop',       href: '/products' },
         { label: 'Brands',     href: '/brands' },

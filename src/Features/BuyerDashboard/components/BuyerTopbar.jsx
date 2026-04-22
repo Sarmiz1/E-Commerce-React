@@ -3,16 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
-import { BUYER_NOTIFICATIONS } from '../data/buyerData';
 
 export default function BuyerTopbar() {
   const { colors, isDark, toggle } = useTheme();
-  const { page, setPage, setSidebarOpen } = useBuyer();
+  const { page, setPage, setSidebarOpen, notifs, unreadCount } = useBuyer();
   const [notifOpen, setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [search, setSearch]           = useState('');
 
-  const unread = BUYER_NOTIFICATIONS.filter(n => n.unread).length;
+  const unread = unreadCount ?? 0;
+  const BUYER_NOTIFICATIONS = notifs ?? [];
   const pageLabel = BUYER_NAV.find(n => n.id === page)?.label || 'Dashboard';
 
   const NOTIF_COLOR = {

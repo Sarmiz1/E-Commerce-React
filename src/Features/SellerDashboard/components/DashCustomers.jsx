@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { CUSTOMERS } from '../data/mockData';
+import { useDashboard } from '../context/DashboardContext';
 import { fmtFull } from '../utils/format';
 import { Icon } from './DashIcon';
 
@@ -22,10 +22,13 @@ function CustomerTag({ tag }) {
 
 export default function DashCustomers() {
   const { colors, isDark } = useTheme();
+  const { customers: liveCustomers } = useDashboard();
   const [search, setSearch] = useState('');
   const [tagFilter, setTagFilter] = useState('all');
   const [sortBy, setSortBy] = useState('spent');
   const [selected, setSelected] = useState(null);
+
+  const CUSTOMERS = liveCustomers ?? [];
 
   const filtered = CUSTOMERS
     .filter(c => {

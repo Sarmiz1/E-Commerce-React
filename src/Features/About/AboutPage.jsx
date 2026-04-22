@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import ModernNavbar from '../Marketting/ModernLanding/SharedComponents/ModernNavbar';
 import { ModernFooter } from '../Marketting/ModernLanding/SharedComponents/ModernFooter';
+import { useTheme } from '../../Context/theme/ThemeContext';
+// Reusing generic lucide icons for missing ones
+import { Package, Search } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,48 +36,39 @@ const TRUST_PILLARS = [
   { title: 'Transparent Transactions', desc: 'No hidden fees. Full escrow protection.', icon: Search }
 ];
 
-// Reusing generic lucide icons for missing ones
-import { Package, Search } from 'lucide-react';
+
 
 export default function AboutPage() {
   const mainRef = useRef(null);
+  const { isDark } = useTheme();
+
+  const bg = isDark ? '#050505' : '#ffffff';
+  const textPrimary = isDark ? '#fff' : '#0f172a';
+  const textMuted = isDark ? '#9ca3af' : '#64748b';
+  const cardBg = isDark ? 'rgba(39,39,42,0.5)' : 'rgba(248,250,252,0.9)';
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
+  const sectionBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
 
   useEffect(() => {
-    document.documentElement.classList.add('dark');
-    document.body.style.backgroundColor = '#050505';
-
     const ctx = gsap.context(() => {
-      // Fade up reveals
       gsap.utils.toArray('.reveal-up').forEach(el => {
         gsap.fromTo(el,
           { y: 40, opacity: 0 },
-          {
-            y: 0, opacity: 1, duration: 1, ease: 'power3.out',
-            scrollTrigger: { trigger: el, start: 'top 85%' }
-          }
+          { y: 0, opacity: 1, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%' } }
         );
       });
-      
-      // Stagger items
       gsap.utils.toArray('.stagger-grid').forEach(grid => {
         gsap.fromTo(grid.children,
           { y: 30, opacity: 0 },
-          {
-            y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'power2.out',
-            scrollTrigger: { trigger: grid, start: 'top 80%' }
-          }
+          { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'power2.out', scrollTrigger: { trigger: grid, start: 'top 80%' } }
         );
       });
     }, mainRef);
-
-    return () => {
-      ctx.revert();
-      document.body.style.backgroundColor = '';
-    };
+    return () => ctx.revert();
   }, []);
 
   return (
-    <div ref={mainRef} className="bg-[#050505] text-white min-h-screen selection:bg-blue-600/30" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div ref={mainRef} className="min-h-screen selection:bg-blue-600/30" style={{ fontFamily: "'Inter', sans-serif", background: bg, color: textPrimary }}>
       <ModernNavbar navLinks={[
         { label: 'Shop',       href: '/products' },
         { label: 'Brands',     href: '/brands' },

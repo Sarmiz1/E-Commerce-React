@@ -2,10 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, animate, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useBuyer } from '../context/BuyerContext';
-import {
-  BUYER_PROFILE, BUYER_STATS, ORDER_STATUS_SNAPSHOT,
-  BUYER_ORDERS, RECOMMENDATIONS, SMART_INSIGHTS
-} from '../data/buyerData';
 import { fmtFull, fmtNaira, getGreeting } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 
@@ -172,8 +168,8 @@ function RecCard({ item, index }) {
 // ─── Overview ─────────────────────────────────────────────────────────────────
 export default function BuyerOverview() {
   const { colors, isDark } = useTheme();
-  const { setPage } = useBuyer();
-  const activeOrders = BUYER_ORDERS.filter(o => o.status === 'shipped' || o.status === 'pending');
+  const { setPage, stats, snapshot, orders, recommendations, insights } = useBuyer();
+  const activeOrders = (orders || []).filter(o => o.status === 'shipped' || o.status === 'pending');
 
   return (
     <div className="space-y-8">
@@ -198,7 +194,7 @@ export default function BuyerOverview() {
 
           <div className="flex items-center gap-4">
             <div className="text-center">
-              <p className="text-2xl font-black text-white"><CountUp to={BUYER_STATS.rewardPoints} duration={1.6} /></p>
+              <p className="text-2xl font-black text-white"><CountUp to={(stats || {}).rewardPoints || 0} duration={1.6} /></p>
               <p className="text-[11px] text-white/60">Reward Points</p>
             </div>
             <div className="w-px h-10 bg-white/20" />
@@ -214,17 +210,17 @@ export default function BuyerOverview() {
 
       {/* ── Quick stats ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Orders"      value={BUYER_STATS.totalOrders}   icon="package"    color="#667eea" delay={0.05} />
-        <StatCard label="Wishlist Items"    value={BUYER_STATS.wishlistItems}  icon="heart"      color="#ec4899" delay={0.1} />
-        <StatCard label="Reward Points"     value={BUYER_STATS.rewardPoints}   icon="star"       color="#f59e0b" delay={0.15} />
-        <StatCard label="Total Saved"       value={BUYER_STATS.savedAmount}    icon="save"       color="#059669" delay={0.2} prefix="₦" />
+        <StatCard label="Total Orders"      value={(stats || {}).totalOrders   || 0}   icon="package"    color="#667eea" delay={0.05} />
+        <StatCard label="Wishlist Items"    value={(stats || {}).wishlistItems  || 0}   icon="heart"      color="#ec4899" delay={0.1} />
+        <StatCard label="Reward Points"     value={(stats || {}).rewardPoints   || 0}   icon="star"       color="#f59e0b" delay={0.15} />
+        <StatCard label="Total Saved"       value={(stats || {}).savedAmount    || 0}   icon="save"       color="#059669" delay={0.2} prefix="₦" />
       </div>
 
       {/* ── Order status snapshot ── */}
       <div>
         <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: colors.text.tertiary }}>Order Status</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.entries(ORDER_STATUS_SNAPSHOT).map(([status, count], i) => {
+          {Object.entries(snapshot || {}).map(([status, count], i) => {
             const META = {
               pending:   { icon: 'refresh',  color: '#f59e0b', label: 'Pending'   },
               shipped:   { icon: 'truck',    color: '#667eea', label: 'Shipped'   },
@@ -255,7 +251,7 @@ export default function BuyerOverview() {
           <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: colors.text.tertiary }}>Smart Insights</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {SMART_INSIGHTS.map((ins, i) => <InsightCard key={i} insight={ins} index={i} />)}
+          {(insights || []).map((ins, i) => <InsightCard key={i} insight={ins} index={i} />)}
         </div>
       </div>
 
@@ -312,7 +308,7 @@ export default function BuyerOverview() {
           <button className="text-xs font-semibold" style={{ color: '#667eea' }}>Based on your taste & size →</button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {RECOMMENDATIONS.map((r, i) => <RecCard key={r.id} item={r} index={i} />)}
+          {(recommendations || []).map((r, i) => <RecCard key={r.id} item={r} index={i} />)}
         </div>
       </div>
     </div>

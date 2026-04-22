@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { useSellerData } from '../hooks/useSellerData';
 
 const DashboardContext = createContext(null);
 
@@ -20,11 +21,16 @@ export function DashboardProvider({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  // ── Live Supabase data (falls back to mock) ──
+  const data = useSellerData();
+
   return (
     <DashboardContext.Provider value={{
       activePage, setActivePage,
       sidebarCollapsed, setSidebarCollapsed,
       mobileSidebarOpen, setMobileSidebarOpen,
+      // Spread all live data + actions
+      ...data,
     }}>
       {children}
     </DashboardContext.Provider>

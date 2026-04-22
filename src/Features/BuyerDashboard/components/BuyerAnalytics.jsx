@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { SPENDING_DATA } from '../data/buyerData';
+import { useBuyer } from '../context/BuyerContext';
 import { fmtFull, fmtNaira } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 
@@ -19,10 +19,14 @@ const CAT_COLORS = ['#667eea', '#ec4899', '#f59e0b', '#10b981'];
 
 export default function BuyerAnalytics() {
   const { colors, isDark } = useTheme();
+  const { spending } = useBuyer();
+  const SPENDING_DATA = spending || { categories: [], monthly: [] };
   const [active, setActive] = useState(null);
 
-  const totalSpend = SPENDING_DATA.categories.reduce((s, c) => s + c.spend, 0);
-  const barMax = Math.max(...SPENDING_DATA.monthly.map(m => m.spend));
+  const categories = SPENDING_DATA.categories || [];
+  const monthly    = SPENDING_DATA.monthly    || [];
+  const totalSpend = categories.reduce((s, c) => s + c.spend, 0);
+  const barMax     = monthly.length ? Math.max(...monthly.map(m => m.spend)) : 1;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -41,7 +45,7 @@ export default function BuyerAnalytics() {
         <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white opacity-[0.07]" />
         <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Total Lifetime Spend</p>
         <p className="text-4xl font-black text-white">{fmtFull(totalSpend)}</p>
-        <p className="text-white/60 text-xs mt-2">Across {SPENDING_DATA.categories.length} categories</p>
+        <p className="text-white/60 text-xs mt-2">Across {categories.length} categories</p>
       </motion.div>
 
       {/* Category breakdown */}
@@ -49,7 +53,7 @@ export default function BuyerAnalytics() {
         className="rounded-2xl p-6 shadow-sm" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
         <p className="font-bold text-sm mb-5" style={{ color: colors.text.primary }}>By Category</p>
         <div className="space-y-4">
-          {SPENDING_DATA.categories.map((c, i) => (
+          {categories.map((c, i) => (
             <motion.div key={c.label} layout
               className="cursor-pointer" onClick={() => setActive(active === c.label ? null : c.label)}>
               <div className="flex items-center justify-between mb-1.5">
@@ -81,7 +85,7 @@ export default function BuyerAnalytics() {
         className="rounded-2xl p-6 shadow-sm" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
         <p className="font-bold text-sm mb-6" style={{ color: colors.text.primary }}>Monthly Spending</p>
         <div className="flex items-end gap-3 h-36">
-          {SPENDING_DATA.monthly.map((m, i) => {
+          {monthly.map((m, i) => {
             const h = (m.spend / barMax) * 100;
             return (
               <div key={m.month} className="flex-1 flex flex-col items-center gap-2 group">
@@ -94,7 +98,7 @@ export default function BuyerAnalytics() {
                   transition={{ delay: 0.2 + i * 0.08, duration: 0.7, ease: 'easeOut' }}
                   whileHover={{ scaleX: 1.1 }}
                   className="w-full rounded-t-xl cursor-pointer"
-                  style={{ background: i === SPENDING_DATA.monthly.length - 1 ? 'linear-gradient(180deg,#667eea,#764ba2)' : (isDark ? 'rgba(102,126,234,0.3)' : 'rgba(102,126,234,0.15)') }} />
+                  style={{ background: i === monthly.length - 1 ? 'linear-gradient(180deg,#667eea,#764ba2)' : (isDark ? 'rgba(102,126,234,0.3)' : 'rgba(102,126,234,0.15)') }} />
                 <span className="text-[10px] font-bold" style={{ color: colors.text.tertiary }}>{m.month}</span>
               </div>
             );

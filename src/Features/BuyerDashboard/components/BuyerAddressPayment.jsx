@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { ADDRESSES, PAYMENT_METHODS } from '../data/buyerData';
+import { useBuyer } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
 
 // ─── Addresses ────────────────────────────────────────────────────────────────
 export function BuyerAddresses() {
   const { colors, isDark } = useTheme();
-  const [addresses, setAddresses] = useState(ADDRESSES);
+  const { addresses: liveAddresses, payments: PAYMENT_METHODS, addAddress, profile } = useBuyer();
+  const [localAddresses, setLocalAddresses] = useState(null);
+  const addresses = localAddresses ?? liveAddresses ?? [];
   const [adding, setAdding] = useState(false);
   const [newAddr, setNewAddr] = useState({ label: '', line1: '', line2: '', phone: '' });
   const [saved, setSaved] = useState(false);
@@ -15,15 +17,16 @@ export function BuyerAddresses() {
   const saveNew = async () => {
     if (!newAddr.line1) return;
     setSaved(true);
-    await new Promise(r => setTimeout(r, 800));
-    setAddresses(a => [...a, { id: Date.now(), ...newAddr, name: 'Samuel Okafor', isDefault: false }]);
+    const newItem = { id: Date.now(), ...newAddr, name: profile?.name || 'Samuel Okafor', isDefault: !addresses.length };
+    setLocalAddresses(a => [...(a ?? liveAddresses ?? []), newItem]);
+    await addAddress({ ...newAddr, name: newItem.name, isDefault: newItem.isDefault });
     setAdding(false);
     setNewAddr({ label: '', line1: '', line2: '', phone: '' });
     setSaved(false);
   };
 
-  const setDefault = (id) => setAddresses(a => a.map(ad => ({ ...ad, isDefault: ad.id === id })));
-  const remove = (id) => setAddresses(a => a.filter(ad => ad.id !== id));
+  const setDefault = (id) => setLocalAddresses(a => (a ?? liveAddresses ?? []).map(ad => ({ ...ad, isDefault: ad.id === id })));
+  const remove = (id) => setLocalAddresses(a => (a ?? liveAddresses ?? []).filter(ad => ad.id !== id));
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -117,10 +120,11 @@ export function BuyerAddresses() {
 // ─── Payment Methods ──────────────────────────────────────────────────────────
 export function BuyerPayments() {
   const { colors, isDark } = useTheme();
-  const [cards, setCards] = useState(PAYMENT_METHODS);
+  const { payments: livePayments } = useBuyer();
+  const [cards, setCards] = useState(null);
+  const allCards = cards ?? livePayments ?? [];
   const [delId, setDelId] = useState(null);
   const [adding, setAdding] = useState(false);
-
   const BRAND_GRADIENT = { Mastercard: 'linear-gradient(135deg,#eb5757,#b91c1c)', Visa: 'linear-gradient(135deg,#1a1f71,#2563eb)' };
 
   return (
@@ -143,7 +147,7 @@ export function BuyerPayments() {
 
       {/* Cards */}
       <div className="space-y-4">
-        {cards.map((card, i) => (
+        {allCards.map((card, i) => (
           <motion.div key={card.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
             className="rounded-2xl overflow-hidden shadow-sm relative"
             style={{ border: `1.5px solid ${card.isDefault ? '#667eea' : colors.border.subtle}` }}>
@@ -163,7 +167,7 @@ export function BuyerPayments() {
                 {!card.isDefault && (
                   <button className="text-[10px] font-bold px-2.5 py-1 rounded-lg"
                     style={{ color: '#667eea', background: 'rgba(102,126,234,0.08)' }}
-                    onClick={() => setCards(c => c.map(cd => ({ ...cd, isDefault: cd.id === card.id })))}>
+                    onClick={() => setCards(c => (c ?? livePayments ?? []).map(cd => ({ ...cd, isDefault: cd.id === card.id })))}>
                     Set Default
                   </button>
                 )}
@@ -195,7 +199,7 @@ export function BuyerPayments() {
               <div className="flex gap-3">
                 <button onClick={() => setDelId(null)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold border"
                   style={{ borderColor: colors.border.default, color: colors.text.secondary }}>Cancel</button>
-                <button onClick={() => { setCards(c => c.filter(cd => cd.id !== delId)); setDelId(null); }}
+                <button onClick={() => { setCards(c => (c ?? livePayments ?? []).filter(cd => cd.id !== delId)); setDelId(null); }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-bold" style={{ background: '#ef4444', color: '#fff' }}>Remove</button>
               </div>
             </motion.div>

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { ANALYTICS } from '../data/mockData';
+import { useDashboard } from '../context/DashboardContext';
 import { Icon } from './DashIcon';
 
 // ─── Animated Horizontal Bar ──────────────────────────────────────────────────
@@ -159,6 +159,11 @@ function MetricCard({ label, value, change, icon, delay }) {
 // ─── Analytics Page ────────────────────────────────────────────────────────────
 export default function DashAnalytics() {
   const { colors, isDark } = useTheme();
+  const { analytics } = useDashboard();
+  const ANALYTICS = analytics || { categoryRevenue: [], trafficSources: [], peakHours: [] };
+  const categoryRevenue = ANALYTICS.categoryRevenue || [];
+  const trafficSources  = ANALYTICS.trafficSources  || [];
+  const peakHours       = ANALYTICS.peakHours       || [];
   const [activeCategory, setActiveCategory] = useState(null);
   const catColors = [colors.cta.primary, '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
   const srcColors = [colors.cta.primary, '#10b981', '#f59e0b', '#8b5cf6'];
@@ -185,7 +190,7 @@ export default function DashAnalytics() {
           className="rounded-2xl p-6 shadow-sm" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
           <p className="font-bold text-sm mb-5" style={{ color: colors.text.primary }}>Revenue by Category</p>
           <div className="space-y-4">
-            {ANALYTICS.categoryRevenue.map((c, i) => (
+            {categoryRevenue.map((c, i) => (
               <HorizBar key={c.label} label={c.label} pct={c.pct} value={c.value} color={catColors[i % catColors.length]}
                 isActive={activeCategory === null || activeCategory === c.label}
                 onClick={() => setActiveCategory(activeCategory === c.label ? null : c.label)} />
@@ -197,7 +202,7 @@ export default function DashAnalytics() {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }}
           className="rounded-2xl p-6 shadow-sm flex flex-col gap-5" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
           <p className="font-bold text-sm" style={{ color: colors.text.primary }}>Traffic Sources</p>
-          <DonutChart data={ANALYTICS.trafficSources} colors={srcColors} />
+          <DonutChart data={trafficSources} colors={srcColors} />
 
           {/* AI Insight */}
           <motion.div className="p-4 rounded-xl mt-auto" animate={{ opacity: [0.6, 1, 0.6] }} transition={{ repeat: Infinity, duration: 4 }}
@@ -223,7 +228,7 @@ export default function DashAnalytics() {
             Peak: 6PM–9PM
           </span>
         </div>
-        <PeakHours data={ANALYTICS.peakHours} />
+        <PeakHours data={peakHours} />
       </motion.div>
     </div>
   );

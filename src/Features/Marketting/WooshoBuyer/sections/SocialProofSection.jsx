@@ -1,0 +1,140 @@
+import React, { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Star } from 'lucide-react';
+
+gsap.registerPlugin(ScrollTrigger);
+
+const REVIEWS = [
+  {
+    quote: "Woosho's AI found the exact sneakers I wanted in under 10 seconds. Nothing else comes close.",
+    author: "Michael O.",
+    role: "Fashion Enthusiast",
+    location: "Lagos",
+    avatar: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=80&h=80&q=80&fit=crop",
+    rating: 5,
+  },
+  {
+    quote: "I used to spend hours comparing prices across different sites. Now I just ask the AI and it handles everything.",
+    author: "Adaeze T.",
+    role: "Frequent Shopper",
+    location: "Abuja",
+    avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&q=80&fit=crop",
+    rating: 5,
+  },
+  {
+    quote: "Fastest checkout experience I've ever had. The recommendations are actually smart, not random.",
+    author: "Chukwudi K.",
+    role: "Tech Buyer",
+    location: "Port Harcourt",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&q=80&fit=crop&face=center",
+    rating: 5,
+  },
+];
+
+const SocialProofSection = () => {
+  const sectionRef = useRef(null);
+  const cardsRef = useRef([]);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(cardsRef.current,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.9, stagger: 0.18, ease: "expo.out",
+          scrollTrigger: { trigger: sectionRef.current, start: "top 72%" } }
+      );
+    }, sectionRef);
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="w-full py-28 px-6 md:px-12" style={{ background: "#0a0a0a" }}>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-6"
+            style={{ background: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.2)" }}>
+            ⭐ Verified Reviews
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
+            Why Buyers Love Woosho
+          </h2>
+          <p className="text-neutral-400 text-lg max-w-xl mx-auto">
+            Real shoppers. Real results. Every day.
+          </p>
+        </div>
+
+        {/* Review Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {REVIEWS.map((rev, i) => (
+            <div
+              key={i}
+              ref={el => cardsRef.current[i] = el}
+              style={{
+                background: "linear-gradient(145deg, #141414, #1a1a1a)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: 24,
+                padding: "32px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 20,
+                transition: "border-color 0.3s, transform 0.3s",
+                cursor: "default",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.transform = "none"; }}
+            >
+              {/* Stars */}
+              <div className="flex gap-1">
+                {Array.from({ length: rev.rating }).map((_, s) => (
+                  <Star key={s} size={14} className="fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+
+              {/* Quote */}
+              <p style={{ fontSize: 15, color: "#e5e7eb", lineHeight: 1.75, fontWeight: 500, flex: 1 }}>
+                "{rev.quote}"
+              </p>
+
+              {/* Author */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <img
+                  src={rev.avatar}
+                  alt={rev.author}
+                  style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(99,102,241,0.4)" }}
+                  onError={e => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
+                  }}
+                />
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#a855f7)", display: "none", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", fontWeight: 900, flexShrink: 0 }}>
+                  {rev.author[0]}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#f9fafb" }}>{rev.author}</div>
+                  <div style={{ fontSize: 11, color: "#6b7280" }}>{rev.role} · {rev.location}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-8 mt-20 pt-12" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          {[
+            { value: "2.4M+", label: "Happy Shoppers" },
+            { value: "4.9★", label: "Average Rating" },
+            { value: "98%", label: "Satisfaction Rate" },
+          ].map((s, i) => (
+            <div key={i} className="text-center">
+              <div style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default SocialProofSection;

@@ -3,49 +3,40 @@ import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Brain, TrendingUp, Search, Zap, ArrowRight, BarChart3, Users, RefreshCcw, DollarSign, ShoppingCart } from 'lucide-react';
-
-
+import { useTheme } from '../../Context/theme/ThemeContext';
 import ModernNavbar from '../Marketting/ModernLanding/SharedComponents/ModernNavbar';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function AnalyticsPage() {
   const mainRef = useRef(null);
+  const { isDark } = useTheme();
 
   useEffect(() => {
-    document.documentElement.classList.add('dark');
-    document.body.style.backgroundColor = '#050505';
-
     const ctx = gsap.context(() => {
-      // Reveal animations for all sections
       gsap.utils.toArray('.reveal-up').forEach(el => {
         gsap.fromTo(el,
           { y: 50, opacity: 0 },
-          {
-            y: 0, opacity: 1, duration: 0.8, ease: 'expo.out',
-            scrollTrigger: { trigger: el, start: 'top 85%' }
-          }
+          { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 85%' } }
         );
       });
-      
-      // Stagger stats
       gsap.fromTo('.stat-card',
         { y: 40, opacity: 0 },
-        {
-          y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', stagger: 0.1,
-          scrollTrigger: { trigger: '#ai-metrics', start: 'top 80%' }
-        }
+        { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', stagger: 0.1, scrollTrigger: { trigger: '#ai-metrics', start: 'top 80%' } }
       );
     }, mainRef);
-
-    return () => {
-      ctx.revert();
-      document.body.style.backgroundColor = '';
-    };
+    return () => ctx.revert();
   }, []);
 
+  const bg = isDark ? '#050505' : '#f8fafc';
+  const textPrimary = isDark ? '#fff' : '#0f172a';
+  const textMuted = isDark ? '#6b7280' : '#64748b';
+  const cardBg = isDark ? 'rgba(39,39,42,0.5)' : 'rgba(255,255,255,0.8)';
+  const cardBorder = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.07)';
+  const sectionBorder = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.07)';
+
   return (
-    <div ref={mainRef} className="bg-[#050505] text-white min-h-screen selection:bg-blue-600/30" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div ref={mainRef} className="min-h-screen selection:bg-blue-600/30" style={{ fontFamily: "'Inter', sans-serif", background: bg, color: textPrimary }}>
       <ModernNavbar navLinks={[
         { label: 'Shop',       href: '/products' },
         { label: 'Brands',     href: '/brands' },

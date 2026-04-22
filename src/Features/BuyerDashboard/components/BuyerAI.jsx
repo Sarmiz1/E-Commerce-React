@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { RECOMMENDATIONS, AI_CHAT_SUGGESTIONS } from '../data/buyerData';
+import { useBuyer } from '../context/BuyerContext';
+import { AI_CHAT_SUGGESTIONS } from '../data/buyerData';
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 
@@ -70,6 +71,27 @@ function ProductResult({ item, delay }) {
 
 export default function BuyerAI() {
   const { colors, isDark } = useTheme();
+  const { recommendations: RECOMMENDATIONS } = useBuyer();
+
+  const AI_RESPONSES = {
+    default: {
+      text: "I found some great matches for you! Here are my top picks based on your preferences and budget.",
+      products: RECOMMENDATIONS || [],
+    },
+    sneakers: {
+      text: "Based on your EU 42 size and past Nike purchases, here are the best sneakers under your budget:",
+      products: (RECOMMENDATIONS || []).filter(r => r.category === 'Footwear'),
+    },
+    shirts: {
+      text: "You prefer M-size shirts and have bought similar items before. Here are the best work shirts:",
+      products: (RECOMMENDATIONS || []).filter(r => r.category === 'Fashion'),
+    },
+    tech: {
+      text: "Based on your Wireless Earbuds purchase, here are compatible tech products you'll love:",
+      products: (RECOMMENDATIONS || []).filter(r => r.category === 'Tech'),
+    },
+  };
+
   const [messages, setMessages] = useState([
     { role: 'ai', text: "Hi Samuel! I'm your personal shopping AI. Tell me what you're looking for — I already know your size, budget preferences, and what you love. 🎯" },
   ]);

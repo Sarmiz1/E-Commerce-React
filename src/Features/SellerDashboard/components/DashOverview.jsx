@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { SELLER_STATS, REVENUE_CHART, RECENT_ORDERS } from '../data/mockData';
+import { useDashboard } from '../context/DashboardContext';
 import { fmt, fmtFull, changeColor, changeLabel, getGreeting } from '../utils/format';
 import { Icon } from './DashIcon';
 
@@ -187,12 +187,14 @@ export function StatusBadge({ status }) {
 // ─── Overview Page ──────────────────────────────────────────────────────────────
 export default function DashOverview() {
   const { colors, isDark } = useTheme();
+  const { stats, revenueChart, orders, loading } = useDashboard();
   const [chartRange, setChartRange] = useState('7d');
-  const chartData = REVENUE_CHART[chartRange];
+  const chartData = (revenueChart || {})[chartRange] || [];
   const RANGES = [{ k: '7d', l: '7D' }, { k: '30d', l: '30D' }, { k: '90d', l: '90D' }];
   const STAT_ICONS = { totalRevenue: 'trending-up', ordersToday: 'package', totalOrders: 'box', activeProducts: 'tag', conversionRate: 'percent', pendingPayout: 'wallet' };
 
   const totalChartRevenue = chartData.reduce((s, d) => s + d.value, 0);
+  const pendingCount = (orders || []).filter(o => o.status === 'pending').length;
 
   return (
     <div className="space-y-8">
@@ -208,7 +210,7 @@ export default function DashOverview() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {Object.entries(SELLER_STATS).map(([key, stat], i) => (
+        {Object.entries(stats || {}).map(([key, stat], i) => (
           <div key={key} className={key === 'totalRevenue' || key === 'pendingPayout' ? 'col-span-2 xl:col-span-1' : ''}>
             <StatCard stat={stat} icon={STAT_ICONS[key]} delay={i * 0.08} />
           </div>
@@ -302,7 +304,7 @@ export default function DashOverview() {
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
           <p className="font-bold text-sm" style={{ color: colors.text.primary }}>Recent Orders</p>
           <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: isDark ? 'rgba(144,171,255,0.1)' : 'rgba(0,80,212,0.07)', color: colors.cta.primary }}>
-            {RECENT_ORDERS.filter(o => o.status === 'pending').length} pending
+            {pendingCount} pending
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -315,7 +317,7 @@ export default function DashOverview() {
               </tr>
             </thead>
             <tbody className="divide-y" style={{ borderColor: colors.border.subtle }}>
-              {RECENT_ORDERS.slice(0, 6).map((order, i) => (
+              {(orders || []).slice(0, 6).map((order, i) => (
                 <motion.tr key={order.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}

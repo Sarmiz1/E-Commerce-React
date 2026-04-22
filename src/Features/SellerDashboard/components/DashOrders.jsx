@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { RECENT_ORDERS } from '../data/mockData';
+import { useDashboard } from '../context/DashboardContext';
 import { fmtFull } from '../utils/format';
 import { Icon } from './DashIcon';
 import { StatusBadge } from './DashOverview';
@@ -11,17 +11,21 @@ const STATUS_FLOW = ['pending', 'processing', 'shipped', 'delivered'];
 
 export default function DashOrders() {
   const { colors, isDark } = useTheme();
+  const { orders: liveOrders, updateOrderStatus, loading } = useDashboard();
   const [activeStatus, setActiveStatus] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [orders, setOrders] = useState(RECENT_ORDERS);
-  const [pendingStatus, setPendingStatus] = useState(null); // what user clicked in detail panel
+  const [orders, setOrders] = useState(null); // null = use live data
+  const [pendingStatus, setPendingStatus] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [search, setSearch] = useState('');
 
-  const filtered = orders.filter(o => {
+  // merge local optimistic updates with live data
+  const baseOrders = orders ?? liveOrders ?? [];
+
+  const filtered = baseOrders.filter(o => {
     const matchStatus = activeStatus === 'all' || o.status === activeStatus;
-    const matchSearch = search === '' || o.customer.toLowerCase().includes(search.toLowerCase()) || o.id.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = search === '' || (o.customer || '').toLowerCase().includes(search.toLowerCase()) || (o.id || '').toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
 
@@ -34,16 +38,21 @@ export default function DashOrders() {
   const saveStatus = useCallback(async () => {
     if (!pendingStatus || pendingStatus === selectedOrder.status) return;
     setSaving(true);
-    await new Promise(r => setTimeout(r, 900)); // simulate API
-    setOrders(prev => prev.map(o => o.id === selectedOrder.id ? { ...o, status: pendingStatus } : o));
-    setSelectedOrder(prev => ({ ...prev, status: pendingStatus }));
+    const result = await updateOrderStatus(selectedOrder.id, pendingStatus);
+    if (result?.success) {
+      // optimistic update
+      setOrders(prev => (prev ?? liveOrders ?? []).map(o =>
+        o.id === selectedOrder.id ? { ...o, status: pendingStatus } : o
+      ));
+      setSelectedOrder(prev => ({ ...prev, status: pendingStatus }));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2200);
+    }
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2200);
-  }, [pendingStatus, selectedOrder]);
+  }, [pendingStatus, selectedOrder, updateOrderStatus, liveOrders]);
 
   const countsByStatus = STATUSES.reduce((acc, s) => {
-    acc[s] = s === 'all' ? orders.length : orders.filter(o => o.status === s).length;
+    acc[s] = s === 'all' ? baseOrders.length : baseOrders.filter(o => o.status === s).length;
     return acc;
   }, {});
 

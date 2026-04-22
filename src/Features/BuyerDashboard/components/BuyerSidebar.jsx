@@ -2,7 +2,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
-import { BUYER_NOTIFICATIONS } from '../data/buyerData';
 
 // ─── Sidebar content (extracted to avoid remount on parent re-render) ─────────
 function SidebarContent({ collapsed, setCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread }) {
@@ -118,8 +117,8 @@ function SidebarContent({ collapsed, setCollapsed, setSidebarOpen, page, setPage
 // ─── Sidebar shell ────────────────────────────────────────────────────────────
 export default function BuyerSidebar() {
   const { colors, isDark } = useTheme();
-  const { page, setPage, collapsed, setCollapsed, sidebarOpen, setSidebarOpen } = useBuyer();
-  const unread = BUYER_NOTIFICATIONS.filter(n => n.unread).length;
+  const { page, setPage, collapsed, setCollapsed, sidebarOpen, setSidebarOpen, unreadCount } = useBuyer();
+  const unread = unreadCount ?? 0;
   const w = collapsed ? 68 : 236;
 
   const sharedProps = { collapsed, setCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread };

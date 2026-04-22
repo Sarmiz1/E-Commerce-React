@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { WISHLIST, REORDER_SUGGESTIONS } from '../data/buyerData';
+import { useBuyer } from '../context/BuyerContext';
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 
@@ -15,11 +15,17 @@ const AI_TAG_COLORS = {
 
 export default function BuyerWishlist() {
   const { colors, isDark } = useTheme();
-  const [wishlist, setWishlist] = useState(WISHLIST);
-  const [alerts, setAlerts] = useState(WISHLIST.reduce((a, i) => ({ ...a, [i.id]: i.priceAlert }), {}));
+  const { wishlist: liveWishlist, reorders: REORDER_SUGGESTIONS, removeFromWishlist } = useBuyer();
+  const WISHLIST = liveWishlist ?? [];
+  const [localWishlist, setLocalWishlist] = useState(null);
+  const wishlist = localWishlist ?? WISHLIST;
+  const [alerts, setAlerts] = useState({});
   const [added, setAdded] = useState({});
 
-  const remove = (id) => setWishlist(w => w.filter(i => i.id !== id));
+  const remove = async (id) => {
+    setLocalWishlist(w => (w ?? WISHLIST).filter(i => i.id !== id));
+    await removeFromWishlist(id);
+  };
 
   const addToCart = async (id) => {
     setAdded(a => ({ ...a, [id]: 'loading' }));

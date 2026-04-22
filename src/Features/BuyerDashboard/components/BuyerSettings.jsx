@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { BUYER_PROFILE } from '../data/buyerData';
+import { useBuyer } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
 
 function Field({ label, defaultValue, type = 'text', placeholder }) {
@@ -60,6 +60,8 @@ function Toggle({ label, desc, defaultVal }) {
 
 export default function BuyerSettings() {
   const { colors } = useTheme();
+  const { profile } = useBuyer();
+  const BUYER_PROFILE = profile;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);

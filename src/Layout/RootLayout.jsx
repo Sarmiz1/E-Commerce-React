@@ -1,6 +1,7 @@
 import { Outlet, useNavigation } from "react-router-dom";
 import { CartAnimationProvider } from "../Context/cart/CartAnimationContext"; 
 import AiFloatingWidget from "../Features/AiAssistant/AiFloatingWidget";
+import WooshoAI from "../Features/AiAssistant/WooshoAI";
 import {
   ProductsSkeleton,
   ProductDetailSkeleton,
@@ -44,7 +45,7 @@ export default function RootLayout() {
   return (
     <CartAnimationProvider>
       {skeleton || <Outlet />}
-      <AiFloatingWidget />
+      <WooshoAI />
     </CartAnimationProvider>
   );
 }

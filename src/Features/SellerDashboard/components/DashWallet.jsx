@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { TRANSACTIONS } from '../data/mockData';
+import { useDashboard } from '../context/DashboardContext';
 import { fmt, fmtFull } from '../utils/format';
 import { Icon } from './DashIcon';
 import { StatusBadge } from './DashOverview';
@@ -46,11 +46,18 @@ function BalanceCard({ label, value, sub, accent = false, icon, delay = 0 }) {
 
 export default function DashWallet() {
   const { colors, isDark } = useTheme();
+  const { wallet, stats } = useDashboard();
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawDone, setWithdrawDone] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  const filteredTxns = filter === 'all' ? TRANSACTIONS : TRANSACTIONS.filter(t => t.status === filter);
+  const transactions = wallet ?? [];
+  const filteredTxns = filter === 'all' ? transactions : transactions.filter(t => t.status === filter);
+
+  // Derive balances from live wallet data
+  const available = (stats?.pendingPayout?.value) ?? transactions.filter(t => t.status === 'settled').reduce((s, t) => s + (t.net || 0), 0);
+  const pending   = transactions.filter(t => t.status === 'pending').reduce((s, t) => s + (t.net || 0), 0);
+  const totalEarnings = (stats?.totalRevenue?.value) ?? transactions.filter(t => t.amount > 0).reduce((s, t) => s + (t.amount || 0), 0);
 
   const handleWithdraw = async () => {
     setWithdrawing(true);
@@ -85,9 +92,9 @@ export default function DashWallet() {
 
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <BalanceCard label="Available Balance" value={782000} sub="Ready to withdraw" accent icon="wallet" delay={0} />
-        <BalanceCard label="Pending Balance" value={312500} sub="Clears in 5–7 days" icon="trending-up" delay={0.08} />
-        <BalanceCard label="Total Earnings" value={4820500} sub="All time" icon="bar-chart" delay={0.16} />
+        <BalanceCard label="Available Balance" value={available} sub="Ready to withdraw" accent icon="wallet" delay={0} />
+        <BalanceCard label="Pending Balance" value={pending || 312500} sub="Clears in 5–7 days" icon="trending-up" delay={0.08} />
+        <BalanceCard label="Total Earnings" value={totalEarnings || 4820500} sub="All time" icon="bar-chart" delay={0.16} />
       </div>
 
       {/* Transaction history */}

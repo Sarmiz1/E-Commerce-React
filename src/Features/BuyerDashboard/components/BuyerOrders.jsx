@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { BUYER_ORDERS } from '../data/buyerData';
+import { useBuyer } from '../context/BuyerContext';
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 import { OrderStatusBadge, OrderTimeline } from './BuyerOverview';
@@ -10,6 +10,7 @@ const FILTERS = ['all', 'pending', 'shipped', 'delivered', 'cancelled'];
 
 export default function BuyerOrders() {
   const { colors, isDark } = useTheme();
+  const { orders: BUYER_ORDERS } = useBuyer();
   const [filter, setFilter] = useState('all');
   const [expanded, setExpanded] = useState(null);
   const [reordered, setReordered] = useState({});

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { useBuyerData } from '../hooks/useBuyerData';
 
 const BuyerCtx = createContext(null);
 
@@ -20,8 +21,17 @@ export function BuyerProvider({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
+  // ── Live Supabase data (graceful mock fallback) ──
+  const data = useBuyerData();
+
   return (
-    <BuyerCtx.Provider value={{ page, setPage, sidebarOpen, setSidebarOpen, collapsed, setCollapsed }}>
+    <BuyerCtx.Provider value={{
+      page, setPage,
+      sidebarOpen, setSidebarOpen,
+      collapsed, setCollapsed,
+      // Spread all live data + actions
+      ...data,
+    }}>
       {children}
     </BuyerCtx.Provider>
   );

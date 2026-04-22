@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { BUYER_REVIEWS } from '../data/buyerData';
-import { BUYER_NOTIFICATIONS } from '../data/buyerData';
+import { useBuyer } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
 
 // ─── Reviews ─────────────────────────────────────────────────────────────────
 export function BuyerReviews() {
   const { colors, isDark } = useTheme();
-  const [reviews, setReviews] = useState(BUYER_REVIEWS);
+  const { reviews: liveReviews, submitReview } = useBuyer();
+  const [localReviews, setLocalReviews] = useState(null);
+  const reviews = localReviews ?? liveReviews ?? [];
   const [drafts, setDrafts] = useState({});
   const [ratings, setRatings] = useState({});
   const [submitted, setSubmitted] = useState({});
@@ -16,8 +17,13 @@ export function BuyerReviews() {
   const submit = async (id) => {
     if (!ratings[id] || !drafts[id]?.trim()) return;
     setSubmitted(s => ({ ...s, [id]: 'loading' }));
-    await new Promise(r => setTimeout(r, 900));
-    setReviews(prev => prev.map(r => r.id === id ? { ...r, submitted: true, rating: ratings[id], comment: drafts[id] } : r));
+    const review = reviews.find(r => r.id === id);
+    const result = await submitReview(id, review?.product || '', ratings[id], drafts[id]);
+    if (result?.success !== false) {
+      setLocalReviews(prev => (prev ?? liveReviews ?? []).map(r =>
+        r.id === id ? { ...r, submitted: true, rating: ratings[id], comment: drafts[id] } : r
+      ));
+    }
     setSubmitted(s => ({ ...s, [id]: 'done' }));
   };
 
@@ -101,13 +107,18 @@ const NOTIF_META = {
 
 export function BuyerNotifications() {
   const { colors, isDark } = useTheme();
-  const [notifs, setNotifs] = useState(BUYER_NOTIFICATIONS);
+  const { notifs: liveNotifs, markAllNotifsRead } = useBuyer();
+  const [notifs, setNotifs] = useState(null);
+  const allNotifs = notifs ?? liveNotifs ?? [];
 
-  const markAllRead = () => setNotifs(n => n.map(no => ({ ...no, unread: false })));
-  const dismiss = (id) => setNotifs(n => n.filter(no => no.id !== id));
-  const markRead = (id) => setNotifs(n => n.map(no => no.id === id ? { ...no, unread: false } : no));
+  const markAllRead = async () => {
+    setNotifs(n => (n ?? liveNotifs ?? []).map(no => ({ ...no, unread: false })));
+    await markAllNotifsRead();
+  };
+  const dismiss = (id) => setNotifs(n => (n ?? liveNotifs ?? []).filter(no => no.id !== id));
+  const markRead = (id) => setNotifs(n => (n ?? liveNotifs ?? []).map(no => no.id === id ? { ...no, unread: false } : no));
 
-  const unread = notifs.filter(n => n.unread).length;
+  const unread = allNotifs.filter(n => n.unread).length;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -127,7 +138,7 @@ export function BuyerNotifications() {
 
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
-          {notifs.map((n, i) => {
+          {allNotifs.map((n, i) => {
             const m = NOTIF_META[n.type] || NOTIF_META.shipping;
             return (
               <motion.div key={n.id} layout
@@ -160,7 +171,7 @@ export function BuyerNotifications() {
           })}
         </AnimatePresence>
 
-        {notifs.length === 0 && (
+        {allNotifs.length === 0 && (
           <div className="py-16 flex flex-col items-center gap-3">
             <BIcon name="bell" size={32} style={{ color: colors.text.tertiary, opacity: 0.35 }} />
             <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>All caught up!</p>

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { PRODUCTS } from '../data/mockData';
+import { useDashboard } from '../context/DashboardContext';
 import { fmtFull } from '../utils/format';
 import { Icon } from './DashIcon';
 import { StatusBadge } from './DashOverview';
@@ -36,18 +36,20 @@ function StockBar({ stock, max = 50 }) {
 
 export default function DashProducts() {
   const { colors, isDark } = useTheme();
+  const { products: liveProducts, deleteProduct, loading } = useDashboard();
   const [filter, setFilter] = useState('all');
-  const [products, setProducts] = useState(PRODUCTS);
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState(null);
   const [editId, setEditId] = useState(null);
   const [sortBy, setSortBy] = useState('name');
   const [sortDir, setSortDir] = useState(1);
 
-  const confirmDelete = useCallback((id) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+  const products = liveProducts ?? [];
+
+  const confirmDelete = useCallback(async (id) => {
+    await deleteProduct(id);
     setDeleteId(null);
-  }, []);
+  }, [deleteProduct]);
 
   const toggleSort = (col) => {
     if (sortBy === col) setSortDir(d => d * -1);
@@ -57,12 +59,12 @@ export default function DashProducts() {
   const filtered = products
     .filter(p => {
       const matchFilter = filter === 'all' || p.status === filter;
-      const matchSearch = search === '' || p.name.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = search === '' || (p.name || '').toLowerCase().includes(search.toLowerCase());
       return matchFilter && matchSearch;
     })
     .sort((a, b) => {
-      const va = sortBy === 'name' ? a.name : sortBy === 'price' ? a.price : sortBy === 'stock' ? a.stock : a.sales;
-      const vb = sortBy === 'name' ? b.name : sortBy === 'price' ? b.price : sortBy === 'stock' ? b.stock : b.sales;
+      const va = sortBy === 'name' ? (a.name || '') : sortBy === 'price' ? (a.price || 0) : sortBy === 'stock' ? (a.stock || 0) : (a.sales || 0);
+      const vb = sortBy === 'name' ? (b.name || '') : sortBy === 'price' ? (b.price || 0) : sortBy === 'stock' ? (b.stock || 0) : (b.sales || 0);
       return typeof va === 'string' ? va.localeCompare(vb) * sortDir : (va - vb) * sortDir;
     });
 

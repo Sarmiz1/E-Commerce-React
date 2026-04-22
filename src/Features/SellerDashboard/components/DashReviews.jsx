@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
-import { REVIEWS } from '../data/mockData';
+import { useDashboard } from '../context/DashboardContext';
 import { Icon } from './DashIcon';
 
 function StarRating({ rating, interactive = false, onRate }) {
@@ -35,15 +35,19 @@ function StarRating({ rating, interactive = false, onRate }) {
 
 export default function DashReviews() {
   const { colors, isDark } = useTheme();
-  const [reviews, setReviews] = useState(REVIEWS);
+  const { reviews: liveReviews, updateReviewStatus } = useDashboard();
+  const [localReviews, setLocalReviews] = useState(null);
   const [replyText, setReplyText] = useState({});
   const [replyOpen, setReplyOpen] = useState({});
   const [submitted, setSubmitted] = useState({});
-  const [filterRating, setFilterRating] = useState(0); // 0 = all
+  const [filterRating, setFilterRating] = useState(0);
 
-  const approve = useCallback((id) => {
-    setReviews(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
-  }, []);
+  const reviews = localReviews ?? liveReviews ?? [];
+
+  const approve = useCallback(async (id) => {
+    setLocalReviews(prev => (prev ?? liveReviews ?? []).map(r => r.id === id ? { ...r, status: 'approved' } : r));
+    await updateReviewStatus(id, 'approved');
+  }, [updateReviewStatus, liveReviews]);
 
   const submitReply = useCallback(async (id) => {
     if (!replyText[id]?.trim()) return;
