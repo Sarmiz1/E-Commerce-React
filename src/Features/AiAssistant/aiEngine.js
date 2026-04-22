@@ -5,7 +5,7 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY;
-const MODEL = "deepseek/deepseek-chat-v3-0324:free";
+const MODEL = "openrouter/free";
 
 // ── System Prompt ─────────────────────────────────────────────────────────────
 export const SYSTEM_PROMPT = `You are Woosho AI — an elite, hyper-intelligent shopping assistant for Woosho, Nigeria's #1 premium e-commerce marketplace. You are warm, persuasive, knowledgeable, and laser-focused on helping users shop smarter.

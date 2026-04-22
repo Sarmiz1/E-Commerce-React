@@ -11,6 +11,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { useToast } from '../../../Context/toast/ToastContext';
 import {
   SELLER_STATS, RECENT_ORDERS, PRODUCTS,
   CUSTOMERS, REVIEWS, TRANSACTIONS, REVENUE_CHART, ANALYTICS,
@@ -61,6 +62,7 @@ export function useSellerData() {
   const [wallet,     setWallet]     = useState(TRANSACTIONS);
   const [revenueChart, setRevenueChart] = useState(REVENUE_CHART);
   const [analytics,  setAnalytics]  = useState(ANALYTICS);
+  const { addToast } = useToast();
 
   const fetchAll = useCallback(async () => {
     if (isMock) { setLoading(false); return; }
@@ -162,20 +164,27 @@ export function useSellerData() {
   const updateOrderStatus = useCallback(async (orderId, newStatus) => {
     if (isMock) {
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      addToast(`Order ${orderId} marked as ${newStatus}`);
       return { success: true };
     }
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast(`Order ${orderId} marked as ${newStatus}`);
+      fetchAll();
+    } else {
+      addToast(`Failed to update order: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   // ── Add product ───────────────────────────────────────────────────────────
   const addProduct = useCallback(async (product) => {
     if (isMock) {
       setProducts(prev => [{ id: Date.now(), ...product, sales: 0 }, ...prev]);
+      addToast(`${product.name} listed successfully!`);
       return { success: true };
     }
     const { error } = await supabase.from('products').insert([{
@@ -183,31 +192,48 @@ export function useSellerData() {
       stock: product.stock, status: product.status || 'active',
       category: product.category || 'Other',
     }]);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast(`${product.name} listed successfully!`);
+      fetchAll();
+    } else {
+      addToast(`Failed to add product: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   // ── Delete product ────────────────────────────────────────────────────────
   const deleteProduct = useCallback(async (productId) => {
     if (isMock) {
       setProducts(prev => prev.filter(p => p.id !== productId));
+      addToast('Product deleted', 'info');
       return { success: true };
     }
     const { error } = await supabase.from('products').delete().eq('id', productId);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast('Product deleted', 'info');
+      fetchAll();
+    } else {
+      addToast(`Failed to delete product: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   // ── Approve/reject review ─────────────────────────────────────────────────
   const updateReviewStatus = useCallback(async (reviewId, status) => {
     if (isMock) {
       setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, status } : r));
+      addToast(`Review marked as ${status}`);
       return { success: true };
     }
     const { error } = await supabase.from('reviews').update({ status }).eq('id', reviewId);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast(`Review marked as ${status}`);
+      fetchAll();
+    } else {
+      addToast(`Failed to update review: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   return {
     loading, error,

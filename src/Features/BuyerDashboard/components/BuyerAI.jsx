@@ -2,28 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useBuyer } from '../context/BuyerContext';
-import { RECOMMENDATIONS , AI_CHAT_SUGGESTIONS } from '../data/buyerData';
+import { AI_CHAT_SUGGESTIONS } from '../data/buyerData';
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
-
-const AI_RESPONSES = {
-  default: {
-    text: "I found some great matches for you! Here are my top picks based on your preferences and budget.",
-    products: RECOMMENDATIONS,
-  },
-  sneakers: {
-    text: "Based on your EU 42 size and past Nike purchases, here are the best sneakers under your budget:",
-    products: RECOMMENDATIONS.filter(r => r.category === 'Footwear'),
-  },
-  shirts: {
-    text: "You prefer M-size shirts and have bought similar items before. Here are the best work shirts:",
-    products: RECOMMENDATIONS.filter(r => r.category === 'Fashion'),
-  },
-  tech: {
-    text: "Based on your Wireless Earbuds purchase, here are compatible tech products you'll love:",
-    products: RECOMMENDATIONS.filter(r => r.category === 'Tech'),
-  },
-};
 
 const TYPING_MSGS = [
   '✦ Analyzing your style preferences…',
@@ -33,13 +14,6 @@ const TYPING_MSGS = [
   '✦ Finding best matches…',
 ];
 
-function getAIResponse(query) {
-  const q = query.toLowerCase();
-  if (q.includes('sneaker') || q.includes('shoe') || q.includes('footwear')) return AI_RESPONSES.sneakers;
-  if (q.includes('shirt') || q.includes('fashion') || q.includes('cloth')) return AI_RESPONSES.shirts;
-  if (q.includes('tech') || q.includes('gadget') || q.includes('earbu')) return AI_RESPONSES.tech;
-  return AI_RESPONSES.default;
-}
 
 function ProductResult({ item, delay }) {
   const { colors, isDark } = useTheme();
@@ -90,6 +64,14 @@ export default function BuyerAI() {
       text: "Based on your Wireless Earbuds purchase, here are compatible tech products you'll love:",
       products: (RECOMMENDATIONS || []).filter(r => r.category === 'Tech'),
     },
+  };
+
+  const getAIResponse = (query) => {
+    const q = query.toLowerCase();
+    if (q.includes('sneaker') || q.includes('shoe') || q.includes('footwear')) return AI_RESPONSES.sneakers;
+    if (q.includes('shirt') || q.includes('fashion') || q.includes('cloth')) return AI_RESPONSES.shirts;
+    if (q.includes('tech') || q.includes('gadget') || q.includes('earbu')) return AI_RESPONSES.tech;
+    return AI_RESPONSES.default;
   };
 
   const [messages, setMessages] = useState([

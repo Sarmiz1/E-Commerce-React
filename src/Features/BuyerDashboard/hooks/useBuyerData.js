@@ -12,6 +12,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
+import { useToast } from '../../../Context/toast/ToastContext';
 import {
   BUYER_PROFILE, BUYER_STATS, ORDER_STATUS_SNAPSHOT,
   BUYER_ORDERS, WISHLIST, RECOMMENDATIONS,
@@ -77,6 +78,7 @@ export function useBuyerData() {
   const [recommendations] = useState(RECOMMENDATIONS);
   const [insights]        = useState(SMART_INSIGHTS);
   const [unreadCount, setUnreadCount] = useState(3);
+  const { addToast } = useToast();
 
   const fetchAll = useCallback(async () => {
     if (isMock) { setLoading(false); return; }
@@ -171,40 +173,58 @@ export function useBuyerData() {
   const addToWishlist = useCallback(async (product) => {
     if (isMock) {
       setWishlist(prev => [{ id: Date.now(), ...product, inStock: true, priceAlert: false }, ...prev]);
+      addToast(`${product.name} added to wishlist!`);
       return { success: true };
     }
     const { error } = await supabase.from('wishlist').insert([{
       user_email: DEMO_USER_EMAIL, product_name: product.name,
       price: product.price, in_stock: true,
     }]);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast(`${product.name} added to wishlist!`);
+      fetchAll();
+    } else {
+      addToast(`Failed to add to wishlist: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   const removeFromWishlist = useCallback(async (id) => {
     if (isMock) {
       setWishlist(prev => prev.filter(w => w.id !== id));
+      addToast('Removed from wishlist', 'info');
       return { success: true };
     }
     const { error } = await supabase.from('wishlist').delete().eq('id', id);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast('Removed from wishlist', 'info');
+      fetchAll();
+    } else {
+      addToast(`Failed to remove item: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   const submitReview = useCallback(async (orderId, productName, rating, comment) => {
     if (isMock) {
       setReviews(prev => prev.map(r =>
         r.orderId === orderId ? { ...r, submitted: true, rating, comment } : r
       ));
+      addToast(`Review submitted for ${productName}!`);
       return { success: true };
     }
     const { error } = await supabase.from('buyer_reviews').upsert([{
       user_email: DEMO_USER_EMAIL, order_id: orderId, product_name: productName,
       rating, comment, submitted: true,
     }]);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast(`Review submitted for ${productName}!`);
+      fetchAll();
+    } else {
+      addToast(`Failed to submit review: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   const markAllNotifsRead = useCallback(async () => {
     if (isMock) {
@@ -212,13 +232,18 @@ export function useBuyerData() {
       setUnreadCount(0);
       return;
     }
-    await supabase.from('notifications').update({ unread: false }).eq('user_email', DEMO_USER_EMAIL);
-    fetchAll();
-  }, [fetchAll]);
+    const { error } = await supabase.from('notifications').update({ unread: false }).eq('user_email', DEMO_USER_EMAIL);
+    if (error) {
+      addToast(`Failed to update notifications: ${error.message}`, 'error');
+    } else {
+      fetchAll();
+    }
+  }, [fetchAll, addToast]);
 
   const addAddress = useCallback(async (addr) => {
     if (isMock) {
       setAddresses(prev => [{ id: Date.now(), ...addr, isDefault: !prev.length }, ...prev]);
+      addToast('Address added successfully!');
       return { success: true };
     }
     const { error } = await supabase.from('buyer_addresses').insert([{
@@ -226,9 +251,14 @@ export function useBuyerData() {
       full_name: addr.name, line1: addr.line1, line2: addr.line2,
       phone: addr.phone, is_default: addr.isDefault || false,
     }]);
-    if (!error) fetchAll();
+    if (!error) {
+      addToast('Address added successfully!');
+      fetchAll();
+    } else {
+      addToast(`Failed to add address: ${error.message}`, 'error');
+    }
     return { success: !error, error };
-  }, [fetchAll]);
+  }, [fetchAll, addToast]);
 
   return {
     loading, error,

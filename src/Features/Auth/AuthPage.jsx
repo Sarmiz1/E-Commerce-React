@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Context/theme/ThemeContext";
+import { supabase } from "../../supabaseClient";
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 const AUTH_CSS = `
@@ -226,7 +227,7 @@ export default function AuthPage() {
 
   const setField = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
     if (activeIndex === 0) {
@@ -246,15 +247,49 @@ export default function AuthPage() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     setLoading(true);
-    setTimeout(() => {
+    setErrors({});
+    
+    try {
+      if (activeIndex === 0) {
+        // Login
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        });
+        if (error) throw error;
+        setSuccess("Logged in successfully!");
+        setTimeout(() => navigate("/dashboard/buyer"), 1500);
+      } else if (activeIndex === 1) {
+        // Signup
+        const { data, error } = await supabase.auth.signUp({
+          email: form.email,
+          password: form.password,
+          options: {
+            data: {
+              full_name: form.fullName,
+              username: form.username,
+            }
+          }
+        });
+        if (error) throw error;
+        setSuccess("Account created! Welcome to Woosho.");
+        setTimeout(() => navigate("/dashboard/buyer"), 1500);
+      } else if (activeIndex === 2) {
+        // Reset Password
+        const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setSuccess("Password reset link sent to your email.");
+      } else if (activeIndex === 3) {
+        // Recover Username (Mock or support link)
+        setSuccess("Contact support to recover your username.");
+      }
+    } catch (err) {
+      setErrors({ email: err.message });
+    } finally {
       setLoading(false);
-      setSuccess(
-        activeIndex === 0 ? "Logged in successfully!" :
-        activeIndex === 1 ? "Account created! Welcome to Woosho." :
-        activeIndex === 2 ? "Password reset link sent to your email." :
-        "Username reset link sent to your email."
-      );
-    }, 1800);
+    }
   };
 
   const TABS = [
