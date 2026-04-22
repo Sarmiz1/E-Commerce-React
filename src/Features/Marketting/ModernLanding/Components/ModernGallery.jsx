@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, memo } from 'react';
 import gsap from 'gsap';
+import { useNavigate } from 'react-router-dom';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight } from 'lucide-react';
 
@@ -22,6 +23,8 @@ const ITEMS = [
 const ModernGallery = memo(function ModernGallery() {
   const sectionRef = useRef(null);
   const trackRef   = useRef(null);
+
+  const navigate = useNavigate();
 
   // ── Drag-to-scroll ────────────────────────────────────────────────────
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0 });
@@ -127,8 +130,14 @@ const ModernGallery = memo(function ModernGallery() {
                 </div>
 
                 {/* CTA */}
-                <div className="flex items-center gap-2 mt-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 ease-out">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Shop Now</span>
+                <div className="flex items-center gap-2 mt-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 ease-out cursor-pointer"
+                  onClick={()=> navigate('/trending')}
+                >
+                  <span 
+                    className="text-xs font-bold text-white uppercase tracking-wider"
+                  >
+                    Shop Now
+                  </span>
                   <ArrowUpRight size={14} className="text-white" />
                 </div>
               </div>

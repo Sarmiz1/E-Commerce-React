@@ -1,14 +1,12 @@
 import { Outlet } from "react-router-dom";
-import Footer from "../Components/Footer";
 
 import Navbar from "../Components/Navbar";
 
-export default function DefaultLayout() {
+export default function TradeLayout() {
   return (
     <>
-      {/* <Navbar /> */}
+      <Navbar />
       <Outlet /> {/* This renders the route element */}
-      <Footer />
     </>
   );
 }

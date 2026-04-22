@@ -3,14 +3,10 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import GoldLine from "./FooterComponents/GoldLine";
 import FooterOrbs from "./FooterComponents/FooterOrbs";
-import NewsletterHeroBand from "./FooterComponents/NewsletterHeroBand";
 import MainLinksGrid from "./FooterComponents/MainLinksGrid";
 import BottomBar from "./FooterComponents/BottomBar";
 
-
-
 export default function Footer() {
-
   const canvasRef = useRef(null);
 
   // Subtle starfield canvas
@@ -19,7 +15,10 @@ export default function Footer() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     let animId;
-    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
     resize();
     window.addEventListener("resize", resize);
     const stars = Array.from({ length: 120 }, () => ({
@@ -44,15 +43,20 @@ export default function Footer() {
       animId = requestAnimationFrame(draw);
     };
     draw();
-    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
   }, []);
-
 
   return (
     <footer
       id="footer"
       className="relative overflow-hidden"
-      style={{ background: "linear-gradient(180deg, #09090b 0%, #0c0c0f 40%, #080808 100%)" }}
+      style={{
+        background:
+          "linear-gradient(180deg, #09090b 0%, #0c0c0f 40%, #080808 100%)",
+      }}
     >
       <style>{`
         @keyframes footer-shimmer {
@@ -137,16 +141,16 @@ export default function Footer() {
       `}</style>
 
       {/* Starfield canvas */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none opacity-80" />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-80"
+      />
 
       {/* Floating orbs */}
       <FooterOrbs />
 
       {/* Top gold shimmer border */}
       <GoldLine />
-
-      {/* ── NEWSLETTER HERO BAND ── */}
-      <NewsletterHeroBand />
 
       {/* ── MAIN LINKS GRID ── */}
       <MainLinksGrid />

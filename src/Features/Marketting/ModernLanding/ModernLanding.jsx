@@ -1,30 +1,39 @@
-import React, { useEffect, useRef, Suspense, lazy } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import ModernNavbar from './SharedComponents/ModernNavbar';
-import ModernHero from './Components/ModernHero';
+import React, { useEffect, useRef, Suspense, lazy } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import ModernNavbar from "../../../Components/ModernNavbar.jsx";
+import ModernHero from "./Components/ModernHero";
 
 // Lazy load below-the-fold components for performance
-const ModernPainPoints = lazy(() => import('./Components/ModernPainPoints'));
-const ModernPlatform = lazy(() => import('./Components/ModernPlatform'));
-const ModernAiChat = lazy(() => import('../../AiAssistant/ModernAiChat.jsx'));
-const ModernCategories = lazy(() => import('./Components/ModernCategories'));
-const ModernWhy = lazy(() => import('./Components/ModernWhy'));
-const ModernGallery = lazy(() => import('./Components/ModernGallery'));
-const ModernCTA = lazy(() => import('./SharedComponents/ModernFooter').then(module => ({ default: module.ModernCTA })));
+const ModernPainPoints = lazy(() => import("./Components/ModernPainPoints"));
+const ModernPlatform = lazy(() => import("./Components/ModernPlatform"));
+const ModernAiChat = lazy(() => import("./Components/ModernAiChat.jsx"));
+const ModernCategories = lazy(() => import("./Components/ModernCategories"));
+const ModernWhy = lazy(() => import("./Components/ModernWhy"));
+const ModernGallery = lazy(() => import("./Components/ModernGallery"));
+const ModernCTA = lazy(() =>
+  import("./Components/ModernCta").then((module) => ({
+    default: module.ModernCTA,
+  })),
+);
+
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function ModernLanding() {
   const mainRef = useRef(null);
 
-
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const REVEAL = { opacity: 0, y: 56, duration: 0.65, ease: 'power4.out' };
+      const REVEAL = { opacity: 0, y: 56, duration: 0.65, ease: "power4.out" };
       const sections = [
-        '#pain-points', '#platform', '#ai-chat',
-        '#gallery', '#categories', '#why-woosho', '#cta',
+        "#pain-points",
+        "#platform",
+        "#ai-chat",
+        "#gallery",
+        "#categories",
+        "#why-woosho",
+        "#cta",
       ];
 
       sections.forEach((id) => {
@@ -32,8 +41,8 @@ export default function ModernLanding() {
           ...REVEAL,
           scrollTrigger: {
             trigger: id,
-            start: 'top 88%',
-            toggleActions: 'play none none none',
+            start: "top 88%",
+            toggleActions: "play none none none",
           },
         });
       });
@@ -44,51 +53,58 @@ export default function ModernLanding() {
 
   return (
     <>
-      <ModernNavbar pageView = 'home'/>
-      <main ref={mainRef} className="bg-white dark:bg-[#0E0E10] selection:bg-blue-600/30">
-      
-      <div id="hero">
-        <ModernHero />
-      </div>
-
-      <Suspense fallback={<div className="h-screen w-full flex items-center justify-center text-gray-500">Loading...</div>}>
-        <div id="pain-points">
-          <ModernPainPoints />
+      <ModernNavbar pageView="home" />
+      <main
+        ref={mainRef}
+        className="bg-white dark:bg-[#0E0E10] selection:bg-blue-600/30"
+      >
+        <div id="hero">
+          <ModernHero />
         </div>
 
-        <div id="platform">
-          <ModernPlatform />
-        </div>
+        <Suspense
+          fallback={
+            <div className="h-screen w-full flex items-center justify-center text-gray-500">
+              Loading...
+            </div>
+          }
+        >
+          <div id="pain-points">
+            <ModernPainPoints />
+          </div>
 
-        <div id="ai-chat">
-          <ModernAiChat />
-        </div>
+          <div id="platform">
+            <ModernPlatform />
+          </div>
 
-        <div id="gallery">
-          <ModernGallery />
-        </div>
+          <div id="ai-chat">
+            <ModernAiChat />
+          </div>
 
-        <div id="categories">
-          <ModernCategories />
-        </div>
+          <div id="gallery">
+            <ModernGallery />
+          </div>
 
-        <div id="why-woosho">
-          <ModernWhy />
-        </div>
+          <div id="categories">
+            <ModernCategories />
+          </div>
 
-        <div id="cta">
-          <ModernCTA />
-        </div>
+          <div id="why-woosho">
+            <ModernWhy />
+          </div>
 
-      </Suspense>
-{/* 
+          <div id="cta">
+            <ModernCTA />
+          </div>
+        </Suspense>
+        {/* 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                         Test Ground
  
 */}
 
-{/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
-    </main>
+        {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
+      </main>
     </>
   );
 }

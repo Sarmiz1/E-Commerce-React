@@ -1,9 +1,11 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'
 import { MousePointer2, ArrowRight } from 'lucide-react';
 import heroImg from '../../../../assets/marketing/hero-blur.png';
 
 const ModernHero = memo(function ModernHero() {
+  const navigate = useNavigate()
   return (
     <section className="relative min-h-screen flex items-center pt-32 overflow-hidden bg-white dark:bg-[#0E0E10]">
       {/* Background Gradients */}
@@ -42,14 +44,20 @@ const ModernHero = memo(function ModernHero() {
             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
             className="mt-10 flex flex-wrap gap-4"
           >
-            <button className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 flex items-center gap-2 group transition-all">
+            <button 
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 flex items-center gap-2 group transition-all"
+              onClick={()=> navigate('/auth')}
+            >
               <span>Start Shopping</span>
               <motion.div animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
                 <ArrowRight size={20} />
               </motion.div>
             </button>
             
-            <button className="px-8 py-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white font-bold rounded-2xl transition-all border border-transparent dark:border-white/10">
+            <button 
+              className="px-8 py-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white font-bold rounded-2xl transition-all border border-transparent dark:border-white/10"
+              onClick={()=> navigate('/auth')}
+              >
               Start Selling
             </button>
           </motion.div>
@@ -64,7 +72,7 @@ const ModernHero = memo(function ModernHero() {
             <div className="flex -space-x-3">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0E0E10] bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                   <img src={`https://i.pravatar.cc/100?u=${i}`} alt="user" />
+                  <img src={`https://i.pravatar.cc/100?u=${i}`} alt="user" />
                 </div>
               ))}
             </div>

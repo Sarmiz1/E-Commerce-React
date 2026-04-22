@@ -1,10 +1,13 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import fashionImg from '../../../../assets/marketing/cat-fashion.png';
 import sneakersImg from '../../../../assets/marketing/cat-sneakers.png';
 
 const ModernCategories = memo(function ModernCategories() {
+  const navigate = useNavigate();
+
   const categories = [
     {
       title: "High Fashion",
@@ -70,7 +73,10 @@ const ModernCategories = memo(function ModernCategories() {
               Everything You Need.
             </motion.h2>
           </div>
-          <button className="hidden md:flex items-center gap-2 text-blue-600 font-bold group">
+          <button 
+            className="hidden md:flex items-center gap-2 text-blue-600 font-bold group"
+            onClick={() => navigate('/products/categories')}
+          >
             View all categories
             <ArrowUpRight size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
           </button>
@@ -99,7 +105,10 @@ const ModernCategories = memo(function ModernCategories() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
                 <h3 className="text-2xl font-bold text-white mb-1">{cat.title}</h3>
                 <p className="text-white/60 text-sm mb-4">{cat.desc}</p>
-                <div className="flex items-center gap-2 text-white text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0">
+                <div 
+                  className="flex items-center gap-2 text-white text-xs font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all translate-y-4 group-hover:translate-y-0 cursor-pointer"
+                  onClick={() => navigate(`/products/category/${cat.link.split('/').pop()}`)}
+                >
                   Explore Collection <ArrowUpRight size={14} />
                 </div>
               </div>

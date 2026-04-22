@@ -1,5 +1,12 @@
-import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
-import { fetchProductsLoader, cartRecommendationsLoader } from "../loaders/fetchProductsLoader";
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
+} from "react-router-dom";
+import {
+  fetchProductsLoader,
+  cartRecommendationsLoader,
+} from "../loaders/fetchProductsLoader";
 import { productDetailsLoader } from "../loaders/productDetailsLoader";
 import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
 
@@ -8,6 +15,7 @@ import RootLayout from "../Layout/RootLayout";
 import DefaultLayout from "../Layout/DefaultLayout";
 import LandingLayout from "../Layout/LandingLayout";
 import ProductsLayout from "../Layout/ProductsLayout";
+import TradeLayout from "../Layout/TradeLayout";
 
 // ─── Core Pages ───────────────────────────────────────────────────────────────
 import HomePage from "../Features/Home/HomePage/HomePage";
@@ -53,6 +61,7 @@ import KidsToysPage from "../Features/Collections/pages/KidsToysPage";
 
 // ─── Auth Page ────────────────────────────────────────────────────────────────
 import AuthPage from "../Features/Auth/AuthPage";
+import AuthNew from "../Features/Auth/AuthNew";
 
 // ─── Error / Fallback ─────────────────────────────────────────────────────────
 import NotFoundPage from "../Components/NotFoundPage";
@@ -71,8 +80,11 @@ const isLoggedIn = false;
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route element={<RootLayout />} errorElement={<FallbackPage />} hydrateFallbackElement={<ProductsSkeleton />}>
-
+    <Route
+      element={<RootLayout />}
+      errorElement={<FallbackPage />}
+      hydrateFallbackElement={<ProductsSkeleton />}
+    >
       {/* ── Home (conditional) ── */}
       <Route
         path="/"
@@ -89,6 +101,7 @@ const router = createBrowserRouter(
       <Route path="auth" element={<AuthPage />} />
       <Route path="login" element={<AuthPage />} />
       <Route path="signup" element={<AuthPage />} />
+      <Route path="authnew" element={<AuthNew />} />
 
       {/* ── Landing layout pages ── */}
       <Route element={<LandingLayout />}>
@@ -97,6 +110,10 @@ const router = createBrowserRouter(
         </Route>
         <Route path="seller" element={<SellerLanding />} />
         <Route path="buyer" element={<BuyerLanding />} />
+      </Route>
+
+      {/* ── Default layout pages ── */}
+      <Route element={<DefaultLayout />}>
         <Route path="ai-shop" element={<AiShop />} />
         <Route path="support" element={<SupportPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
@@ -109,42 +126,132 @@ const router = createBrowserRouter(
         <Route path="adminsimp" element={<AdminSimpleDashboard />} />
         <Route path="dashboard/seller" element={<SellerDashboard />} />
         <Route path="dashboard/buyer" element={<BuyerDashboard />} />
-      </Route>
 
-      {/* ── Default layout pages ── */}
-      <Route element={<DefaultLayout />}>
-        <Route path="checkout" element={<CheckoutPage />} />
-        <Route path="orders" element={<OrdersPage />} loader={fetchOrdersLoader} hydrateFallbackElement={<OrdersSkeleton />} />
-        <Route path="tracking" element={<TrackingPage />} loader={fetchOrdersLoader} hydrateFallbackElement={<TrackingSkeleton />} />
-        <Route path="cart" element={<CartPage />} loader={cartRecommendationsLoader} hydrateFallbackElement={<CartSkeleton />} />
+        {/* Trade Layout */}
+        <Route element={<TradeLayout />}>
+          <Route path="checkout" element={<CheckoutPage />} />
 
-        {/* ── Products ── */}
-        <Route path="products" element={<ProductsLayout />}>
-          <Route index element={<ProductsPage />} loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-          <Route path=":productId" element={<ProductDetail />} loader={productDetailsLoader} hydrateFallbackElement={<ProductDetailSkeleton />} />
+          <Route
+            path="orders"
+            element={<OrdersPage />}
+            loader={fetchOrdersLoader}
+            hydrateFallbackElement={<OrdersSkeleton />}
+          />
+          <Route
+            path="tracking"
+            element={<TrackingPage />}
+            loader={fetchOrdersLoader}
+            hydrateFallbackElement={<TrackingSkeleton />}
+          />
+          <Route
+            path="cart"
+            element={<CartPage />}
+            loader={cartRecommendationsLoader}
+            hydrateFallbackElement={<CartSkeleton />}
+          />
+
+          {/* ── Products  Layout── */}
+          <Route path="products" element={<ProductsLayout />}>
+            <Route
+              index
+              element={<ProductsPage />}
+              loader={fetchProductsLoader}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+            <Route
+              path=":productId"
+              element={<ProductDetail />}
+              loader={productDetailsLoader}
+              hydrateFallbackElement={<ProductDetailSkeleton />}
+            />
+          </Route>
+
+          {/* ── Collections (all use fetchProductsLoader) ── */}
+          <Route
+            path="new-arrivals"
+            element={<NewArrivalsPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="hot-deals"
+            element={<HotDealsPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="trending"
+            element={<TrendingNowPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="high-fashion"
+            element={<HighFashionPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="sneakers"
+            element={<SneakersPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="electronics"
+            element={<ElectronicsPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="beauty-care"
+            element={<BeautyCarePage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="flash-sales"
+            element={<FlashSalesPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="members-only"
+            element={<MembersOnlyPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="categories"
+            element={<CategoriesPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="black-friday"
+            element={<BlackFridayPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="fashion"
+            element={<FashionPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
+          <Route
+            path="kids-toys"
+            element={<KidsToysPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
         </Route>
-
-        {/* ── Collections (all use fetchProductsLoader) ── */}
-        <Route path="new-arrivals"   element={<NewArrivalsPage />}  loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="hot-deals"      element={<HotDealsPage />}     loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="trending"       element={<TrendingNowPage />}  loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="high-fashion"   element={<HighFashionPage />}  loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="sneakers"       element={<SneakersPage />}     loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="electronics"    element={<ElectronicsPage />}  loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="beauty-care"    element={<BeautyCarePage />}   loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="flash-sales"    element={<FlashSalesPage />}   loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="members-only"   element={<MembersOnlyPage />}  loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="categories"     element={<CategoriesPage />}   loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="black-friday"   element={<BlackFridayPage />}  loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="fashion"        element={<FashionPage />}      loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
-        <Route path="kids-toys"      element={<KidsToysPage />}     loader={fetchProductsLoader} hydrateFallbackElement={<ProductsSkeleton />} />
       </Route>
 
       {/* ── 404 ── */}
       <Route path="*" element={<NotFoundPage />} />
-
-    </Route>
-  )
+    </Route>,
+  ),
 );
 
 export default router;
