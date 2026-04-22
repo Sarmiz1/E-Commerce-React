@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useBuyer } from '../context/BuyerContext';
-import { AI_CHAT_SUGGESTIONS } from '../data/buyerData';
+import { RECOMMENDATIONS , AI_CHAT_SUGGESTIONS } from '../data/buyerData';
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 
