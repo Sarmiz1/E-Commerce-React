@@ -67,7 +67,7 @@ const AllInOneAppSection = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="w-full py-28 px-6 md:px-12 bg-white overflow-hidden">
+    <section ref={sectionRef} className="w-full py-28 px-6 md:px-12 bg-white dark:bg-[#0a0a0a] overflow-hidden">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
         {/* ── Left: Steps ─────────────────────────────────────── */}
@@ -86,7 +86,7 @@ const AllInOneAppSection = () => {
             The Ultimate Shopping Hub
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-14 tracking-tight leading-[1.1]">
+          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-14 tracking-tight leading-[1.1]">
             Everything you love, <br />
             <span
               style={{
@@ -127,8 +127,8 @@ const AllInOneAppSection = () => {
 
                 {/* Content */}
                 <div className="pt-1">
-                  <h3 className="text-[17px] font-bold text-neutral-900 mb-1.5">{step.title}</h3>
-                  <p className="text-[14px] text-neutral-500 leading-relaxed">{step.desc}</p>
+                  <h3 className="text-[17px] font-bold text-neutral-900 dark:text-white mb-1.5">{step.title}</h3>
+                  <p className="text-[14px] text-neutral-500 dark:text-neutral-400 leading-relaxed">{step.desc}</p>
                 </div>
               </div>
             ))}

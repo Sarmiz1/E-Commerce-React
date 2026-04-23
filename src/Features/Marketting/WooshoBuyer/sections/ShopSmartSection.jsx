@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { MessageSquare, ShoppingBag, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
+import { useNavigate } from 'react-router-dom';
 
 
 // ─── Image: public/1000174262.png ─────────────────────────────────────────────
@@ -13,38 +14,49 @@ const PANEL_1 = {
   backgroundRepeat: 'no-repeat',
 };
 
+
+// Todays Orders card data
+
+const ordersToday = [
+  { label: 'Orders today', value: '12,847', change: '18', color: '#059669' },
+]
+
+const shoppersCount = '2.4M'
+
 const ShopSmartSection = () => {
-  const containerRef   = useRef(null);
-  const headlineRef    = useRef(null);
-  const subtextRef     = useRef(null);
-  const buttonsRef     = useRef(null);
-  const badgeRef       = useRef(null);
-  const imgFrameRef    = useRef(null);
-  const glassCardRef   = useRef(null);
+  const containerRef = useRef(null);
+  const headlineRef = useRef(null);
+  const subtextRef = useRef(null);
+  const buttonsRef = useRef(null);
+  const badgeRef = useRef(null);
+  const imgFrameRef = useRef(null);
+  const glassCardRef = useRef(null);
   const [imgHovered, setImgHovered] = useState(false);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
       tl.fromTo(badgeRef.current,
-          { y: 12, opacity: 0, scale: 0.92 },
-          { y: 0,  opacity: 1, scale: 1, duration: 0.55 })
+        { y: 12, opacity: 0, scale: 0.92 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.55 })
         .fromTo(headlineRef.current,
           { y: 36, opacity: 0 },
-          { y: 0,  opacity: 1, duration: 0.75 }, '-=0.2')
+          { y: 0, opacity: 1, duration: 0.75 }, '-=0.2')
         .fromTo(subtextRef.current,
           { y: 22, opacity: 0 },
-          { y: 0,  opacity: 1, duration: 0.6  }, '-=0.4')
+          { y: 0, opacity: 1, duration: 0.6 }, '-=0.4')
         .fromTo(Array.from(buttonsRef.current.children),
           { y: 18, opacity: 0 },
-          { y: 0,  opacity: 1, duration: 0.5, stagger: 0.1 }, '-=0.3')
+          { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 }, '-=0.3')
         .fromTo(imgFrameRef.current,
           { x: 48, opacity: 0, scale: 0.96 },
-          { x: 0,  opacity: 1, scale: 1, duration: 0.85, ease: 'power4.out' }, '-=0.55')
+          { x: 0, opacity: 1, scale: 1, duration: 0.85, ease: 'power4.out' }, '-=0.55')
         .fromTo(glassCardRef.current,
           { y: 16, opacity: 0, scale: 0.9 },
-          { y: 0,  opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.6)' }, '-=0.25');
+          { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.6)' }, '-=0.25');
     }, containerRef);
 
     return () => ctx.revert();
@@ -53,7 +65,7 @@ const ShopSmartSection = () => {
   return (
     <section
       ref={containerRef}
-      className="w-full min-h-screen flex items-center justify-center pt-24 pb-12 px-6 md:px-12 bg-white overflow-hidden"
+      className="w-full min-h-screen flex items-center justify-center pt-24 pb-12 px-6 md:px-12 bg-white dark:bg-[#0a0a0a] overflow-hidden"
     >
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
@@ -74,7 +86,7 @@ const ShopSmartSection = () => {
 
           <h1
             ref={headlineRef}
-            className="text-5xl md:text-7xl font-extrabold text-neutral-900 leading-[1.06] tracking-tight"
+            className="text-5xl md:text-7xl font-extrabold text-neutral-900 dark:text-white leading-[1.06] tracking-tight"
           >
             Shop Smart. <br />
             <span
@@ -91,20 +103,24 @@ const ShopSmartSection = () => {
 
           <p
             ref={subtextRef}
-            className="text-lg md:text-xl text-neutral-600 max-w-md leading-relaxed"
+            className="text-lg md:text-xl text-neutral-600 dark:text-neutral-400 max-w-md leading-relaxed"
           >
             Everything you need, delivered straight to your door. Experience the joy of seamless, stress-free shopping with WooSho.
           </p>
 
           <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-2">
             <button
-              className="flex items-center justify-center gap-2.5 text-white px-8 py-4 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+              className="flex items-center justify-center gap-2.5 text-white px-8 py-4 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 "
               style={{ background: 'linear-gradient(135deg,#1d4ed8,#0284c7)', boxShadow: '0 4px 20px rgba(37,99,235,0.32)' }}
+              onClick ={() => navigate('/auth')} 
             >
               <ShoppingBag className="w-4.5 h-4.5" />
               Start Shopping
             </button>
-            <button className="flex items-center justify-center gap-2.5 bg-neutral-100 text-neutral-900 px-8 py-4 rounded-full font-semibold hover:bg-neutral-200 transition-colors duration-200">
+            <button 
+              className="flex items-center justify-center gap-2.5 bg-neutral-100 dark:bg-white/5 text-neutral-900 dark:text-white px-8 py-4 rounded-full font-semibold hover:bg-neutral-600 transition-colors duration-200"
+              onClick={() => navigate('/products/categories')}
+            >
               Browse Categories
             </button>
           </div>
@@ -113,7 +129,7 @@ const ShopSmartSection = () => {
           <div className="flex items-center gap-3 pt-2">
             {/* Avatars */}
             <div className="flex -space-x-2">
-              {['🧑🏾','👩🏽','👨🏿','👩🏾'].map((e, i) => (
+              {['🧑🏾', '👩🏽', '👨🏿', '👩🏾'].map((e, i) => (
                 <div
                   key={i}
                   className="w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 border-white"
@@ -125,12 +141,12 @@ const ShopSmartSection = () => {
             </div>
             <div>
               <div className="flex items-center gap-1">
-                {[...Array(5)].map((_,i) => (
+                {[...Array(5)].map((_, i) => (
                   <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Loved by <strong className="text-neutral-700">2.4M+</strong> shoppers
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                Loved by <strong className="text-neutral-700 dark:text-neutral-300">{shoppersCount}+</strong> shoppers
               </p>
             </div>
           </div>
@@ -186,22 +202,30 @@ const ShopSmartSection = () => {
             >
               <ShoppingBag size={18} color="#fff" />
             </div>
+            {/* Orders Stats */}
             <div>
-              <p className="text-xs font-semibold text-neutral-500 leading-none mb-1">
-                Orders today
-              </p>
-              <p
-                className="text-xl font-black text-neutral-900 leading-none"
-                style={{ fontVariantNumeric: 'tabular-nums' }}
-              >
-                12,847
-                <span
-                  className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full"
-                  style={{ background: 'rgba(16,185,129,0.12)', color: '#059669' }}
-                >
-                  +18%
-                </span>
-              </p>
+              {
+                ordersToday.map((stat, i) => (
+                  <div key={i}>
+                    <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 leading-none mb-1">
+                      {stat.label}
+                    </p>
+                    <p
+                      className="text-xl font-black text-neutral-900 leading-none"
+                      style={{ fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {stat.value}
+                      <span
+                        className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full"
+                        style={{ background: 'rgba(16,185,129,0.12)', color: '#059669' }}
+                      >
+                        +{stat.change}%
+                      </span>
+                    </p>
+                  </div>
+                ))
+              }
+
             </div>
           </div>
 

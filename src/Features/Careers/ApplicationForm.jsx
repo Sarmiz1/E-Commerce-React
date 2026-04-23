@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, Link } from "react-router-dom";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import ModernNavbar from "../../Components/ModernNavbar";
-import { ModernFooter } from "../Marketting/ModernLanding/SharedComponents/ModernFooter";
 
 export default function ApplicationForm() {
   const [searchParams] = useSearchParams();
@@ -128,7 +127,6 @@ export default function ApplicationForm() {
             </Link>
           </motion.div>
         </main>
-        <ModernFooter />
       </div>
     );
   }
@@ -823,8 +821,6 @@ export default function ApplicationForm() {
           </form>
         </div>
       </main>
-
-      <ModernFooter />
     </div>
   );
 }

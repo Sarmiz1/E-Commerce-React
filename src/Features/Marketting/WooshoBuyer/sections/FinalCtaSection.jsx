@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Users, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
+import { useNavigate } from 'react-router-dom';
 
 
 gsap.registerPlugin(ScrollTrigger);
@@ -17,13 +18,15 @@ const PANEL_6 = {
 };
 
 const FinalCtaSection = () => {
-  const sectionRef  = useRef(null);
-  const contentRef  = useRef(null);
+  const sectionRef = useRef(null);
+  const contentRef = useRef(null);
   const headlineRef = useRef(null);
-  const buttonsRef  = useRef(null);
-  const statsRef    = useRef(null);
-  const imgRef      = useRef(null);
+  const buttonsRef = useRef(null);
+  const statsRef = useRef(null);
+  const imgRef = useRef(null);
   const [imgHov, setImgHov] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -35,23 +38,31 @@ const FinalCtaSection = () => {
 
       gsap.fromTo(headlineRef.current,
         { y: 28, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 58%' } });
+        {
+          y: 0, opacity: 1, duration: 0.7, ease: 'power3.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 58%' }
+        });
 
       gsap.fromTo(Array.from(buttonsRef.current?.children || []),
         { y: 18, opacity: 0, scale: 0.94 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.1, ease: 'back.out(1.5)',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 55%' } });
+        {
+          y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.1, ease: 'back.out(1.5)',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 55%' }
+        });
 
       gsap.fromTo(statsRef.current,
         { y: 16, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 52%' } });
+        {
+          y: 0, opacity: 1, duration: 0.5, ease: 'power2.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 52%' }
+        });
 
       gsap.fromTo(imgRef.current,
         { x: 48, opacity: 0, scale: 0.97 },
-        { x: 0, opacity: 1, scale: 1, duration: 0.9, ease: 'power4.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 60%' } });
+        {
+          x: 0, opacity: 1, scale: 1, duration: 0.9, ease: 'power4.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 60%' }
+        });
     }, sectionRef);
 
     return () => ctx.revert();
@@ -132,6 +143,7 @@ const FinalCtaSection = () => {
                   boxShadow: '0 6px 28px rgba(37,99,235,0.42)',
                   paddingTop: 17, paddingBottom: 17,
                 }}
+                onClick={() => navigate('/products')}
               >
                 Try WooSho Now
                 <ArrowRight size={17} />
@@ -142,6 +154,7 @@ const FinalCtaSection = () => {
                   border: '1px solid rgba(255,255,255,0.16)',
                   paddingTop: 17, paddingBottom: 17,
                 }}
+                onClick={() => navigate('/auth')}
               >
                 Create Free Account
               </button>
@@ -151,7 +164,7 @@ const FinalCtaSection = () => {
             <div ref={statsRef} className="flex items-center gap-5 flex-wrap">
               <div className="flex items-center gap-1.5">
                 <div className="flex">
-                  {[...Array(5)].map((_,i) => (
+                  {[...Array(5)].map((_, i) => (
                     <Star key={i} size={13} style={{ fill: '#fbbf24', color: '#fbbf24' }} />
                   ))}
                 </div>

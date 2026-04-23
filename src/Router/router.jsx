@@ -76,6 +76,10 @@ import {
   CartSkeleton,
 } from "../Components/Fallback";
 
+
+// JUST TEsT
+import SalesAssistant from "../Features/SellerDashboard/AI_Sales_Assistant/SalesAssistant";
+
 const isLoggedIn = false;
 
 const router = createBrowserRouter(
@@ -105,11 +109,14 @@ const router = createBrowserRouter(
 
       {/* ── Marketting layout pages ── */}
       <Route element={<MarkettingLayout />}>
+
         <Route path="brands" element={<BrandsPage />}>
           <Route path=":brandId" element={<BrandDetail />} />
         </Route>
-        <Route path="seller" element={<SellerLanding />} />
+
+        <Route path="sell" element={<SellerLanding />} />
         <Route path="buyer" element={<BuyerLanding />} />
+
       </Route>
 
       {/* ── Default layout pages ── */}
@@ -246,7 +253,15 @@ const router = createBrowserRouter(
             hydrateFallbackElement={<ProductsSkeleton />}
           />
         </Route>
+
       </Route>
+
+      {/* Test */}
+      <Route
+        path="sales-assistant"
+        element={<SalesAssistant />}
+      />
+
 
       {/* ── 404 ── */}
       <Route path="*" element={<NotFoundPage />} />

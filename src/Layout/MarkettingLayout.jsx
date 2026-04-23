@@ -1,7 +1,7 @@
 import React, { lazy } from "react";
 import { Outlet } from "react-router-dom";
 const ModernFooter = lazy(() =>
-  import("../Features/Marketting/ModernLanding/SharedComponents/ModernFooter").then(
+  import("../Features/Marketting/ModernFooter").then(
     (module) => ({ default: module.ModernFooter }),
   ),
 );

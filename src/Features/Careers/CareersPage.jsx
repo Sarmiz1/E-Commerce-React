@@ -15,7 +15,6 @@ import {
   FileText,
 } from "lucide-react";
 import ModernNavbar from "../../Components/ModernNavbar";
-import { ModernFooter } from "../Marketting/ModernLanding/SharedComponents/ModernFooter";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -468,7 +467,6 @@ export default function CareersPage() {
       </section>
 
       <div className="border-t border-gray-200 dark:border-white/5 transition-colors duration-300"></div>
-      <ModernFooter />
     </div>
   );
 }

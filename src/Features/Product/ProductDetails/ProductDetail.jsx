@@ -1310,11 +1310,7 @@ export default function ProductDetail() {
   const { product, similarProducts } = useLoaderData();
 
   // ── Theme ──
-  const { theme } = useTheme();
-  // Adapt to whatever your ThemeContext shape is:
-  //   if it returns { isDark } use:  const isDark = isDark;
-  //   if it returns { colorMode } use: const isDark = colorMode === 'dark';
-  const isDark = theme !== "light";
+  const { isDark } = useTheme();
 
   const atcRef = useRef(null);
   const [atcOutOfView, setAtcOutOfView] = useState(false);
@@ -1418,7 +1414,7 @@ export default function ProductDetail() {
           </nav>
 
           {/* ── TWO-COLUMN GRID ─────────────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
 
             {/* LEFT: Gallery + Intel + Reviews (scrolls with page) */}
             <div className="lg:col-span-7">
@@ -1430,10 +1426,9 @@ export default function ProductDetail() {
             <div className="lg:col-span-5">
               {/*
                * lg:sticky lg:top-[88px] — sticks to 88px below viewport top.
-               * Works because .pd-root uses overflow-x: clip (not hidden),
-               * which doesn't create a new scroll container.
+               * Added max-h and overflow-y-auto so the right side has its own scroll.
                */}
-              <div ref={rightRef} className="lg:sticky lg:top-[88px] space-y-5">
+              <div ref={rightRef} className="lg:sticky lg:top-[88px] max-h-[calc(100vh-100px)] overflow-y-auto space-y-5 pd-thumbs pr-2 pb-8">
 
                 {/* Top action row */}
                 <div className="pd-r flex items-center justify-between">
@@ -1584,7 +1579,7 @@ export default function ProductDetail() {
       </AnimatePresence>
 
       {/* ── STICKY ATC BAR ───────────────────────────────────────────── */}
-      <StickyATCBar product={product} productId={product.id} variantId={product.variants?.[0]?.id || null} visible={atcOutOfView} />
+      {/* <StickyATCBar product={product} productId={product.id} variantId={product.variants?.[0]?.id || null} visible={atcOutOfView} /> */}
     </div>
   );
 }

@@ -18,7 +18,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import ModernNavbar from "../../Components/ModernNavbar";
-import { ModernFooter } from "../Marketting/ModernLanding/SharedComponents/ModernFooter";
+// import { ModernFooter } from "../Marketting/ModernLanding/SharedComponents/ModernFooter";
 
 const CATEGORIES = [
   {
@@ -307,7 +307,7 @@ export default function SupportPage() {
         </div>
       </div>
 
-      <ModernFooter />
+      {/* <ModernFooter /> */}
     </div>
   );
 }

@@ -48,6 +48,8 @@ const categories = [
   },
 ];
 
+const delivery = '48H'; // This could be dynamic based on actual delivery times or offers
+
 const CategoriesSection = () => {
   const sectionRef    = useRef(null);
   const headlineRef   = useRef(null);
@@ -89,16 +91,16 @@ const CategoriesSection = () => {
   };
 
   return (
-    <section ref={sectionRef} className="w-full py-24 px-6 md:px-12 bg-white overflow-hidden">
+    <section ref={sectionRef} className="w-full py-24 px-6 md:px-12 bg-white dark:bg-[#0a0a0a] overflow-hidden">
       <div className="max-w-7xl mx-auto">
 
         {/* ── Header ─────────────────────────────────────────── */}
         <div ref={headlineRef} className="text-center mb-14">
-          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight leading-[1.1]">
+          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white tracking-tight leading-[1.1]">
             Everything You Need.{' '}
             <span className="text-neutral-400">One Platform.</span>
           </h2>
-          <p className="mt-4 text-lg text-neutral-500 max-w-xl mx-auto">
+          <p className="mt-4 text-lg text-neutral-500 dark:text-neutral-400 max-w-xl mx-auto">
             From fashion to electronics — AI finds exactly what you want.
           </p>
         </div>
@@ -150,7 +152,7 @@ const CategoriesSection = () => {
               }}
             >
               <Package size={14} color="#fff" />
-              <span className="text-white text-xs font-bold">48h Nationwide</span>
+              <span className="text-white text-xs font-bold">{delivery} Nationwide</span>
             </div>
           </div>
         </div>

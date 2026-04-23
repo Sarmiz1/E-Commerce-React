@@ -14,6 +14,13 @@ import Section8_Pricing from "./Components/Section8_Pricing";
 import Section9_Cta from "./Components/Section9_Cta";
 import PulseTicker from "./Components/PulseTicker";
 
+const links = [
+  { label: "Shop", href: "/products" },
+  { label: "Features", href: "#seller-features" },
+  { label: "Pricing", href: "#seller-pricing" },
+  { label: "Get Started", href: "#seller-cta" },
+];
+
 gsap.registerPlugin(ScrollTrigger);
 
 export default function SellerLanding() {
@@ -56,14 +63,7 @@ export default function SellerLanding() {
         color: isDark ? "#fff" : "#111",
       }}
     >
-      <ModernNavbar
-        navLinks={[
-          { label: "Shop", href: "/products" },
-          { label: "Features", href: "#seller-features" },
-          { label: "Pricing", href: "#seller-pricing" },
-          { label: "Get Started", href: "#seller-cta" },
-        ]}
-      />
+      <ModernNavbar navLinks={links} />
 
       {/* V1: The Living Feed Hero */}
       <section

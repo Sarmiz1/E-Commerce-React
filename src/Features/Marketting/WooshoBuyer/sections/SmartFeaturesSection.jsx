@@ -2,8 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const FEATURES = [
   {
     icon: "🧠",
@@ -38,6 +36,10 @@ const FEATURES = [
     accent: "#fbbf24",
   },
 ];
+
+
+gsap.registerPlugin(ScrollTrigger);
+
 
 const SmartFeaturesSection = () => {
   const sectionRef = useRef(null);

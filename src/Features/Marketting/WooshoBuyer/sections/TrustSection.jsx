@@ -42,11 +42,17 @@ const ITEMS = [
   },
 ];
 
+const steps = [
+  { icon: Shield, label: 'Secure Payments' },
+  { icon: Truck, label: 'Fast Delivery' },
+  { icon: Shield, label: 'Trusted Service' },
+]
+
 const TrustSection = () => {
-  const sectionRef  = useRef(null);
-  const imgRef      = useRef(null);
-  const contentRef  = useRef(null);
-  const itemsRef    = useRef([]);
+  const sectionRef = useRef(null);
+  const imgRef = useRef(null);
+  const contentRef = useRef(null);
+  const itemsRef = useRef([]);
   const [imgHov, setImgHov] = useState(false);
 
   useEffect(() => {
@@ -59,8 +65,10 @@ const TrustSection = () => {
 
       gsap.fromTo(contentRef.current,
         { x: 30, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.75, ease: 'power3.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 74%' } });
+        {
+          x: 0, opacity: 1, duration: 0.75, ease: 'power3.out',
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 74%' }
+        });
 
       gsap.fromTo(itemsRef.current,
         { y: 20, opacity: 0 },
@@ -125,11 +133,7 @@ const TrustSection = () => {
               }}
             >
               <div className="flex items-center gap-5 flex-wrap">
-                {[
-                  { icon: Shield,  label: 'Secure Payments' },
-                  { icon: Truck,   label: 'Fast Delivery'    },
-                  { icon: Shield,  label: 'Trusted Service'  },
-                ].map(({ icon: Icon, label }, i) => (
+                {steps.map(({ icon: Icon, label }, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <Icon size={13} color="rgba(255,255,255,0.7)" />
                     <span
@@ -184,15 +188,15 @@ const TrustSection = () => {
                   }}
                   onMouseEnter={e => {
                     e.currentTarget.style.borderColor = `${color}44`;
-                    e.currentTarget.style.background  = `${color}0B`;
-                    e.currentTarget.style.transform   = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow   = `0 8px 28px ${color}18`;
+                    e.currentTarget.style.background = `${color}0B`;
+                    e.currentTarget.style.transform = 'translateY(-3px)';
+                    e.currentTarget.style.boxShadow = `0 8px 28px ${color}18`;
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
-                    e.currentTarget.style.background  = 'rgba(255,255,255,0.02)';
-                    e.currentTarget.style.transform   = 'none';
-                    e.currentTarget.style.boxShadow   = 'none';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
                   <div

@@ -17,7 +17,6 @@ import {
   Unlink,
 } from "lucide-react";
 import ModernNavbar from "../../Components/ModernNavbar";
-import { ModernFooter } from "../Marketting/ModernLanding/SharedComponents/ModernFooter";
 import { useTheme } from "../../Context/theme/ThemeContext";
 // Reusing generic lucide icons for missing ones
 import { Package, Search } from "lucide-react";
@@ -382,7 +381,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <ModernFooter />
     </div>
   );
 }
