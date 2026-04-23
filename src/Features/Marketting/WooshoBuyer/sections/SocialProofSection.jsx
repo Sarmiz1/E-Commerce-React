@@ -1,9 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Star } from 'lucide-react';
+import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// Panel 4: middle-right → background-position: 100% 50%
+const PANEL_4 = {
+  backgroundImage: `url(${WS_IMG})`,
+  backgroundSize: '200% 300%',
+  backgroundPosition: '100% 50%',
+  backgroundRepeat: 'no-repeat',
+};
 
 const REVIEWS = [
   {
@@ -22,27 +31,31 @@ const REVIEWS = [
     avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&q=80&fit=crop",
     rating: 5,
   },
-  {
-    quote: "Fastest checkout experience I've ever had. The recommendations are actually smart, not random.",
-    author: "Chukwudi K.",
-    role: "Tech Buyer",
-    location: "Port Harcourt",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&q=80&fit=crop&face=center",
-    rating: 5,
-  },
 ];
 
 const SocialProofSection = () => {
   const sectionRef = useRef(null);
   const cardsRef = useRef([]);
+  const imgCardRef = useRef(null);
+  const [imgHov, setImgHov] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(cardsRef.current,
         { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.9, stagger: 0.18, ease: "expo.out",
-          scrollTrigger: { trigger: sectionRef.current, start: "top 72%" } }
+        {
+          y: 0, opacity: 1, duration: 0.9, stagger: 0.18, ease: "expo.out",
+          scrollTrigger: { trigger: sectionRef.current, start: "top 72%" }
+        }
       );
+      if (imgCardRef.current) {
+         gsap.fromTo(imgCardRef.current,
+           { y: 40, opacity: 0 },
+           { y: 0, opacity: 1, duration: 0.9, delay: 0.2, ease: "expo.out",
+             scrollTrigger: { trigger: sectionRef.current, start: "top 72%" }
+           }
+         );
+      }
     }, sectionRef);
     return () => ctx.revert();
   }, []);
@@ -64,59 +77,110 @@ const SocialProofSection = () => {
           </p>
         </div>
 
-        {/* Review Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {REVIEWS.map((rev, i) => (
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Panel 4 image — spans 2 cols */}
+          <div
+            ref={imgCardRef}
+            className="lg:col-span-2 relative rounded-[24px] overflow-hidden"
+            style={{ minHeight: 420 }}
+            onMouseEnter={() => setImgHov(true)}
+            onMouseLeave={() => setImgHov(false)}
+          >
+            {/* Brand image */}
             <div
-              key={i}
-              ref={el => cardsRef.current[i] = el}
+              className="absolute inset-0"
               style={{
-                background: "linear-gradient(145deg, #141414, #1a1a1a)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                borderRadius: 24,
-                padding: "32px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 20,
-                transition: "border-color 0.3s, transform 0.3s",
-                cursor: "default",
+                ...PANEL_4,
+                transform: imgHov ? 'scale(1.04)' : 'scale(1)',
+                transition: 'transform 0.65s cubic-bezier(.4,0,.2,1)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.transform = "none"; }}
-            >
-              {/* Stars */}
-              <div className="flex gap-1">
-                {Array.from({ length: rev.rating }).map((_, s) => (
-                  <Star key={s} size={14} className="fill-amber-400 text-amber-400" />
-                ))}
+            />
+          
+            {/* Bottom gradient */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(to top, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.15) 55%, transparent 100%)',
+              }}
+            />
+          
+            {/* Bottom label */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+              <div
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-4"
+                style={{
+                  background: 'rgba(99,102,241,0.25)',
+                  border: '1px solid rgba(99,102,241,0.4)',
+                  color: '#a5b4fc',
+                }}
+              >
+                ✓ Real WooSho Families
               </div>
-
-              {/* Quote */}
-              <p style={{ fontSize: 15, color: "#e5e7eb", lineHeight: 1.75, fontWeight: 500, flex: 1 }}>
-                "{rev.quote}"
-              </p>
-
-              {/* Author */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                <img
-                  src={rev.avatar}
-                  alt={rev.author}
-                  style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(99,102,241,0.4)" }}
-                  onError={e => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "flex";
-                  }}
-                />
-                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#a855f7)", display: "none", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", fontWeight: 900, flexShrink: 0 }}>
-                  {rev.author[0]}
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#f9fafb" }}>{rev.author}</div>
-                  <div style={{ fontSize: 11, color: "#6b7280" }}>{rev.role} · {rev.location}</div>
-                </div>
-              </div>
+              <h3 className="text-white text-3xl md:text-4xl font-black leading-tight mb-2">
+                Quality products. Great prices.<br />Happy family.
+              </h3>
+              <p className="text-neutral-300 text-base font-semibold">That's WooSho.</p>
             </div>
-          ))}
+          </div>
+
+          {/* Reviews column */}
+          <div className="flex flex-col gap-8">
+            {REVIEWS.map((rev, i) => (
+              <div
+                key={i}
+                ref={el => cardsRef.current[i] = el}
+                style={{
+                  background: "linear-gradient(145deg, #141414, #1a1a1a)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: 24,
+                  padding: "32px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 20,
+                  transition: "border-color 0.3s, transform 0.3s",
+                  cursor: "default",
+                  flex: 1
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.transform = "none"; }}
+              >
+                {/* Stars */}
+                <div className="flex gap-1">
+                  {Array.from({ length: rev.rating }).map((_, s) => (
+                    <Star key={s} size={14} className="fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+
+                {/* Quote */}
+                <p style={{ fontSize: 15, color: "#e5e7eb", lineHeight: 1.75, fontWeight: 500, flex: 1 }}>
+                  "{rev.quote}"
+                </p>
+
+                {/* Author */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                  <img
+                    src={rev.avatar}
+                    alt={rev.author}
+                    style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(99,102,241,0.4)" }}
+                    onError={e => {
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
+                    }}
+                  />
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#a855f7)", display: "none", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", fontWeight: 900, flexShrink: 0 }}>
+                    {rev.author[0]}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#f9fafb" }}>{rev.author}</div>
+                    <div style={{ fontSize: 11, color: "#6b7280" }}>{rev.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Stats row */}

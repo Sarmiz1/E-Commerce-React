@@ -13,7 +13,7 @@ import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
 // ─── Layouts ──────────────────────────────────────────────────────────────────
 import RootLayout from "../Layout/RootLayout";
 import DefaultLayout from "../Layout/DefaultLayout";
-import LandingLayout from "../Layout/LandingLayout";
+import MarkettingLayout from "../Layout/MarkettingLayout";
 import ProductsLayout from "../Layout/ProductsLayout";
 import TradeLayout from "../Layout/TradeLayout";
 
@@ -88,7 +88,7 @@ const router = createBrowserRouter(
       {/* ── Home (conditional) ── */}
       <Route
         path="/"
-        element={isLoggedIn ? <DefaultLayout /> : <LandingLayout />}
+        element={isLoggedIn ? <DefaultLayout /> : <MarkettingLayout />}
       >
         {isLoggedIn ? (
           <Route index element={<HomePage />} loader={fetchProductsLoader} />
@@ -103,8 +103,8 @@ const router = createBrowserRouter(
       <Route path="signup" element={<AuthPage />} />
       <Route path="authnew" element={<AuthNew />} />
 
-      {/* ── Landing layout pages ── */}
-      <Route element={<LandingLayout />}>
+      {/* ── Marketting layout pages ── */}
+      <Route element={<MarkettingLayout />}>
         <Route path="brands" element={<BrandsPage />}>
           <Route path=":brandId" element={<BrandDetail />} />
         </Route>
