@@ -8,6 +8,8 @@ export const BUYER_NAV = [
   { id: 'ai',          label: 'My AI',           icon: 'ai',  badge: 'NEW' },
   { id: 'orders',      label: 'My Orders',       icon: 'package' },
   { id: 'wishlist',    label: 'Wishlist',        icon: 'heart' },
+  { id: 'wallet',      label: 'Wallet',          icon: 'wallet' },
+  { id: 'credits',     label: 'AI Power-Ups',    icon: 'zap', badge: '✦' },
   { id: 'analytics',   label: 'Spending',        icon: 'bar-chart' },
   { id: 'addresses',   label: 'Addresses',       icon: 'map-pin' },
   { id: 'payments',    label: 'Payment Methods', icon: 'credit-card' },

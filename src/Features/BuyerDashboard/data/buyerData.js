@@ -172,3 +172,48 @@ export const AI_CHAT_SUGGESTIONS = [
   'Trendy bags for women',
   'Budget tech gadgets',
 ];
+
+// ─── Wallet Mock Data ─────────────────────────────────────────────────────────
+export const WALLET_DATA = {
+  balance: 125000,
+  totalFunded: 350000,
+  totalWithdrawn: 180000,
+  totalSpent: 45000,
+  transactions: [
+    { id: 'TXN-001', type: 'fund',     amount: 100000, date: '2026-04-20', desc: 'Bank Transfer', status: 'completed' },
+    { id: 'TXN-002', type: 'purchase', amount: -48500, date: '2026-04-20', desc: 'Stealth Sneakers X1', status: 'completed' },
+    { id: 'TXN-003', type: 'fund',     amount: 50000,  date: '2026-04-18', desc: 'Card Top-up', status: 'completed' },
+    { id: 'TXN-004', type: 'withdraw', amount: -80000, date: '2026-04-15', desc: 'Bank Withdrawal (10% fee: ₦8,000)', status: 'completed', fee: 8000 },
+    { id: 'TXN-005', type: 'credit',   amount: -5000,  date: '2026-04-12', desc: 'AI Power-Up: Pro Pack', status: 'completed' },
+    { id: 'TXN-006', type: 'refund',   amount: 62000,  date: '2026-03-28', desc: 'Refund: Running Pro Max', status: 'completed' },
+    { id: 'TXN-007', type: 'fund',     amount: 200000, date: '2026-03-15', desc: 'Bank Transfer', status: 'completed' },
+    { id: 'TXN-008', type: 'withdraw', amount: -100000,date: '2026-03-10', desc: 'Bank Withdrawal (10% fee: ₦10,000)', status: 'completed', fee: 10000 },
+  ],
+};
+
+// ─── AI Credit Tiers ──────────────────────────────────────────────────────────
+export const AI_CREDIT_TIERS = [
+  { id: 'starter',   name: 'Spark',      credits: 50,  price: 2000,  color: '#667eea', icon: 'zap',     perks: ['50 AI queries', 'Basic recommendations', 'Style matching'] },
+  { id: 'pro',       name: 'Blaze',      credits: 200, price: 5000,  color: '#f59e0b', icon: 'sparkle', perks: ['200 AI queries', 'Priority processing', 'Deal alerts', 'Smart size prediction'], badge: 'Popular' },
+  { id: 'unlimited', name: 'Supernova',  credits: 500, price: 10000, color: '#ec4899', icon: 'star',    perks: ['500 AI queries', 'Unlimited priority', 'Personal shopper mode', 'Exclusive early access', 'VIP support'], badge: 'Best Value' },
+];
+
+export const AI_CREDITS_DATA = {
+  balance: 42,
+  totalPurchased: 250,
+  totalUsed: 208,
+  history: [
+    { date: '2026-04-24', used: 3, desc: 'Product search: sneakers' },
+    { date: '2026-04-23', used: 5, desc: 'Style recommendations' },
+    { date: '2026-04-22', used: 2, desc: 'Price comparison' },
+    { date: '2026-04-20', used: 8, desc: 'Full wardrobe analysis' },
+    { date: '2026-04-18', used: 1, desc: 'Size prediction' },
+  ],
+};
+
+// ─── Cart Items ───────────────────────────────────────────────────────────────
+export const CART_ITEMS = [
+  { id: 1, name: 'Leather Oxford Shoes',  price: 38000, qty: 1, size: 'EU 42', color: 'Brown' },
+  { id: 2, name: 'Merino Wool Pullover',  price: 22000, qty: 1, size: 'M',     color: 'Navy' },
+  { id: 3, name: 'Smart Watch Series 5',  price: 85000, qty: 1, size: null,    color: 'Space Gray' },
+];

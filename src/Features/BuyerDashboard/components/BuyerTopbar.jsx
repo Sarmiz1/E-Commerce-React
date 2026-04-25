@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
+import { fmtFull } from '../utils/fmt';
 
 export default function BuyerTopbar() {
   const { colors, isDark, toggle } = useTheme();
-  const { page, setPage, setSidebarOpen, notifs, unreadCount } = useBuyer();
+  const { page, setPage, setSidebarOpen, notifs, unreadCount, cart, cartTotal, removeFromCart } = useBuyer();
   const [notifOpen, setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [cartOpen, setCartOpen]     = useState(false);
   const [search, setSearch]           = useState('');
 
   const unread = unreadCount ?? 0;
@@ -47,13 +49,94 @@ export default function BuyerTopbar() {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
-        {/* Cart */}
-        <button className="relative w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
-          <BIcon name="cart" size={17} />
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 text-[9px] font-black text-white rounded-full flex items-center justify-center"
-            style={{ background: '#667eea' }}>3</span>
-        </button>
+        {/* Cart with hover dropdown */}
+        <div className="relative"
+          onMouseEnter={() => setCartOpen(true)}
+          onMouseLeave={() => setCartOpen(false)}
+        >
+          <button className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
+            <BIcon name="cart" size={17} />
+            {cart.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 text-[9px] font-black text-white rounded-full flex items-center justify-center"
+                style={{ background: '#667eea' }}>{cart.length}</span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {cartOpen && (
+              <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                className="absolute right-0 top-12 w-80 rounded-2xl overflow-hidden shadow-2xl z-50"
+                style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
+                {/* Header */}
+                <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
+                  <span className="font-bold text-sm" style={{ color: colors.text.primary }}>Shopping Cart</span>
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(102,126,234,0.1)', color: '#667eea' }}>{cart.length} items</span>
+                </div>
+
+                {/* Items */}
+                {cart.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    <BIcon name="cart" size={28} style={{ color: colors.text.tertiary, opacity: 0.3, margin: '0 auto 8px' }} />
+                    <p className="text-sm" style={{ color: colors.text.tertiary }}>Your cart is empty</p>
+                  </div>
+                ) : (
+                  <div className="max-h-64 overflow-y-auto">
+                    {cart.map(item => {
+                      const hue = item.name.charCodeAt(0) * 7 % 360;
+                      return (
+                        <div key={item.id} className="px-4 py-3 flex items-center gap-3 hover:opacity-80 transition-opacity"
+                          style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-[11px] font-black text-white"
+                            style={{ background: `hsl(${hue}, 55%, 50%)` }}>
+                            {item.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate" style={{ color: colors.text.primary }}>{item.name}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs font-bold" style={{ color: '#667eea' }}>{fmtFull(item.price)}</span>
+                              {item.size && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: isDark ? 'rgba(102,126,234,0.1)' : '#EEF2FF', color: '#667eea' }}>{item.size}</span>}
+                              <span className="text-[10px]" style={{ color: colors.text.tertiary }}>×{item.qty}</span>
+                            </div>
+                          </div>
+                          <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
+                            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 hover:opacity-70"
+                            style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}>
+                            <BIcon name="x" size={11} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Footer with totals + CTAs */}
+                {cart.length > 0 && (
+                  <div className="px-4 py-3" style={{ borderTop: `1px solid ${colors.border.subtle}` }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-semibold" style={{ color: colors.text.tertiary }}>Subtotal</span>
+                      <span className="text-base font-black" style={{ color: colors.text.primary }}>{fmtFull(cartTotal)}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setPage('orders')}
+                        className="flex-1 py-2 rounded-xl text-xs font-bold border"
+                        style={{ borderColor: colors.border.default, color: colors.text.secondary }}>
+                        View All
+                      </button>
+                      <motion.button whileTap={{ scale: 0.96 }}
+                        className="flex-[2] py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+                        style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff' }}>
+                        <BIcon name="cart" size={13} /> Checkout
+                      </motion.button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Theme */}
         <button onClick={toggle} className="w-9 h-9 rounded-xl flex items-center justify-center"

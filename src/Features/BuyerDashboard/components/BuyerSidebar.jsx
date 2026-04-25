@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
@@ -41,6 +42,34 @@ function SidebarContent({ collapsed, setCollapsed, setSidebarOpen, page, setPage
 
       {/* ── Nav items ── */}
       <nav className="flex-1 px-2.5 py-4 space-y-0.5 overflow-y-auto">
+        {/* Home link */}
+        <Link
+          to="/"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group mb-2"
+          style={{
+            background: isDark ? 'rgba(102,126,234,0.06)' : 'rgba(102,126,234,0.04)',
+            color: colors.text.secondary,
+            borderBottom: `1px solid ${colors.border.subtle}`,
+          }}
+          title={collapsed ? 'Back to Home' : ''}
+        >
+          <BIcon name="home" size={18} style={{ flexShrink: 0, color: colors.text.tertiary }} />
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span key="home-lbl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm font-semibold whitespace-nowrap">
+                Back to Home
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span key="home-arr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="ml-auto" style={{ color: colors.text.tertiary }}>
+                <BIcon name="arrow-left" size={14} />
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Link>
+
         {BUYER_NAV.map(item => {
           const isActive = page === item.id;
           return (

@@ -18,7 +18,7 @@ import {
   BUYER_ORDERS, WISHLIST, RECOMMENDATIONS,
   SMART_INSIGHTS, ADDRESSES, PAYMENT_METHODS,
   BUYER_NOTIFICATIONS, SPENDING_DATA, BUYER_REVIEWS,
-  REORDER_SUGGESTIONS,
+  REORDER_SUGGESTIONS, WALLET_DATA, AI_CREDITS_DATA, CART_ITEMS,
 } from '../data/buyerData';
 
 const isMock = !import.meta.env.VITE_SUPABASE_URL ||
@@ -78,6 +78,20 @@ export function useBuyerData() {
   const [recommendations] = useState(RECOMMENDATIONS);
   const [insights]        = useState(SMART_INSIGHTS);
   const [unreadCount, setUnreadCount] = useState(3);
+
+  // ── Wallet state ──
+  const [walletBalance, setWalletBalance] = useState(WALLET_DATA.balance);
+  const [walletTransactions, setWalletTransactions] = useState(WALLET_DATA.transactions);
+
+  // ── AI Credits state ──
+  const [aiCredits, setAiCredits] = useState(AI_CREDITS_DATA.balance);
+  const [creditHistory, setCreditHistory] = useState(AI_CREDITS_DATA.history);
+  const [totalCreditsPurchased, setTotalCreditsPurchased] = useState(AI_CREDITS_DATA.totalPurchased);
+  const [totalCreditsUsed] = useState(AI_CREDITS_DATA.totalUsed);
+
+  // ── Cart state ──
+  const [cart, setCart] = useState(CART_ITEMS);
+
   const { addToast } = useToast();
 
   const fetchAll = useCallback(async () => {
@@ -260,12 +274,84 @@ export function useBuyerData() {
     return { success: !error, error };
   }, [fetchAll, addToast]);
 
+  // ── Wallet actions ──
+  const fundWallet = useCallback(async (amount) => {
+    await new Promise(r => setTimeout(r, 1200));
+    const txn = {
+      id: `TXN-${Date.now().toString(36).toUpperCase()}`,
+      type: 'fund', amount, date: new Date().toISOString().slice(0, 10),
+      desc: 'Wallet Top-up', status: 'completed',
+    };
+    setWalletBalance(prev => prev + amount);
+    setWalletTransactions(prev => [txn, ...prev]);
+    addToast(`₦${amount.toLocaleString()} added to wallet!`);
+    return { success: true };
+  }, [addToast]);
+
+  const withdrawWallet = useCallback(async (amount, password) => {
+    if (!password || password.length < 6) return { success: false, error: 'Invalid password' };
+    await new Promise(r => setTimeout(r, 1800));
+    const fee = Math.round(amount * 0.10);
+    const net = amount - fee;
+    if (amount > walletBalance) return { success: false, error: 'Insufficient balance' };
+    const txn = {
+      id: `TXN-${Date.now().toString(36).toUpperCase()}`,
+      type: 'withdraw', amount: -amount, fee,
+      date: new Date().toISOString().slice(0, 10),
+      desc: `Bank Withdrawal (10% fee: ₦${fee.toLocaleString()})`, status: 'completed',
+    };
+    setWalletBalance(prev => prev - amount);
+    setWalletTransactions(prev => [txn, ...prev]);
+    addToast(`₦${net.toLocaleString()} sent to your bank!`);
+    return { success: true, fee, net };
+  }, [walletBalance, addToast]);
+
+  // ── AI Credits actions ──
+  const buyCredits = useCallback(async (tier) => {
+    if (tier.price > walletBalance) {
+      addToast('Insufficient wallet balance. Fund your wallet first.', 'error');
+      return { success: false, error: 'Insufficient balance' };
+    }
+    await new Promise(r => setTimeout(r, 1200));
+    setWalletBalance(prev => prev - tier.price);
+    setAiCredits(prev => prev + tier.credits);
+    setTotalCreditsPurchased(prev => prev + tier.credits);
+    const txn = {
+      id: `TXN-${Date.now().toString(36).toUpperCase()}`,
+      type: 'credit', amount: -tier.price,
+      date: new Date().toISOString().slice(0, 10),
+      desc: `AI Power-Up: ${tier.name} Pack`, status: 'completed',
+    };
+    setWalletTransactions(prev => [txn, ...prev]);
+    addToast(`${tier.credits} AI credits added! You now have ${aiCredits + tier.credits} credits.`);
+    return { success: true };
+  }, [walletBalance, aiCredits, addToast]);
+
+  // ── Cart actions ──
+  const removeFromCart = useCallback((id) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+    addToast('Item removed from cart', 'info');
+  }, [addToast]);
+
+  const updateCartQty = useCallback((id, qty) => {
+    if (qty < 1) return;
+    setCart(prev => prev.map(item => item.id === id ? { ...item, qty } : item));
+  }, []);
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
   return {
     loading, error,
     profile, stats, snapshot, orders, wishlist,
     reviews, notifs, addresses, payments,
     spending, reorders, recommendations, insights,
     unreadCount,
+    // Wallet
+    walletBalance, walletTransactions, fundWallet, withdrawWallet,
+    // AI Credits
+    aiCredits, creditHistory, totalCreditsPurchased, totalCreditsUsed, buyCredits,
+    // Cart
+    cart, cartTotal, removeFromCart, updateCartQty,
     // Actions
     addToWishlist, removeFromWishlist, submitReview,
     markAllNotifsRead, addAddress,

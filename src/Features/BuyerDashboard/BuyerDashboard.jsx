@@ -8,6 +8,8 @@ import BuyerOverview from './components/BuyerOverview';
 import BuyerAI from './components/BuyerAI';
 import BuyerOrders from './components/BuyerOrders';
 import BuyerWishlist from './components/BuyerWishlist';
+import BuyerWallet from './components/BuyerWallet';
+import BuyerCredits from './components/BuyerCredits';
 import BuyerAnalytics from './components/BuyerAnalytics';
 import { BuyerAddresses, BuyerPayments } from './components/BuyerAddressPayment';
 import { BuyerReviews, BuyerNotifications } from './components/BuyerReviewsNotifs';
@@ -19,6 +21,8 @@ const PAGES = {
   ai:        () => <BuyerAI />,
   orders:    () => <BuyerOrders />,
   wishlist:  () => <BuyerWishlist />,
+  wallet:    () => <BuyerWallet />,
+  credits:   () => <BuyerCredits />,
   analytics: () => <BuyerAnalytics />,
   addresses: () => <BuyerAddresses />,
   payments:  () => <BuyerPayments />,
