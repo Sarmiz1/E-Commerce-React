@@ -30,7 +30,7 @@ export const STYLES = `
   .hp-progress-bar{transition:width 1.2s cubic-bezier(0.4,0,0.2,1)}
 
   .hp-back-top{
-    position:fixed;bottom:6rem;right:2rem;z-index:50;
+    position:fixed;bottom:6rem;right:1.5rem;z-index:50;
     width:3.5rem;height:3.5rem;border-radius:9999px;
     background:linear-gradient(135deg,#2563eb,#6366f1);
     color:white;display:flex;align-items:center;justify-content:center;

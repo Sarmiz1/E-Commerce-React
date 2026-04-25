@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Logo } from "../../Components/Ui/Logo";
-export default function MondernNavLogo({ pageView }) {
+export default function MondernNavLogo({ pageView, isScrolled }) {
 
   return (
     <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
@@ -10,13 +10,13 @@ export default function MondernNavLogo({ pageView }) {
           className="cursor-pointer"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
-          <Logo />
+          <Logo pageView={pageView} isScrolled={isScrolled} />
         </div>
       ) : (
         <Link to="/">
-          <Logo />
+          <Logo pageView={pageView} isScrolled={isScrolled} />
         </Link>
       )}
     </motion.div>
   );
-}
+}
