@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { Sparkles } from "lucide-react";
 import { Socials, LEGAL } from "./footerConstants";
+import { Logo } from "../../../Components/Ui/Logo";
 
 const BottomBar = forwardRef(function BottomBar({ socialsRef }, ref) {
   return (
@@ -12,7 +13,7 @@ const BottomBar = forwardRef(function BottomBar({ socialsRef }, ref) {
       {/* Left: Logo + copyright */}
       <div className="flex items-center gap-4 flex-wrap justify-center md:justify-start">
         {/* Compact logo mark */}
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <div
             className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center"
             style={{ boxShadow: "0 4px 14px rgba(37,99,235,0.35)" }}
@@ -25,7 +26,8 @@ const BottomBar = forwardRef(function BottomBar({ socialsRef }, ref) {
           >
             Woo<span className="text-blue-600">sho</span>
           </span>
-        </div>
+        </div> */}
+        <Logo size={7} />
 
         {/* Dot separator */}
         <span className="hidden md:block w-1 h-1 rounded-full bg-gray-300 dark:bg-white/20" />

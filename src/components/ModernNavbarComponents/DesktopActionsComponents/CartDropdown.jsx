@@ -11,8 +11,6 @@ export default function CartDropdown({
   closeCart,
 }) {
   const { cart: cartItems, cartCount } = useCartState();
-  console.log("Cart items in dropdown:", cartItems);
-  console.log("Cart count in dropdown:", cartCount);
 
   return (
     <AnimatePresence>
@@ -75,7 +73,7 @@ export default function CartDropdown({
                   whileTap={{ scale: 0.97 }}
                 >
                   <Link
-                    to="/cart"
+                    to="/checkout"
                     onClick={() => setCartOpen(false)}
                     className="block w-full text-center py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors"
                   >

@@ -17,7 +17,6 @@ const ModernCTA = lazy(() =>
   })),
 );
 
-
 gsap.registerPlugin(ScrollTrigger);
 
 export default function ModernLanding() {
@@ -54,6 +53,7 @@ export default function ModernLanding() {
   return (
     <>
       <ModernNavbar pageView="home" />
+
       <main
         ref={mainRef}
         className="bg-white dark:bg-[#0E0E10] selection:bg-blue-600/30"

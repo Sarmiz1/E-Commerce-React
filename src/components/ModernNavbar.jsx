@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { EXPO, DEFAULT_LINKS } from "./ModernNavbarComponents/navConstants";
-import NavLogo from "./ModernNavbarComponents/NavLogo";
+import MondernNavLogo from "./ModernNavbarComponents/MondernNavLogo";
 import DesktopLinks from "./ModernNavbarComponents/DesktopLinks";
 import DesktopActions from "./ModernNavbarComponents/DesktopActions";
 import MobileMenu from "./ModernNavbarComponents/MobileMenu";
@@ -105,7 +105,7 @@ export default function ModernNavbar({
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-5 flex items-center justify-between gap-4">
-          <NavLogo pageView={pageView} />
+          <MondernNavLogo pageView={pageView} />
 
           <DesktopLinks 
             navLinks={navLinks} 
