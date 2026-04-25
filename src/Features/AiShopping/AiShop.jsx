@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Sparkles, ChevronDown, HelpCircle, ShoppingCart, 
@@ -27,6 +28,8 @@ export default function AiShop() {
   const [products, setProducts] = useState([]);
   const [userRole, setUserRole] = useState('buyer'); // default
   const [searchStatus, setSearchStatus] = useState('Online');
+  const [mobilePanel, setMobilePanel] = useState('chat'); // 'chat' | 'products'
+  const navigate = useNavigate();
   
   const chatEndRef = useRef(null);
 
@@ -192,15 +195,23 @@ export default function AiShop() {
   return (
     <div className="flex flex-col h-screen w-full bg-white font-sans text-sm text-gray-900 overflow-hidden">
       {/* HEADER */}
-      <header className="h-[72px] shrink-0 border-b border-gray-200 flex items-center justify-between px-6">
-        {/* Left: Logo & Title */}
-        <div className="flex items-center gap-6">
+      <header className="h-[60px] lg:h-[72px] shrink-0 border-b border-gray-200 flex items-center justify-between px-3 sm:px-6">
+        {/* Left: Close + Logo & Title */}
+        <div className="flex items-center gap-3 sm:gap-6">
+          {/* Close / Back button — visible on all sizes */}
+          <button
+            onClick={() => navigate(-1)}
+            className="w-9 h-9 rounded-xl flex items-center justify-center border border-gray-200 hover:bg-gray-50 transition-colors flex-shrink-0"
+            title="Go back"
+          >
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
           <div className="flex items-center gap-2">
-            <Sparkles className="w-7 h-7 text-[#5636F3] fill-[#5636F3]" />
-            <span className="text-2xl font-extrabold text-[#5636F3] tracking-tight">woosho</span>
+            <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-[#5636F3] fill-[#5636F3]" />
+            <span className="text-lg sm:text-2xl font-extrabold text-[#5636F3] tracking-tight">woosho</span>
           </div>
-          <div className="h-8 w-[1px] bg-gray-200"></div>
-          <div className="flex flex-col justify-center">
+          <div className="h-8 w-[1px] bg-gray-200 hidden sm:block"></div>
+          <div className="hidden sm:flex flex-col justify-center">
             <div className="flex items-center gap-2">
               <span className="font-bold text-[15px]">AI Shopping Assistant</span>
               <span className="bg-[#F1EEFE] text-[#5636F3] text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Beta</span>
@@ -209,8 +220,8 @@ export default function AiShop() {
           </div>
         </div>
 
-        {/* Middle: Toggle */}
-        <div className="bg-gray-100 p-1 rounded-full flex items-center shadow-inner">
+        {/* Middle: Toggle — hidden on mobile */}
+        <div className="hidden md:flex bg-gray-100 p-1 rounded-full items-center shadow-inner">
           <button className="bg-[#5636F3] text-white px-6 py-2 rounded-full font-semibold text-sm shadow">
             AI Mode
           </button>
@@ -219,16 +230,26 @@ export default function AiShop() {
           </button>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-5">
-          <div className="flex flex-col items-end mr-2">
+        {/* Mobile: Chat/Products toggle */}
+        <div className="flex md:hidden bg-gray-100 p-0.5 rounded-full items-center">
+          <button onClick={() => setMobilePanel('chat')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${mobilePanel === 'chat' ? 'bg-[#5636F3] text-white shadow' : 'text-gray-600'}`}>
+            Chat
+          </button>
+          <button onClick={() => setMobilePanel('products')} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${mobilePanel === 'products' ? 'bg-[#5636F3] text-white shadow' : 'text-gray-600'}`}>
+            Products {products.length > 0 && `(${products.length})`}
+          </button>
+        </div>
+
+        {/* Right: Actions — some hidden on mobile */}
+        <div className="flex items-center gap-3 sm:gap-5">
+          <div className="hidden lg:flex flex-col items-end mr-2">
              <span className="text-xs font-bold text-[#5636F3] uppercase tracking-widest">{userRole} MODE</span>
           </div>
-          <button className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors">
+          <button className="hidden sm:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-gray-50 transition-colors">
             NGN (₦) <ChevronDown className="w-4 h-4 text-gray-500" />
           </button>
           <button className="text-gray-600 hover:text-gray-900 relative transition-colors">
-            <ShoppingCart className="w-6 h-6 stroke-[1.5]" />
+            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 stroke-[1.5]" />
             <span className="absolute -top-1.5 -right-1.5 bg-[#5636F3] text-white text-[10px] font-bold w-[18px] h-[18px] flex items-center justify-center rounded-full border-2 border-white">
               {products.length}
             </span>
@@ -240,7 +261,7 @@ export default function AiShop() {
       <div className="flex flex-1 min-h-0">
         
         {/* LEFT PANEL: Smart Filters */}
-        <aside className="w-[240px] xl:w-[280px] border-r border-gray-200 flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
+        <aside className="hidden lg:flex w-[240px] xl:w-[280px] border-r border-gray-200 flex-col shrink-0 overflow-y-auto custom-scrollbar">
           <div className="p-5 flex flex-col gap-6">
             
             <div className="flex items-center justify-between">
@@ -314,7 +335,7 @@ export default function AiShop() {
         </aside>
 
         {/* MIDDLE PANEL: AI Chat */}
-        <div className="w-[420px] xl:w-[480px] border-r border-gray-200 flex flex-col shrink-0 relative bg-white">
+        <div className={`${mobilePanel === 'chat' ? 'flex' : 'hidden'} md:flex w-full md:w-[420px] xl:w-[480px] border-r border-gray-200 flex-col shrink-0 relative bg-white`}>
           {/* Chat Header */}
           <div className="h-[72px] p-4 border-b border-gray-100 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
@@ -441,7 +462,7 @@ export default function AiShop() {
         </div>
 
         {/* RIGHT PANEL: Products & Refine */}
-        <div className="flex-1 flex flex-col min-w-0 bg-white overflow-y-auto custom-scrollbar">
+        <div className={`${mobilePanel === 'products' ? 'flex' : 'hidden'} md:flex flex-1 flex-col min-w-0 bg-white overflow-y-auto custom-scrollbar`}>
           <div className="p-6 lg:p-8 w-full flex flex-col gap-6">
             
             {/* Header */}
