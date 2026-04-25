@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ModernNavbar from "../../../Components/ModernNavbar";
+import SEO from "../../../Components/SEO";
 import Section1_Hero from "./Components/Section1_Hero";
 import Section2_PainClock from "./Components/Section2_PainClock";
 import Section3_Dream from "./Components/Section3_Dream";
@@ -56,7 +57,11 @@ export default function SellerLanding() {
       className="min-h-screen w-full relative overflow-x-hidden selection:bg-violet-600/30 bg-[#0A0A0A] text-white"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      <title>WooSho Seller - AI-Powered E-Commerce for the Next Generation</title>
+      <SEO 
+        title="WooSho Seller - AI-Powered E-Commerce for the Next Generation"
+        description="Scale your business effortlessly with WooSho's dual AI system. Automate your store, manage inventory, and grow your sales."
+        keywords="sell online, e-commerce platform, AI store management, WooSho seller"
+      />
 
       <ModernNavbar navLinks={links} pageView="sell" />
       <style>{`body { background-color: #0A0A0A !important; }`}</style>

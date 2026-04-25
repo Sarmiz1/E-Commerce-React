@@ -10,6 +10,7 @@ import FinalCtaSection from "./sections/FinalCtaSection";
 import ShopSmartSection from "./sections/ShopSmartSection";
 import AllInOneAppSection from "./sections/AllInOneAppSection";
 import ModernNavbar from "../../../Components/ModernNavbar";
+import SEO from "../../../Components/SEO";
 
 const links = [
   { label: "Shop", href: "/products" },
@@ -38,7 +39,11 @@ const BuyerLanding = () => {
 
   return (
     <>
-      <title>WooSho Buyer - Smart Shopping, Curated for You</title>
+      <SEO 
+        title="WooSho Buyer - Smart Shopping, Curated for You"
+        description="Experience AI-curated shopping with WooSho. Find exactly what you need with our intelligent shopping assistant."
+        keywords="smart shopping, AI assistant, buy online, WooSho buyer"
+      />
       
       <ModernNavbar navLinks={links} />
       <div className="w-full bg-white font-sans antialiased selection:bg-blue-200 selection:text-blue-900 overflow-hidden">

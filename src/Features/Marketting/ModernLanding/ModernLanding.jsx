@@ -2,6 +2,7 @@ import React, { useEffect, useRef, Suspense, lazy } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ModernNavbar from "../../../Components/ModernNavbar.jsx";
+import SEO from "../../../Components/SEO.jsx";
 import ModernHero from "./Components/ModernHero";
 
 // Lazy load below-the-fold components for performance
@@ -53,6 +54,12 @@ export default function ModernLanding() {
   return (
     <>
       <ModernNavbar pageView="home" />
+
+      <SEO 
+        title="WooSho - The Future of E-Commerce" 
+        description="Discover a smarter way to shop and sell with WooSho's AI-powered e-commerce ecosystem."
+        keywords="e-commerce, AI shopping, online marketplace, WooSho"
+      />
 
       <main
         ref={mainRef}

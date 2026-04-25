@@ -20,9 +20,6 @@ export default function ModernNavbar({
   const location = useLocation();
   const cartTimer = useRef(null);
 
-  console.log('cart ', cartItems)
-  console.log('cartCount ', cartCount)
-
   useEffect(() => {
     const fn = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", fn, { passive: true });
