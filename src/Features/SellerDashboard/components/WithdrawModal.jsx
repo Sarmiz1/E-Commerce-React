@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { fmtFull } from '../utils/format';
@@ -126,7 +127,7 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -147,10 +148,13 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.88, y: 30 }}
             transition={{ type: 'spring', damping: 22, stiffness: 300 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-md rounded-3xl shadow-2xl overflow-hidden"
-            style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}
-            onClick={e => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
           >
+            <div
+              className="w-[95vw] max-w-md rounded-3xl shadow-2xl overflow-hidden pointer-events-auto"
+              style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}
+              onClick={e => e.stopPropagation()}
+            >
             {/* Header */}
             <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
               <div className="flex items-center gap-3">
@@ -428,9 +432,11 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
                 )}
               </AnimatePresence>
             </div>
+            </div>
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

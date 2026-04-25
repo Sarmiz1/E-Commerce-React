@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useDashboard } from '../context/DashboardContext';
@@ -154,18 +155,22 @@ export default function DashOrders() {
       </motion.div>
 
       {/* Backdrop */}
-      <AnimatePresence>
-        {selectedOrder && (
-          <motion.div key="backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-            onClick={() => setSelectedOrder(null)} />
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {selectedOrder && (
+            <motion.div key="backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              onClick={() => setSelectedOrder(null)} />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Order detail slide-in panel */}
-      <AnimatePresence>
-        {selectedOrder && (
-          <motion.div key="panel"
+      {createPortal(
+        <AnimatePresence>
+          {selectedOrder && (
+            <motion.div key="panel"
             initial={{ x: '100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
@@ -274,9 +279,11 @@ export default function DashOrders() {
                 )}
               </motion.button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

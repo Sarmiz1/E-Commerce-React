@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { Icon } from './DashIcon';
@@ -170,97 +171,107 @@ export default function DashPlan() {
       </p>
 
       {/* ─── Confirm Change Modal ─── */}
-      <AnimatePresence>
-        {confirmModal && (
-          <>
-            <motion.div key="cbg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => !processing && setConfirmModal(null)} />
-            <motion.div key="cmodal"
-              initial={{ opacity: 0, scale: 0.88, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 20 }}
-              transition={{ type: 'spring', damping: 22, stiffness: 300 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-sm rounded-2xl p-6 shadow-2xl"
-              style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
-              {success ? (
-                <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="text-center py-4">
-                  <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: colors.state.successBg }}>
-                    <Icon name="check" size={24} style={{ color: colors.state.success }} />
-                  </div>
-                  <h4 className="font-black text-lg mb-1" style={{ color: colors.text.primary }}>Plan Updated!</h4>
-                  <p className="text-sm" style={{ color: colors.text.tertiary }}>You're now on the {confirmModal.name} plan.</p>
-                </motion.div>
-              ) : (
-                <>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: `${confirmModal.color}18` }}>
-                    <Icon name="crown" size={22} style={{ color: confirmModal.color }} />
-                  </div>
-                  <h4 className="font-black text-center text-lg mb-1" style={{ color: colors.text.primary }}>
-                    Switch to {confirmModal.name}?
-                  </h4>
-                  <p className="text-sm text-center mb-5" style={{ color: colors.text.tertiary }}>
-                    {confirmModal.price > 0 ? `You'll be charged ${confirmModal.priceLabel} ${confirmModal.period}. Changes take effect immediately.` : 'You\'ll be moved to the free plan. Some features may be limited.'}
-                  </p>
-                  <div className="flex gap-3">
-                    <button onClick={() => setConfirmModal(null)} disabled={processing}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-bold border"
-                      style={{ borderColor: colors.border.default, color: colors.text.secondary }}>Cancel</button>
-                    <motion.button whileTap={{ scale: 0.96 }} onClick={confirmChange} disabled={processing}
-                      className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
-                      style={{ background: confirmModal.color, color: '#fff', opacity: processing ? 0.7 : 1 }}>
-                      {processing ? (
-                        <><motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
-                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full block" /> Updating...</>
-                      ) : 'Confirm'}
-                    </motion.button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {confirmModal && (
+            <>
+              <motion.div key="cbg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => !processing && setConfirmModal(null)} />
+              <motion.div key="cmodal"
+                initial={{ opacity: 0, scale: 0.88, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 20 }}
+                transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+                className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className="w-[90vw] max-w-sm rounded-2xl p-6 shadow-2xl pointer-events-auto"
+                style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
+                {success ? (
+                  <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="text-center py-4">
+                    <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: colors.state.successBg }}>
+                      <Icon name="check" size={24} style={{ color: colors.state.success }} />
+                    </div>
+                    <h4 className="font-black text-lg mb-1" style={{ color: colors.text.primary }}>Plan Updated!</h4>
+                    <p className="text-sm" style={{ color: colors.text.tertiary }}>You're now on the {confirmModal.name} plan.</p>
+                  </motion.div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: `${confirmModal.color}18` }}>
+                      <Icon name="crown" size={22} style={{ color: confirmModal.color }} />
+                    </div>
+                    <h4 className="font-black text-center text-lg mb-1" style={{ color: colors.text.primary }}>
+                      Switch to {confirmModal.name}?
+                    </h4>
+                    <p className="text-sm text-center mb-5" style={{ color: colors.text.tertiary }}>
+                      {confirmModal.price > 0 ? `You'll be charged ${confirmModal.priceLabel} ${confirmModal.period}. Changes take effect immediately.` : 'You\'ll be moved to the free plan. Some features may be limited.'}
+                    </p>
+                    <div className="flex gap-3">
+                      <button onClick={() => setConfirmModal(null)} disabled={processing}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-bold border"
+                        style={{ borderColor: colors.border.default, color: colors.text.secondary }}>Cancel</button>
+                      <motion.button whileTap={{ scale: 0.96 }} onClick={confirmChange} disabled={processing}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                        style={{ background: confirmModal.color, color: '#fff', opacity: processing ? 0.7 : 1 }}>
+                        {processing ? (
+                          <><motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
+                            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full block" /> Updating...</>
+                        ) : 'Confirm'}
+                      </motion.button>
+                    </div>
+                  </>
+                )}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* ─── Cancel Plan Modal ─── */}
-      <AnimatePresence>
-        {cancelModal && (
-          <>
-            <motion.div key="canbg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => !processing && setCancelModal(false)} />
-            <motion.div key="canmodal"
-              initial={{ opacity: 0, scale: 0.88, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 20 }}
-              transition={{ type: 'spring', damping: 22, stiffness: 300 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-sm rounded-2xl p-6 shadow-2xl"
-              style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: colors.state.errorBg }}>
-                <Icon name="alert-circle" size={22} style={{ color: colors.state.error }} />
-              </div>
-              <h4 className="font-black text-center text-lg mb-1" style={{ color: colors.text.primary }}>Cancel Your Plan?</h4>
-              <p className="text-sm text-center mb-2" style={{ color: colors.text.tertiary }}>
-                You'll lose access to {currentPlanData.name} features at the end of your billing cycle.
-              </p>
-              <div className="rounded-xl p-3 mb-5 space-y-1.5" style={{ background: isDark ? 'rgba(255,94,0,0.06)' : 'rgba(220,38,38,0.04)', border: `1px solid ${isDark ? 'rgba(255,94,0,0.12)' : 'rgba(220,38,38,0.1)'}` }}>
-                {['Unlimited listings → 20 listings', 'AI credits reduced', 'Priority support removed'].map(item => (
-                  <div key={item} className="flex items-center gap-2 text-xs" style={{ color: colors.state.error }}>
-                    <Icon name="x" size={10} /> {item}
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setCancelModal(false)} disabled={processing}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold"
-                  style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Keep Plan</button>
-                <motion.button whileTap={{ scale: 0.96 }} onClick={confirmCancel} disabled={processing}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold border flex items-center justify-center gap-2"
-                  style={{ borderColor: colors.state.error, color: colors.state.error, opacity: processing ? 0.7 : 1 }}>
-                  {processing ? (
-                    <><motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
-                      className="w-4 h-4 border-2 rounded-full block" style={{ borderColor: `${colors.state.error}40`, borderTopColor: colors.state.error }} /> Cancelling...</>
-                  ) : 'Cancel Plan'}
-                </motion.button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {cancelModal && (
+            <>
+              <motion.div key="canbg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => !processing && setCancelModal(false)} />
+              <motion.div key="canmodal"
+                initial={{ opacity: 0, scale: 0.88, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 20 }}
+                transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+                className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className="w-[90vw] max-w-sm rounded-2xl p-6 shadow-2xl pointer-events-auto"
+                style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: colors.state.errorBg }}>
+                  <Icon name="alert-circle" size={22} style={{ color: colors.state.error }} />
+                </div>
+                <h4 className="font-black text-center text-lg mb-1" style={{ color: colors.text.primary }}>Cancel Your Plan?</h4>
+                <p className="text-sm text-center mb-2" style={{ color: colors.text.tertiary }}>
+                  You'll lose access to {currentPlanData.name} features at the end of your billing cycle.
+                </p>
+                <div className="rounded-xl p-3 mb-5 space-y-1.5" style={{ background: isDark ? 'rgba(255,94,0,0.06)' : 'rgba(220,38,38,0.04)', border: `1px solid ${isDark ? 'rgba(255,94,0,0.12)' : 'rgba(220,38,38,0.1)'}` }}>
+                  {['Unlimited listings → 20 listings', 'AI credits reduced', 'Priority support removed'].map(item => (
+                    <div key={item} className="flex items-center gap-2 text-xs" style={{ color: colors.state.error }}>
+                      <Icon name="x" size={10} /> {item}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setCancelModal(false)} disabled={processing}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                    style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Keep Plan</button>
+                  <motion.button whileTap={{ scale: 0.96 }} onClick={confirmCancel} disabled={processing}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold border flex items-center justify-center gap-2"
+                    style={{ borderColor: colors.state.error, color: colors.state.error, opacity: processing ? 0.7 : 1 }}>
+                    {processing ? (
+                      <><motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
+                        className="w-4 h-4 border-2 rounded-full block" style={{ borderColor: `${colors.state.error}40`, borderTopColor: colors.state.error }} /> Cancelling...</>
+                    ) : 'Cancel Plan'}
+                  </motion.button>
+                </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

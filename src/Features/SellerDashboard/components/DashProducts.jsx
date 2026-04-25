@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useDashboard } from '../context/DashboardContext';
@@ -190,35 +191,40 @@ export default function DashProducts() {
       </motion.div>
 
       {/* Delete confirmation modal */}
-      <AnimatePresence>
-        {deleteId && (
-          <>
-            <motion.div key="del-bg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
-            <motion.div key="del-modal"
-              initial={{ opacity: 0, scale: 0.85, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.85, y: 20 }}
-              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-80 rounded-2xl p-6 shadow-2xl"
-              style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: colors.state.errorBg }}>
-                <Icon name="trash" size={22} style={{ color: colors.state.error }} />
-              </div>
-              <h4 className="font-black text-center text-lg mb-1" style={{ color: colors.text.primary }}>Delete Product?</h4>
-              <p className="text-sm text-center mb-6" style={{ color: colors.text.tertiary }}>This action cannot be undone. The product will be permanently removed.</p>
-              <div className="flex gap-3">
-                <button onClick={() => setDeleteId(null)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold border"
-                  style={{ borderColor: colors.border.default, color: colors.text.secondary }}>Cancel</button>
-                <button onClick={() => confirmDelete(deleteId)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-bold"
-                  style={{ background: colors.state.error, color: '#fff' }}>Delete</button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
+          {deleteId && (
+            <>
+              <motion.div key="del-bg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
+              <motion.div key="del-modal"
+                initial={{ opacity: 0, scale: 0.85, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.85, y: 20 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className="w-80 rounded-2xl p-6 shadow-2xl pointer-events-auto"
+                style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: colors.state.errorBg }}>
+                  <Icon name="trash" size={22} style={{ color: colors.state.error }} />
+                </div>
+                <h4 className="font-black text-center text-lg mb-1" style={{ color: colors.text.primary }}>Delete Product?</h4>
+                <p className="text-sm text-center mb-6" style={{ color: colors.text.tertiary }}>This action cannot be undone. The product will be permanently removed.</p>
+                <div className="flex gap-3">
+                  <button onClick={() => setDeleteId(null)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold border"
+                    style={{ borderColor: colors.border.default, color: colors.text.secondary }}>Cancel</button>
+                  <button onClick={() => confirmDelete(deleteId)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                    style={{ background: colors.state.error, color: '#fff' }}>Delete</button>
+                </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
