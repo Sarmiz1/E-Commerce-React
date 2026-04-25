@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../../Context/theme/ThemeContext';
 import { useDashboard, NAV_ITEMS } from '../context/DashboardContext';
@@ -37,6 +38,34 @@ export default function DashSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {/* Home link */}
+        <Link
+          to="/"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group mb-2"
+          style={{
+            background: isDark ? 'rgba(144,171,255,0.06)' : 'rgba(0,80,212,0.04)',
+            color: colors.text.secondary,
+            borderBottom: `1px solid ${colors.border.subtle}`,
+          }}
+          title={sidebarCollapsed ? 'Back to Home' : ''}
+        >
+          <Icon name="home" size={19} style={{ flexShrink: 0, color: colors.text.tertiary }} />
+          <AnimatePresence>
+            {!sidebarCollapsed && (
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm font-semibold whitespace-nowrap">
+                Back to Home
+              </motion.span>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {!sidebarCollapsed && (
+              <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="ml-auto" style={{ color: colors.text.tertiary }}>
+                <Icon name="arrow-left" size={14} />
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Link>
+
         {NAV_ITEMS.map(item => {
           const isActive = activePage === item.id;
           return (
