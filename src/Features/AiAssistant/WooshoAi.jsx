@@ -121,7 +121,7 @@ export default function WooshoAI() {
             }}
             className="woo-panel"
           >
-            <ChatHeader cartItems={cartItems} setShowCart={setShowCart} />
+            <ChatHeader cartItems={cartItems} setShowCart={setShowCart} onClose={() => setIsOpen(false)} />
 
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
               <AnimatePresence>
