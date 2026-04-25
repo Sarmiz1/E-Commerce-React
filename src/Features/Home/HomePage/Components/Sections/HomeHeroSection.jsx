@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import ParticleField from "../ParticleField";
@@ -9,6 +10,7 @@ export default function HomeHeroSection({ heroFeatured }) {
   const heroSubRef = useRef(null);
   const heroBtnRef = useRef(null);
   const heroImgRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!heroTitleRef.current) return;
@@ -39,12 +41,19 @@ export default function HomeHeroSection({ heroFeatured }) {
             Premium quality. Curated luxury. Delivered to your door with white-glove care.
           </p>
           <div ref={heroBtnRef} className="flex flex-wrap gap-4">
-            <motion.button whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.25)" }} whileTap={{ scale: 0.97 }}
-              className="bg-white text-indigo-700 px-8 py-4 rounded-2xl font-black text-base shadow-2xl">
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.25)" }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-white text-indigo-700 px-8 py-4 rounded-2xl font-black text-base shadow-2xl"
+              onClick={() => navigate(`/products/${heroFeatured.slug}`)}
+            >
               Shop Now →
             </motion.button>
-            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-              className="border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-semibold backdrop-blur-sm hover:bg-white/10 transition">
+            <motion.button
+              whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+              className="border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-semibold backdrop-blur-sm hover:bg-white/10 transition"
+              onClick={() => navigate('/products/new-drops')}
+            >
               View Collection
             </motion.button>
           </div>

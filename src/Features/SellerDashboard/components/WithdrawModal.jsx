@@ -148,13 +148,10 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.88, y: 30 }}
             transition={{ type: 'spring', damping: 22, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-md rounded-3xl shadow-2xl overflow-hidden"
+            style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}
+            onClick={e => e.stopPropagation()}
           >
-            <div
-              className="w-[95vw] max-w-md rounded-3xl shadow-2xl overflow-hidden pointer-events-auto"
-              style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}
-              onClick={e => e.stopPropagation()}
-            >
             {/* Header */}
             <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
               <div className="flex items-center gap-3">
@@ -407,7 +404,7 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
                       style={{ background: isDark ? colors.surface.tertiary : '#F9FAFB', border: `1px solid ${colors.border.subtle}` }}>
                       <div className="flex justify-between text-xs">
                         <span style={{ color: colors.text.tertiary }}>Transaction ID</span>
-                        <span className="font-mono font-bold" style={{ color: colors.cta.primary }}>TXN-{Date.now().toString(36).toUpperCase()}</span>
+                        <span className="font-mono font-bold" style={{ color: colors.cta.primary }}>TXN-{c}</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span style={{ color: colors.text.tertiary }}>Amount</span>
@@ -431,7 +428,6 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
             </div>
           </motion.div>
         </>

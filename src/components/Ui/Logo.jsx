@@ -4,10 +4,17 @@ import logoLightmode from "../../assets/logos/logo-lightmode.png";
 
 
 export const Logo = ({ size = 10, pageView, isScrolled }) => {
-  // On home page when NOT scrolled, navbar bg is transparent — use white/dark logo
-  // On home page when scrolled, navbar bg is white — use dark/light logo
-  // On non-home pages, always use standard dark: toggle behavior
-  const forceWhiteLogo = pageView === "home" && isScrolled === false;
+  // When isScrolled is explicitly provided (navbar context), use it directly
+  // to pick the logo — both Navbar and ModernNavbar always go white-bg when
+  // scrolled regardless of global dark/light theme, so dark: classes can't be used.
+  const navbarControlled = typeof isScrolled === "boolean";
+
+  // Determine which image to show
+  // - Navbar + unscrolled (dark/transparent bg) → white logo (logoDarkmode)
+  // - Navbar + scrolled   (white bg)            → dark logo  (logoLightmode)
+  // - No navbar context                         → fall back to dark: toggle
+  const sizeClass = size === 7 ? "h-7  sm:h-8" : "h-8 sm:h-10  ml-1";
+  const baseClass = `${sizeClass} w-auto object-contain scale-[1.5] origin-left`;
 
   return (
     <div className="flex items-center gap-0">
@@ -20,25 +27,25 @@ export const Logo = ({ size = 10, pageView, isScrolled }) => {
       </div>
 
       <div className="flex items-center">
-        {forceWhiteLogo ? (
-          /* Home + unscrolled: force white logo regardless of theme */
+        {navbarControlled ? (
+          /* Navbar context: pick logo based on scroll state directly */
           <img
-            src={logoDarkmode}
+            src={isScrolled ? logoLightmode : logoDarkmode}
             alt="Woosho Logo"
-            className={`${ size === 7 ? "h-7  sm:h-8" : "h-8 sm:h-10  ml-1" } w-auto object-contain scale-[1.5] origin-left`}
+            className={baseClass}
           />
         ) : (
-          /* Normal: swap based on dark mode class */
+          /* Non-navbar: standard dark: class toggle */
           <>
             <img
               src={logoLightmode}
               alt="Woosho Logo"
-              className={`${ size === 7 ? "h-7  sm:h-8" : "h-8 sm:h-10  ml-1" } w-auto object-contain block dark:hidden scale-[1.5] origin-left`}
+              className={`${baseClass} block dark:hidden`}
             />
             <img
               src={logoDarkmode}
               alt="Woosho Logo"
-              className={`${ size === 7 ? "h-7  sm:h-8" : "h-8 sm:h-10  ml-1" } w-auto object-contain hidden dark:block scale-[1.5] origin-left`}
+              className={`${baseClass} hidden dark:block`}
             />
           </>
         )}

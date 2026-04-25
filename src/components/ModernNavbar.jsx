@@ -102,7 +102,7 @@ export default function ModernNavbar({
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-5 flex items-center justify-between gap-4">
-          <MondernNavLogo pageView={pageView} isScrolled={isScrolled} />
+          <MondernNavLogo pageView={pageView}  />
 
           <DesktopLinks 
             navLinks={navLinks} 

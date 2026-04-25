@@ -468,6 +468,7 @@ import { formatMoneyCents } from "../Utils/formatMoneyCents";
 import { useCartState } from "../Context/cart/CartContext";
 import { mockedCart } from "../Data/mockedCart";
 import { Logo } from "./Ui/Logo";
+import { ThemeToggle } from "./Ui/ThemeToggle";
 
 const getData = null
 
@@ -1197,7 +1198,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
             </span> */}
 
             {/* New Logo */}
-            <Logo />
+            <Logo pageView="home" isScrolled={scrolled} />
           </button>
 
           {/* ── DESKTOP NAV ── */}
@@ -1337,6 +1338,11 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
             {/* Divider */}
             <div className={`hidden md:block w-px h-5 mx-1 transition-colors duration-300 ${isTop ? "bg-white/15" : "bg-gray-200"}`} />
 
+            {/* Theme toggle */}
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
+
             {/* Cart bag — with hover preview */}
             <div className="relative" onMouseEnter={openCart} onMouseLeave={closeCart}>
               <button
@@ -1373,6 +1379,8 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                       onMouseEnter={keepCart}
                       onMouseLeave={closeCart}
                     >
+                      {/* Transparent bridge to fill gap between button and panel */}
+                      <div className="absolute top-full left-0 right-0 h-4" />
                       <CartPreview
                         cart={cart}
                         onRemove={onRemoveFromCart || (() => { })}
@@ -1818,6 +1826,11 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                   Shop All Products →
                 </button>
                 <p className="text-center text-gray-400 text-[11px] mt-2.5">🚀 Free shipping on orders over $50</p>
+                {/* Theme toggle in mobile drawer */}
+                <div className="flex items-center justify-center gap-3 mt-3">
+                  <span className="text-xs font-semibold text-gray-500">Theme</span>
+                  <ThemeToggle />
+                </div>
               </div>
             </motion.div>
           </>

@@ -44,11 +44,9 @@ import FilterableGrid from "./Components/Sections/FilterableGrid";
 import LookbookSection from "./Components/Sections/LookbookSection";
 import TrustStrip from "./Components/Sections/TrustStrip";
 import TrendingTags from "./Components/Sections/TrendingTags";
-// import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 import BrandMarquee from "./Components/Sections/BrandMarquee";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
-// import BrandMarquee from "./Components/Sections/BrandMarquee";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
