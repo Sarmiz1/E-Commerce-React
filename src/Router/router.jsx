@@ -79,7 +79,7 @@ import {
 // JUST TEsT
 import SalesAssistant from "../Features/SellerDashboard/AI_Sales_Assistant/SalesAssistant";
 
-const isLoggedIn = false;
+const isLoggedIn = true; // Simulate authentication status (replace with real auth logic)
 
 const router = createBrowserRouter(
   createRoutesFromElements(

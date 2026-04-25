@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useNavigation, useLoaderData } from "react-router-dom";
+import { useAllProducts } from "../../Product/Hooks/useProducts";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { STYLES } from "./Styles/styles";
 import { CATEGORIES } from "./Data/categories";
@@ -19,6 +20,7 @@ import MarqueeStrip from "./Components/MarqueeStrip";
 import ProductCard from "../../../Components/Ui/ProductCard";
 import { BentoCard } from "./Components/BentoProductGridComponents/BentoCard";
 import AddToCart from "../../../Components/Ui/AddToCart";
+import Navbar from "../../../Components/Navbar"; 
 
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -191,14 +193,14 @@ function BestSellersSection({ products, isLoading }) {
                 whileHover={{ y: -8 }}
                 className="group relative bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
                 <div className="relative h-[420px] overflow-hidden">
-                  <img 
-                    src={top.image} 
-                    alt={top.name} 
+                  <img
+                    src={top.image}
+                    alt={top.name}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "https://placehold.co/800x600?text=No+Image";
                     }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   <div className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 text-xs font-black px-3 py-1.5 rounded-full">#1 BEST SELLER</div>
@@ -818,18 +820,18 @@ function BentoProductGrid({ products, isLoading }) {
         <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
       </div>
       <div className="grid grid-cols-3 md:grid-cols-4 gap-4" style={{ gridTemplateRows: '240px 240px' }}>
-        
-          { products?.slice(0, 5).map((product, index) => (
-            <BentoCard
-              key={product?.id || index}
-              product={product}
-              className={
-                index === 0
-                  ? "col-span-2 row-span-2"
-                  : "col-span-1"
-              }
-            />
-          ))}
+
+        {products?.slice(0, 5).map((product, index) => (
+          <BentoCard
+            key={product?.id || index}
+            product={product}
+            className={
+              index === 0
+                ? "col-span-2 row-span-2"
+                : "col-span-1"
+            }
+          />
+        ))}
       </div>
     </section>
   );
@@ -1032,15 +1034,12 @@ function TrendingTags() {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
 
-  const navigation = useNavigation();
-  const isLoading = navigation.state === "loading"
-
-
-
-  //  Products fetched by Loader
-  const fetchedProducts = useLoaderData();
-  // Optimize the fetched results 
-  const products = useMemo(() => fetchedProducts || [], [fetchedProducts]);
+  // Products 
+    const {
+      data: products = [],
+      isLoading,
+      isFetching,
+    } = useAllProducts();
 
   // Product slices
   const heroFeatured = products[0] || null;
@@ -1099,6 +1098,7 @@ export default function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
+      <Navbar />
       <style>{STYLES}</style>
 
       {/* Marquee */}
