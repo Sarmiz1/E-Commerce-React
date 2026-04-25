@@ -2,13 +2,15 @@
 // Left: thumbnail strip + main image area
 // Right: SKU, title, rating, price, color/size selectors, add-to-cart, trust badges
 import { SkeletonStyles, SkBlock } from "./SkeletonBase";
+import NavbarSkeleton from "./NavbarSkeleton";
 
 export default function ProductDetailSkeleton() {
   return (
     <div className="min-h-screen bg-white">
       <SkeletonStyles />
+      <NavbarSkeleton />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-12">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">

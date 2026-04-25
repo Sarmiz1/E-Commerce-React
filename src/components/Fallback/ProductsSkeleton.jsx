@@ -1,11 +1,14 @@
 // Skeleton fallback for /products — matches the ProductsPage layout:
 // Dark live-ticker bar → search bar → category pills → 4-col product card grid
 import { SkeletonStyles, SkBlock, skCls } from "./SkeletonBase";
+import NavbarSkeleton from "./NavbarSkeleton";
 
 export default function ProductsSkeleton() {
   return (
-    <div className="min-h-screen bg-white pt-20">
+    <div className="min-h-screen bg-white">
       <SkeletonStyles />
+      <NavbarSkeleton />
+      <div className="pt-20">
 
       {/* ── Live ticker bar ── */}
       <div className="bg-gray-900 py-2.5 overflow-hidden">
@@ -105,6 +108,7 @@ export default function ProductsSkeleton() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

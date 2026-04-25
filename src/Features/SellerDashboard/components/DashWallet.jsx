@@ -5,6 +5,7 @@ import { useDashboard } from '../context/DashboardContext';
 import { fmt, fmtFull } from '../utils/format';
 import { Icon } from './DashIcon';
 import { StatusBadge } from './DashOverview';
+import WithdrawModal from './WithdrawModal';
 
 function CountUp({ to, duration = 1.2, prefix = '' }) {
   const ref = useRef(null);
@@ -36,7 +37,7 @@ function BalanceCard({ label, value, sub, accent = false, icon, delay = 0 }) {
           <Icon name={icon} size={15} style={{ color: accent ? '#fff' : colors.cta.primary }} />
         </div>
       </div>
-      <p className="text-4xl font-black tabular-nums" style={{ color: accent ? '#fff' : colors.text.primary }}>
+      <p className="text-2xl sm:text-3xl lg:text-4xl font-black tabular-nums truncate" style={{ color: accent ? '#fff' : colors.text.primary }}>
         <CountUp to={value} duration={1.6} delay={delay} />
       </p>
       {sub && <p className="text-[11px]" style={{ color: accent ? 'rgba(255,255,255,0.6)' : colors.text.tertiary }}>{sub}</p>}
@@ -47,8 +48,7 @@ function BalanceCard({ label, value, sub, accent = false, icon, delay = 0 }) {
 export default function DashWallet() {
   const { colors, isDark } = useTheme();
   const { wallet, stats } = useDashboard();
-  const [withdrawing, setWithdrawing] = useState(false);
-  const [withdrawDone, setWithdrawDone] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [filter, setFilter] = useState('all');
 
   const transactions = wallet ?? [];
@@ -59,34 +59,20 @@ export default function DashWallet() {
   const pending   = transactions.filter(t => t.status === 'pending').reduce((s, t) => s + (t.net || 0), 0);
   const totalEarnings = (stats?.totalRevenue?.value) ?? transactions.filter(t => t.amount > 0).reduce((s, t) => s + (t.amount || 0), 0);
 
-  const handleWithdraw = async () => {
-    setWithdrawing(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setWithdrawing(false);
-    setWithdrawDone(true);
-    setTimeout(() => setWithdrawDone(false), 3000);
+  const handleWithdraw = (amount, fee, net) => {
+    // In production, this would call the API
+    console.log(`Withdrawal: ₦${amount}, Fee: ₦${fee}, Net: ₦${net}`);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-black" style={{ color: colors.text.primary }}>Wallet & Payouts</h2>
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
-          onClick={handleWithdraw} disabled={withdrawing || withdrawDone}
+          onClick={() => setWithdrawOpen(true)}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all"
-          style={{
-            background: withdrawDone ? colors.state.success : colors.cta.primary,
-            color: colors.cta.primaryText,
-            opacity: withdrawing ? 0.7 : 1,
-          }}>
-          {withdrawing ? (
-            <><motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
-              className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full block" /> Processing...</>
-          ) : withdrawDone ? (
-            <><Icon name="check" size={15} /> Withdrawal Sent!</>
-          ) : (
-            <><Icon name="download" size={15} /> Withdraw Funds</>
-          )}
+          style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>
+          <Icon name="download" size={15} /> Withdraw Funds
         </motion.button>
       </div>
 
@@ -101,7 +87,7 @@ export default function DashWallet() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
         className="rounded-2xl overflow-hidden shadow-sm"
         style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
-        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
+        <div className="px-6 py-4 flex items-center justify-between flex-wrap gap-3" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
           <p className="font-bold text-sm" style={{ color: colors.text.primary }}>Transaction History</p>
           <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6' }}>
             {['all', 'settled', 'pending', 'paid'].map(f => (
@@ -146,6 +132,14 @@ export default function DashWallet() {
           </table>
         </div>
       </motion.div>
+
+      {/* Withdraw Modal */}
+      <WithdrawModal
+        open={withdrawOpen}
+        onClose={() => setWithdrawOpen(false)}
+        availableBalance={available || 782000}
+        onWithdraw={handleWithdraw}
+      />
     </div>
   );
 }

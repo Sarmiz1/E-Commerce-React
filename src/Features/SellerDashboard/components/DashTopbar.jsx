@@ -20,8 +20,8 @@ export default function DashTopbar() {
   const [search, setSearch] = useState('');
 
   const pageTitle = {
-    overview: 'Overview', orders: 'Orders', products: 'Products', analytics: 'Analytics',
-    customers: 'Customers', wallet: 'Wallet', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings',
+    overview: 'Overview', ai_sales_assistant: 'AI Sales Assistant', orders: 'Orders', products: 'Products', analytics: 'Analytics',
+    customers: 'Customers', wallet: 'Wallet', plan: 'Subscription Plan', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings',
   }[activePage] || 'Dashboard';
 
   const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;

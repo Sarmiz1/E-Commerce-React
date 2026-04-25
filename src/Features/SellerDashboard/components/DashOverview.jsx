@@ -6,6 +6,13 @@ import { fmt, fmtFull, changeColor, changeLabel, getGreeting } from '../utils/fo
 import { Icon } from './DashIcon';
 
 // ─── Animated number counter ──────────────────────────────────────────────────
+function fmtCompact(n) {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M';
+  if (abs >= 100_000) return (n / 1_000).toFixed(0) + 'K';
+  return Math.round(n).toLocaleString();
+}
+
 function CountUp({ to, duration = 1.2, prefix = '', suffix = '', isFloat = false }) {
   const nodeRef = useRef(null);
   useEffect(() => {
@@ -14,7 +21,7 @@ function CountUp({ to, duration = 1.2, prefix = '', suffix = '', isFloat = false
       duration,
       ease: [0.25, 0.1, 0.25, 1],
       onUpdate(val) {
-        if (node) node.textContent = prefix + (isFloat ? val.toFixed(1) : Math.round(val).toLocaleString()) + suffix;
+        if (node) node.textContent = prefix + (isFloat ? val.toFixed(1) : fmtCompact(val)) + suffix;
       },
     });
     return () => ctrl.stop();
@@ -36,7 +43,7 @@ function StatCard({ stat, icon, delay = 0 }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       whileHover={{ y: -3, boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.4)' : '0 12px 40px rgba(0,80,212,0.1)' }}
-      className="rounded-2xl p-5 flex flex-col gap-3 cursor-default transition-shadow"
+      className="rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 cursor-default transition-shadow min-w-0 overflow-hidden"
       style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}
     >
       <div className="flex items-start justify-between">
@@ -46,7 +53,7 @@ function StatCard({ stat, icon, delay = 0 }) {
         </motion.div>
       </div>
 
-      <p className="text-3xl font-black tracking-tight tabular-nums" style={{ color: colors.text.primary }}>
+      <p className="text-xl sm:text-2xl xl:text-3xl font-black tracking-tight tabular-nums truncate" style={{ color: colors.text.primary }}>
         {isRate
           ? <CountUp to={stat.value} duration={1.4} suffix={stat.suffix || '%'} isFloat={isFloat} />
           : <CountUp to={stat.value} duration={1.4} prefix="₦" isFloat={false} />

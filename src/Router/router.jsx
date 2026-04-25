@@ -15,33 +15,14 @@ import DefaultLayout from "../Layout/DefaultLayout";
 import MarkettingLayout from "../Layout/MarkettingLayout";
 import ProductsLayout from "../Layout/ProductsLayout";
 import TradeLayout from "../Layout/TradeLayout";
+import Navbar from "../Components/Navbar";
 
 // ─── Core Pages ───────────────────────────────────────────────────────────────
 import HomePage from "../Features/Home/HomePage/HomePage";
-import LandingPage from "../Features/Marketting/ModernLanding/ModernLanding";
-// import CheckoutPage from "../Features/Checkout/CheckOutPage";
-// import OrdersPage from "../Features/Orders/OrdersPage";
 import ProductsPage from "../Features/Product/ProductsPage";
 import TrackingPage from "../Features/Orders/Tracking/TrackingPage";
 import ProductDetail from "../Features/Product/ProductDetails/ProductDetail";
-// import CartPage from "../Features/Cart/CartPage";
-import AiShop from "../Features/AiShopping/AiShop";
-import SellerLanding from "../Features/Marketting/WooShoSeller/SellerLanding";
-import BuyerLanding from "../Features/Marketting/WooshoBuyer/BuyerLanding";
-import SellerDashboard from "../Features/SellerDashboard/SellerDashboard";
-import BuyerDashboard from "../Features/BuyerDashboard/BuyerDashboard";
-import BrandsPage from "../Features/Brands/BrandsPage";
-import BrandDetail from "../Features/Brands/BrandDetail";
 import OtherPage from "../Features/OtherPage/OtherPage";
-import AnalyticsPage from "../Features/Analytics/AnalyticsPage";
-import SupportPage from "../Features/Support/SupportPage";
-import AboutPage from "../Features/About/AboutPage";
-import CareersPage from "../Features/Careers/CareersPage";
-import ApplicationForm from "../Features/Careers/ApplicationForm";
-import ContactPage from "../Features/Contact/ContactPage";
-import PressPage from "../Features/Press/PressPage";
-import AdminSimpleDashboard from "../Features/AdminDashboard/AdminSimpleDashboard/AdminSimpleDashboard";
-import AdminModernDashboard from "../Features/AdminDashboard/AdminModernDashboard/AdminModernDashboard";
 
 // ─── Collection Pages ─────────────────────────────────────────────────────────
 import NewArrivalsPage from "../Features/Collections/pages/NewArrivalsPage";
@@ -59,8 +40,7 @@ import FashionPage from "../Features/Collections/pages/FashionPage";
 import KidsToysPage from "../Features/Collections/pages/KidsToysPage";
 
 // ─── Auth Page ────────────────────────────────────────────────────────────────
-import AuthPage from "../Features/Auth/AuthPage";
-import AuthNew from "../Features/Auth/AuthNew";
+// Auth imports removed — now lazy loaded below
 
 // ─── Error / Fallback ─────────────────────────────────────────────────────────
 import NotFoundPage from "../Components/NotFoundPage";
@@ -73,11 +53,16 @@ import {
   OrdersSkeleton,
   TrackingSkeleton,
   CartSkeleton,
+  LandingSkeleton,
+  BuyerSkeleton,
+  SellerSkeleton,
+  GenericPageSkeleton,
+  DashboardSkeleton,
+  HomeSkeleton,
 } from "../Components/Fallback";
 
 
 // JUST TEsT
-import SalesAssistant from "../Features/SellerDashboard/AI_Sales_Assistant/SalesAssistant";
 
 const isLoggedIn = true; // Simulate authentication status (replace with real auth logic)
 
@@ -94,44 +79,75 @@ const router = createBrowserRouter(
         element={isLoggedIn ? <DefaultLayout /> : <MarkettingLayout />}
       >
         {isLoggedIn ? (
-          <Route index element={<HomePage />} loader={fetchProductsLoader} />
+          <Route index element={<HomePage />} loader={fetchProductsLoader} hydrateFallbackElement={<HomeSkeleton />} />
         ) : (
-          <Route index element={<LandingPage />} />
+          <Route index lazy={() => import("../Features/Marketting/ModernLanding/ModernLanding").then(m => ({ Component: m.default }))} hydrateFallbackElement={<LandingSkeleton />} />
         )}
       </Route>
 
       {/* ── Auth ── */}
-      <Route path="auth" element={<AuthPage />} />
-      <Route path="login" element={<AuthPage />} />
-      <Route path="signup" element={<AuthPage />} />
-      <Route path="authnew" element={<AuthNew />} />
+      <Route path="auth" lazy={() => import("../Features/Auth/AuthPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
+      <Route path="login" lazy={() => import("../Features/Auth/AuthPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
+      <Route path="signup" lazy={() => import("../Features/Auth/AuthPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
+      <Route path="authnew" lazy={() => import("../Features/Auth/AuthNew").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
 
       {/* ── Marketting layout pages ── */}
       <Route element={<MarkettingLayout />}>
 
-        <Route path="brands" element={<BrandsPage />}>
-          <Route path=":brandId" element={<BrandDetail />} />
+        <Route path="brands" lazy={() => import("../Features/Brands/BrandsPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />}>
+          <Route path=":brandId" lazy={() => import("../Features/Brands/BrandDetail").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
         </Route>
 
-        <Route path="sell" element={<SellerLanding />} />
-        <Route path="buyer" element={<BuyerLanding />} />
+        <Route path="sell" lazy={() => import("../Features/Marketting/WooShoSeller/SellerLanding").then(m => ({ Component: m.default }))} hydrateFallbackElement={<SellerSkeleton />} />
+        <Route path="buyer" lazy={() => import("../Features/Marketting/WooshoBuyer/BuyerLanding").then(m => ({ Component: m.default }))} hydrateFallbackElement={<BuyerSkeleton />} />
 
       </Route>
 
       {/* ── Default layout pages ── */}
       <Route element={<DefaultLayout />}>
-        <Route path="ai-shop" element={<AiShop />} />
-        <Route path="support" element={<SupportPage />} />
-        <Route path="analytics" element={<AnalyticsPage />} />
-        <Route path="about" element={<AboutPage />} />
-        <Route path="careers" element={<CareersPage />} />
-        <Route path="careers/apply" element={<ApplicationForm />} />
-        <Route path="contact" element={<ContactPage />} />
-        <Route path="press" element={<PressPage />} />
-        <Route path="admin" element={<AdminModernDashboard />} />
-        <Route path="adminsimp" element={<AdminSimpleDashboard />} />
-        <Route path="dashboard/seller" element={<SellerDashboard />} />
-        <Route path="dashboard/buyer" element={<BuyerDashboard />} />
+        <Route path="ai-shop"
+          lazy={() => import("../Features/AiShopping/AiShop").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route path="support"
+          lazy={() => import("../Features/Support/SupportPage").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route path="analytics"
+          lazy={() => import("../Features/Analytics/AnalyticsPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route path="about"
+          lazy={() => import("../Features/About/AboutPage").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route path="careers"
+          lazy={() => import("../Features/Careers/CareersPage").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route path="careers/apply"
+          lazy={() => import("../Features/Careers/ApplicationForm").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
+        <Route path="contact"
+          lazy={() => import("../Features/Contact/ContactPage").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route path="press"
+          lazy={() => import("../Features/Press/PressPage").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route path="admin"
+          lazy={() => import("../Features/AdminDashboard/AdminModernDashboard/AdminModernDashboard").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<DashboardSkeleton />}
+        />
+        <Route path="adminsimp"
+          lazy={() => import("../Features/AdminDashboard/AdminSimpleDashboard/AdminSimpleDashboard").then(m => ({ Component: m.default }))}
+          hydrateFallbackElement={<DashboardSkeleton />}
+        />
+        <Route path="dashboard/seller"
+          lazy={() => import("../Features/SellerDashboard/SellerDashboard").then(m => ({ Component: m.default }))} hydrateFallbackElement={<DashboardSkeleton />}
+        />
+        <Route path="dashboard/buyer"
+          lazy={() => import("../Features/BuyerDashboard/BuyerDashboard").then(m => ({ Component: m.default }))} hydrateFallbackElement={<DashboardSkeleton />}
+        />
 
         {/* Trade Layout */}
         <Route element={<TradeLayout />}>
@@ -145,23 +161,24 @@ const router = createBrowserRouter(
           /> */}
           <Route
             path="tracking"
-            element={<TrackingPage />}
+            element={<><Navbar /><TrackingPage /></>}
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<TrackingSkeleton />}
           />
           {/* <Route
             path="cart"
-            element={<CartPage />}
+            element={<><Navbar /><CartPage /></>}
             loader={cartRecommendationsLoader}
             hydrateFallbackElement={<CartSkeleton />}
           /> */}
 
           {/* ── Products  Layout── */}
-          <Route path="products" element={<ProductsLayout />}>
+          <Route path="products" element={<><Navbar /><ProductsLayout /></>}>
             <Route
               index
               element={<ProductsPage />}
               loader={fetchProductsLoader}
+
               hydrateFallbackElement={<ProductsSkeleton />}
             />
             <Route
@@ -175,92 +192,85 @@ const router = createBrowserRouter(
           {/* ── Collections (all use fetchProductsLoader) ── */}
           <Route
             path="new-arrivals"
-            element={<NewArrivalsPage />}
+            element={<><Navbar /><NewArrivalsPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="hot-deals"
-            element={<HotDealsPage />}
+            element={<><Navbar /><HotDealsPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="trending"
-            element={<TrendingNowPage />}
+            element={<><Navbar /><TrendingNowPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="high-fashion"
-            element={<HighFashionPage />}
+            element={<><Navbar /><HighFashionPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="sneakers"
-            element={<SneakersPage />}
+            element={<><Navbar /><SneakersPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="electronics"
-            element={<ElectronicsPage />}
+            element={<><Navbar /><ElectronicsPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="beauty-care"
-            element={<BeautyCarePage />}
+            element={<><Navbar /><BeautyCarePage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="flash-sales"
-            element={<FlashSalesPage />}
+            element={<><Navbar /><FlashSalesPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="members-only"
-            element={<MembersOnlyPage />}
+            element={<><Navbar /><MembersOnlyPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="categories"
-            element={<CategoriesPage />}
+            element={<><Navbar /><CategoriesPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="black-friday"
-            element={<BlackFridayPage />}
+            element={<><Navbar /><BlackFridayPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="fashion"
-            element={<FashionPage />}
+            element={<><Navbar /><FashionPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="kids-toys"
-            element={<KidsToysPage />}
+            element={<><Navbar /><KidsToysPage /></>}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
         </Route>
 
       </Route>
-
-      {/* Test */}
-      <Route
-        path="sales-assistant"
-        element={<SalesAssistant />}
-      />
-
 
       {/* ── 404 ── */}
       <Route path="*" element={<NotFoundPage />} />

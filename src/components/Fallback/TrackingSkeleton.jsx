@@ -1,14 +1,16 @@
 // Skeleton fallback for /tracking — matches TrackingPage's dark theme layout:
 // Dark hero with starfield → headline → search bar → recent order pills
 import { SkeletonStyles, SkBlock } from "./SkeletonBase";
+import NavbarSkeleton from "./NavbarSkeleton";
 
 export default function TrackingSkeleton() {
   return (
     <div className="min-h-screen" style={{ background: "#070a18" }}>
       <SkeletonStyles />
+      <NavbarSkeleton dark />
 
       {/* ── Hero section ── */}
-      <div className="relative overflow-hidden pt-16" style={{ minHeight: 500, background: "linear-gradient(180deg,#0c0e26 0%,#070a18 100%)" }}>
+      <div className="relative overflow-hidden pt-32" style={{ minHeight: 500, background: "linear-gradient(180deg,#0c0e26 0%,#070a18 100%)" }}>
         {/* Star field dots */}
         <div className="absolute inset-0 opacity-20"
           style={{ backgroundImage: "radial-gradient(circle,rgba(255,255,255,.5) 1px,transparent 1px)", backgroundSize: "52px 52px" }} />
