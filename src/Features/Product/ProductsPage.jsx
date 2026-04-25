@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Link, useNavigate, useNavigation, useLoaderData } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAllProducts } from "./Hooks/useProducts";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
-import { useTheme } from "../../Context/theme/ThemeContext"; 
-import { formatMoneyCents } from "../../Utils/formatMoneyCents"; 
+import { useTheme } from "../../Context/theme/ThemeContext";
+import { formatMoneyCents } from "../../Utils/formatMoneyCents";
+import { IconSpinner } from "../../Components/Icons/IconSpinner";
 
 // Components
 import PremiumDropdown from "../../Components/Ui/PremiumDropdown";
@@ -38,14 +40,7 @@ function IconClose({ className = "w-4 h-4" }) {
   );
 }
 
-function IconSpinner({ className = "w-4 h-4" }) {
-  return (
-    <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-    </svg>
-  );
-}
+
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const PG_STYLES = `
@@ -124,7 +119,7 @@ function InlineAd({ product, type, allProducts }) {
             whileHover="hover"
             className="relative rounded-2xl overflow-hidden flex items-center justify-between gap-4 cursor-pointer h-full border border-white/5"
             variants={{
-              hover: { 
+              hover: {
                 scale: 1.01,
                 boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
                 borderColor: "rgba(255,255,255,0.15)"
@@ -138,18 +133,18 @@ function InlineAd({ product, type, allProducts }) {
           >
             {/* Background Image with Zoom Animation */}
             <div className="absolute inset-0 z-0 overflow-hidden">
-               <motion.img 
-                 variants={{ hover: { scale: 1.15, filter: "brightness(0.9)" } }}
-                 transition={{ duration: 1.2, ease: "easeOut" }}
-                 src={product.image} alt="" className="w-full h-full object-cover opacity-70" />
-               <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${isDark ? '#000' : '#111'} 50%, transparent 95%)` }} />
-               
-               {/* Animated Sheen Sweep */}
-               <motion.div 
-                 variants={{ hover: { x: ["-100%", "200%"] } }}
-                 transition={{ duration: 1.5, ease: "easeInOut" }}
-                 className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-25deg] pointer-events-none"
-               />
+              <motion.img
+                variants={{ hover: { scale: 1.15, filter: "brightness(0.9)" } }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+                src={product.image} alt="" className="w-full h-full object-cover opacity-70" />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${isDark ? '#000' : '#111'} 50%, transparent 95%)` }} />
+
+              {/* Animated Sheen Sweep */}
+              <motion.div
+                variants={{ hover: { x: ["-100%", "200%"] } }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+                className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-25deg] pointer-events-none"
+              />
             </div>
 
             <div className="relative z-10 flex items-center gap-4 pl-6 py-4">
@@ -165,15 +160,15 @@ function InlineAd({ product, type, allProducts }) {
             </div>
 
             <div className="relative z-10 flex items-center gap-4 pr-6 py-4">
-               <div className="text-right">
-                  <p className="font-black text-xl text-white">{formatMoneyCents(product.price_cents)}</p>
-                  <p className="text-[11px] line-through opacity-40 text-white">{formatMoneyCents(Math.round(product.price_cents * 1.6))}</p>
-               </div>
-               <motion.span 
-                 whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,1)", color: "#000" }}
-                 className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/20 transition-all duration-300">
-                 Shop Now
-               </motion.span>
+              <div className="text-right">
+                <p className="font-black text-xl text-white">{formatMoneyCents(product.price_cents)}</p>
+                <p className="text-[11px] line-through opacity-40 text-white">{formatMoneyCents(Math.round(product.price_cents * 1.6))}</p>
+              </div>
+              <motion.span
+                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,1)", color: "#000" }}
+                className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/20 transition-all duration-300">
+                Shop Now
+              </motion.span>
             </div>
           </motion.div>
         </Link>
@@ -190,7 +185,7 @@ function InlineAd({ product, type, allProducts }) {
           whileHover="hover"
           className="relative rounded-2xl overflow-hidden flex items-center justify-between gap-4 cursor-pointer h-full border border-amber-500/10"
           variants={{
-            hover: { 
+            hover: {
               scale: 1.01,
               boxShadow: "0 15px 30px rgba(180,83,9,0.15)",
               borderColor: "rgba(217,119,6,0.3)"
@@ -200,18 +195,18 @@ function InlineAd({ product, type, allProducts }) {
         >
           {/* Background Image Overlay for Flash Deal */}
           <div className="absolute inset-0 z-0 overflow-hidden">
-             <motion.img 
-               variants={{ hover: { scale: 1.2 } }}
-               transition={{ duration: 1.2, ease: "easeOut" }}
-               src={product.image} alt="" className="w-full h-full object-cover opacity-15 grayscale" />
-             <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${isDark ? '#1a1a1a' : '#fffbeb'} 40%, transparent 100%)` }} />
-             
-             {/* Animated Sheen Sweep */}
-             <motion.div 
-               variants={{ hover: { x: ["-100%", "200%"] } }}
-               transition={{ duration: 1.5, ease: "easeInOut" }}
-               className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-amber-500/10 to-transparent skew-x-[-25deg] pointer-events-none"
-             />
+            <motion.img
+              variants={{ hover: { scale: 1.2 } }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              src={product.image} alt="" className="w-full h-full object-cover opacity-15 grayscale" />
+            <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${isDark ? '#1a1a1a' : '#fffbeb'} 40%, transparent 100%)` }} />
+
+            {/* Animated Sheen Sweep */}
+            <motion.div
+              variants={{ hover: { x: ["-100%", "200%"] } }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-amber-500/10 to-transparent skew-x-[-25deg] pointer-events-none"
+            />
           </div>
 
           <div className="relative z-10 flex items-center gap-4 pl-6 py-4">
@@ -226,15 +221,15 @@ function InlineAd({ product, type, allProducts }) {
           </div>
 
           <div className="relative z-10 flex items-center gap-4 pr-6 py-4">
-             <div className="text-right">
-                 <p className="font-black text-xl" style={{ color: colors.brand.gold }}>{formatMoneyCents(product.price_cents)}</p>
-                 <p className="text-[11px] line-through" style={{ color: colors.text.tertiary }}>{formatMoneyCents(Math.round(product.price_cents * 1.4))}</p>
-             </div>
-             <motion.span 
-               whileHover={{ scale: 1.05, backgroundColor: "#d97706" }}
-               className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-amber-600 text-white transition-all duration-300">
-               Shop →
-             </motion.span>
+            <div className="text-right">
+              <p className="font-black text-xl" style={{ color: colors.brand.gold }}>{formatMoneyCents(product.price_cents)}</p>
+              <p className="text-[11px] line-through" style={{ color: colors.text.tertiary }}>{formatMoneyCents(Math.round(product.price_cents * 1.4))}</p>
+            </div>
+            <motion.span
+              whileHover={{ scale: 1.05, backgroundColor: "#d97706" }}
+              className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-amber-600 text-white transition-all duration-300">
+              Shop →
+            </motion.span>
           </div>
         </motion.div>
       </Link>
@@ -272,12 +267,12 @@ function CompareModal({ items, onClose, onRemove }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1200] flex items-end md:items-center justify-center" style={{ pointerEvents: "none" }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-md pointer-events-auto" />
-      <motion.div 
-        initial={{ y: "100%" }} 
-        animate={{ y: 0 }} 
-        exit={{ y: "100%" }} 
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.8 }}
-        className="relative z-10 w-full h-[100dvh] rounded-none md:h-auto md:max-h-[85vh] md:max-w-3xl md:mx-4 md:rounded-3xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col" 
+        className="relative z-10 w-full h-[100dvh] rounded-none md:h-auto md:max-h-[85vh] md:max-w-3xl md:mx-4 md:rounded-3xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col"
         style={{ background: colors.surface.elevated }}
       >
         <div className="flex items-center justify-between p-5 md:p-6 border-b shrink-0" style={{ borderColor: colors.border.subtle }}>
@@ -287,7 +282,7 @@ function CompareModal({ items, onClose, onRemove }) {
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110" style={{ background: colors.surface.tertiary }}><IconClose /></button>
         </div>
-        
+
         <div className="overflow-y-auto flex-1 pg-slim">
           <div className="grid grid-cols-2 gap-4 md:gap-6 p-5 md:p-6">
             {[a, b].map((p) => (
@@ -301,7 +296,7 @@ function CompareModal({ items, onClose, onRemove }) {
               </div>
             ))}
           </div>
-          
+
           <div className="px-5 md:px-6 pb-5 md:pb-6">
             {rows.map(({ label, render }) => (
               <div key={label} className="grid grid-cols-[1fr_1fr] gap-4 md:gap-6 py-4 border-t text-center" style={{ borderColor: colors.border.subtle }}>
@@ -315,17 +310,17 @@ function CompareModal({ items, onClose, onRemove }) {
             ))}
           </div>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4 p-5 md:p-6 border-t shrink-0" style={{ borderColor: colors.border.subtle, background: isDark ? 'rgba(30,30,34,0.5)' : 'rgba(249,250,251,0.5)' }}>
           {[a, b].map((p) => (
-            <motion.button 
+            <motion.button
               key={`pick-${p.id}`}
               whileTap={{ scale: 0.96 }}
               onClick={() => {
                 onClose();
                 navigate(`/products/${p.slug || p.id}`);
               }}
-              className="py-4 rounded-2xl font-bold text-sm md:text-base shadow-lg transition-colors border" 
+              className="py-4 rounded-2xl font-bold text-sm md:text-base shadow-lg transition-colors border"
               style={{ background: colors.cta.primary, color: colors.cta.primaryText, borderColor: 'rgba(255,255,255,0.1)' }}
             >
               Pick {p.name.split(' ')[0]}
@@ -341,14 +336,17 @@ function CompareModal({ items, onClose, onRemove }) {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ProductsPage() {
+
   const navigate = useNavigate();
   const { isDark, colors } = useTheme();
 
-  const navigation = useNavigation();
-  const productsFromLoader = useLoaderData();
-  const allProducts = useMemo(() => Array.isArray(productsFromLoader) ? productsFromLoader : [], [productsFromLoader]);
-  const isLoading = navigation.state === "loading";
-  
+  // Products 
+  const {
+    data: allProducts = [],
+    isLoading,
+    isFetching,
+  } = useAllProducts();
+
   const { filters, setFilters, selectedCategory, setSelectedCategory, maxBudget, filteredProducts } = useProductsFilter(allProducts);
   const { compareList, showCompare, setShowCompare, toggleCompare, removeCompare, clearCompare } = useCompare();
 
@@ -382,12 +380,12 @@ export default function ProductsPage() {
       gsap.fromTo(
         gridRef.current.children,
         { opacity: 0, y: 30, scale: 0.95 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          scale: 1, 
-          duration: 0.8, 
-          stagger: 0.05, 
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.8,
+          stagger: 0.05,
           ease: "expo.out",
           overwrite: "auto"
         }
@@ -421,7 +419,7 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setMobileFilterOpen(true)}
@@ -430,7 +428,7 @@ export default function ProductsPage() {
           >
             <IconFilter className="w-3.5 h-3.5" /> Filters
           </motion.button>
-          
+
           <PremiumDropdown
             value={filters.sort}
             options={SORT_OPTIONS}
@@ -446,11 +444,11 @@ export default function ProductsPage() {
           <aside className="hidden lg:block w-[280px] flex-shrink-0 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pg-slim pr-3 pb-8">
             <div className="rounded-[24px] p-6 shadow-xl relative overflow-hidden" style={{ background: isDark ? 'rgba(26,26,26,0.6)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', border: `1px solid ${colors.border.subtle}` }}>
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${colors.cta.primary}15 0%, transparent 70%)` }} />
-              <FilterSidebar 
-                filters={filters} 
-                setFilters={setFilters} 
-                maxBudget={maxBudget} 
-                selectedCategory={selectedCategory} 
+              <FilterSidebar
+                filters={filters}
+                setFilters={setFilters}
+                maxBudget={maxBudget}
+                selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
                 matchingCount={filteredProducts.length}
               />
@@ -460,16 +458,22 @@ export default function ProductsPage() {
           {/* Main Content */}
           <div className="flex-1">
             <div className="mb-6 flex flex-col gap-4">
-              <ActiveFilterChips 
-                filters={filters} 
-                selectedCategory={selectedCategory} 
-                setFilters={setFilters} 
-                setSelectedCategory={setSelectedCategory} 
-                maxBudget={maxBudget} 
+              <ActiveFilterChips
+                filters={filters}
+                selectedCategory={selectedCategory}
+                setFilters={setFilters}
+                setSelectedCategory={setSelectedCategory}
+                maxBudget={maxBudget}
               />
-              <p className="text-sm font-medium italic" style={{ color: colors.text.tertiary }}>
-                Discovering <span className="font-bold" style={{ color: colors.text.primary }}>{filteredProducts.length}</span> curated items for you.
-              </p>
+              <div className="flex gap-6 items-center">
+                <p className="text-sm font-medium italic" style={{ color: colors.text.tertiary }}>
+                  Discovering <span className="font-bold" style={{ color: colors.text.primary }}>{filteredProducts.length}</span> curated items for you.
+                </p>
+
+                {/* Shows spinner if products is beign refetched */}
+                <span>{isFetching && <IconSpinner />}</span>
+              </div>
+
             </div>
 
             {/* Loading skeleton */}
@@ -498,18 +502,20 @@ export default function ProductsPage() {
               </div>
             )}
 
+
             <div ref={gridRef} className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6">
+
               {gridItems.map((item) => (
-                item.type === "ad" 
+                item.type === "ad"
                   ? <InlineAd key={`ad-${item.idx}`} product={item.adProduct} type={item.adType} allProducts={allProducts} />
                   : <ProductCard key={item.product.id} product={item.product} onQuickView={handleQuickView} onToggleCompare={toggleCompare} isCompared={compareList.some((c) => c.id === item.product.id)} canAdd={compareList.length < 2} />
               ))}
-              
-              <ViewMoreBtn 
-                onClick={handleLoadMore} 
-                loading={loadingMore} 
-                allLoaded={visibleCount >= filteredProducts.length} 
-                count={filteredProducts.length} 
+
+              <ViewMoreBtn
+                onClick={handleLoadMore}
+                loading={loadingMore}
+                allLoaded={visibleCount >= filteredProducts.length}
+                count={filteredProducts.length}
               />
             </div>
 
@@ -540,12 +546,12 @@ export default function ProductsPage() {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileFilterOpen(false)} className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm lg:hidden" />
             <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.8 }} className="fixed bottom-0 left-0 right-0 z-[2001] rounded-t-[32px] p-8 lg:hidden max-h-[90vh] overflow-y-auto shadow-[0_-20px_40px_rgba(0,0,0,0.2)]" style={{ background: colors.surface.primary }}>
-               <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-2xl font-serif font-bold" style={{ color: colors.text.primary }}>Filters</h2>
-                  <button onClick={() => setMobileFilterOpen(false)} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: colors.surface.tertiary, color: colors.text.primary }}><IconClose /></button>
-               </div>
-               <FilterSidebar filters={filters} setFilters={setFilters} maxBudget={maxBudget} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} matchingCount={filteredProducts.length} />
-               <button onClick={() => setMobileFilterOpen(false)} className="w-full mt-8 py-4 rounded-2xl font-bold" style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Apply Filters</button>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-serif font-bold" style={{ color: colors.text.primary }}>Filters</h2>
+                <button onClick={() => setMobileFilterOpen(false)} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: colors.surface.tertiary, color: colors.text.primary }}><IconClose /></button>
+              </div>
+              <FilterSidebar filters={filters} setFilters={setFilters} maxBudget={maxBudget} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} matchingCount={filteredProducts.length} />
+              <button onClick={() => setMobileFilterOpen(false)} className="w-full mt-8 py-4 rounded-2xl font-bold" style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Apply Filters</button>
             </motion.div>
           </>
         )}
@@ -553,9 +559,9 @@ export default function ProductsPage() {
 
       <AnimatePresence>
         {quickViewProduct && (
-          <ProductDetailModal 
-            product={quickViewProduct} 
-            onClose={() => setQuickViewProduct(null)} 
+          <ProductDetailModal
+            product={quickViewProduct}
+            onClose={() => setQuickViewProduct(null)}
           />
         )}
       </AnimatePresence>

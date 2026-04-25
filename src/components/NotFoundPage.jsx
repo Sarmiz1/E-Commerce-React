@@ -1,7 +1,18 @@
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "../Context/theme/ThemeContext";
+
+
+const particles = Array.from({ length: 22 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  size: Math.random() * 3 + 1,
+  dur: Math.random() * 4 + 3,
+  delay: Math.random() * 5,
+}));
+
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
@@ -54,19 +65,13 @@ const CSS = `
 `;
 
 function ParticleField({ accent }) {
-  const particles = Array.from({ length: 22 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    dur: Math.random() * 4 + 3,
-    delay: Math.random() * 5,
-  }));
+
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map(p => (
+      {particles.map((p, i) => (
         <motion.div
-          key={p.id}
+          key={p?.id || i}
           className="absolute rounded-full"
           style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size, background: accent }}
           animate={{ y: [0, -40, 0], opacity: [0, 0.5, 0], scale: [1, 1.5, 0] }}
@@ -199,7 +204,7 @@ export default function NotFoundPage() {
           className="flex flex-wrap gap-2 justify-center"
         >
           {quickLinks.map(({ label, to }) => (
-            <Link key={to} to={to}
+            <Link key={label} to={to}
               className="px-4 py-2 rounded-xl text-[12px] font-bold transition-all hover:opacity-80"
               style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", color: colors.text.secondary, border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}` }}>
               {label}

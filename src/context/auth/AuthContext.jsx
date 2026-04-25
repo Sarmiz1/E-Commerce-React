@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
   // A helper method for the developer to quickly test the checkout flow
   // without building a full login UI.
   const loginGuest = async () => {
-    const guestEmail = "guest_tester@shopease.local";
+    const guestEmail = "guest_tester@WooSho.local";
     const guestPass = "supa_strong_password_123!";
 
     // Attempt Login

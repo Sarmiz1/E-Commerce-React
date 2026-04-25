@@ -22,3 +22,16 @@ export const handleResponse = async (queryPromise) => {
 
   return data;
 };
+
+
+// Simplified
+
+// export const handleResponse = async (queryPromise) => {
+//   const { data, error } = await queryPromise;
+
+//   if (error) {
+//     throw new Error(error.message || "Request failed");
+//   }
+
+//   return data;
+// };

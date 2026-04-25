@@ -5,7 +5,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import ModernNavbar from "../../Components/ModernNavbar";
-// import { ModernFooter } from "../Marketting/ModernLanding/SharedComponents/ModernFooter";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -308,7 +307,6 @@ export default function BrandsPage() {
         </div>
       </section>
 
-      {/* <ModernFooter /> */}
     </div>
   );
 }

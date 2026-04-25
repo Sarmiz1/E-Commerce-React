@@ -3,10 +3,9 @@ import {
   createRoutesFromElements,
   Route,
 } from "react-router-dom";
-import {
-  fetchProductsLoader,
-  cartRecommendationsLoader,
-} from "../loaders/fetchProductsLoader";
+
+// Loaders
+import { fetchProductsLoader } from "../loaders/fetchProductsLoader";
 import { productDetailsLoader } from "../loaders/productDetailsLoader";
 import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
 
@@ -20,12 +19,12 @@ import TradeLayout from "../Layout/TradeLayout";
 // ─── Core Pages ───────────────────────────────────────────────────────────────
 import HomePage from "../Features/Home/HomePage/HomePage";
 import LandingPage from "../Features/Marketting/ModernLanding/ModernLanding";
-import CheckoutPage from "../Features/Checkout/CheckOutPage";
-import OrdersPage from "../Features/Orders/OrdersPage";
+// import CheckoutPage from "../Features/Checkout/CheckOutPage";
+// import OrdersPage from "../Features/Orders/OrdersPage";
 import ProductsPage from "../Features/Product/ProductsPage";
 import TrackingPage from "../Features/Orders/Tracking/TrackingPage";
 import ProductDetail from "../Features/Product/ProductDetails/ProductDetail";
-import CartPage from "../Features/Cart/CartPage";
+// import CartPage from "../Features/Cart/CartPage";
 import AiShop from "../Features/AiShopping/AiShop";
 import SellerLanding from "../Features/Marketting/WooShoSeller/SellerLanding";
 import BuyerLanding from "../Features/Marketting/WooshoBuyer/BuyerLanding";
@@ -136,26 +135,26 @@ const router = createBrowserRouter(
 
         {/* Trade Layout */}
         <Route element={<TradeLayout />}>
-          <Route path="checkout" element={<CheckoutPage />} />
+          {/* <Route path="checkout" element={<CheckoutPage />} /> */}
 
-          <Route
+          {/* <Route
             path="orders"
             element={<OrdersPage />}
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<OrdersSkeleton />}
-          />
+          /> */}
           <Route
             path="tracking"
             element={<TrackingPage />}
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<TrackingSkeleton />}
           />
-          <Route
+          {/* <Route
             path="cart"
             element={<CartPage />}
             loader={cartRecommendationsLoader}
             hydrateFallbackElement={<CartSkeleton />}
-          />
+          /> */}
 
           {/* ── Products  Layout── */}
           <Route path="products" element={<ProductsLayout />}>
@@ -166,7 +165,7 @@ const router = createBrowserRouter(
               hydrateFallbackElement={<ProductsSkeleton />}
             />
             <Route
-              path=":productId"
+              path=":productSlug"
               element={<ProductDetail />}
               loader={productDetailsLoader}
               hydrateFallbackElement={<ProductDetailSkeleton />}

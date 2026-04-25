@@ -40,7 +40,7 @@ function SellerBenefits() {
       visual: {
         type: "fee-compare",
         items: [
-          { label: "ShopEase",   fee: "0%",   color: "from-emerald-400 to-teal-500",  width: "8%" },
+          { label: "WooSho",   fee: "0%",   color: "from-emerald-400 to-teal-500",  width: "8%" },
           { label: "Amazon",     fee: "15%",  color: "from-orange-400 to-red-500",    width: "45%" },
           { label: "Etsy",       fee: "6.5%", color: "from-yellow-400 to-orange-400", width: "25%" },
           { label: "Shopify",    fee: "~$79", color: "from-gray-400 to-gray-600",     width: "62%" },
@@ -53,7 +53,7 @@ function SellerBenefits() {
       tag: "Massive Reach",
       icon: "🌍",
       title: "2 Million Buyers. All Yours.",
-      desc: "Stop chasing customers. On ShopEase, they're already here. Our 2M+ active buyers browse daily with credit on file and one-tap checkout. Your products get discovered through our AI-powered recommendation engine.",
+      desc: "Stop chasing customers. On WooSho, they're already here. Our 2M+ active buyers browse daily with credit on file and one-tap checkout. Your products get discovered through our AI-powered recommendation engine.",
       points: ["AI product recommendations", "SEO-optimised storefronts", "Targeted email campaigns", "Social media amplification"],
       visual: {
         type: "reach-map",
@@ -155,7 +155,7 @@ function SellerBenefits() {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-4">Platform fee comparison</p>
                       {b.visual.items.map((item) => (
                         <div key={item.label} className="flex items-center gap-3">
-                          <span className={`text-xs font-bold w-20 flex-shrink-0 ${item.label === "ShopEase" ? "text-white" : "text-gray-500"}`}>
+                          <span className={`text-xs font-bold w-20 flex-shrink-0 ${item.label === "WooSho" ? "text-white" : "text-gray-500"}`}>
                             {item.label}
                           </span>
                           <div className="flex-1 h-5 bg-white/5 rounded-full overflow-hidden">
@@ -164,15 +164,15 @@ function SellerBenefits() {
                               whileInView={{ width: item.width }}
                               viewport={{ once: true }}
                               transition={{ duration: 1, delay: 0.2, ease: "power2.out" }}
-                              className={`h-full rounded-full bg-gradient-to-r ${item.color} ${item.label === "ShopEase" ? "opacity-100" : "opacity-50"}`}
+                              className={`h-full rounded-full bg-gradient-to-r ${item.color} ${item.label === "WooSho" ? "opacity-100" : "opacity-50"}`}
                             />
                           </div>
-                          <span className={`text-xs font-black w-10 text-right flex-shrink-0 ${item.label === "ShopEase" ? "text-emerald-400" : "text-gray-500"}`}>
+                          <span className={`text-xs font-black w-10 text-right flex-shrink-0 ${item.label === "WooSho" ? "text-emerald-400" : "text-gray-500"}`}>
                             {item.fee}
                           </span>
                         </div>
                       ))}
-                      <p className="text-[10px] text-gray-600 mt-3">*ShopEase charges 8% commission only when you sell. No monthly fee.</p>
+                      <p className="text-[10px] text-gray-600 mt-3">*WooSho charges 8% commission only when you sell. No monthly fee.</p>
                     </div>
                   )}
 

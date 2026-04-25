@@ -239,7 +239,7 @@ function SellerHowToStart() {
             <span className="se-shimmer">Closer Than You Think</span>
           </h2>
           <p className="text-gray-400 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
-            Join 48,000+ sellers already earning on ShopEase. Free forever to start.
+            Join 48,000+ sellers already earning on WooSho. Free forever to start.
             No credit card. No contracts. Just results.
           </p>
 

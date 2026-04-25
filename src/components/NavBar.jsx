@@ -661,6 +661,32 @@ const SEARCH_CATEGORIES = [
   { label: "Scarves", emoji: "🧣", query: "scarves" },
 ];
 
+
+// Mega Content Ctegory
+const megaContentCategory = [
+  { label: "Women's", emoji: "👗", color: "from-rose-400 to-pink-500" },
+  { label: "Men's", emoji: "👔", color: "from-sky-400 to-blue-500" },
+  { label: "Bags", emoji: "👜", color: "from-amber-400 to-orange-500" },
+  { label: "Watches", emoji: "⌚", color: "from-emerald-400 to-teal-500" },
+  { label: "Shoes", emoji: "👠", color: "from-violet-400 to-purple-500" },
+  { label: "Beauty", emoji: "🧴", color: "from-pink-400 to-rose-500" },
+]
+
+// Special offers
+const specialOffers = [
+                      { label: "🔥 Flash Sale", desc: "Up to 70% off today only", color: "bg-orange-50 border-orange-100", textColor: "text-orange-600" },
+                      { label: "✨ New Arrivals", desc: "68 new items this week", color: "bg-indigo-50 border-indigo-100", textColor: "text-indigo-600" },
+                      { label: "🎁 Gift Sets", desc: "Perfect presents from $29", color: "bg-rose-50 border-rose-100", textColor: "text-rose-600" },
+                    ]
+
+                    // Account Links
+                    const accountLinks = [
+                    { icon: <UserIcon className="w-4 h-4" />, label: "My Account" },
+                    { icon: <HeartIcon className="w-4 h-4" />, label: "Wishlist" },
+                    { icon: <BagIcon className="w-4 h-4" />, label: "My Orders" },
+                  ]
+
+
 // ─── Styles injected once ─────────────────────────────────────────────────────
 const NAVBAR_STYLES = `
   .nb-pill {
@@ -753,8 +779,8 @@ function CartPreview({ cart, onRemove, onNavigate, formatMoney }) {
         <>
           <div className="nb-cart-scroll overflow-y-auto max-h-[260px] px-4 py-3 space-y-3">
             <AnimatePresence initial={false}>
-              {cart.map((item) => (
-                <motion.div key={item.id}
+              {cart.map((item, i) => (
+                <motion.div key={item?.id || i}
                   layout
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -819,6 +845,7 @@ function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave })
   const top = triggerRect ? triggerRect.bottom + 10 : 70;
 
   if (!data) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -857,12 +884,12 @@ function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave })
 
         {/* Link columns */}
         <div className="col-span-3 grid grid-cols-3 gap-0 divide-x divide-gray-100">
-          {data.columns.map((col) => (
-            <div key={col.heading} className="p-5">
+          {data.columns.map((col, i) => (
+            <div key={col.heading} className="p-5" key={i}>
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{col.heading}</p>
               <div className="space-y-0.5">
-                {col.links.map((link) => (
-                  <button key={link.label} onClick={() => onNavigate("/products")} className="nb-mega-link">
+                {col.links.map((link, i) => (
+                  <button key={link?.label || i} onClick={() => onNavigate("/products")} className="nb-mega-link">
                     <span className="flex-1 text-left">{link.label}</span>
                     {link.badge && (
                       <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${link.badge === "New" ? "bg-blue-100 text-blue-600"
@@ -885,8 +912,8 @@ function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave })
       {/* Promo strip */}
       {data.promos?.length > 0 && (
         <div className="border-t border-gray-100 px-5 py-3 flex items-center gap-3 bg-gray-50/60 flex-wrap">
-          {data.promos.map((p) => (
-            <span key={p.label} className={`text-[10px] font-bold px-3 py-1.5 rounded-full border ${p.color}`}>{p.label}</span>
+          {data.promos.map((p, i) => (
+            <span key={p?.label || i} className={`text-[10px] font-bold px-3 py-1.5 rounded-full border ${p.color}`}>{p.label}</span>
           ))}
         </div>
       )}
@@ -1163,7 +1190,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
             </div>
             <span className="font-black text-[1.05rem] tracking-tight leading-none hidden sm:block transition-colors duration-300"
               style={{ fontFamily: "'Georgia','Palatino Linotype',serif", color: isTop ? "#fff" : "#111827" }}>
-              Shop<span style={{ color: isTop ? "#a5b4fc" : "#4f46e5" }}>Ease</span>
+              Woo<span style={{ color: isTop ? "#a5b4fc" : "#4f46e5" }}>Sho</span>
             </span>
           </button>
 
@@ -1470,7 +1497,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="space-y-2">
                             {Array(5).fill(0).map((_, i) => (
-                              <div key={i} className="flex items-center gap-3 px-3 py-2 animate-pulse">
+                              <div key={`hero-grid-${i}`} className="flex items-center gap-3 px-3 py-2 animate-pulse">
                                 <div className="w-10 h-10 rounded-xl bg-gray-200 flex-shrink-0" />
                                 <div className="flex-1 space-y-1.5">
                                   <div className="h-3 bg-gray-200 rounded w-3/4" />
@@ -1504,8 +1531,8 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                             <p className="font-black text-gray-800 text-base">No results for <span className="text-indigo-600">"{searchQuery}"</span></p>
                             <p className="text-gray-400 text-xs mt-1 max-w-xs">Try a shorter keyword, check spelling, or browse a category below.</p>
                             <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                              {POPULAR_SEARCHES.slice(0, 4).map((s) => (
-                                <button key={s} onClick={() => setSearchQuery(s)}
+                              {POPULAR_SEARCHES.slice(0, 4).map((s, i) => (
+                                <button key={s || i} onClick={() => setSearchQuery(s)}
                                   className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100 hover:bg-indigo-100 transition-colors">
                                   {s}
                                 </button>
@@ -1530,7 +1557,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                             <div className="space-y-1">
                               {searchResults.map((product, i) => (
                                 <motion.button
-                                  key={product.id}
+                                  key={product?.id || i}
                                   initial={{ opacity: 0, x: -8 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   transition={{ delay: i * 0.035 }}
@@ -1601,8 +1628,8 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                             </button>
                           </div>
                           <div className="space-y-0.5">
-                            {recentSearches.slice(0, 5).map((term) => (
-                              <div key={term} className="flex items-center gap-2 group">
+                            {recentSearches.slice(0, 5).map((term, i) => (
+                              <div key={term || i} className="flex items-center gap-2 group">
                                 <motion.button
                                   whileHover={{ x: 2 }}
                                   onClick={() => setSearchQuery(term)}
@@ -1631,7 +1658,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                         </p>
                         <div className="space-y-0.5">
                           {POPULAR_SEARCHES.slice(0, recentSearches.length > 0 ? 4 : 6).map((s, i) => (
-                            <motion.button key={s}
+                            <motion.button key={s || i}
                               initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: i * 0.03 }}
                               onClick={() => setSearchQuery(s)}
@@ -1730,14 +1757,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                 <div className="px-4 py-3 border-t border-gray-100">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-3">Shop by Category</p>
                   <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: "Women's", emoji: "👗", color: "from-rose-400 to-pink-500" },
-                      { label: "Men's", emoji: "👔", color: "from-sky-400 to-blue-500" },
-                      { label: "Bags", emoji: "👜", color: "from-amber-400 to-orange-500" },
-                      { label: "Watches", emoji: "⌚", color: "from-emerald-400 to-teal-500" },
-                      { label: "Shoes", emoji: "👠", color: "from-violet-400 to-purple-500" },
-                      { label: "Beauty", emoji: "🧴", color: "from-pink-400 to-rose-500" },
-                    ].map((cat, i) => (
+                    {megaContentCategory.map((cat, i) => (
                       <motion.button key={cat.label}
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.05 }}
                         onClick={() => { navigate("/products"); setMobileOpen(false); }}
@@ -1754,11 +1774,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                 <div className="px-4 py-3 border-t border-gray-100">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-3">Offers</p>
                   <div className="space-y-2">
-                    {[
-                      { label: "🔥 Flash Sale", desc: "Up to 70% off today only", color: "bg-orange-50 border-orange-100", textColor: "text-orange-600" },
-                      { label: "✨ New Arrivals", desc: "68 new items this week", color: "bg-indigo-50 border-indigo-100", textColor: "text-indigo-600" },
-                      { label: "🎁 Gift Sets", desc: "Perfect presents from $29", color: "bg-rose-50 border-rose-100", textColor: "text-rose-600" },
-                    ].map((offer, i) => (
+                    {specialOffers.map((offer, i) => (
                       <motion.button key={offer.label}
                         initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + i * 0.05 }}
                         onClick={() => { navigate("/products"); setMobileOpen(false); }}
@@ -1777,11 +1793,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                 {/* Account links */}
                 <div className="px-4 py-3 border-t border-gray-100">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-2">Account</p>
-                  {[
-                    { icon: <UserIcon className="w-4 h-4" />, label: "My Account" },
-                    { icon: <HeartIcon className="w-4 h-4" />, label: "Wishlist" },
-                    { icon: <BagIcon className="w-4 h-4" />, label: "My Orders" },
-                  ].map((item, i) => (
+                  {accountLinks.map((item, i) => (
                     <motion.button key={item.label}
                       initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.65 + i * 0.05 }}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-700 hover:bg-gray-50 transition-all mb-1 text-sm font-semibold text-left"

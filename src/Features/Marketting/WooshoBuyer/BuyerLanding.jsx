@@ -35,8 +35,11 @@ const links = [
  * ─────────────────────────────────────────────────────────────────────────────
  */
 const BuyerLanding = () => {
+
   return (
     <>
+      <title>WooSho Buyer - Smart Shopping, Curated for You</title>
+      
       <ModernNavbar navLinks={links} />
       <div className="w-full bg-white font-sans antialiased selection:bg-blue-200 selection:text-blue-900 overflow-hidden">
         <HeroSection />

@@ -403,7 +403,7 @@ function PerksSection() {
       <FloatingOrbs dark />
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         <p className="text-center text-xs font-bold uppercase tracking-widest text-indigo-400 mb-3">Why Choose Us</p>
-        <h2 className="text-4xl font-black text-center text-white mb-14">The ShopEase Difference</h2>
+        <h2 className="text-4xl font-black text-center text-white mb-14">The WooSho Difference</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {PERKS.map((perk, i) => (
             <motion.div key={i} whileHover={{ y: -8, scale: 1.02 }}

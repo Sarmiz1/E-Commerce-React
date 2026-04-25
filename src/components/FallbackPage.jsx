@@ -113,7 +113,7 @@ export default function FallbackPage() {
           <p className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-40">System Diagnostics</p>
           {steps.map((s, i) => (
             <motion.div
-              key={i}
+              key={s.label}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: i <= stepIndex ? 1 : 0.2, x: 0 }}
               transition={{ delay: i * 0.9 }}

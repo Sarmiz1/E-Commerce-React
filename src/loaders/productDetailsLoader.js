@@ -1,30 +1,18 @@
 import { ProductsAPI } from "../api/productsApi";
+import { queryClient } from "../Context/QueryClient/QueryWrapper";
 
 export const productDetailsLoader = async ({ params }) => {
-  try {
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.productId);
-    const product = isUUID 
-      ? await ProductsAPI.getById(params.productId)
-      : await ProductsAPI.getBySlug(params.productId);
+  const { productSlug } = params;
 
-    if (!product) {
-      throw new Response("Product not found", { status: 404 });
-    }
+  // 1. Fetch product by slug
+  const product = await queryClient.ensureQueryData(
+    ProductsAPI.getBySlug(productSlug)
+  );
 
-    const similarProducts = await ProductsAPI.getByKeywords(
-      product.keywords
-    );
+  // 2. Fetch recommendations using product ID
+  await queryClient.ensureQueryData(
+    ProductsAPI.recommendations(product.id)
+  );
 
-    return {
-      product,
-      similarProducts: similarProducts.filter(
-        (p) => p.id !== product.id
-      ),
-    };
-
-  } catch {
-    throw new Response("Failed to load product", {
-      status: 500,
-    });
-  }
+  return null;
 };

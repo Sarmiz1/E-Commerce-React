@@ -58,7 +58,7 @@ const MainLinksGrid = () => {
 
   const LINKS = {
     Shop: ["New Arrivals", "Trending Now", "Flash Sales", "Members Only", "Gift Cards"],
-    Company: ["About ShopEase", "Careers", "Press & Media", "Sustainability", "Investors"],
+    Company: ["About WooSho", "Careers", "Press & Media", "Sustainability", "Investors"],
     Support: ["Help Center", "Track Your Order", "Returns & Exchanges", "Size Guide", "Contact Us"],
     Legal: ["Privacy Policy", "Terms of Service", "Cookie Settings", "Accessibility", "Sitemap"],
   };

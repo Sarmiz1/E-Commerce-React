@@ -3,44 +3,14 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { IconCart } from "../../../Components/Icons/IconCart"; 
+import { IconPlus } from "../../../Components/Icons/IconPlus"; 
+import { IconStar } from "../../../Components/Icons/IconStar"; 
+import { getProductImages } from "../../../Utils/getProductImages"; 
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-export function getProductImages(product) {
-  const supabaseImages = product?.product_images?.map(img => img.image_url) || [];
-  const all = [product?.image, ...supabaseImages, ...(product?.images || product?.imageList || [])].filter(Boolean);
-  return [...new Set(all)];
-}
+const  checkDate = (product) =>  Date.now() - new Date(product?.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
-export function IconCart({ className = "w-4 h-4" }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8"
-      strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <path d="M16 10a4 4 0 01-8 0" />
-    </svg>
-  );
-}
 
-export function IconStar({ filled, className = "w-3.5 h-3.5" }) {
-  return (
-    <svg className={className} fill={filled ? "currentColor" : "none"}
-      stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  );
-}
-
-export function IconPlus({ className = "w-4 h-4" }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5"
-      strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
 
 const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }) {
   const { isDark, colors } = useTheme();
@@ -76,8 +46,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
   };
 
   const onSale = product.price_cents < 2000;
-  const isNew = product.created_at &&
-    Date.now() - new Date(product.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
+  const isNew = product.created_at && checkDate(product);
 
   const handleComparePointerUp = useCallback((e) => {
     e.preventDefault();

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 
 
-// ─── Seller Hero — full-bleed "Sell on ShopEase" pitch ───────────────────────
+// ─── Seller Hero — full-bleed "Sell on WooSho" pitch ───────────────────────
 function SellerHero() {
   const ref = useRef(null);
 
@@ -95,7 +95,7 @@ function SellerHero() {
 
         {/* Subtext */}
         <p className="se-sh-body text-center text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-6 leading-relaxed">
-          Join thousands of sellers already growing their business on ShopEase.
+          Join thousands of sellers already growing their business on WooSho.
           Access 2 million ready-to-buy customers from day one — with zero setup fees.
         </p>
 

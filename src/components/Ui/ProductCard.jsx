@@ -44,7 +44,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import Stars from "../Stars";
+import { useTrackProductClick } from "../../Hooks/useTrackProductClick";
 import AddToCart from "./AddToCart";
+import { IconCart } from "../Icons/IconCart"
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -70,10 +72,21 @@ function Badge({ label, colorClass }) {
 // Smart exclusion: AddToCart button clicks and anchor clicks are passed through.
 function NavigableWrapper({ product, children }) {
   const navigate = useNavigate();
+  const trackClick = useTrackProductClick();
 
   const handleClick = (e) => {
-    if (e.target.closest("[data-testid='add-to-cart-btn']")) return;
-    if (e.target.closest("a[href]")) return;
+    const addToCartBtn = e.target.closest("[data-testid='add-to-cart-btn']");
+    if (addToCartBtn) return;
+
+    const anchor = e.target.closest("a[href]");
+    if (anchor) return;
+
+    const productId = product?.id;
+    if (!productId) return;
+
+    // ✅ track only real product card clicks
+    trackClick(productId);
+
     navigate(`/products/${product.slug || product.id}`);
   };
 
@@ -100,15 +113,15 @@ function StandardCard({ product }) {
         className="group bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100/80 flex flex-col h-full"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-          <img 
-            src={product.image} 
-            alt={product.name} 
+          <img
+            src={product?.image}
+            alt={product?.name}
             loading="lazy"
             onError={(e) => {
-              e.target.onerror = null; 
+              e.target.onerror = null;
               e.target.src = "https://placehold.co/600x600?text=No+Image";
             }}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -131,7 +144,9 @@ function StandardCard({ product }) {
             <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
             {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
           </div>
-          <AddToCart productId={product.id} variant="primary" />
+
+          <IconCart className="w-3.5 h-3.5"/>
+          
         </div>
       </motion.div>
     </NavigableWrapper>
@@ -151,15 +166,15 @@ function HorizontalCard({ product }) {
         className="group flex gap-4 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100/80"
       >
         <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0">
-          <img 
-            src={product.image} 
-            alt={product.name} 
+          <img
+            src={product.image}
+            alt={product.name}
             loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://placehold.co/600x600?text=No+Image";
             }}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         </div>
         <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -196,15 +211,15 @@ function OverlayCard({ product }) {
         className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl"
         style={{ aspectRatio: "3/4" }}
       >
-        <img 
-          src={product.image} 
-          alt={product.name} 
+        <img
+          src={product.image}
+          alt={product.name}
           loading="lazy"
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = "https://placehold.co/600x600?text=No+Image";
           }}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
         {onSale && (
@@ -239,15 +254,15 @@ function CompactCard({ product }) {
         className="group bg-gray-50 rounded-2xl overflow-hidden hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100/60"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "1/1" }}>
-          <img 
-            src={product.image} 
-            alt={product.name} 
+          <img
+            src={product.image}
+            alt={product.name}
             loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://placehold.co/600x600?text=No+Image";
             }}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           {onSale && (
             <div className="absolute top-2 right-2">
@@ -283,15 +298,15 @@ function GhostCard({ product }) {
         className="group relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl overflow-hidden hover:bg-white/15 hover:border-white/30 transition-all duration-300"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-          <img 
-            src={product.image} 
-            alt={product.name} 
+          <img
+            src={product.image}
+            alt={product.name}
             loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://placehold.co/600x600?text=No+Image";
             }}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
         </div>
@@ -327,15 +342,15 @@ function NavigateCard({ product }) {
         className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-shadow duration-300 flex flex-col h-full border border-gray-100/80"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-          <img 
-            src={product.image} 
-            alt={product.name} 
+          <img
+            src={product.image}
+            alt={product.name}
             loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://placehold.co/600x600?text=No+Image";
             }}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -379,15 +394,15 @@ function StaticCard({ product }) {
       className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100/80 flex flex-col"
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-        <img 
-          src={product.image} 
-          alt={product.name} 
+        <img
+          src={product.image}
+          alt={product.name}
           loading="lazy"
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = "https://placehold.co/600x600?text=No+Image";
           }}
-          className="w-full h-full object-cover" 
+          className="w-full h-full object-cover"
         />
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}
@@ -425,14 +440,14 @@ function customWideCard({ product }) {
     >
       <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
         <Link to={`/products/${product?.slug || product?.id}`} className="cursor-pointer">
-          <img 
-            src={product?.image} 
-            alt={product?.name} 
+          <img
+            src={product?.image}
+            alt={product?.name}
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://placehold.co/600x600?text=No+Image";
             }}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         </Link>
       </div>

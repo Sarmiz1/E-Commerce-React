@@ -897,7 +897,7 @@ export default function TrackingPage() {
                       ["Status", (trackedOrder.status || "").charAt(0).toUpperCase() + (trackedOrder.status || "").slice(1)],
                       ["ETA", computeETA(trackedOrder.status, trackedOrder.createdAt)],
                       ["Ordered", new Date(trackedOrder.createdAt || Date.now()).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })],
-                      ["Courier", "ShopEase Express"],
+                      ["Courier", "WooSho Express"],
                     ].map(([k, v]) => (
                       <div key={k}>
                         <p className="text-white/28 text-[9px] uppercase tracking-widest">{k}</p>
@@ -989,7 +989,7 @@ export default function TrackingPage() {
                 <SupportForm orderId={trackedOrder.id} />
                 <div className="mt-4 pt-4 border-t border-white/8 flex items-center gap-2 text-white/25 text-xs">
                   <Ic.Phone className="w-3.5 h-3.5" />
-                  <span>Or call: <span className="text-white/45 font-bold">1-800-SHOPEASE</span></span>
+                  <span>Or call: <span className="text-white/45 font-bold">1-800-WooSho</span></span>
                 </div>
               </div>
             </section>

@@ -1,25 +1,26 @@
+import { useState } from "react";
 import { ButtonPrimary } from "../../../Components/Ui/ButtonPrimary";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDate } from "../../../Utils/formatDate";
-import { useCartActions } from "../../../Hooks/useCartActions";
-
+import { useAddToCart } from "../../../Hooks/cart/useAddToCart";
+import { ErrorMessage } from "../../../Components/ErrorMessage";
 
 function OrderProductDetails({ orderedProduct }) {
   const navigateToCheckOut = useNavigate();
-  const [errorMessage, setErrorMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('');
   const {
     quantity,
     products: { image, name, id },
   } = orderedProduct;
 
-  const { addToCart } = useCartActions();
+  const { handleAdd, loading } = useAddToCart();
 
-  const handleAddToCart = async (id) => {
+  const handleAddToCart = async (productId) => {
     try {
       setErrorMessage(null);
-      await addToCart(id, 1);
+      // We assume product variants are the same, ideally we'd pass variantId here if we have it on orderedProduct
+      await handleAdd(productId, { quantity: 1, variantId: orderedProduct.variant_id });
       navigateToCheckOut("/checkout");
-
     } catch (error) {
       setErrorMessage("Failed to add item to cart. Please try again.");
     }
