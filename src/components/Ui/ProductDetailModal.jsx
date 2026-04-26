@@ -7,13 +7,13 @@ import React, {
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../../Context/theme/ThemeContext";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { SIZE_TABLES } from "../constants";
-import { IconStar } from "../../../Components/Icons/IconStar";
-import { IconPlus } from "../../../Components/Icons/IconPlus";
-import { getProductImages } from "../../../Utils/getProductImages";
-import { useAddToCart } from "../../../Hooks/cart/useAddToCart";
+import { useTheme } from "../../Context/theme/ThemeContext";
+import { formatMoneyCents } from "../../Utils/formatMoneyCents";
+import { SIZE_TABLES } from "../../Features/Product/constants";
+import { IconStar } from "../Icons/IconStar";
+import { IconPlus } from "../Icons/IconPlus";
+import { getProductImages } from "../../Utils/getProductImages";
+import { useAddToCart } from "../../Hooks/cart/useAddToCart";
 // ─── Icons ────────────────────────────────────────────────────────────────────
 function IconClose({ className = "w-4 h-4" }) {
   return (
@@ -799,3 +799,4 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
 });
 
 export default ProductDetailModal;
+

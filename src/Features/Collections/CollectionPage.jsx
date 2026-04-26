@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { useTheme } from "../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import ProductCard from "../Product/Components/ProductCard";
-import ProductDetailModal from "../Product/Components/ProductDetailModal";
+import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 import { useCompare } from "../Product/Hooks/useCompare";
 
 // ─── Utility ──────────────────────────────────────────────────────────────────

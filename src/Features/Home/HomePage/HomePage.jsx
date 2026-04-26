@@ -48,6 +48,13 @@ import BrandMarquee from "./Components/Sections/BrandMarquee";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// testing MModal
+
+import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 // ─── Skeleton loader ──────────────────────────────────────────────────────────
@@ -75,7 +82,11 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
   // Products
-  const { data: products = [], isLoading, isFetching } = useAllProducts();
+  const { data: products = [], isLoading } = useAllProducts();
+
+  // still testing Modal
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  
 
   // Product slices
   const heroFeatured = products[0] || null;
@@ -153,6 +164,18 @@ export default function HomePage() {
       <TestimonialsCarousel />
       <NewsletterSection />
       <CTABanner />
+
+      {/* Product Detail Modal */}
+
+      <AnimatePresence>
+        {quickViewProduct && (
+          <ProductDetailModal
+            product={quickViewProduct}
+            onClose={() => setQuickViewProduct(null)}
+          />
+        )}
+      </AnimatePresence>
+      {/* TestingModal */}
 
       {/* Back to Top */}
       <BackToTop />

@@ -35,7 +35,7 @@ export default function CategoriesSection() {
     <section ref={ref} className="py-20 max-w-7xl mx-auto px-6">
       <SectionLabel label="Collections" />
       <div className="flex items-end justify-between mb-12">
-        <h2 className="text-3xl font-black text-gray-900">Shop by Category</h2>
+        <h2 className="text-3xl font-black text-gray-900 dark:text-white/50">Shop by Category</h2>
         <motion.button 
           whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1"
           onClick={() => navigate("/products/categories")}

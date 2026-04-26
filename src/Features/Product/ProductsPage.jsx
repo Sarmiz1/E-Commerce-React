@@ -12,7 +12,7 @@ import PremiumDropdown from "../../Components/Ui/PremiumDropdown";
 import LiveTicker from "./Components/LiveTicker";
 import ProductCard from "./Components/ProductCard";
 import FilterSidebar, { ActiveFilterChips } from "./Components/FilterSidebar";
-import ProductDetailModal from "./Components/ProductDetailModal";
+import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 
 // Hooks
 import { useProductsFilter } from "./Hooks/useProductsFilter";
