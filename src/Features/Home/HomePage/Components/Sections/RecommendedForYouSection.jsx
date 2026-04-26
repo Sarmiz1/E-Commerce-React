@@ -34,7 +34,7 @@ export default function RecommendedForYouSection({ products, isLoading }) {
           </motion.button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:items-start">
           {/* Featured Large Item */}
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
@@ -43,8 +43,8 @@ export default function RecommendedForYouSection({ products, isLoading }) {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="lg:col-span-5"
           >
-            <div className="h-full relative p-1 rounded-3xl" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #ec4899 100%)' }}>
-              <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-[10px] font-bold tracking-widest uppercase">
+            <div className="relative p-1 rounded-3xl" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #ec4899 100%)' }}>
+              <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-[10px] font-bold tracking-widest uppercase shadow-xl">
                 Top Match
               </div>
               <ProductCard product={featured} variant="overlay" />
