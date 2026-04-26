@@ -65,10 +65,16 @@ export default function BuyerTopbar() {
 
           <AnimatePresence>
             {cartOpen && (
-              <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              <motion.div
+                key="cart-dropdown"
+                initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.96 }}
                 className="absolute right-0 top-12 w-80 rounded-2xl overflow-hidden shadow-2xl z-50"
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
+                
+                {/* Invisible bridge to prevent mouse leave in the gap */}
+                <div className="absolute -top-3 left-0 right-0 h-3" />
+                
                 {/* Header */}
                 <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
                   <span className="font-bold text-sm" style={{ color: colors.text.primary }}>Shopping Cart</span>
@@ -157,7 +163,9 @@ export default function BuyerTopbar() {
           </button>
           <AnimatePresence>
             {notifOpen && (
-              <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              <motion.div
+                key="notif-dropdown"
+                initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.96 }}
                 className="absolute right-0 top-12 w-80 rounded-2xl overflow-hidden shadow-2xl z-50"
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
@@ -193,7 +201,9 @@ export default function BuyerTopbar() {
           </button>
           <AnimatePresence>
             {profileOpen && (
-              <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              <motion.div
+                key="profile-dropdown"
+                initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.96 }}
                 className="absolute right-0 top-12 w-52 rounded-2xl overflow-hidden shadow-2xl z-50"
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>

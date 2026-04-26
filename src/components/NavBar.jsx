@@ -748,7 +748,7 @@ function CartPreview({ cart, onRemove, onNavigate, formatMoney }) {
   const totalPrice = cart.reduce((a, i) => a + i.priceCents * i.quantity, 0);
 
   return (
-    <div className="nb-cart-panel">
+    <div className="w-full h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
@@ -1282,7 +1282,9 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
               onMouseLeave={() => setSearchTip(false)}>
               <AnimatePresence>
                 {searchTip && (
-                  <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+                  <motion.div
+                    key="search-tooltip"
+                    initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
                     className="absolute -bottom-9 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap pointer-events-none shadow-lg">
                     Search
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45" />
@@ -1344,12 +1346,15 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
             </div>
 
             {/* Cart bag — with hover preview */}
-            <div className="relative" onMouseEnter={openCart} onMouseLeave={closeCart}>
+            <div 
+              className="relative group"
+              onMouseEnter={() => setCartHover(true)}
+              onMouseLeave={() => setCartHover(false)}
+            >
               <button
                 ref={cartRef}
                 title={cartCount > 0 ? `Shopping bag · ${cartCount} item${cartCount !== 1 ? "s" : ""}` : "Shopping bag · Empty"}
-                className={`nb-icon-btn transition-all duration-200 ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                className={`nb-icon-btn transition-all duration-200 ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"}`}
                 aria-label={`Shopping bag, ${cartCount} items`}
               >
                 <BagIcon className="w-[22px] h-[22px]" />
@@ -1372,21 +1377,21 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                 <AnimatePresence>
                   {cartHover && (
                     <motion.div
+                      key="navbar-cart-dropdown"
                       initial={{ opacity: 0, y: 8, scale: 0.97 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.97 }}
                       transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
-                      onMouseEnter={keepCart}
-                      onMouseLeave={closeCart}
+                      className="absolute top-full right-0 pt-[14px] z-50 w-[360px]"
                     >
-                      {/* Transparent bridge to fill gap between button and panel */}
-                      <div className="absolute top-full left-0 right-0 h-4" />
-                      <CartPreview
-                        cart={cart}
-                        onRemove={onRemoveFromCart || (() => { })}
-                        onNavigate={(href) => { navigate(href); setCartHover(false); }}
-                        formatMoney={formatMoneyCents}
-                      />
+                      <div className="w-full max-h-[480px] rounded-[24px] overflow-hidden bg-white/98 shadow-[0_24px_80px_rgba(0,0,0,0.18),0_4px_16px_rgba(0,0,0,0.08)] border border-black/5 backdrop-blur-[24px] flex flex-col">
+                        <CartPreview
+                          cart={cart}
+                          onRemove={onRemoveFromCart || (() => { })}
+                          onNavigate={(href) => { navigate(href); setCartHover(false); }}
+                          formatMoney={formatMoneyCents}
+                        />
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
