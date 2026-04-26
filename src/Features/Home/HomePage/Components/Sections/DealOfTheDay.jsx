@@ -1,25 +1,17 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { formatMoneyCents } from "../../../../../Utils/formatMoneyCents";
-import { CATEGORIES } from "../../Data/categories";
-import { BRANDS } from "../../Data/brands";
-import { PERKS } from "../../Data/perks";
-import { TESTIMONIALS } from "../../Data/testimonials";
-import { HOW_IT_WORKS } from "../../Data/how-it-works";
-import SectionLabel from "../SectionLabel";
 import Stars from "../../../../../Components/Stars";
-import ParticleField from "../ParticleField";
 import FloatingOrbs from "../FloatingOrbs";
-import ProductCard from "../../../../../Components/Ui/ProductCard";
-import { BentoCard } from "../BentoProductGridComponents/BentoCard";
-import AddToCart from "../../../../../Components/Ui/AddToCart";
+import { useNavigate } from "react-router";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 export default function DealOfTheDay({ product, isLoading }) {
+  const navigate = useNavigate();
   const ref = useRef(null);
   const [time, setTime] = useState({ h: 11, m: 34, s: 7 });
   const pad = (n) => String(n).padStart(2, '0');
@@ -79,7 +71,7 @@ export default function DealOfTheDay({ product, isLoading }) {
               <span className="text-gray-500 line-through text-xl">{formatMoneyCents(Math.round(product.price_cents * 1.4))}</span>
               <span className="bg-green-500 text-white text-xs font-black px-2.5 py-1 rounded-full">−30% OFF</span>
             </div>
-            <Stars rating={product.rating_stars || 0} />
+            <Stars rating={product.rating_stars } count={product.rating_count} />
             {/* Progress bar */}
             <div className="hp-dotd mt-8">
               <div className="flex justify-between text-xs text-gray-400 mb-2">
@@ -90,8 +82,12 @@ export default function DealOfTheDay({ product, isLoading }) {
                 <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full hp-progress-bar" style={{ width: '74%' }} />
               </div>
             </div>
-            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-              className="hp-dotd mt-8 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black px-10 py-4 rounded-2xl text-lg shadow-xl shadow-indigo-500/30">
+            <motion.button 
+              whileHover={{ scale: 1.04 }} 
+              whileTap={{ scale: 0.97 }}
+              className="hp-dotd mt-8 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black px-10 py-4 rounded-2xl text-lg shadow-xl shadow-indigo-500/30"
+              onClick={() => navigate(`/products/${product.slug}`)}
+            >
               Grab This Deal →
             </motion.button>
           </div>

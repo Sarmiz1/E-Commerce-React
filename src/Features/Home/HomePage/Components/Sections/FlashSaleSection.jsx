@@ -1,25 +1,18 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../../../../../Utils/formatMoneyCents";
-import { CATEGORIES } from "../../Data/categories";
-import { BRANDS } from "../../Data/brands";
-import { PERKS } from "../../Data/perks";
-import { TESTIMONIALS } from "../../Data/testimonials";
-import { HOW_IT_WORKS } from "../../Data/how-it-works";
-import SectionLabel from "../SectionLabel";
-import Stars from "../../../../../Components/Stars";
-import ParticleField from "../ParticleField";
-import FloatingOrbs from "../FloatingOrbs";
 import ProductCard from "../../../../../Components/Ui/ProductCard";
-import { BentoCard } from "../BentoProductGridComponents/BentoCard";
-import AddToCart from "../../../../../Components/Ui/AddToCart";
+import Skeleton from "./Skeleton";
+import { useNavigate } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 export default function FlashSaleSection({ products, isLoading }) {
+
+  const navigate = useNavigate();
+
   const ref = useRef(null);
   const [time, setTime] = useState({ h: 3, m: 47, s: 22 });
   const pad = (n) => String(n).padStart(2, "0");
@@ -52,7 +45,14 @@ export default function FlashSaleSection({ products, isLoading }) {
             <p className="hp-fl text-sm font-bold uppercase tracking-widest text-orange-100 mb-2">⚡ Limited Time Offer</p>
             <h2 className="hp-fl text-4xl md:text-5xl font-black leading-tight">Flash Sale<br />Up to <span className="text-yellow-300">70% OFF</span></h2>
             <p className="hp-fl mt-3 text-orange-100 max-w-xs">These deals vanish when the timer hits zero.</p>
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="hp-fl mt-6 bg-white text-red-600 font-bold px-8 py-3 rounded-2xl shadow-lg hover:shadow-xl transition">Shop the Sale →</motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.97 }} 
+              className="hp-fl mt-6 bg-white text-red-600 font-bold px-8 py-3 rounded-2xl shadow-lg hover:shadow-xl transition"
+              onClick={() => navigate('/products/flash-sales')}
+            >
+              Shop the Sale →
+            </motion.button>
           </div>
           <div className="hp-fr flex gap-4">
             {[{ label: "Hours", val: time.h }, { label: "Mins", val: time.m }, { label: "Secs", val: time.s }].map((t) => (

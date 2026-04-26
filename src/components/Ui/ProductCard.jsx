@@ -1,4 +1,4 @@
-// src/Components/Ui/ProductCard.jsx
+﻿// src/Components/Ui/ProductCard.jsx
 //
 // ── Variants ──────────────────────────────────────────────────────────────────
 //
@@ -46,7 +46,7 @@ import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import Stars from "../Stars";
 import { useTrackProductClick } from "../../Hooks/useTrackProductClick";
 import AddToCart from "./AddToCart";
-import { IconCart } from "../Icons/IconCart"
+import { IconCart } from "../Icons/IconCart";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -64,6 +64,23 @@ function Badge({ label, colorClass }) {
     <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm text-white ${colorClass}`}>
       {label}
     </span>
+  );
+}
+
+// ── QuickViewBtn ───────────────────────────────────────────────────────────────
+function QuickViewBtn({ product }) {
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.dispatchEvent(new CustomEvent('open-quickview', { detail: product }));
+      }}
+      className="absolute top-3 right-3 z-20 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-white backdrop-blur-md rounded-full shadow-md text-gray-600 hover:text-indigo-600 transition-all pointer-events-auto opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0"
+      title="Quick View"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+    </button>
   );
 }
 
@@ -91,7 +108,7 @@ function NavigableWrapper({ product, children }) {
   };
 
   return (
-    <div onClick={handleClick} className="cursor-pointer">
+    <div onClick={handleClick} className="cursor-pointer h-full">
       {children}
     </div>
   );
@@ -123,15 +140,19 @@ function StandardCard({ product }) {
             }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <QuickViewBtn product={product} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
             {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}
             {onSale && <Badge label="Sale" colorClass="bg-gradient-to-r from-orange-500 to-red-500" />}
           </div>
-          <div className="absolute inset-x-0 bottom-0 flex justify-center pb-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
-            <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md">
-              View Product
-            </span>
+          <div className="absolute inset-x-0 bottom-0 flex justify-center pb-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none z-10">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('open-quickview', { detail: product })); }}
+              className="bg-white/90 backdrop-blur-sm hover:bg-white text-gray-800 text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md pointer-events-auto transition-colors"
+            >
+              Quick View
+            </button>
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left pointer-events-none" />
         </div>
@@ -139,14 +160,14 @@ function StandardCard({ product }) {
           <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors duration-200">
             {product.name}
           </h3>
-          <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} />
+          <Stars rating={product.rating_stars} count={product.rating_count} />
           <div className="mt-auto pt-2 flex items-end justify-between">
             <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
             {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
           </div>
 
-          <IconCart className="w-3.5 h-3.5"/>
-          
+          <AddToCart productId={product.id} className="w-full mt-2" />
+
         </div>
       </motion.div>
     </NavigableWrapper>
@@ -176,6 +197,7 @@ function HorizontalCard({ product }) {
             }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <QuickViewBtn product={product} />
         </div>
         <div className="flex-1 min-w-0 flex flex-col justify-between">
           <div>
@@ -208,7 +230,7 @@ function OverlayCard({ product }) {
         data-product-image={product.image}
         whileHover={{ y: -8, scale: 1.02 }}
         transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-        className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl"
+        className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl h-full flex flex-col"
         style={{ aspectRatio: "3/4" }}
       >
         <img
@@ -222,6 +244,7 @@ function OverlayCard({ product }) {
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+        <QuickViewBtn product={product} />
         {onSale && (
           <div className="absolute top-3 left-3 z-10">
             <Badge label="Sale" colorClass="bg-gradient-to-r from-orange-500 to-red-500" />
@@ -229,6 +252,7 @@ function OverlayCard({ product }) {
         )}
         <div className="absolute bottom-0 left-0 right-0 p-4 z-10 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
           <p className="text-white font-bold text-sm line-clamp-1 mb-1">{product.name}</p>
+          <Stars rating={product.rating_stars} count={product.rating_count} />
           <div className="flex items-center justify-between">
             <p className="font-black text-white text-lg">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="ghost" className="!py-1.5 !px-3 !text-xs" />
@@ -251,7 +275,7 @@ function CompactCard({ product }) {
         data-product-image={product.image}
         whileHover={{ y: -5, scale: 1.03 }}
         transition={{ duration: 0.22 }}
-        className="group bg-gray-50 rounded-2xl overflow-hidden hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100/60"
+        className="group bg-gray-50 rounded-2xl overflow-hidden hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100/60 flex flex-col h-full"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "1/1" }}>
           <img
@@ -264,18 +288,19 @@ function CompactCard({ product }) {
             }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <QuickViewBtn product={product} />
           {onSale && (
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-2 right-2 z-10">
               <Badge label="Sale" colorClass="bg-gradient-to-r from-orange-500 to-red-500" />
             </div>
           )}
         </div>
-        <div className="p-3">
+        <div className="p-3 flex flex-col flex-1">
           <p className="font-bold text-gray-900 text-xs line-clamp-1 mb-0.5 group-hover:text-indigo-700 transition-colors">
             {product.name}
           </p>
-          <Stars rating={product.rating_stars ?? 0} count={0} />
-          <div className="flex items-center justify-between mt-2">
+          <Stars rating={product.rating_stars} count={product.rating_count} />
+          <div className="flex items-center justify-between mt-auto pt-2">
             <p className="font-black text-indigo-600 text-sm">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="icon" />
           </div>
@@ -295,7 +320,7 @@ function GhostCard({ product }) {
         data-product-image={product.image}
         whileHover={{ y: -10, scale: 1.02 }}
         transition={{ duration: 0.25 }}
-        className="group relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl overflow-hidden hover:bg-white/15 hover:border-white/30 transition-all duration-300"
+        className="group relative bg-white/10 backdrop-blur-sm border border-white/20 rounded-3xl overflow-hidden hover:bg-white/15 hover:border-white/30 transition-all duration-300 flex flex-col h-full"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
           <img
@@ -308,14 +333,15 @@ function GhostCard({ product }) {
             }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <QuickViewBtn product={product} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
         </div>
-        <div className="p-4">
+        <div className="p-4 flex flex-col flex-1">
           <h3 className="font-bold text-white text-sm line-clamp-1 mb-1 group-hover:text-indigo-300 transition-colors">
             {product.name}
           </h3>
-          <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} light />
-          <div className="flex items-center justify-between mt-3">
+          <Stars rating={product.rating_stars} count={product.rating_count} light />
+          <div className="flex items-center justify-between mt-auto pt-3">
             <p className="font-black text-white text-base">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="ghost" />
           </div>
@@ -335,7 +361,7 @@ function NavigateCard({ product }) {
 
   return (
     <Link to={`/products/${product.slug || product.id}`}
-      className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl">
+      className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl h-full">
       <motion.div
         whileHover={{ y: -8, boxShadow: "0 20px 48px rgba(79,70,229,0.12)" }}
         transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
@@ -352,12 +378,13 @@ function NavigateCard({ product }) {
             }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <QuickViewBtn product={product} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
             {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}
             {onSale && <Badge label="Sale" colorClass="bg-gradient-to-r from-orange-500 to-red-500" />}
           </div>
-          <div className="absolute inset-x-0 bottom-0 flex justify-center pb-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none">
+          <div className="absolute inset-x-0 bottom-0 flex justify-center pb-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none z-10">
             <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md">
               View Product
             </span>
@@ -368,7 +395,7 @@ function NavigateCard({ product }) {
           <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors duration-200">
             {product.name}
           </h3>
-          <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} />
+          <Stars rating={product.rating_stars} count={product.rating_count} />
           <div className="mt-auto pt-2 flex items-end justify-between">
             <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
             {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
@@ -391,7 +418,7 @@ function StaticCard({ product }) {
   return (
     <div
       data-product-image={product.image}
-      className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100/80 flex flex-col"
+      className="bg-white rounded-3xl shadow-md overflow-hidden border border-gray-100/80 flex flex-col h-full"
     >
       <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
         <img
@@ -404,14 +431,14 @@ function StaticCard({ product }) {
           }}
           className="w-full h-full object-cover"
         />
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}
           {onSale && <Badge label="Sale" colorClass="bg-gradient-to-r from-orange-500 to-red-500" />}
         </div>
       </div>
       <div className="p-5 flex flex-col gap-2 flex-1">
         <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{product.name}</h3>
-        <Stars rating={product.rating_stars ?? 0} count={product.rating_count ?? 0} />
+        <Stars rating={product.rating_stars} count={product.rating_count} />
         <div className="mt-auto pt-2 flex items-end justify-between">
           <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
           {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
@@ -420,10 +447,7 @@ function StaticCard({ product }) {
       </div>
     </div>
   );
-
-
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  VARIANT: customWide
@@ -431,12 +455,11 @@ function StaticCard({ product }) {
 //  used default variant AddToCart Button 
 // ─────────────────────────────────────────────────────────────────────────────
 function customWideCard({ product }) {
-
   return (
     <motion.div
       data-cart-card
       whileHover={{ x: 4 }}
-      className="hp-prod-card group flex gap-4 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300"
+      className="hp-prod-card group flex gap-4 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 h-full"
     >
       <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
         <Link to={`/products/${product?.slug || product?.id}`} className="cursor-pointer">
@@ -449,26 +472,22 @@ function customWideCard({ product }) {
             }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <QuickViewBtn product={product} />
         </Link>
       </div>
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>
           <h3 className="font-bold text-gray-900 text-sm line-clamp-2 leading-tight">{product?.name}</h3>
-          <Stars rating={product?.rating_stars || 0} />
+          <Stars rating={product?.rating_stars} count={product?.rating_count} />
         </div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-auto pt-2">
           <p className="font-black text-gray-900">{formatMoneyCents(product?.price_cents)}</p>
-          {/* <AddToCart productId={product?.id} /> */}
-          {/* <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => handleAdd(e, product?.id)}
-            className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Add</motion.button> */}
+          <AddToCart productId={product?.id} />
         </div>
-        <AddToCart productId={product?.id} />
       </div>
     </motion.div>
   )
 }
-
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  VARIANT MAP + MAIN EXPORT
@@ -508,6 +527,3 @@ export default function ProductCard({ product, variant = "standard" }) {
 
   return <Card product={product} />;
 }
-
-
-

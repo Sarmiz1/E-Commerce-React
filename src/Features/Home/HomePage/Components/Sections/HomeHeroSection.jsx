@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import ParticleField from "../ParticleField";
 import { formatMoneyCents } from "../../../../../Utils/formatMoneyCents";
+import Stars from "../../../../../Components/Stars";
 
 export default function HomeHeroSection({ heroFeatured }) {
   const heroTitleRef = useRef(null);
@@ -74,7 +75,8 @@ export default function HomeHeroSection({ heroFeatured }) {
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                   <p className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-1">Featured Drop</p>
                   <h3 className="font-black text-lg leading-tight mb-1 line-clamp-2">{heroFeatured.name}</h3>
-                  <p className="text-2xl font-black">{formatMoneyCents(heroFeatured.priceCents)}</p>
+                  <Stars rating={heroFeatured.rating_stars} count={heroFeatured.rating_count} />
+                  <p className="text-2xl font-black">{formatMoneyCents(heroFeatured.price_cents)}</p>
                 </div>
               </div>
               <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -83,8 +85,9 @@ export default function HomeHeroSection({ heroFeatured }) {
               </motion.div>
               <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                 className="absolute -bottom-4 -left-6 bg-white text-gray-900 font-bold text-xs px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2">
-                <span className="text-yellow-400">★</span> {heroFeatured.rating?.stars || 4.9} · {heroFeatured.rating?.count || "2K"} reviews
+                <span className="text-yellow-400">★</span> {heroFeatured.rating_stars} · {heroFeatured.reviews || "2K"} reviews
               </motion.div>
+              {console.log(heroFeatured?.rating_stars)}
             </div>
           ) : (
             <div className="w-80 h-96 rounded-3xl bg-white/10 border border-white/20 backdrop-blur-sm" />

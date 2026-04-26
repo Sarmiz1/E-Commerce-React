@@ -1,28 +1,20 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { useNavigation, useLoaderData } from "react-router-dom";
 import { useAllProducts } from "../../Product/Hooks/useProducts";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { STYLES } from "./Styles/styles";
 import { CATEGORIES } from "./Data/categories";
 import { BRANDS } from "./Data/brands";
 import { PERKS } from "./Data/perks";
 import { TESTIMONIALS } from "./Data/testimonials";
-import { HOW_IT_WORKS } from "./Data/how-it-works";
-import SectionLabel from "./Components/SectionLabel";
-import Stars from "../../../Components/Stars";
-import ParticleField from "./Components/ParticleField";
-import FloatingOrbs from "./Components/FloatingOrbs";
+
 import MarqueeStrip from "./Components/MarqueeStrip";
 import ProductCard from "../../../Components/Ui/ProductCard";
-import { BentoCard } from "./Components/BentoProductGridComponents/BentoCard";
-import AddToCart from "../../../Components/Ui/AddToCart";
 import Navbar from "../../../Components/Navbar";
 
-import Skeleton from "./Components/Sections/Skeleton";
+// import Skeleton from "./Components/Sections/Skeleton";
 import CategoriesSection from "./Components/Sections/CategoriesSection";
 import TrendingSection from "./Components/Sections/TrendingSection";
 import FlashSaleSection from "./Components/Sections/FlashSaleSection";
@@ -49,13 +41,16 @@ import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// testing MModal
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+// import gsap from "gsap";
+// import { ScrollTrigger } from "gsap/ScrollTrigger";
+// import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 
 // ─── Skeleton loader ──────────────────────────────────────────────────────────
 
@@ -87,6 +82,12 @@ export default function HomePage() {
   // still testing Modal
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   
+  // Global listener for Quick View requests from any ProductCard anywhere
+  useEffect(() => {
+    const handleQuickView = (e) => setQuickViewProduct(e.detail);
+    window.addEventListener('open-quickview', handleQuickView);
+    return () => window.removeEventListener('open-quickview', handleQuickView);
+  }, []);
 
   // Product slices
   const heroFeatured = products[0] || null;
