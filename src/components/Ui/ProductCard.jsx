@@ -1,4 +1,4 @@
-﻿// src/Components/Ui/ProductCard.jsx
+// src/Components/Ui/ProductCard.jsx
 //
 // ── Variants ──────────────────────────────────────────────────────────────────
 //
@@ -41,6 +41,8 @@
 //  URL without DOM traversal — immune to layout changes inside the card.
 
 import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import Stars from "../Stars";
@@ -67,6 +69,39 @@ function Badge({ label, colorClass }) {
   );
 }
 
+// ── Live Velocity Badge (Simulated) ──────────────────────────────────────────
+function LiveVelocityBadge({ productId }) {
+  const [velocity, setVelocity] = useState(null);
+  
+  useEffect(() => {
+    if (!productId) return;
+    const hash = String(productId).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+    const num = Math.abs(hash % 100);
+    
+    if (num > 80) setVelocity({ type: 'scarcity', text: `Only ${num % 5 + 1} left` });
+    else if (num > 60) setVelocity({ type: 'velocity', text: `🔥 ${num} viewing` });
+    else if (num > 40) setVelocity({ type: 'sales', text: `${num} bought recently` });
+  }, [productId]);
+
+  if (!velocity) return null;
+
+  const getStyle = () => {
+    if (velocity.type === 'scarcity') return "bg-red-500/90 text-white";
+    if (velocity.type === 'velocity') return "bg-orange-500/90 text-white";
+    return "bg-black/80 text-white";
+  };
+
+  return (
+    <div className={`absolute bottom-3 left-3 z-10 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest backdrop-blur-md shadow-lg flex items-center gap-1.5 ${getStyle()}`}>
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+      </span>
+      {velocity.text}
+    </div>
+  );
+}
+
 // ── QuickViewBtn ───────────────────────────────────────────────────────────────
 function QuickViewBtn({ product }) {
   return (
@@ -90,6 +125,14 @@ function QuickViewBtn({ product }) {
 function NavigableWrapper({ product, children }) {
   const navigate = useNavigate();
   const trackClick = useTrackProductClick();
+  const queryClient = useQueryClient();
+
+  const handleMouseEnter = () => {
+    if (product) {
+      queryClient.setQueryData(["product", product.slug || product.id], product);
+      queryClient.setQueryData(["product", product.id], product);
+    }
+  };
 
   const handleClick = (e) => {
     const addToCartBtn = e.target.closest("[data-testid='add-to-cart-btn']");
@@ -108,7 +151,7 @@ function NavigableWrapper({ product, children }) {
   };
 
   return (
-    <div onClick={handleClick} className="cursor-pointer h-full">
+    <div onClick={handleClick} onMouseEnter={handleMouseEnter} className="cursor-pointer h-full">
       {children}
     </div>
   );
@@ -141,6 +184,7 @@ function StandardCard({ product }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
           <QuickViewBtn product={product} />
+          <LiveVelocityBadge productId={product?.id} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
             {newProduct && <Badge label="New" colorClass="bg-gradient-to-r from-blue-600 to-indigo-600" />}

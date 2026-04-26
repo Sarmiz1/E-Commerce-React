@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
@@ -13,6 +13,26 @@ export default function HomeHeroSection({ heroFeatured }) {
   const heroImgRef = useRef(null);
   const navigate = useNavigate();
 
+  const [context, setContext] = useState({
+    greeting: "Discover",
+    sub: "Products",
+    theme: "from-blue-600 via-indigo-700 to-violet-800",
+    glow: "bg-blue-400/25"
+  });
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      setContext({ greeting: "Good Morning.", sub: "Start Your Day", theme: "from-amber-500 via-orange-600 to-rose-600", glow: "bg-amber-400/30" });
+    } else if (hour >= 12 && hour < 17) {
+      setContext({ greeting: "Good Afternoon.", sub: "Midday Finds", theme: "from-blue-500 via-indigo-600 to-purple-700", glow: "bg-blue-400/30" });
+    } else if (hour >= 17 && hour < 21) {
+      setContext({ greeting: "Good Evening.", sub: "Evening Luxury", theme: "from-violet-700 via-purple-900 to-indigo-950", glow: "bg-violet-500/30" });
+    } else {
+      setContext({ greeting: "Late Night Finds.", sub: "Midnight Drops", theme: "from-gray-900 via-indigo-950 to-slate-900", glow: "bg-indigo-500/20" });
+    }
+  }, []);
+
   useEffect(() => {
     if (!heroTitleRef.current) return;
     const tl = gsap.timeline({ delay: 0.2 });
@@ -24,18 +44,18 @@ export default function HomeHeroSection({ heroFeatured }) {
   }, []);
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 text-white min-h-[90vh] flex items-center">
+    <section className={`relative overflow-hidden bg-gradient-to-br ${context.theme} text-white min-h-[90vh] flex items-center transition-colors duration-1000`}>
       <ParticleField />
-      <div className="absolute w-96 h-96 rounded-full bg-blue-400/25 blur-3xl -top-20 -left-20 hp-hero-glow" />
-      <div className="absolute w-80 h-80 rounded-full bg-violet-500/25 blur-3xl bottom-0 -right-20 hp-hero-glow" style={{ animationDelay: "3s" }} />
+      <div className={`absolute w-96 h-96 rounded-full blur-3xl -top-20 -left-20 hp-hero-glow ${context.glow}`} />
+      <div className={`absolute w-80 h-80 rounded-full blur-3xl bottom-0 -right-20 hp-hero-glow ${context.glow}`} style={{ animationDelay: "3s" }} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center w-full">
         {/* Left */}
         <div>
-          <p className="text-blue-200 text-xs font-bold uppercase tracking-[0.35em] mb-6">New Season · New Drops 🔥</p>
+          <p className="text-white/80 text-xs font-bold uppercase tracking-[0.35em] mb-6">New Season · Context Enabled ⚡</p>
           <h1 ref={heroTitleRef} className="text-5xl md:text-6xl lg:text-7xl font-black leading-none mb-6">
-            <span className="hp-shimmer">Discover</span><br />
-            <span className="text-white">Products</span><br />
+            <span className="hp-shimmer block text-4xl mb-2">{context.greeting}</span>
+            <span className="text-white">{context.sub}</span><br />
             <span className="hp-shimmer">You'll Love</span>
           </h1>
           <p ref={heroSubRef} className="text-blue-100 text-lg leading-relaxed mb-10 max-w-md">

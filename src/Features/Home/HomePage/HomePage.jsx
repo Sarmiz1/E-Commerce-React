@@ -48,6 +48,7 @@ import ExploreSellersSection from "./Components/Sections/ExploreSellersSection";
 import ShopByBrandSection from "./Components/Sections/ShopByBrandSection";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
+import GlobalCommandPalette from "../../../Components/GlobalCommandPalette";
 
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -126,6 +127,7 @@ export default function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
+      <GlobalCommandPalette />
       <Navbar />
       <style>{STYLES}</style>
 
