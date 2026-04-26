@@ -1,78 +1,170 @@
-import { memo } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom'
-import { MousePointer2, ArrowRight } from 'lucide-react';
+import { memo, useRef, useState } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { MousePointer2, ArrowRight, Sparkles } from 'lucide-react';
 import heroImg from '../../../../assets/marketing/hero-blur.png';
 
-const ModernHero = memo(function ModernHero() {
-  const navigate = useNavigate()
+// Premium Magnetic Button Component
+const MagneticButton = ({ children, className, onClick }) => {
+  const ref = useRef(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouse = (e) => {
+    const { clientX, clientY } = e;
+    const { height, width, left, top } = ref.current.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    setPosition({ x: middleX * 0.2, y: middleY * 0.2 });
+  };
+
+  const reset = () => {
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const { x, y } = position;
   return (
-    <section className="relative min-h-screen flex items-center pt-32 overflow-hidden bg-white dark:bg-[#0E0E10]">
-      {/* Background Gradients */}
-      <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-blue-500/10 dark:bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4" />
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-blue-400/10 dark:bg-blue-500/5 blur-[100px] rounded-full translate-y-1/4 -translate-x-1/4" />
+    <motion.button
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      animate={{ x, y }}
+      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
+      className={className}
+      onClick={onClick}
+    >
+      {children}
+    </motion.button>
+  );
+};
+
+const ModernHero = memo(function ModernHero() {
+  const navigate = useNavigate();
+
+  // Mouse Parallax Setup
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 25, stiffness: 150 };
+  const smoothMouseX = useSpring(mouseX, springConfig);
+  const smoothMouseY = useSpring(mouseY, springConfig);
+
+  const handleMouseMove = (e) => {
+    const { clientX, clientY } = e;
+    const { innerWidth, innerHeight } = window;
+    // Normalize coordinates from -1 to 1
+    const x = (clientX / innerWidth - 0.5) * 2;
+    const y = (clientY / innerHeight - 0.5) * 2;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  // Parallax Transforms
+  const imgX = useTransform(smoothMouseX, [-1, 1], [-20, 20]);
+  const imgY = useTransform(smoothMouseY, [-1, 1], [-20, 20]);
+  
+  const card1X = useTransform(smoothMouseX, [-1, 1], [30, -30]);
+  const card1Y = useTransform(smoothMouseY, [-1, 1], [30, -30]);
+  
+  const card2X = useTransform(smoothMouseX, [-1, 1], [-40, 40]);
+  const card2Y = useTransform(smoothMouseY, [-1, 1], [-40, 40]);
+
+  // Title Splitting for Kinetic Typography
+  const titleWords = ["Smarter", "Shopping.", "Smarter", "Selling."];
+
+  return (
+    <section 
+      onMouseMove={handleMouseMove}
+      className="relative min-h-screen flex items-center pt-32 overflow-hidden bg-white dark:bg-[#0E0E10]"
+    >
+      {/* Background Gradients with subtle parallax */}
+      <motion.div 
+        style={{ x: imgX, y: imgY }}
+        className="absolute top-0 right-0 w-1/2 h-1/2 bg-blue-500/10 dark:bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4" 
+      />
+      <motion.div 
+        style={{ x: card2X, y: card2Y }}
+        className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-blue-400/10 dark:bg-blue-500/5 blur-[100px] rounded-full translate-y-1/4 -translate-x-1/4" 
+      />
       
+      {/* Abstract Background Grid pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] z-0" />
+
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
         
         {/* TEXT CONTENT */}
-        <div className="text-left">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight leading-[0.9] text-gray-900 dark:text-white">
-              Smarter <br />
-              Shopping. <br />
-              <span className="text-blue-600">Smarter </span>
-              <span className="text-blue-600">Selling.</span>
-            </h1>
-          </motion.div>
+        <div className="text-left relative z-20">
+          <div className="flex flex-wrap text-6xl md:text-8xl font-extrabold tracking-tight leading-[0.9] text-gray-900 dark:text-white mb-8 select-none">
+            {titleWords.map((word, index) => (
+              <motion.span
+                key={index}
+                initial={{ opacity: 0, y: 60, rotateX: -40 }}
+                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{ 
+                  duration: 0.8, 
+                  delay: index * 0.15,
+                  type: "spring",
+                  damping: 14,
+                  stiffness: 100
+                }}
+                className={`mr-4 mb-2 inline-block origin-bottom ${
+                  index > 1 
+                    ? 'text-blue-600 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500 drop-shadow-sm' 
+                    : ''
+                }`}
+              >
+                {word}
+                {index === 1 && <div className="w-full h-0 md:h-4" />} {/* Line break */}
+              </motion.span>
+            ))}
+          </div>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            className="mt-8 text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed"
+            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed relative"
           >
+            <span className="absolute -left-8 top-1 text-blue-500/50 hidden md:block animate-pulse">
+              <Sparkles size={24}/>
+            </span>
             Woosho uses built-in AI to match the right products with the right people — instantly. Experience commerce that understands you.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
             className="mt-10 flex flex-wrap gap-4"
           >
-            <button 
-              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 flex items-center gap-2 group transition-all"
+            <MagneticButton 
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 flex items-center gap-2 group transition-colors"
               onClick={()=> navigate('/auth')}
             >
               <span>Start Shopping</span>
               <motion.div animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
                 <ArrowRight size={20} />
               </motion.div>
-            </button>
+            </MagneticButton>
             
-            <button 
-              className="px-8 py-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white font-bold rounded-2xl transition-all border border-transparent dark:border-white/10"
+            <MagneticButton 
+              className="px-8 py-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white font-bold rounded-2xl transition-colors border border-transparent dark:border-white/10"
               onClick={()=> navigate('/auth')}
-              >
+            >
               Start Selling
-            </button>
+            </MagneticButton>
           </motion.div>
 
           {/* Social Proof / Tiny Stats */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 1 }}
+            transition={{ delay: 1.2, duration: 1 }}
             className="mt-16 flex items-center gap-6"
           >
             <div className="flex -space-x-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0E0E10] bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                  <img src={`https://i.pravatar.cc/100?u=${i}`} alt="user" />
+                <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0E0E10] bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden transition-transform hover:-translate-y-1 hover:z-10 relative cursor-pointer">
+                  <img src={`https://i.pravatar.cc/100?u=${i}`} alt="user" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
@@ -84,63 +176,58 @@ const ModernHero = memo(function ModernHero() {
         </div>
 
         {/* HERO IMAGE / AI SPHERE */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ 
-            duration: 1.2, 
-            delay: 0.1, 
-            ease: [0, 0.71, 0.2, 1.01] 
-          }}
-          className="relative flex justify-center items-center"
-        >
-          <div className="relative w-full aspect-square max-w-lg">
+        <div className="relative flex justify-center items-center pointer-events-none">
+          <motion.div 
+            style={{ x: imgX, y: imgY }}
+            className="relative w-full aspect-square max-w-lg z-10"
+          >
             {/* The actual AI Sphere Image */}
-            <img 
+            <motion.img 
+              initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 1.2, delay: 0.2, ease: [0, 0.71, 0.2, 1.01] }}
               src={heroImg} 
               alt="Woosho AI" 
-              className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_50px_rgba(37,99,235,0.3)]"
+              className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_80px_rgba(37,99,235,0.4)]"
             />
             
             {/* Decorative background circle */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/30 to-blue-400/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/30 to-blue-400/10 rounded-full blur-[80px] animate-pulse" />
             
-            {/* Floating UI Elements */}
+            {/* Floating UI Elements (Parallaxed) */}
             <motion.div 
-              animate={{ y: [0, -20, 0], x: [0, 5, 0] }}
-              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-              className="absolute -top-10 -right-4 glass-card p-4 rounded-2xl z-20 flex shadow-2xl"
+              style={{ x: card1X, y: card1Y }}
+              className="absolute -top-10 -right-4 glass-card p-4 rounded-2xl z-20 flex shadow-2xl bg-white/70 dark:bg-[#1A1A1E]/80 backdrop-blur-md border border-white/20 dark:border-white/10"
             >
-              <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center text-white">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-green-500/30">
                 ₦
               </div>
               <div className="ml-3">
-                <p className="text-xs font-medium text-gray-500">Live Sale</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Live Sale</p>
                 <p className="text-sm font-bold text-gray-900 dark:text-white">₦48,500</p>
               </div>
             </motion.div>
 
             <motion.div 
-              animate={{ y: [0, 20, 0], x: [0, -5, 0] }}
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-10 -left-10 glass-card p-4 rounded-2xl z-20 flex items-center gap-3 shadow-2xl"
+              style={{ x: card2X, y: card2Y }}
+              className="absolute bottom-10 -left-10 glass-card p-4 rounded-2xl z-20 flex items-center gap-3 shadow-2xl bg-white/70 dark:bg-[#1A1A1E]/80 backdrop-blur-md border border-white/20 dark:border-white/10"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
                 <MousePointer2 size={16} />
               </div>
               <p className="text-sm font-bold text-gray-900 dark:text-white">AI Matched</p>
             </motion.div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
       
       {/* Scroll indicator */}
       <motion.div 
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        animate={{ y: [0, 10, 0], opacity: [0.3, 1, 0.3] }}
+        transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20"
       >
-        <span className="text-[10px] uppercase tracking-widest text-gray-400">Scroll</span>
+        <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Scroll</span>
         <div className="w-[1px] h-12 bg-gradient-to-b from-blue-600 to-transparent" />
       </motion.div>
     </section>
@@ -148,3 +235,4 @@ const ModernHero = memo(function ModernHero() {
 });
 
 export default ModernHero;
+

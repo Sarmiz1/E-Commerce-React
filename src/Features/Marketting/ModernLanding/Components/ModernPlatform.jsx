@@ -1,33 +1,27 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Cpu, Zap, Target } from 'lucide-react';
+import { Cpu, Zap, Target, Search, BarChart3, Fingerprint } from 'lucide-react';
 import neuralImg from '../../../../assets/marketing/neural-preview.png';
 
-const ModernPlatform = memo(function ModernPlatform() {
-  const features = [
-    {
-      title: "Intent Mapping",
-      desc: "Buy and sell based on needs, not just keywords. Our AI understands naturally spoken requests.",
-      icon: <Target className="text-blue-600" />
-    },
-    {
-      title: "Neural Analysis",
-      desc: "Every product choice is backed by deep behavioral analysis to ensure it fits your lifestyle.",
-      icon: <Cpu className="text-blue-500" />
-    },
-    {
-      title: "The Perfect Match",
-      desc: "We connect the right buyer to the right seller instantly, maximizing conversion and satisfaction.",
-      icon: <Zap className="text-amber-500" />
-    }
-  ];
+const BentoCard = ({ children, className = "", delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+    viewport={{ once: true, margin: "-100px" }}
+    className={`relative overflow-hidden rounded-[32px] border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1A1A1E]/80 backdrop-blur-xl group hover:border-blue-500/30 transition-colors ${className}`}
+  >
+    {children}
+  </motion.div>
+);
 
+const ModernPlatform = memo(function ModernPlatform() {
   return (
-    <section className="py-24 bg-white dark:bg-[#0E0E10] transition-colors overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-center">
+    <section className="py-32 bg-white dark:bg-[#0E0E10] transition-colors overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6">
         
-        {/* TEXT CONTENT */}
-        <div>
+        {/* HEADER */}
+        <div className="text-center mb-20">
           <motion.span 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -38,71 +32,129 @@ const ModernPlatform = memo(function ModernPlatform() {
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl font-bold mt-4 mb-12 text-gray-900 dark:text-white leading-tight"
+            className="text-5xl md:text-7xl font-bold mt-4 mb-6 text-gray-900 dark:text-white leading-tight tracking-tight"
           >
-            One Intelligent Platform.
+            One Intelligent <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Platform.</span>
           </motion.h2>
-
-          <div className="space-y-12">
-            {features.map((f, i) => (
-              <motion.div 
-                key={f.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.15 }}
-                viewport={{ once: true }}
-                className="flex gap-6"
-              >
-                <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-center">
-                  {f.icon}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{f.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{f.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <p className="text-gray-600 dark:text-gray-400 text-xl max-w-2xl mx-auto">
+            Everything you need to scale. Powered by real-time neural networks that learn and adapt to every user.
+          </p>
         </div>
 
-        {/* MOCKUP / GRAPHIC */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, x: 50 }}
-          whileInView={{ opacity: 1, scale: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          viewport={{ once: true }}
-          className="relative"
-        >
-          <div className="relative z-10 p-4 bg-gray-100 dark:bg-[#19191C] rounded-[48px] border-[8px] border-white dark:border-[#2C2C30] shadow-2xl">
+        {/* BENTO GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 auto-rows-[400px]">
+          
+          {/* Main Large Card */}
+          <BentoCard className="md:col-span-2 flex flex-col md:flex-row items-center gap-8 p-10 md:p-12 shadow-2xl shadow-blue-500/5">
+            <div className="flex-1 space-y-6 z-10">
+              <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center border border-blue-200 dark:border-blue-500/20">
+                <Target className="text-blue-600" size={28} />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Intent Mapping</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
+                Buy and sell based on true needs, not just keywords. Our AI engine understands naturally spoken requests and maps them to the exact product graph.
+              </p>
+            </div>
+            <div className="flex-1 relative w-full h-full min-h-[250px] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-black/50">
+               {/* Abstract Mock UI */}
+               <div className="absolute inset-0 p-6 flex flex-col gap-4">
+                  <div className="w-full h-12 rounded-full bg-white dark:bg-[#2C2C30] border border-gray-200 dark:border-white/10 flex items-center px-4 gap-3 shadow-sm">
+                     <Search size={18} className="text-gray-400"/>
+                     <div className="h-4 w-1/2 bg-gray-200 dark:bg-white/10 rounded overflow-hidden">
+                        <motion.div 
+                          animate={{ x: ["-100%", "100%"] }}
+                          transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                          className="h-full w-full bg-gradient-to-r from-transparent via-blue-500/40 to-transparent"
+                        />
+                     </div>
+                  </div>
+                  <div className="flex gap-4 h-full">
+                    <div className="flex-1 rounded-xl bg-white/50 dark:bg-[#2C2C30]/50 border border-gray-200/50 dark:border-white/5" />
+                    <div className="flex-1 rounded-xl bg-white/50 dark:bg-[#2C2C30]/50 border border-gray-200/50 dark:border-white/5" />
+                  </div>
+               </div>
+            </div>
+          </BentoCard>
+
+          {/* Small Card 1 */}
+          <BentoCard delay={0.1} className="md:col-span-1 p-10 flex flex-col justify-between shadow-xl shadow-purple-500/5 bg-gradient-to-br from-white to-gray-50 dark:from-[#1A1A1E] dark:to-[#131315]">
+            <div className="space-y-6">
+              <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-500/10 flex items-center justify-center border border-purple-200 dark:border-purple-500/20">
+                <Cpu className="text-purple-600" size={28} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Neural Analysis</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Deep behavioral analysis ensures every product choice fits seamlessly into the buyer's lifestyle.
+              </p>
+            </div>
+            
+            <motion.div 
+              className="mt-8 flex items-end gap-2 h-20 opacity-80"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={{
+                visible: { transition: { staggerChildren: 0.1 } }
+              }}
+            >
+               {[40, 70, 45, 90, 65, 100].map((h, i) => (
+                 <motion.div 
+                    key={i}
+                    variants={{
+                      hidden: { height: 0 },
+                      visible: { height: `${h}%`, transition: { type: "spring", bounce: 0.4 } }
+                    }}
+                    className="flex-1 bg-purple-500/20 rounded-t-sm border-t border-purple-500/50"
+                 />
+               ))}
+            </motion.div>
+          </BentoCard>
+
+          {/* Small Card 2 */}
+          <BentoCard delay={0.2} className="md:col-span-1 p-10 flex flex-col justify-between shadow-xl shadow-amber-500/5">
+            <div className="space-y-6">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center border border-amber-200 dark:border-amber-500/20">
+                <Zap className="text-amber-600" size={28} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">The Perfect Match</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Instant connections between high-intent buyers and premium sellers, maximizing conversion.
+              </p>
+            </div>
+            <div className="mt-8 relative h-24 overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/5">
+               <motion.div 
+                 animate={{ rotate: 360 }}
+                 transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
+                 className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(245,158,11,0.4)_360deg)] mix-blend-screen"
+               />
+               <div className="absolute inset-[2px] bg-white dark:bg-[#1A1A1E] rounded-xl flex items-center justify-center z-10">
+                  <Fingerprint size={40} className="text-amber-500/50" />
+               </div>
+            </div>
+          </BentoCard>
+
+          {/* Medium Card (Image) */}
+          <BentoCard delay={0.3} className="md:col-span-2 overflow-hidden shadow-2xl relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
             <img 
               src={neuralImg} 
-              alt="Neural Matching Engine" 
-              className="rounded-[36px] w-full"
+              alt="Neural Engine Interface" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
-            
-            {/* Overlay Badges */}
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 4 }}
-              className="absolute top-1/4 -left-12 glass-card p-4 rounded-2xl shadow-xl border-l-[4px] border-blue-600"
-            >
-              <p className="text-[10px] uppercase font-bold text-blue-600">Prediction</p>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">99% Match Rate</p>
-            </motion.div>
+            <div className="absolute bottom-0 left-0 w-full p-10 z-20 flex justify-between items-end">
+               <div>
+                  <h3 className="text-3xl font-bold text-white mb-2 tracking-tight">Predictive Analytics</h3>
+                  <p className="text-gray-300 max-w-md">Real-time inventory and yield optimization for enterprise sellers.</p>
+               </div>
+               <div className="hidden md:flex items-center gap-3 glass-card px-4 py-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md">
+                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                 <span className="text-white text-sm font-bold">System Online</span>
+               </div>
+            </div>
+          </BentoCard>
 
-            <motion.div 
-               animate={{ y: [0, 10, 0] }}
-               transition={{ repeat: Infinity, duration: 5, delay: 1 }}
-               className="absolute bottom-1/4 -right-8 glass-card p-4 rounded-2xl shadow-xl border-r-[4px] border-green-500"
-            >
-              <p className="text-[10px] uppercase font-bold text-green-500">Inventory</p>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">Optimized Yield</p>
-            </motion.div>
-          </div>
-
-          {/* Background Ambient Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-blue-500/10 dark:bg-blue-600/5 blur-[100px] -z-10 rounded-full" />
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -61,10 +61,9 @@ import {
   HomeSkeleton,
 } from "../Components/Fallback";
 
-
 // JUST TEsT
 
-const isLoggedIn = true; // Simulate authentication status (replace with real auth logic)
+const isLoggedIn = false; // Simulate authentication status (replace with real auth logic)
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -79,74 +78,214 @@ const router = createBrowserRouter(
         element={isLoggedIn ? <DefaultLayout /> : <MarkettingLayout />}
       >
         {isLoggedIn ? (
-          <Route index element={<HomePage />} loader={fetchProductsLoader} hydrateFallbackElement={<HomeSkeleton />} />
+          <Route
+            index
+            element={<HomePage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<HomeSkeleton />}
+          />
         ) : (
-          <Route index lazy={() => import("../Features/Marketting/ModernLanding/ModernLanding").then(m => ({ Component: m.default }))} hydrateFallbackElement={<LandingSkeleton />} />
+          <Route
+            index
+            lazy={() =>
+              import("../Features/Marketting/ModernLanding/ModernLanding").then(
+                (m) => ({ Component: m.default }),
+              )
+            }
+            hydrateFallbackElement={<LandingSkeleton />}
+          />
         )}
       </Route>
 
       {/* ── Auth ── */}
-      <Route path="auth" lazy={() => import("../Features/Auth/AuthPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
-      <Route path="login" lazy={() => import("../Features/Auth/AuthPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
-      <Route path="signup" lazy={() => import("../Features/Auth/AuthPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
-      <Route path="authnew" lazy={() => import("../Features/Auth/AuthNew").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
+      <Route
+        path="auth"
+        lazy={() =>
+          import("../Features/Auth/AuthPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<GenericPageSkeleton />}
+      />
+      <Route
+        path="login"
+        lazy={() =>
+          import("../Features/Auth/AuthPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<GenericPageSkeleton />}
+      />
+      <Route
+        path="signup"
+        lazy={() =>
+          import("../Features/Auth/AuthPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<GenericPageSkeleton />}
+      />
+      <Route
+        path="authnew"
+        lazy={() =>
+          import("../Features/Auth/AuthNew").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<GenericPageSkeleton />}
+      />
 
       {/* ── Marketting layout pages ── */}
       <Route element={<MarkettingLayout />}>
-
-        <Route path="brands" lazy={() => import("../Features/Brands/BrandsPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />}>
-          <Route path=":brandId" lazy={() => import("../Features/Brands/BrandDetail").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
+        <Route
+          path="brands"
+          lazy={() =>
+            import("../Features/Brands/BrandsPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        >
+          <Route
+            path=":brandId"
+            lazy={() =>
+              import("../Features/Brands/BrandDetail").then((m) => ({
+                Component: m.default,
+              }))
+            }
+            hydrateFallbackElement={<GenericPageSkeleton />}
+          />
         </Route>
 
-        <Route path="sell" lazy={() => import("../Features/Marketting/WooShoSeller/SellerLanding").then(m => ({ Component: m.default }))} hydrateFallbackElement={<SellerSkeleton />} />
-        <Route path="buyer" lazy={() => import("../Features/Marketting/WooshoBuyer/BuyerLanding").then(m => ({ Component: m.default }))} hydrateFallbackElement={<BuyerSkeleton />} />
-
+        <Route
+          path="sell"
+          lazy={() =>
+            import("../Features/Marketting/WooShoSeller/SellerLanding").then(
+              (m) => ({ Component: m.default }),
+            )
+          }
+          hydrateFallbackElement={<SellerSkeleton />}
+        />
+        <Route
+          path="buyer"
+          lazy={() =>
+            import("../Features/Marketting/WooshoBuyer/BuyerLanding").then(
+              (m) => ({ Component: m.default }),
+            )
+          }
+          hydrateFallbackElement={<BuyerSkeleton />}
+        />
       </Route>
 
       {/* ── Default layout pages ── */}
       <Route element={<DefaultLayout />}>
-        <Route path="ai-shop"
-          lazy={() => import("../Features/AiShopping/AiShop").then(m => ({ Component: m.default }))}
+        <Route
+          path="ai-shop"
+          lazy={() =>
+            import("../Features/AiShopping/AiShop").then((m) => ({
+              Component: m.default,
+            }))
+          }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
-        <Route path="support"
-          lazy={() => import("../Features/Support/SupportPage").then(m => ({ Component: m.default }))}
+        <Route
+          path="support"
+          lazy={() =>
+            import("../Features/Support/SupportPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
-        <Route path="analytics"
-          lazy={() => import("../Features/Analytics/AnalyticsPage").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />}
-        />
-        <Route path="about"
-          lazy={() => import("../Features/About/AboutPage").then(m => ({ Component: m.default }))}
+        <Route
+          path="analytics"
+          lazy={() =>
+            import("../Features/Analytics/AnalyticsPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
-        <Route path="careers"
-          lazy={() => import("../Features/Careers/CareersPage").then(m => ({ Component: m.default }))}
+        <Route
+          path="about"
+          lazy={() =>
+            import("../Features/About/AboutPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
-        <Route path="careers/apply"
-          lazy={() => import("../Features/Careers/ApplicationForm").then(m => ({ Component: m.default }))} hydrateFallbackElement={<GenericPageSkeleton />} />
-        <Route path="contact"
-          lazy={() => import("../Features/Contact/ContactPage").then(m => ({ Component: m.default }))}
+        <Route
+          path="careers"
+          lazy={() =>
+            import("../Features/Careers/CareersPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
-        <Route path="press"
-          lazy={() => import("../Features/Press/PressPage").then(m => ({ Component: m.default }))}
+        <Route
+          path="careers/apply"
+          lazy={() =>
+            import("../Features/Careers/ApplicationForm").then((m) => ({
+              Component: m.default,
+            }))
+          }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
-        <Route path="admin"
-          lazy={() => import("../Features/AdminDashboard/AdminModernDashboard/AdminModernDashboard").then(m => ({ Component: m.default }))}
+        <Route
+          path="contact"
+          lazy={() =>
+            import("../Features/Contact/ContactPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route
+          path="press"
+          lazy={() =>
+            import("../Features/Press/PressPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+        <Route
+          path="admin"
+          lazy={() =>
+            import("../Features/AdminDashboard/AdminModernDashboard/AdminModernDashboard").then(
+              (m) => ({ Component: m.default }),
+            )
+          }
           hydrateFallbackElement={<DashboardSkeleton />}
         />
-        <Route path="adminsimp"
-          lazy={() => import("../Features/AdminDashboard/AdminSimpleDashboard/AdminSimpleDashboard").then(m => ({ Component: m.default }))}
+        <Route
+          path="adminsimp"
+          lazy={() =>
+            import("../Features/AdminDashboard/AdminSimpleDashboard/AdminSimpleDashboard").then(
+              (m) => ({ Component: m.default }),
+            )
+          }
           hydrateFallbackElement={<DashboardSkeleton />}
         />
-        <Route path="dashboard/seller"
-          lazy={() => import("../Features/SellerDashboard/SellerDashboard").then(m => ({ Component: m.default }))} hydrateFallbackElement={<DashboardSkeleton />}
+        <Route
+          path="dashboard/seller"
+          lazy={() =>
+            import("../Features/SellerDashboard/SellerDashboard").then((m) => ({
+              Component: m.default,
+            }))
+          }
+          hydrateFallbackElement={<DashboardSkeleton />}
         />
-        <Route path="dashboard/buyer"
-          lazy={() => import("../Features/BuyerDashboard/BuyerDashboard").then(m => ({ Component: m.default }))} hydrateFallbackElement={<DashboardSkeleton />}
+        <Route
+          path="dashboard/buyer"
+          lazy={() =>
+            import("../Features/BuyerDashboard/BuyerDashboard").then((m) => ({
+              Component: m.default,
+            }))
+          }
+          hydrateFallbackElement={<DashboardSkeleton />}
         />
 
         {/* Trade Layout */}
@@ -161,7 +300,12 @@ const router = createBrowserRouter(
           /> */}
           <Route
             path="tracking"
-            element={<><Navbar /><TrackingPage /></>}
+            element={
+              <>
+                <Navbar />
+                <TrackingPage />
+              </>
+            }
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<TrackingSkeleton />}
           />
@@ -173,12 +317,19 @@ const router = createBrowserRouter(
           /> */}
 
           {/* ── Products  Layout── */}
-          <Route path="products" element={<><Navbar /><ProductsLayout /></>}>
+          <Route
+            path="products"
+            element={
+              <>
+                <Navbar />
+                <ProductsLayout />
+              </>
+            }
+          >
             <Route
               index
               element={<ProductsPage />}
               loader={fetchProductsLoader}
-
               hydrateFallbackElement={<ProductsSkeleton />}
             />
             <Route
@@ -192,84 +343,148 @@ const router = createBrowserRouter(
           {/* ── Collections (all use fetchProductsLoader) ── */}
           <Route
             path="new-arrivals"
-            element={<><Navbar /><NewArrivalsPage /></>}
+            element={
+              <>
+                <Navbar />
+                <NewArrivalsPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="hot-deals"
-            element={<><Navbar /><HotDealsPage /></>}
+            element={
+              <>
+                <Navbar />
+                <HotDealsPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="trending"
-            element={<><Navbar /><TrendingNowPage /></>}
+            element={
+              <>
+                <Navbar />
+                <TrendingNowPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="high-fashion"
-            element={<><Navbar /><HighFashionPage /></>}
+            element={
+              <>
+                <Navbar />
+                <HighFashionPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="sneakers"
-            element={<><Navbar /><SneakersPage /></>}
+            element={
+              <>
+                <Navbar />
+                <SneakersPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="electronics"
-            element={<><Navbar /><ElectronicsPage /></>}
+            element={
+              <>
+                <Navbar />
+                <ElectronicsPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="beauty-care"
-            element={<><Navbar /><BeautyCarePage /></>}
+            element={
+              <>
+                <Navbar />
+                <BeautyCarePage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="flash-sales"
-            element={<><Navbar /><FlashSalesPage /></>}
+            element={
+              <>
+                <Navbar />
+                <FlashSalesPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="members-only"
-            element={<><Navbar /><MembersOnlyPage /></>}
+            element={
+              <>
+                <Navbar />
+                <MembersOnlyPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="categories"
-            element={<><Navbar /><CategoriesPage /></>}
+            element={
+              <>
+                <Navbar />
+                <CategoriesPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="black-friday"
-            element={<><Navbar /><BlackFridayPage /></>}
+            element={
+              <>
+                <Navbar />
+                <BlackFridayPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="fashion"
-            element={<><Navbar /><FashionPage /></>}
+            element={
+              <>
+                <Navbar />
+                <FashionPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="kids-toys"
-            element={<><Navbar /><KidsToysPage /></>}
+            element={
+              <>
+                <Navbar />
+                <KidsToysPage />
+              </>
+            }
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
         </Route>
-
       </Route>
 
       {/* ── 404 ── */}
