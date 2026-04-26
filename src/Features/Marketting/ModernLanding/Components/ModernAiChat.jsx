@@ -29,6 +29,7 @@ const ModernAiChat = memo(function ModernAiChat() {
           <motion.span
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
             className="text-blue-600 font-bold tracking-widest text-xs uppercase"
           >
             Human-AI Collaboration
@@ -36,16 +37,22 @@ const ModernAiChat = memo(function ModernAiChat() {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             className="text-4xl md:text-6xl font-bold mt-4 mb-6 text-gray-900 dark:text-white leading-tight"
           >
             A Shopping Assistant that{" "}
             <span className="text-blue-600">Actually Learns.</span>
           </motion.h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed max-w-[50ch] pr-4">
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed max-w-[50ch] pr-4"
+          >
             Stop searching and start discovering. Describe what you need in
             plain English, and our Neural Engine finds the perfect match across
             all verified sellers.
-          </p>
+          </motion.p>
 
           <ul className="space-y-4 mb-10">
             {[
@@ -58,6 +65,7 @@ const ModernAiChat = memo(function ModernAiChat() {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
                 className="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium"
               >
                 <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -70,16 +78,18 @@ const ModernAiChat = memo(function ModernAiChat() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-60  md:w-[30rem] lg:w-full">
             {cta.map((btn, i) => (
-                <button className="px-8 py-4 bg-gray-900 dark:bg-blue-600 text-white font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl hover:bg-blue-600 dark:hover:bg-gray-500"
+                <motion.button 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.15 + 0.3 }}
+                  viewport={{ once: true }}
+                  className="px-8 py-4 bg-gray-900 dark:bg-blue-600 text-white font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl hover:bg-blue-600 dark:hover:bg-gray-500"
                   key={i}
                   onClick={() => navigate(`/${btn.link}`)}
                 >
                   {btn.label}
-                </button>
-            ))
-
-            }
-
+                </motion.button>
+            ))}
           </div>
         </div>
 
@@ -88,7 +98,7 @@ const ModernAiChat = memo(function ModernAiChat() {
           initial={{ opacity: 0, scale: 0.9, y: 50 }}
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-50px" }}
           className="order-1 lg:order-2 flex justify-center"
         >
           <div className="w-full max-w-[400px] h-[750px] bg-white dark:bg-black rounded-[48px] border-[10px] border-gray-100 dark:border-[#1F1F23] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col relative">
@@ -110,26 +120,44 @@ const ModernAiChat = memo(function ModernAiChat() {
             {/* Chat Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide">
               {/* User Query */}
-              <div className="flex justify-end">
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                viewport={{ once: true }}
+                className="flex justify-end"
+              >
                 <div className="bg-gray-100 dark:bg-white/5 px-4 py-2.5 rounded-2xl rounded-tr-none">
                   <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                     black sneakers under 50k
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
               {/* AI Intelligence Badge */}
-              <div className="flex items-center gap-2 mb-2">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                viewport={{ once: true }}
+                className="flex items-center gap-2 mb-2"
+              >
                 <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
                   <Sparkles size={12} fill="white" />
                 </div>
                 <span className="text-[10px] uppercase font-bold tracking-widest text-blue-600">
                   Intelligence
                 </span>
-              </div>
+              </motion.div>
 
               {/* AI Message */}
-              <div className="bg-blue-50 dark:bg-blue-600/10 p-4 rounded-2xl rounded-tl-none border-l-4 border-blue-600">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8 }}
+                viewport={{ once: true }}
+                className="bg-blue-50 dark:bg-blue-600/10 p-4 rounded-2xl rounded-tl-none border-l-4 border-blue-600"
+              >
                 <p className="text-sm text-gray-900 dark:text-white font-medium mb-1">
                   Got it. Showing 5 options for you.
                 </p>
@@ -137,13 +165,14 @@ const ModernAiChat = memo(function ModernAiChat() {
                   I've filtered for performance models with high durability
                   ratings.
                 </p>
-              </div>
+              </motion.div>
 
               {/* Product Card (Recommendation) */}
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, type: "spring", stiffness: 100 }}
+                viewport={{ once: true }}
                 className="bg-white dark:bg-[#131315] rounded-3xl border border-gray-100 dark:border-white/10 overflow-hidden shadow-xl"
               >
                 <div className="relative h-48 bg-gray-50 dark:bg-black/40 flex items-center justify-center p-4">
@@ -182,7 +211,8 @@ const ModernAiChat = memo(function ModernAiChat() {
                 <input
                   type="text"
                   placeholder="Refine your search..."
-                  className="bg-transparent border-none focus:outline-none flex-1 text-sm text-gray-900 dark:text-white"
+                  className="bg-transparent border-none focus:outline-none flex-1 text-sm text-gray-900 dark:text-white pointer-events-none"
+                  readOnly
                 />
                 <button className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg">
                   <Send size={18} fill="white" />

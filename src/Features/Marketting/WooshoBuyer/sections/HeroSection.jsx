@@ -1,98 +1,172 @@
-import React, { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { MessageSquare, ShoppingBag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, ShoppingBag, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const productsDisplay = [
-  { title: "Urban Black Kicks", price: "₦35,000", img: "https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=200&q=80" },
-  { title: "Midnight Runners", price: "₦38,500", img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=200&q=80" },
-  { title: "Stealth Trainers", price: "₦39,900", img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=200&q=80" }
-]
+const mockDatabase = [
+  { id: 1, title: "Urban Black Kicks", price: "₦35,000", img: "https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=400&q=80", tags: ["black", "sneakers", "urban"] },
+  { id: 2, title: "Midnight Runners", price: "₦38,500", img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80", tags: ["black", "running", "performance"] },
+  { id: 3, title: "Stealth Trainers", price: "₦39,900", img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80", tags: ["stealth", "training", "minimal", "black"] },
+  { id: 4, title: "Ivory Classics", price: "₦42,000", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80", tags: ["white", "classic", "leather", "sneakers"] },
+  { id: 5, title: "Crimson High-Tops", price: "₦45,000", img: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=400&q=80", tags: ["red", "high-top", "canvas"] }
+];
 
 const HeroSection = () => {
-  const containerRef = useRef(null);
-  const headlineRef = useRef(null);
-  const subtextRef = useRef(null);
-  const buttonsRef = useRef(null);
-  const chatBubbleRef = useRef(null);
-  const productCardsRef = useRef([]);
-
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [filteredResults, setFilteredResults] = useState(mockDatabase.slice(0, 3));
 
+  // Handle live search
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline();
+    if (!searchQuery.trim()) {
+      setFilteredResults(mockDatabase.slice(0, 3));
+      setIsTyping(false);
+      return;
+    }
 
-      tl.fromTo(headlineRef.current, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" })
-        .fromTo(subtextRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, "-=0.4")
-        .fromTo(buttonsRef.current.children, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: "power2.out" }, "-=0.2")
-        .fromTo(chatBubbleRef.current, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }, "-=0.1");
-
-      gsap.fromTo(productCardsRef.current,
-        { x: 50, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.6, stagger: 0.15, ease: "power3.out", delay: 1 }
+    setIsTyping(true);
+    const timeoutId = setTimeout(() => {
+      const lowerQuery = searchQuery.toLowerCase();
+      const results = mockDatabase.filter(item => 
+        item.title.toLowerCase().includes(lowerQuery) || 
+        item.tags.some(tag => tag.includes(lowerQuery))
       );
-    }, containerRef);
+      setFilteredResults(results);
+      setIsTyping(false);
+    }, 400);
 
-    return () => ctx.revert();
-  }, []);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   return (
-    <section ref={containerRef} className="w-full min-h-screen flex items-center justify-center pt-24 pb-12 px-6 md:px-12 bg-white dark:bg-[#0a0a0a]">
-      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left: Text content */}
-        <div className="flex flex-col items-start space-y-6">
-          <h1 ref={headlineRef} className="text-5xl md:text-7xl font-extrabold text-neutral-900 dark:text-white leading-tight tracking-tight">
-            Shopping Just <br /> Got <span className="text-blue-600">Smarter.</span>
-          </h1>
-          <p ref={subtextRef} className="text-lg md:text-xl text-neutral-600 dark:text-neutral-400 max-w-md leading-relaxed">
-            Let AI find what fits your style, budget, and vibe — instantly.
-          </p>
-          <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-4">
+    <section className="w-full min-h-screen flex items-center justify-center pt-24 pb-12 px-6 md:px-12 bg-white dark:bg-[#0E0E10] overflow-hidden">
+      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        
+        {/* Left: Stark Minimalist Text */}
+        <div className="flex flex-col items-start space-y-8 z-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="text-6xl md:text-8xl font-black text-neutral-900 dark:text-white leading-[0.95] tracking-tighter"
+          >
+            Smarter. <br />
+            Faster. <br />
+            <span className="text-neutral-400 dark:text-neutral-500">Curated.</span>
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="text-xl md:text-2xl text-neutral-600 dark:text-neutral-400 max-w-md leading-snug font-medium"
+          >
+            Describe your exact style. Our neural engine finds it instantly. No scrolling required.
+          </motion.p>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-4"
+          >
             <button
-              className="flex items-center justify-center gap-2 bg-neutral-900 text-white px-8 py-4 rounded-full font-medium hover:bg-neutral-800 transition-colors"
+              className="flex items-center justify-center gap-3 bg-neutral-900 dark:bg-white text-white dark:text-black px-8 py-4 rounded-xl font-bold transition-transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => navigate('/ai-shop')}
             >
-              <MessageSquare className="w-5 h-5" />
-              Start Shopping with AI
+              Start Searching
+              <ArrowRight className="w-5 h-5" />
             </button>
             <button
-              className="flex items-center justify-center gap-2 bg-neutral-100 dark:bg-white/5 text-neutral-900 dark:text-white px-8 py-4 rounded-full font-medium hover:bg-neutral-200 transition-colors"
+              className="flex items-center justify-center gap-3 bg-neutral-100 dark:bg-[#1A1A1E] text-neutral-900 dark:text-white px-8 py-4 rounded-xl font-bold border border-transparent dark:border-white/5 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => navigate('/products/categories')}
             >
-              <ShoppingBag className="w-5 h-5" />
-              Browse Categories
+              Browse Catalog
             </button>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Right: AI Mock UI */}
-        <div className="relative w-full h-[500px] bg-neutral-50 dark:bg-white/5 rounded-3xl p-6 md:p-8 border border-neutral-200 dark:border-white/10 shadow-xl overflow-hidden flex flex-col justify-between">
-          <div
-            ref={chatBubbleRef}
-            className="self-end bg-blue-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm max-w-[80%] shadow-md"
-          >
-            <p className="text-sm md:text-base font-medium overflow-hidden whitespace-nowrap border-r-2 border-white/50 animate-pulse">
-              Affordable black sneakers under ₦40k
-            </p>
+        {/* Right: Live Interactive Terminal (No glow/bulb effects, brutalist & clean) */}
+        <motion.div 
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full h-[550px] bg-neutral-50 dark:bg-[#111113] rounded-[32px] p-6 border border-neutral-200 dark:border-white/10 flex flex-col shadow-2xl"
+        >
+          {/* Top Bar */}
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-neutral-200 dark:border-white/10">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+              <div className="w-3 h-3 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">Live AI Demo</span>
           </div>
 
-          <div className="flex flex-col gap-4 mt-8">
-            {productsDisplay.map((item, index) => (
-              <div
-                key={index}
-                ref={el => productCardsRef.current[index] = el}
-                className="flex items-center gap-4 bg-white dark:bg-[#0a0a0a] p-3 rounded-xl shadow-sm border border-neutral-100 dark:border-white/10"
-              >
-                <img src={item.img} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />
-                <div>
-                  <h4 className="font-semibold text-neutral-900 dark:text-white">{item.title}</h4>
-                  <p className="text-blue-600 font-medium">{item.price}</p>
-                </div>
+          {/* Results Area */}
+          <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col gap-3 relative">
+            <AnimatePresence mode="popLayout">
+              {isTyping ? (
+                <motion.div 
+                  key="typing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2 text-neutral-400 font-mono text-sm h-12"
+                >
+                  <Search size={14} className="animate-pulse" /> Scanning inventory...
+                </motion.div>
+              ) : filteredResults.length > 0 ? (
+                filteredResults.map((item, index) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    key={item.id}
+                    className="flex items-center gap-4 bg-white dark:bg-[#1A1A1E] p-3 rounded-2xl border border-neutral-100 dark:border-white/5"
+                  >
+                    <img src={item.img} alt={item.title} className="w-16 h-16 object-cover rounded-xl" />
+                    <div className="flex-1">
+                      <h4 className="font-bold text-neutral-900 dark:text-white text-sm">{item.title}</h4>
+                      <p className="text-neutral-500 text-xs mt-1">{item.price}</p>
+                    </div>
+                    <button className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white mr-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                      <ArrowRight size={14} />
+                    </button>
+                  </motion.div>
+                ))
+              ) : (
+                <motion.div 
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-neutral-400 font-mono text-sm h-12 flex items-center"
+                >
+                  No matches found. Try another term.
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Input Area */}
+          <div className="mt-4 pt-4 border-t border-neutral-200 dark:border-white/10">
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Try typing 'black sneakers' or 'classic'..."
+                className="w-full bg-white dark:bg-[#1A1A1E] text-neutral-900 dark:text-white border border-neutral-200 dark:border-white/10 rounded-xl px-4 py-4 pr-12 text-sm focus:outline-none focus:border-neutral-400 dark:focus:border-neutral-600 transition-colors font-medium placeholder:text-neutral-400"
+              />
+              <div className="absolute right-4 text-neutral-400 pointer-events-none">
+                <CornerDownLeft size={16} />
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        </motion.div>
+
       </div>
     </section>
   );

@@ -3,6 +3,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Package } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
+import { useNavigate } from 'react-router-dom';
+import { formatLink } from '../../../../Utils/formatLink'
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -55,6 +57,8 @@ const CategoriesSection = () => {
   const headlineRef   = useRef(null);
   const featuredRef   = useRef(null);
   const cardsRef      = useRef([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -167,6 +171,7 @@ const CategoriesSection = () => {
               onMouseLeave={e => handleHover(e, false)}
               className={`relative rounded-2xl overflow-hidden cursor-pointer ${cat.colSpan}`}
               style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}
+              onClick={() => navigate(`/products/categories/${formatLink(cat.title)}`)}
             >
               <img
                 src={cat.img}

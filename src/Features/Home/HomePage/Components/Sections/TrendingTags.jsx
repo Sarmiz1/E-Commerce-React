@@ -1,14 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom"
-
-const formatTag = (tag) => {
-  if (!tag || typeof tag !== "string") return "";
-
-  return tag
-    .replace("#", "")                 // remove hashtag
-    .replace(/([a-z])([A-Z])/g, "$1-$2") // add dash before capitals
-    .toLowerCase();                   // make everything lowercase
-};
+import { formatLink } from "../../../../../Utils/formatLink";
 export default function TrendingTags() {
   const navigate = useNavigate();
 
@@ -30,7 +22,7 @@ export default function TrendingTags() {
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.97 }}
             className="flex-shrink-0 px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-600 text-sm font-semibold hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors shadow-sm whitespace-nowrap"
-            onClick={() => navigate(`/products/${formatTag(tag)}`)}
+            onClick={() => navigate(`/products/${formatLink(tag)}`)}
           >
             {tag}
           </motion.button>

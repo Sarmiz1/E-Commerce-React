@@ -49,18 +49,11 @@ import ShopByBrandSection from "./Components/Sections/ShopByBrandSection";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 import GlobalCommandPalette from "../../../Components/GlobalCommandPalette";
+import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
+
 
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-// import gsap from "gsap";
-// import { ScrollTrigger } from "gsap/ScrollTrigger";
-// import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 
 // ─── Skeleton loader ──────────────────────────────────────────────────────────
 

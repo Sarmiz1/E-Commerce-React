@@ -27,23 +27,31 @@ export default function Section6_Map() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo(
+      const anim1 = gsap.fromTo(
         '.map-city',
         { opacity: 0, scale: 0 },
-        {
-          opacity: 1, scale: 1, duration: 0.6, stagger: 0.15, ease: 'back.out(1.7)',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 65%' },
-        }
+        { opacity: 1, scale: 1, duration: 0.6, stagger: 0.15, ease: 'back.out(1.7)', paused: true }
       );
-      gsap.fromTo(
+      
+      const anim2 = gsap.fromTo(
         '.map-stat',
         { y: 20, opacity: 0 },
-        {
-          y: 0, opacity: 1, duration: 0.7, stagger: 0.1, ease: 'expo.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 60%' },
-          delay: 0.5,
-        }
+        { y: 0, opacity: 1, duration: 0.7, stagger: 0.1, ease: 'expo.out', delay: 0.5, paused: true }
       );
+
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          anim1.play();
+          anim2.play();
+          observer.disconnect();
+        }
+      }, { threshold: 0.15 });
+
+      if (sectionRef.current) {
+        observer.observe(sectionRef.current);
+      }
+      
+      return () => observer.disconnect();
     }, sectionRef);
 
     return () => ctx.revert();

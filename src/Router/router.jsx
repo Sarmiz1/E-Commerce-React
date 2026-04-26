@@ -63,7 +63,7 @@ import {
 
 // JUST TEsT
 
-const isLoggedIn = false; // Simulate authentication status (replace with real auth logic)
+const isLoggedIn = true; // Simulate authentication status (replace with real auth logic)
 
 const router = createBrowserRouter(
   createRoutesFromElements(

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ProductCard from "../../../../../Components/Ui/ProductCard";
 import { useTheme } from "../../../../../Context/theme/ThemeContext";
@@ -29,9 +29,9 @@ export default function HotRightNowSection({ products, isLoading }) {
         <motion.button 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/products/trending")}
           className="px-8 py-3 rounded-full font-bold text-sm flex items-center justify-center gap-2 group w-full md:w-auto shadow-lg"
           style={{ background: isDark ? 'white' : 'black', color: isDark ? 'black' : 'white' }}
+          onClick={() => navigate('/products/categories/hot-right-now')}
         >
           Shop The Heat <span className="group-hover:translate-x-1 transition-transform">→</span>
         </motion.button>
