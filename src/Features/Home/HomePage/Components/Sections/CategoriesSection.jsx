@@ -36,23 +36,50 @@ export default function CategoriesSection() {
       <SectionLabel label="Collections" />
       <div className="flex items-end justify-between mb-12">
         <h2 className="text-3xl font-black text-gray-900">Shop by Category</h2>
-        <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span>
+        <motion.button 
+          whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1"
+          onClick={() => navigate("/products/categories")}
+        >
+          View All <span>→</span>
         </motion.button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {CATEGORIES.map((cat) => (
-          <motion.div key={cat.label} whileHover={{ scale: 1.06, y: -6 }} whileTap={{ scale: 0.97 }}
-            className={`hp-cat-card bg-gradient-to-br ${cat.bg} rounded-2xl p-5 text-white text-center cursor-pointer shadow-lg hover:shadow-2xl transition-shadow duration-300`}
+          <motion.div 
+            key={cat.label} 
+            whileHover={{ y: -6 }} 
+            whileTap={{ scale: 0.96 }}
+            className="hp-cat-card group relative rounded-2xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 h-[180px] sm:h-[220px] lg:h-[260px] bg-gray-900"
             onClick={() => navigate(`/products/categories/${cat.label.toLowerCase()}`)}
           >
-            <p className="font-bold text-sm">{cat.label}</p>
-            <p className="text-white/70 text-[10px] mt-0.5">{cat.count}</p>
-
+            {/* Background Image full cover */}
             <img
               src={getCategoryImageUrl(cat.path.toLowerCase())}
               alt={cat.label}
-              className="w-auto object-contain rounded-2xl h-full"
+              className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110"
             />
+            
+            {/* Dark gradient from bottom up for text legibility */}
+            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            {/* Subtle color tint based on category color for brand feel */}
+            <div className={`absolute inset-0 z-10 bg-gradient-to-br ${cat.bg} opacity-20 mix-blend-overlay group-hover:opacity-40 transition-opacity duration-500`} />
+
+            {/* Bottom Overlay Text */}
+            <div className="absolute inset-0 z-20 p-5 flex flex-col justify-end text-left">
+              <motion.div 
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h3 className="font-black text-white text-lg sm:text-xl leading-tight group-hover:text-indigo-200 transition-colors duration-300">
+                  {cat.label}
+                </h3>
+                <p className="text-white/80 text-[10px] sm:text-xs mt-1 font-semibold tracking-widest uppercase">
+                  {cat.count}
+                </p>
+              </motion.div>
+            </div>
           </motion.div>
         ))}
       </div>

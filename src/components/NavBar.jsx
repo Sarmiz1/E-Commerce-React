@@ -1378,10 +1378,10 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                   {cartHover && (
                     <motion.div
                       key="navbar-cart-dropdown"
-                      initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                      transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+                      initial={{ opacity: 0, y: 12, scale: 0.96, filter: "blur(8px)" }}
+                      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96, filter: "blur(4px)", transition: { duration: 0.15, ease: "easeIn" } }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                       className="absolute top-full right-0 pt-[14px] z-50 w-[360px]"
                     >
                       <div className="w-full max-h-[480px] rounded-[24px] overflow-hidden bg-white/98 shadow-[0_24px_80px_rgba(0,0,0,0.18),0_4px_16px_rgba(0,0,0,0.08)] border border-black/5 backdrop-blur-[24px] flex flex-col">
