@@ -37,6 +37,15 @@ import LookbookSection from "./Components/Sections/LookbookSection";
 import TrustStrip from "./Components/Sections/TrustStrip";
 import TrendingTags from "./Components/Sections/TrendingTags";
 import BrandMarquee from "./Components/Sections/BrandMarquee";
+import HotRightNowSection from "./Components/Sections/HotRightNowSection";
+import MostLovedSection from "./Components/Sections/MostLovedSection";
+import RecommendedForYouSection from "./Components/Sections/RecommendedForYouSection";
+import BasedOnBrowsingSection from "./Components/Sections/BasedOnBrowsingSection";
+import TopSellersSection from "./Components/Sections/TopSellersSection";
+import RecentlyAddedStoresSection from "./Components/Sections/RecentlyAddedStoresSection";
+import RealPurchaseFeedbackSection from "./Components/Sections/RealPurchaseFeedbackSection";
+import ExploreSellersSection from "./Components/Sections/ExploreSellersSection";
+import ShopByBrandSection from "./Components/Sections/ShopByBrandSection";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 
@@ -102,6 +111,12 @@ export default function HomePage() {
   const filterGrid = products.slice(0, 12);
   const lookbook = products.slice(0, 4);
 
+  // New premium section slices
+  const hotRightNow = products.slice(2, 10);
+  const mostLoved = products.slice(5, 13);
+  const recommendedForYou = products.slice(3, 8);
+  const basedOnBrowsing = products.slice(0, 12);
+
 
 
   // Loading state
@@ -123,8 +138,11 @@ export default function HomePage() {
 
       {/* ── ALL SECTIONS ── */}
       <CategoriesSection />
+      <HotRightNowSection products={hotRightNow} isLoading={isLoading} />
+      <MostLovedSection products={mostLoved} isLoading={isLoading} />
       <TrendingSection products={trending} isLoading={isLoading} />
       <TrendingTags />
+      <RecommendedForYouSection products={recommendedForYou} isLoading={isLoading} />
       <FlashSaleSection products={flashDeals} isLoading={isLoading} />
       <DealOfTheDay product={dealOfDay} isLoading={isLoading} />
       <BestSellersSection products={bestSellers} isLoading={isLoading} />
@@ -145,22 +163,15 @@ export default function HomePage() {
       <HowItWorksSection />
       <PerksSection />
 
-      {/* Brand marquee */}
-      <section className="py-14 bg-white border-y border-gray-100 overflow-hidden">
-        <p className="text-center text-xs uppercase tracking-widest text-gray-400 mb-8 font-medium">
-          Trusted Brands
-        </p>
-        <div className="flex whitespace-nowrap hp-marquee-rev">
-          {[...BRANDS, ...BRANDS].map((b, i) => (
-            <span
-              key={i}
-              className="text-gray-200 font-black text-2xl md:text-3xl tracking-tight px-10 hover:text-gray-400 transition-colors duration-300 cursor-default"
-            >
-              {b}
-            </span>
-          ))}
-        </div>
-      </section>
+      {/* Seller & Marketplace Sections */}
+      <TopSellersSection />
+      <RecentlyAddedStoresSection />
+      <ExploreSellersSection />
+
+      {/* Brands & Feedback */}
+      <ShopByBrandSection />
+      <RealPurchaseFeedbackSection />
+      <BasedOnBrowsingSection products={basedOnBrowsing} isLoading={isLoading} />
 
       <TestimonialsCarousel />
       <NewsletterSection />
