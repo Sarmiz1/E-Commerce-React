@@ -32,7 +32,7 @@ export default function LiveTicker({ products }) {
       <motion.div 
         className="flex whitespace-nowrap select-none w-max"
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ repeat: Infinity, ease: "linear", duration: 80 }}
+        transition={{ repeat: Infinity, ease: "linear", duration: 400 }}
       >
         {doubled.map((ev, i) => (
           <span key={`${ev.id}-${i}`} className="inline-flex items-center gap-2 px-6 text-xs font-medium flex-shrink-0 transition-opacity hover:opacity-70" style={{ color: colors.text.secondary }}>

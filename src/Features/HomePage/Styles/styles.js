@@ -3,9 +3,9 @@ export const STYLES = `
   @keyframes hp-float-orb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.05)}66%{transform:translate(-20px,30px) scale(0.97)}}
   .hp-float-orb{animation:hp-float-orb linear infinite}
   @keyframes hp-marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-  .hp-marquee{animation:hp-marquee 24s linear infinite}
+  .hp-marquee{animation:hp-marquee 40s linear infinite}
   @keyframes hp-marquee-rev{0%{transform:translateX(-50%)}100%{transform:translateX(0)}}
-  .hp-marquee-rev{animation:hp-marquee-rev 20s linear infinite}
+  .hp-marquee-rev{animation:hp-marquee-rev 40s linear infinite}
   @keyframes hp-hero-glow{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
   .hp-hero-glow{animation:hp-hero-glow 6s ease-in-out infinite}
   @keyframes hp-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
