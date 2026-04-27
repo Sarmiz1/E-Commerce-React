@@ -5,96 +5,22 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
-import { SIZE_TABLES } from "../../Features/Product/constants";
+import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/constants";
 import { IconStar } from "../Icons/IconStar";
 import { IconPlus } from "../Icons/IconPlus";
+import { IconClose } from "../Icons/IconClose";
+import { IconSpinner } from "../Icons/IconSpinner";
+import { IconHeart } from "../Icons/IconHeart";
 import { getProductImages } from "../../Utils/getProductImages";
 import { useAddToCart } from "../../Hooks/cart/useAddToCart";
-// ─── Icons ────────────────────────────────────────────────────────────────────
-function IconClose({ className = "w-4 h-4" }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      viewBox="0 0 24 24"
-    >
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
-
-function IconChevRight({ className = "w-4 h-4" }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      viewBox="0 0 24 24"
-    >
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  );
-}
-
-function IconSpinner({ className = "w-4 h-4" }) {
-  return (
-    <svg
-      className={`${className} animate-spin`}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v8z"
-      />
-    </svg>
-  );
-}
-
-// Helper local to this component for now
-function deriveProductOptions(product) {
-  if (!product)
-    return {
-      sizes: null,
-      colors: null,
-      sizeType: "Standard",
-      productType: null,
-    };
-  const text = [product.name || "", ...(product.keywords || [])]
-    .join(" ")
-    .toLowerCase();
-
-  let productType = null;
-  if (text.match(/shoe|boot|sneaker|footwear|heel|sandal/))
-    productType = "footwear";
-  else if (text.match(/shirt|dress|top|pant|jacket|hoodie|clothing|apparel/))
-    productType = "apparel";
-
-  let sizeType = "Standard";
-  const sizes = product.sizes || null;
-  const colors = product.colors || null;
-
-  return { sizes, colors, sizeType, productType };
-}
+import { useSizeGuide } from "../../Hooks/product/useSizeGuide";
+import { getStoreInfo } from "../../Utils/getStoreInfo";
+import { StoreHeader } from "./StoreHeader";
+import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
 
 const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   const {
@@ -104,23 +30,14 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
     error,
   } = useAddToCart(product?.id);
 
-  useEffect(() => {
-    console.log("product ", product);
-    console.log("product colour ", product?.product_variants);
-  }, [product]);
+  console.log(product, "product");
 
   const navigate = useNavigate();
   const images = useMemo(
     () => getProductImages(product).slice(0, 4),
     [product],
   );
-  const {
-    sizes,
-    colors,
-    sizeType: detectedSizeType,
-    productType,
-  } = useMemo(() => deriveProductOptions(product), [product]);
-  const { colors: themeColors, isDark } = useTheme();
+  const { colors, isDark } = useTheme();
 
   // ── Image state ────────────────────────────────────────────────────────────
   const [selectedImg, setSelectedImg] = useState(0);
@@ -130,7 +47,6 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   // ── Selection state ────────────────────────────────────────────────────────
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
-  const [sizeSystem, setSizeSystem] = useState("Standard");
   const [qty, setQty] = useState(1);
   const [wishlisted, setWishlisted] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
@@ -138,28 +54,15 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
 
-  const availableSystems = useMemo(() => {
-    if (!productType || !SIZE_TABLES[productType]) return null;
-    return Object.keys(SIZE_TABLES[productType]);
-  }, [productType]);
-
-  const displaySizes = useMemo(() => {
-    if (!sizes || !sizes.length) return null;
-    if (!productType || !availableSystems) return sizes;
-    const table = SIZE_TABLES[productType];
-    if (!table || !table[sizeSystem]) return sizes;
-    const systems = Object.entries(table);
-    for (const [sys, vals] of systems) {
-      const matches = sizes.filter((s) => vals.includes(String(s)));
-      if (matches.length >= Math.ceil(sizes.length * 0.5)) {
-        return sizes.map((s) => {
-          const idx = vals.indexOf(String(s));
-          return idx !== -1 ? table[sizeSystem][idx] || s : s;
-        });
-      }
-    }
-    return table[sizeSystem] || sizes;
-  }, [sizes, sizeSystem, productType, availableSystems]);
+  // ── Size Guide Logic ────────────────────────────────────────────────────────
+  const {
+    displaySizes,
+    productType,
+    sizeSystem,
+    setSizeSystem,
+    availableSystems,
+    hasSizes,
+  } = useSizeGuide(product);
 
   const goToImage = useCallback(
     (newIdx, forceDir) => {
@@ -222,7 +125,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
     [navigate, product, onClose],
   );
 
-  const onSale = product.price_cents < 2000;
+  const onSale = (product?.price_cents || 0) < 2000;
   const currentColorLabel = selectedColor
     ? typeof selectedColor === "object"
       ? selectedColor.label
@@ -242,6 +145,9 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
       transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] },
     }),
   };
+
+  // STORE INFO
+  const storeInfo = getStoreInfo(product);
 
   return (
     <motion.div
@@ -270,7 +176,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
           }}
           onClick={(e) => e.stopPropagation()}
           className="pointer-events-auto shadow-2xl overflow-hidden flex flex-col w-full h-[100dvh] max-h-[100dvh] rounded-none md:h-auto md:max-h-[92dvh] md:rounded-3xl md:w-[min(960px,96vw)]"
-          style={{ background: themeColors.surface.elevated }}
+          style={{ background: colors.surface.elevated }}
         >
           <button
             type="button"
@@ -280,8 +186,8 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
               background: isDark
                 ? "rgba(30,30,34,0.9)"
                 : "rgba(255,255,255,0.9)",
-              borderColor: themeColors.border.default,
-              color: themeColors.text.secondary,
+              borderColor: colors.border.default,
+              color: colors.text.secondary,
             }}
           >
             <IconClose className="w-4 h-4" />
@@ -294,7 +200,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
             {/* Gallery */}
             <div
               className="md:w-[60%] flex flex-col-reverse justify-end lg:block relative overflow-hidden flex-shrink-0"
-              style={{ background: themeColors.surface.tertiary }}
+              style={{ background: colors.surface.tertiary }}
             >
               <div
                 className="flex flex-row lg:flex-col gap-2.5 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden p-3 lg:py-8 lg:px-3 lg:w-[96px] lg:absolute lg:left-0 lg:top-0 lg:bottom-0 z-10 pg-slim"
@@ -312,9 +218,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                     style={{
                       aspectRatio: "1/1",
                       borderColor:
-                        selectedImg === i
-                          ? themeColors.text.primary
-                          : "transparent",
+                        selectedImg === i ? colors.text.primary : "transparent",
                     }}
                   >
                     <img
@@ -365,110 +269,117 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                 <div>
                   <p
                     className="text-[10px] mb-1 font-mono uppercase tracking-widest"
-                    style={{ color: themeColors.text.tertiary }}
+                    style={{ color: colors.text.tertiary }}
                   >
-                    SKU: {String(product.id).slice(0, 8)}
+                    SKU: {String(product?.id || "").slice(0, 8)}
                   </p>
                   <h2
                     className="text-2xl font-serif font-bold leading-tight"
-                    style={{ color: themeColors.text.primary }}
+                    style={{ color: colors.text.primary }}
                   >
-                    {product.name}
+                    {product?.name}
                   </h2>
                 </div>
 
-                <p
+                <div
                   className="text-sm leading-relaxed"
-                  style={{ color: themeColors.text.secondary }}
+                  style={{ color: colors.text.secondary }}
+                  onMouseEnter={() => {
+                    if (!product?.slug) return;
+                    prefetchProductOnHover(product.slug);
+                  }}
                 >
-                  {product.description ||
-                    "Premium quality product with exceptional craftsmanship."}
-                </p>
+                  <p className="mb-2">
+                    {product?.description ||
+                      "Premium quality product with exceptional craftsmanship."}
+                  </p>
 
-                <div className="flex items-center gap-1.5 text-xs">
-                  <span
-                    className="font-medium"
-                    style={{ color: themeColors.text.tertiary }}
-                  >
-                    Sold by
-                  </span>
-                  <Link
-                    to={`/sellers/${product.seller_id}`}
+                  <button
                     onClick={handleViewDetails}
-                    className="font-bold hover:underline"
-                    style={{ color: themeColors.text.accent }}
+                    className="flex items-center gap-1 text-sm font-semibold text-white-50 hover:text-white-70 transition group"
                   >
-                    {product.seller_name || "Premium Store"}
-                  </Link>
+                    See more details
+                    <span className="transform group-hover:translate-x-1 transition">
+                      →
+                    </span>
+                  </button>
                 </div>
 
+                {/* STORE INFORMATION  */}
+                <StoreHeader storeInfo={storeInfo} colors={colors} />
+
                 <div className="flex items-center gap-2">
-                  <div
-                    className="flex"
-                    style={{ color: themeColors.brand.gold }}
-                  >
+                  <div className="flex" style={{ color: colors.brand.gold }}>
                     {Array(5)
                       .fill(0)
                       .map((_, i) => (
                         <IconStar
                           key={i}
-                          filled={i < Math.round(product.rating_stars || 0)}
+                          filled={i < Math.round(product?.rating_stars || 0)}
                           className="w-3.5 h-3.5"
                         />
                       ))}
                   </div>
                   <span
                     className="text-xs font-medium"
-                    style={{ color: themeColors.text.secondary }}
+                    style={{ color: colors.text.secondary }}
                   >
-                    ({(product.rating_count || 0).toLocaleString()} reviews)
+                    ({(product?.rating_count || 0).toLocaleString()} reviews)
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-2.5">
                   <span
                     className="text-3xl font-black"
-                    style={{ color: themeColors.text.primary }}
+                    style={{ color: colors.text.primary }}
                   >
-                    {formatMoneyCents(product.price_cents)}
+                    {formatMoneyCents(product?.price_cents || 0)}
                   </span>
                   {onSale && (
                     <span
                       className="text-sm line-through"
-                      style={{ color: themeColors.text.tertiary }}
+                      style={{ color: colors.text.tertiary }}
                     >
                       {formatMoneyCents(Math.round(product.price_cents * 1.35))}
                     </span>
                   )}
                 </div>
 
-                <div
-                  style={{ height: 1, background: themeColors.border.subtle }}
-                />
+                <div style={{ height: 1, background: colors.border.subtle }} />
 
                 {/* Variants */}
                 <div className="space-y-4">
                   <div>
                     <p
                       className="text-xs font-bold mb-2 uppercase tracking-wider"
-                      style={{ color: themeColors.text.secondary }}
+                      style={{ color: colors.text.secondary }}
                     >
                       Colour{" "}
                       {currentColorLabel && (
                         <span
                           className="ml-1 font-normal"
-                          style={{ color: themeColors.text.tertiary }}
+                          style={{ color: colors.text.tertiary }}
                         >
                           · {currentColorLabel}
                         </span>
                       )}
                     </p>
                     <div className="flex flex-wrap gap-3">
-                      {(
-                        colors || [
-                          { hex: "#1a1a2e", label: "Midnight" },
-                          { hex: "#f8fafc", label: "Silver" },
-                        ]
+                      {(product?.product_variants
+                        ? Array.from(
+                            new Set(
+                              product.product_variants
+                                .map((v) => v.color)
+                                .filter(Boolean),
+                            ),
+                          ).map((c) => ({
+                            label: c,
+                            hex: COLOR_KEYWORDS[c.toLowerCase()] || "#ccc",
+                          }))
+                        : [
+                            { hex: "#1a1a2e", label: "Midnight" },
+                            { hex: "#f8fafc", label: "Silver" },
+                          ]
                       ).map((col) => (
                         <button
                           key={col.label}
@@ -477,10 +388,10 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                           className={`w-8 h-8 rounded-full transition-all ${selectedColor === col ? "scale-110 shadow-lg" : "hover:scale-105 opacity-80 hover:opacity-100"}`}
                           style={{
                             background: col.hex,
-                            border: `1px solid ${themeColors.border.subtle}`,
+                            border: `1px solid ${colors.border.subtle}`,
                             boxShadow:
                               selectedColor === col
-                                ? `0 0 0 2px ${themeColors.surface.elevated}, 0 0 0 4px ${themeColors.text.primary}`
+                                ? `0 0 0 2px ${colors.surface.elevated}, 0 0 0 4px ${colors.text.primary}`
                                 : undefined,
                           }}
                         />
@@ -492,51 +403,55 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                     <div className="flex items-center justify-between mb-2">
                       <p
                         className="text-xs font-bold uppercase tracking-wider"
-                        style={{ color: themeColors.text.secondary }}
+                        style={{ color: colors.text.secondary }}
                       >
                         Size{" "}
                         {selectedSize && (
                           <span
                             className="ml-1 font-normal"
-                            style={{ color: themeColors.text.tertiary }}
+                            style={{ color: colors.text.tertiary }}
                           >
                             · {selectedSize}
                           </span>
                         )}
                       </p>
-                      <button
-                        onClick={() => setShowSizeGuide(!showSizeGuide)}
-                        className="text-[11px] font-bold hover:underline"
-                        style={{ color: themeColors.text.accent }}
-                      >
-                        Size Guide
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(displaySizes || ["S", "M", "L", "XL"]).map((sz) => (
+                      {hasSizes && (
                         <button
-                          key={sz}
-                          type="button"
-                          onClick={() => setSelectedSize(sz)}
-                          className="min-w-[44px] px-3 py-2 text-xs font-bold rounded-xl border transition-all"
-                          style={
-                            selectedSize === sz
-                              ? {
-                                  background: themeColors.text.primary,
-                                  color: themeColors.text.inverse,
-                                  borderColor: themeColors.text.primary,
-                                }
-                              : {
-                                  background: themeColors.surface.primary,
-                                  color: themeColors.text.secondary,
-                                  borderColor: themeColors.border.default,
-                                }
-                          }
+                          onClick={() => setShowSizeGuide(!showSizeGuide)}
+                          className="text-[11px] font-bold hover:underline"
+                          style={{ color: colors.text.accent }}
                         >
-                          {sz}
+                          Size Guide
                         </button>
-                      ))}
+                      )}
                     </div>
+                    {hasSizes && (
+                      <div className="flex flex-wrap gap-2">
+                        {displaySizes.map((sz) => (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => setSelectedSize(sz)}
+                            className="min-w-[44px] px-3 py-2 text-xs font-bold rounded-xl border transition-all"
+                            style={
+                              selectedSize === sz
+                                ? {
+                                    background: colors.text.primary,
+                                    color: colors.text.inverse,
+                                    borderColor: colors.text.primary,
+                                  }
+                                : {
+                                    background: colors.surface.primary,
+                                    color: colors.text.secondary,
+                                    borderColor: colors.border.default,
+                                  }
+                            }
+                          >
+                            {sz}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Size Guide Table */}
                     <AnimatePresence>
@@ -551,12 +466,12 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                           >
                             <div
                               className="mt-3 rounded-xl overflow-hidden border"
-                              style={{ borderColor: themeColors.border.subtle }}
+                              style={{ borderColor: colors.border.subtle }}
                             >
                               <div
                                 className="flex gap-1 p-2"
                                 style={{
-                                  background: themeColors.surface.tertiary,
+                                  background: colors.surface.tertiary,
                                 }}
                               >
                                 {availableSystems?.map((sys) => (
@@ -567,10 +482,10 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                                     style={
                                       sizeSystem === sys
                                         ? {
-                                            background: themeColors.cta.primary,
-                                            color: themeColors.cta.primaryText,
+                                            background: colors.cta.primary,
+                                            color: colors.cta.primaryText,
                                           }
-                                        : { color: themeColors.text.tertiary }
+                                        : { color: colors.text.tertiary }
                                     }
                                   >
                                     {sys}
@@ -585,7 +500,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                                     key={sz}
                                     className="text-center py-1.5 text-[11px] font-medium rounded"
                                     style={{
-                                      color: themeColors.text.secondary,
+                                      color: colors.text.secondary,
                                     }}
                                   >
                                     {sz}
@@ -604,8 +519,8 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
               <div
                 className="fixed bottom-0 left-0 right-0 md:static p-6 pt-4 space-y-3 z-50 md:z-auto transition-all"
                 style={{
-                  background: themeColors.surface.elevated,
-                  borderTop: `1px solid ${themeColors.border.subtle}`,
+                  background: colors.surface.elevated,
+                  borderTop: `1px solid ${colors.border.subtle}`,
                   boxShadow: isDark
                     ? "0 -10px 30px rgba(0,0,0,0.5)"
                     : "0 -10px 30px rgba(0,0,0,0.05)",
@@ -614,36 +529,36 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                 <div className="flex items-center justify-between">
                   <p
                     className="text-xs font-bold uppercase tracking-wider"
-                    style={{ color: themeColors.text.secondary }}
+                    style={{ color: colors.text.secondary }}
                   >
                     Quantity
                   </p>
                   <div
                     className="flex items-center rounded-xl overflow-hidden"
                     style={{
-                      border: `1px solid ${themeColors.border.default}`,
+                      border: `1px solid ${colors.border.default}`,
                       background: isDark
-                        ? themeColors.surface.tertiary
+                        ? colors.surface.tertiary
                         : "rgba(249,250,251,0.5)",
                     }}
                   >
                     <button
                       onClick={() => setQty(Math.max(1, qty - 1))}
                       className="w-10 h-10 flex items-center justify-center font-bold transition-colors"
-                      style={{ color: themeColors.text.primary }}
+                      style={{ color: colors.text.primary }}
                     >
                       −
                     </button>
                     <span
                       className="w-10 text-center font-black text-sm tabular-nums"
-                      style={{ color: themeColors.text.primary }}
+                      style={{ color: colors.text.primary }}
                     >
                       {qty}
                     </span>
                     <button
                       onClick={() => setQty(Math.min(20, qty + 1))}
                       className="w-10 h-10 flex items-center justify-center font-bold transition-colors"
-                      style={{ color: themeColors.text.primary }}
+                      style={{ color: colors.text.primary }}
                     >
                       <IconPlus />
                     </button>
@@ -654,25 +569,29 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                   <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={(e) => {
-                      const matchedVariant = product?.product_variants?.find(v => 
-                        (!selectedColor || v.color === selectedColor) && 
-                        (!selectedSize || v.size === selectedSize)
+                      const matchedVariant = product?.product_variants?.find(
+                        (v) =>
+                          (!selectedColor || v.color === selectedColor) &&
+                          (!selectedSize || v.size === selectedSize),
                       );
-                      triggerAdd(e, { variantId: matchedVariant?.id, quantity: qty });
+                      triggerAdd(e, {
+                        variantId: matchedVariant?.id,
+                        quantity: qty,
+                      });
                     }}
                     disabled={loading}
                     className="flex-1 py-4 rounded-2xl font-bold text-sm transition-all relative overflow-hidden"
                     style={
                       success
                         ? {
-                            background: themeColors.state.success,
+                            background: colors.state.success,
                             color: "#fff",
                           }
                         : error
                           ? { background: "#ef4444", color: "#fff" }
                           : {
-                              background: themeColors.cta.primary,
-                              color: themeColors.cta.primaryText,
+                              background: colors.cta.primary,
+                              color: colors.cta.primaryText,
                             }
                     }
                   >
@@ -764,20 +683,12 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                             color: "#ef4444",
                           }
                         : {
-                            borderColor: themeColors.border.default,
-                            color: themeColors.text.tertiary,
+                            borderColor: colors.border.default,
+                            color: colors.text.tertiary,
                           }
                     }
                   >
-                    <svg
-                      className="w-6 h-6"
-                      fill={wishlisted ? "currentColor" : "none"}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-                    </svg>
+                    <IconHeart filled={wishlisted} />
                   </motion.button>
                 </div>
                 {/* Error Message */}
@@ -799,4 +710,3 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
 });
 
 export default ProductDetailModal;
-

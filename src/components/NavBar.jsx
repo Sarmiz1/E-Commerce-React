@@ -888,7 +888,7 @@ function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave })
         {/* Link columns */}
         <div className="col-span-3 grid grid-cols-3 gap-0 divide-x divide-gray-100">
           {data.columns.map((col, i) => (
-            <div key={col.heading} className="p-5" key={i}>
+            <div key={col.heading || i} className="p-5">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{col.heading}</p>
               <div className="space-y-0.5">
                 {col.links.map((link, i) => (
@@ -958,14 +958,7 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
 
   // Read cart count from context (authoritative) with prop as fallback.
   // This ensures the badge updates even when the parent forgets to pass cart.
-  const { cart: ctxCart, cartCount: ctxCartCount } = (() => {
-    try {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      return useCartState();
-    } catch {
-      return { cart: null, cartCount: null };
-    }
-  })();
+  const { cart: ctxCart, cartCount: ctxCartCount } = useCartState();
   const cartCount = ctxCartCount ?? (ctxCart ?? cart).reduce((a, i) => a + (i.quantity || 0), 0);
   const prevCartCount = useRef(cartCount);
   const searchRef = useRef(null);

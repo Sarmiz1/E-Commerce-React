@@ -1,15 +1,15 @@
 import { createContext, useContext, useMemo, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthContext";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
+import { queryClient } from "../../queries/queryClient";
 
 const CartStateContext = createContext(null);
 const CartActionsContext = createContext(null);
 
 export function CartProvider({ children }) {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   // ─── Cart query ───────────────────────────────────────────────────────────
   const { data } = useQuery({
@@ -65,23 +65,23 @@ export function CartProvider({ children }) {
 
   const removeItem = useCallback(
     (itemId) => removeItemMutation.mutate(itemId),
-    [removeItemMutation]
+    [removeItemMutation],
   );
 
   const updateQuantity = useCallback(
     (itemId, quantity) => updateQuantityMutation.mutate({ itemId, quantity }),
-    [updateQuantityMutation]
+    [updateQuantityMutation],
   );
 
   const clearCart = useCallback(
     () => clearCartMutation.mutate(),
-    [clearCartMutation]
+    [clearCartMutation],
   );
 
   const addItem = useCallback(
     (productId, variantId, quantity = 1) =>
       addItemMutation.mutate({ variantId, quantity }),
-    [addItemMutation]
+    [addItemMutation],
   );
 
   // ─── Context values ──────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ export function CartProvider({ children }) {
       cartId,
       cartCount: cart.reduce((a, b) => a + (b.quantity || 0), 0),
     }),
-    [cart, cartId]
+    [cart, cartId],
   );
 
   const actions = useMemo(
@@ -102,7 +102,7 @@ export function CartProvider({ children }) {
       updateQuantity,
       clearCart,
     }),
-    [addItem, removeItem, updateQuantity, clearCart]
+    [addItem, removeItem, updateQuantity, clearCart],
   );
 
   return (

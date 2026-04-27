@@ -1,6 +1,7 @@
 // src/Context/auth/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
+import { RealtimeProvider } from '../realtime/RealtimeProvider';
 
 const AuthContext = createContext({});
 
@@ -74,7 +75,9 @@ export const AuthProvider = ({ children }) => {
       signOut,
       loginGuest
     }}>
-      {!loading && children}
+      <RealtimeProvider user={user}>
+        {!loading && children}
+      </RealtimeProvider>
     </AuthContext.Provider>
   );
 };

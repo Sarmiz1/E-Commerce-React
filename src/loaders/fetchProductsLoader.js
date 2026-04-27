@@ -1,5 +1,5 @@
 import { ProductsAPI } from "../api/productsApi";
-import { queryClient } from "../Context/QueryClient/QueryWrapper";
+import { queryClient } from "../queries/queryClient"; 
 
 export const fetchProductsLoader = async () => {
     // Preload into react-query cache

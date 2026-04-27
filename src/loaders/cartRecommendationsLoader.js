@@ -1,11 +1,11 @@
 import { CartAPI } from "../api/cartApi";
-import { queryClient } from "../Context/QueryClient/QueryWrapper";
+import { queryClient } from "../queries/queryClient"; 
 
 export const cartRecommendationsLoader = async ({ params }) => {
   const productID = params.id;
 
   await queryClient.ensureQueryData(
-    CartAPI.recommendations(productID, 8)
+    CartAPI.cartRecommendations(productID, 8)
   );
 
   return null;

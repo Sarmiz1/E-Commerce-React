@@ -1,11 +1,19 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAllProducts } from "./Hooks/useProducts";
+import { useAllProducts } from "../../Hooks/product/useProducts";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { useTheme } from "../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { IconSpinner } from "../../Components/Icons/IconSpinner";
+import { IconFilter } from "../../Components/Icons/IconFilter";
+import { IconClose } from "../../Components/Icons/IconClose";
 
 // Components
 import PremiumDropdown from "../../Components/Ui/PremiumDropdown";
@@ -20,27 +28,6 @@ import { useCompare } from "./Hooks/useCompare";
 
 // Constants
 import { PAGE_SIZE, AD_INTERVAL, SORT_OPTIONS, CATEGORIES } from "./constants";
-
-// ─── Icons ────────────────────────────────────────────────────────────────────
-function IconFilter({ className = "w-4 h-4" }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-    </svg>
-  );
-}
-
-function IconClose({ className = "w-4 h-4" }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5"
-      strokeLinecap="round" viewBox="0 0 24 24">
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
-
-
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const PG_STYLES = `
@@ -102,17 +89,22 @@ function InlineAd({ product, type, allProducts }) {
   const adImages = useMemo(() => {
     const base = [product.image].filter(Boolean);
     if (allProducts?.length) {
-      const extras = allProducts.filter((p) => p.id !== product.id && p.image).slice(0, 4).map((p) => p.image);
+      const extras = allProducts
+        .filter((p) => p.id !== product.id && p.image)
+        .slice(0, 4)
+        .map((p) => p.image);
       return [...base, ...extras].slice(0, 5);
     }
     return base;
   }, [product, allProducts]);
 
-
   if (type === "featured") {
     return (
       <div className="col-span-full sm:col-span-2">
-        <Link to={`/products/${product.slug || product.id}`} className="block group h-full">
+        <Link
+          to={`/products/${product.slug || product.id}`}
+          className="block group h-full"
+        >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -122,8 +114,8 @@ function InlineAd({ product, type, allProducts }) {
               hover: {
                 scale: 1.01,
                 boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
-                borderColor: "rgba(255,255,255,0.15)"
-              }
+                borderColor: "rgba(255,255,255,0.15)",
+              },
             }}
             style={{
               background: isDark
@@ -136,8 +128,16 @@ function InlineAd({ product, type, allProducts }) {
               <motion.img
                 variants={{ hover: { scale: 1.15, filter: "brightness(0.9)" } }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
-                src={product.image} alt="" className="w-full h-full object-cover opacity-70" />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${isDark ? '#000' : '#111'} 50%, transparent 95%)` }} />
+                src={product.image}
+                alt=""
+                className="w-full h-full object-cover opacity-70"
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(to right, ${isDark ? "#000" : "#111"} 50%, transparent 95%)`,
+                }}
+              />
 
               {/* Animated Sheen Sweep */}
               <motion.div
@@ -148,25 +148,53 @@ function InlineAd({ product, type, allProducts }) {
             </div>
 
             <div className="relative z-10 flex items-center gap-4 pl-6 py-4">
-              <motion.span variants={{ hover: { scale: 1.2, rotate: 15 } }} className="text-3xl text-white/40 font-serif italic">✦</motion.span>
+              <motion.span
+                variants={{ hover: { scale: 1.2, rotate: 15 } }}
+                className="text-3xl text-white/40 font-serif italic"
+              >
+                ✦
+              </motion.span>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest" style={{ color: colors.brand.electricBlue }}>Featured Drop</p>
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/60 border border-white/10 uppercase font-bold tracking-tighter">Limited</span>
+                  <p
+                    className="text-[9px] font-black uppercase tracking-widest"
+                    style={{ color: colors.brand.electricBlue }}
+                  >
+                    Featured Drop
+                  </p>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/60 border border-white/10 uppercase font-bold tracking-tighter">
+                    Limited
+                  </span>
                 </div>
-                <motion.p variants={{ hover: { x: 5 } }} className="text-sm font-bold text-white line-clamp-1">{product.name}</motion.p>
-                <p className="text-[10px] text-white/50 italic line-clamp-1">Exclusively curated for the season</p>
+                <motion.p
+                  variants={{ hover: { x: 5 } }}
+                  className="text-sm font-bold text-white line-clamp-1"
+                >
+                  {product.name}
+                </motion.p>
+                <p className="text-[10px] text-white/50 italic line-clamp-1">
+                  Exclusively curated for the season
+                </p>
               </div>
             </div>
 
             <div className="relative z-10 flex items-center gap-4 pr-6 py-4">
               <div className="text-right">
-                <p className="font-black text-xl text-white">{formatMoneyCents(product.price_cents)}</p>
-                <p className="text-[11px] line-through opacity-40 text-white">{formatMoneyCents(Math.round(product.price_cents * 1.6))}</p>
+                <p className="font-black text-xl text-white">
+                  {formatMoneyCents(product.price_cents)}
+                </p>
+                <p className="text-[11px] line-through opacity-40 text-white">
+                  {formatMoneyCents(Math.round(product.price_cents * 1.6))}
+                </p>
               </div>
               <motion.span
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,1)", color: "#000" }}
-                className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/20 transition-all duration-300">
+                whileHover={{
+                  scale: 1.05,
+                  backgroundColor: "rgba(255,255,255,1)",
+                  color: "#000",
+                }}
+                className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/20 transition-all duration-300"
+              >
                 Shop Now
               </motion.span>
             </div>
@@ -178,7 +206,10 @@ function InlineAd({ product, type, allProducts }) {
 
   return (
     <div className="col-span-full sm:col-span-2">
-      <Link to={`/products/${product.slug || product.id}`} className="block h-full group">
+      <Link
+        to={`/products/${product.slug || product.id}`}
+        className="block h-full group"
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -188,8 +219,8 @@ function InlineAd({ product, type, allProducts }) {
             hover: {
               scale: 1.01,
               boxShadow: "0 15px 30px rgba(180,83,9,0.15)",
-              borderColor: "rgba(217,119,6,0.3)"
-            }
+              borderColor: "rgba(217,119,6,0.3)",
+            },
           }}
           style={{ background: isDark ? "rgba(180,83,9,0.05)" : "#fffbeb" }}
         >
@@ -198,8 +229,16 @@ function InlineAd({ product, type, allProducts }) {
             <motion.img
               variants={{ hover: { scale: 1.2 } }}
               transition={{ duration: 1.2, ease: "easeOut" }}
-              src={product.image} alt="" className="w-full h-full object-cover opacity-15 grayscale" />
-            <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${isDark ? '#1a1a1a' : '#fffbeb'} 40%, transparent 100%)` }} />
+              src={product.image}
+              alt=""
+              className="w-full h-full object-cover opacity-15 grayscale"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(to right, ${isDark ? "#1a1a1a" : "#fffbeb"} 40%, transparent 100%)`,
+              }}
+            />
 
             {/* Animated Sheen Sweep */}
             <motion.div
@@ -210,24 +249,53 @@ function InlineAd({ product, type, allProducts }) {
           </div>
 
           <div className="relative z-10 flex items-center gap-4 pl-6 py-4">
-            <motion.span variants={{ hover: { scale: 1.2, rotate: -15 } }} className="text-3xl">⚡</motion.span>
+            <motion.span
+              variants={{ hover: { scale: 1.2, rotate: -15 } }}
+              className="text-3xl"
+            >
+              ⚡
+            </motion.span>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: colors.brand.gold }}>Flash Deal</p>
-                <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/10 uppercase font-bold tracking-tighter">Live</span>
+                <p
+                  className="text-[10px] font-black uppercase tracking-widest"
+                  style={{ color: colors.brand.gold }}
+                >
+                  Flash Deal
+                </p>
+                <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/10 uppercase font-bold tracking-tighter">
+                  Live
+                </span>
               </div>
-              <motion.p variants={{ hover: { x: 5 } }} className="text-sm font-bold line-clamp-1" style={{ color: colors.text.primary }}>{product.name}</motion.p>
+              <motion.p
+                variants={{ hover: { x: 5 } }}
+                className="text-sm font-bold line-clamp-1"
+                style={{ color: colors.text.primary }}
+              >
+                {product.name}
+              </motion.p>
             </div>
           </div>
 
           <div className="relative z-10 flex items-center gap-4 pr-6 py-4">
             <div className="text-right">
-              <p className="font-black text-xl" style={{ color: colors.brand.gold }}>{formatMoneyCents(product.price_cents)}</p>
-              <p className="text-[11px] line-through" style={{ color: colors.text.tertiary }}>{formatMoneyCents(Math.round(product.price_cents * 1.4))}</p>
+              <p
+                className="font-black text-xl"
+                style={{ color: colors.brand.gold }}
+              >
+                {formatMoneyCents(product.price_cents)}
+              </p>
+              <p
+                className="text-[11px] line-through"
+                style={{ color: colors.text.tertiary }}
+              >
+                {formatMoneyCents(Math.round(product.price_cents * 1.4))}
+              </p>
             </div>
             <motion.span
               whileHover={{ scale: 1.05, backgroundColor: "#d97706" }}
-              className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-amber-600 text-white transition-all duration-300">
+              className="text-[11px] font-bold px-5 py-2.5 rounded-xl bg-amber-600 text-white transition-all duration-300"
+            >
               Shop →
             </motion.span>
           </div>
@@ -240,10 +308,26 @@ function InlineAd({ product, type, allProducts }) {
 function ViewMoreBtn({ onClick, loading, allLoaded, count }) {
   const { colors } = useTheme();
   if (allLoaded && count === 0) return null;
-  if (allLoaded) return <div className="col-span-full text-center py-10 text-xs font-medium" style={{ color: colors.text.tertiary }}>Showing all {count} products</div>;
+  if (allLoaded)
+    return (
+      <div
+        className="col-span-full text-center py-10 text-xs font-medium"
+        style={{ color: colors.text.tertiary }}
+      >
+        Showing all {count} products
+      </div>
+    );
   return (
     <div className="col-span-full flex justify-center py-10">
-      <button onClick={onClick} disabled={loading} className="flex items-center gap-3 font-bold text-sm px-10 py-3.5 rounded-full border transition-all active:scale-95 disabled:opacity-50" style={{ borderColor: colors.border.default, color: colors.text.primary }}>
+      <button
+        onClick={onClick}
+        disabled={loading}
+        className="flex items-center gap-3 font-bold text-sm px-10 py-3.5 rounded-full border transition-all active:scale-95 disabled:opacity-50"
+        style={{
+          borderColor: colors.border.default,
+          color: colors.text.primary,
+        }}
+      >
         {loading ? <IconSpinner /> : "Explore More Products"}
       </button>
     </div>
@@ -262,11 +346,26 @@ function CompareModal({ items, onClose, onRemove }) {
     { label: "Price", render: (p) => formatMoneyCents(p.price_cents) },
     { label: "Rating", render: (p) => `${p.rating_stars || 0} ★` },
     { label: "Reviews", render: (p) => (p.rating_count || 0).toLocaleString() },
-    { label: "Category", render: (p) => (p.keywords || []).slice(0, 2).join(", ") || "—" },
+    {
+      label: "Category",
+      render: (p) => (p.keywords || []).slice(0, 2).join(", ") || "—",
+    },
   ];
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1200] flex items-end md:items-center justify-center" style={{ pointerEvents: "none" }}>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-md pointer-events-auto" />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[1200] flex items-end md:items-center justify-center"
+      style={{ pointerEvents: "none" }}
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-md pointer-events-auto"
+      />
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
@@ -275,35 +374,88 @@ function CompareModal({ items, onClose, onRemove }) {
         className="relative z-10 w-full h-[100dvh] rounded-none md:h-auto md:max-h-[85vh] md:max-w-3xl md:mx-4 md:rounded-3xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col"
         style={{ background: colors.surface.elevated }}
       >
-        <div className="flex items-center justify-between p-5 md:p-6 border-b shrink-0" style={{ borderColor: colors.border.subtle }}>
+        <div
+          className="flex items-center justify-between p-5 md:p-6 border-b shrink-0"
+          style={{ borderColor: colors.border.subtle }}
+        >
           <div>
-            <h3 className="text-xl font-serif font-bold" style={{ color: colors.text.primary }}>Compare Matches</h3>
-            <p className="text-[10px] uppercase tracking-widest mt-1" style={{ color: colors.text.tertiary }}>AI Machine Analysis</p>
+            <h3
+              className="text-xl font-serif font-bold"
+              style={{ color: colors.text.primary }}
+            >
+              Compare Matches
+            </h3>
+            <p
+              className="text-[10px] uppercase tracking-widest mt-1"
+              style={{ color: colors.text.tertiary }}
+            >
+              AI Machine Analysis
+            </p>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110" style={{ background: colors.surface.tertiary }}><IconClose /></button>
+          <button
+            onClick={onClose}
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+            style={{ background: colors.surface.tertiary }}
+          >
+            <IconClose />
+          </button>
         </div>
 
         <div className="overflow-y-auto flex-1 pg-slim">
           <div className="grid grid-cols-2 gap-4 md:gap-6 p-5 md:p-6">
             {[a, b].map((p) => (
               <div key={p.id} className="text-center group">
-                <div className="rounded-2xl overflow-hidden mb-4 aspect-square relative border" style={{ background: colors.surface.tertiary, borderColor: colors.border.subtle }}>
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div
+                  className="rounded-2xl overflow-hidden mb-4 aspect-square relative border"
+                  style={{
+                    background: colors.surface.tertiary,
+                    borderColor: colors.border.subtle,
+                  }}
+                >
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                 </div>
-                <p className="text-sm md:text-base font-bold line-clamp-2 leading-tight mb-2" style={{ color: colors.text.primary }}>{p.name}</p>
-                <p className="text-xl md:text-2xl font-black" style={{ color: colors.text.primary }}>{formatMoneyCents(p.price_cents)}</p>
+                <p
+                  className="text-sm md:text-base font-bold line-clamp-2 leading-tight mb-2"
+                  style={{ color: colors.text.primary }}
+                >
+                  {p.name}
+                </p>
+                <p
+                  className="text-xl md:text-2xl font-black"
+                  style={{ color: colors.text.primary }}
+                >
+                  {formatMoneyCents(p.price_cents)}
+                </p>
               </div>
             ))}
           </div>
 
           <div className="px-5 md:px-6 pb-5 md:pb-6">
             {rows.map(({ label, render }) => (
-              <div key={label} className="grid grid-cols-[1fr_1fr] gap-4 md:gap-6 py-4 border-t text-center" style={{ borderColor: colors.border.subtle }}>
+              <div
+                key={label}
+                className="grid grid-cols-[1fr_1fr] gap-4 md:gap-6 py-4 border-t text-center"
+                style={{ borderColor: colors.border.subtle }}
+              >
                 {[a, b].map((p) => (
                   <div key={p.id}>
-                    <p className="text-[10px] uppercase tracking-widest font-bold mb-1" style={{ color: colors.text.tertiary }}>{label}</p>
-                    <p className="text-sm md:text-base font-bold" style={{ color: colors.text.primary }}>{render(p)}</p>
+                    <p
+                      className="text-[10px] uppercase tracking-widest font-bold mb-1"
+                      style={{ color: colors.text.tertiary }}
+                    >
+                      {label}
+                    </p>
+                    <p
+                      className="text-sm md:text-base font-bold"
+                      style={{ color: colors.text.primary }}
+                    >
+                      {render(p)}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -311,7 +463,13 @@ function CompareModal({ items, onClose, onRemove }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 p-5 md:p-6 border-t shrink-0" style={{ borderColor: colors.border.subtle, background: isDark ? 'rgba(30,30,34,0.5)' : 'rgba(249,250,251,0.5)' }}>
+        <div
+          className="grid grid-cols-2 gap-4 p-5 md:p-6 border-t shrink-0"
+          style={{
+            borderColor: colors.border.subtle,
+            background: isDark ? "rgba(30,30,34,0.5)" : "rgba(249,250,251,0.5)",
+          }}
+        >
           {[a, b].map((p) => (
             <motion.button
               key={`pick-${p.id}`}
@@ -321,9 +479,13 @@ function CompareModal({ items, onClose, onRemove }) {
                 navigate(`/products/${p.slug || p.id}`);
               }}
               className="py-4 rounded-2xl font-bold text-sm md:text-base shadow-lg transition-colors border"
-              style={{ background: colors.cta.primary, color: colors.cta.primaryText, borderColor: 'rgba(255,255,255,0.1)' }}
+              style={{
+                background: colors.cta.primary,
+                color: colors.cta.primaryText,
+                borderColor: "rgba(255,255,255,0.1)",
+              }}
             >
-              Pick {p.name.split(' ')[0]}
+              Pick {p.name.split(" ")[0]}
             </motion.button>
           ))}
         </div>
@@ -336,19 +498,28 @@ function CompareModal({ items, onClose, onRemove }) {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ProductsPage() {
-
   const navigate = useNavigate();
   const { isDark, colors } = useTheme();
 
-  // Products 
-  const {
-    data: allProducts = [],
-    isLoading,
-    isFetching,
-  } = useAllProducts();
+  // Products
+  const { data: allProducts = [], isLoading, isFetching } = useAllProducts();
 
-  const { filters, setFilters, selectedCategory, setSelectedCategory, maxBudget, filteredProducts } = useProductsFilter(allProducts);
-  const { compareList, showCompare, setShowCompare, toggleCompare, removeCompare, clearCompare } = useCompare();
+  const {
+    filters,
+    setFilters,
+    selectedCategory,
+    setSelectedCategory,
+    maxBudget,
+    filteredProducts,
+  } = useProductsFilter(allProducts);
+  const {
+    compareList,
+    showCompare,
+    setShowCompare,
+    toggleCompare,
+    removeCompare,
+    clearCompare,
+  } = useCompare();
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -358,11 +529,13 @@ export default function ProductsPage() {
   // Hide body scrollbar when any modal is open
   useEffect(() => {
     if (mobileFilterOpen || showCompare || quickViewProduct) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileFilterOpen, showCompare, quickViewProduct]);
 
   const gridRef = useRef(null);
@@ -371,7 +544,10 @@ export default function ProductsPage() {
   const handleQuickView = useCallback((p) => setQuickViewProduct(p), []);
   const handleLoadMore = useCallback(() => {
     setLoadingMore(true);
-    setTimeout(() => { setVisibleCount((v) => v + PAGE_SIZE); setLoadingMore(false); }, 600);
+    setTimeout(() => {
+      setVisibleCount((v) => v + PAGE_SIZE);
+      setLoadingMore(false);
+    }, 600);
   }, []);
 
   // GSAP Entrance Animation
@@ -387,8 +563,8 @@ export default function ProductsPage() {
           duration: 0.8,
           stagger: 0.05,
           ease: "expo.out",
-          overwrite: "auto"
-        }
+          overwrite: "auto",
+        },
       );
     }
   }, [isLoading, selectedCategory, filters.sort]);
@@ -399,21 +575,43 @@ export default function ProductsPage() {
     visibleProducts.forEach((product, i) => {
       items.push({ type: "product", product, idx: i });
       if ((i + 1) % AD_INTERVAL === 0 && i < visibleProducts.length - 1) {
-        items.push({ type: "ad", adType: Math.floor(i / AD_INTERVAL) % 2 === 0 ? "featured" : "deal", adProduct: allProducts[(i + 5) % allProducts.length], idx: i });
+        items.push({
+          type: "ad",
+          adType: Math.floor(i / AD_INTERVAL) % 2 === 0 ? "featured" : "deal",
+          adProduct: allProducts[(i + 5) % allProducts.length],
+          idx: i,
+        });
       }
     });
     return items;
   }, [visibleProducts, allProducts]);
 
   return (
-    <div className="min-h-screen pt-20" style={{ background: colors.surface.primary, color: colors.text.primary }}>
+    <div
+      className="min-h-screen pt-20"
+      style={{ background: colors.surface.primary, color: colors.text.primary }}
+    >
       <style>{PG_STYLES}</style>
 
-      {!isLoading && allProducts.length > 0 && <LiveTicker products={allProducts} />}
+      {!isLoading && allProducts.length > 0 && (
+        <LiveTicker products={allProducts} />
+      )}
 
-      <div className="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between border-b" style={{ borderColor: colors.border.subtle }}>
-        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest" style={{ color: colors.text.tertiary }}>
-          <Link to="/" className="hover:opacity-80 transition-opacity" style={{ color: colors.text.tertiary }}>Home</Link>
+      <div
+        className="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between border-b"
+        style={{ borderColor: colors.border.subtle }}
+      >
+        <div
+          className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest"
+          style={{ color: colors.text.tertiary }}
+        >
+          <Link
+            to="/"
+            className="hover:opacity-80 transition-opacity"
+            style={{ color: colors.text.tertiary }}
+          >
+            Home
+          </Link>
           <span>/</span>
           <span style={{ color: colors.text.primary }}>{selectedCategory}</span>
         </div>
@@ -424,7 +622,10 @@ export default function ProductsPage() {
             whileTap={{ scale: 0.95 }}
             onClick={() => setMobileFilterOpen(true)}
             className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold"
-            style={{ background: colors.cta.primary, color: colors.cta.primaryText }}
+            style={{
+              background: colors.cta.primary,
+              color: colors.cta.primaryText,
+            }}
           >
             <IconFilter className="w-3.5 h-3.5" /> Filters
           </motion.button>
@@ -442,8 +643,22 @@ export default function ProductsPage() {
         <div className="flex gap-10">
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-[280px] flex-shrink-0 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pg-slim pr-3 pb-8">
-            <div className="rounded-[24px] p-6 shadow-xl relative overflow-hidden" style={{ background: isDark ? 'rgba(26,26,26,0.6)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', border: `1px solid ${colors.border.subtle}` }}>
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${colors.cta.primary}15 0%, transparent 70%)` }} />
+            <div
+              className="rounded-[24px] p-6 shadow-xl relative overflow-hidden"
+              style={{
+                background: isDark
+                  ? "rgba(26,26,26,0.6)"
+                  : "rgba(255,255,255,0.6)",
+                backdropFilter: "blur(20px)",
+                border: `1px solid ${colors.border.subtle}`,
+              }}
+            >
+              <div
+                className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
+                style={{
+                  background: `radial-gradient(circle, ${colors.cta.primary}15 0%, transparent 70%)`,
+                }}
+              />
               <FilterSidebar
                 filters={filters}
                 setFilters={setFilters}
@@ -466,26 +681,51 @@ export default function ProductsPage() {
                 maxBudget={maxBudget}
               />
               <div className="flex gap-6 items-center">
-                <p className="text-sm font-medium italic" style={{ color: colors.text.tertiary }}>
-                  Discovering <span className="font-bold" style={{ color: colors.text.primary }}>{filteredProducts.length}</span> curated items for you.
+                <p
+                  className="text-sm font-medium italic"
+                  style={{ color: colors.text.tertiary }}
+                >
+                  Discovering{" "}
+                  <span
+                    className="font-bold"
+                    style={{ color: colors.text.primary }}
+                  >
+                    {filteredProducts.length}
+                  </span>{" "}
+                  curated items for you.
                 </p>
 
                 {/* Shows spinner if products is beign refetched */}
                 <span>{isFetching && <IconSpinner />}</span>
               </div>
-
             </div>
 
             {/* Loading skeleton */}
             {isLoading && (
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden" style={{ background: colors.surface.secondary, border: `1px solid ${colors.border.subtle}` }}>
-                    <div className={`pg-skeleton ${isDark ? 'pg-skeleton-dark' : 'pg-skeleton-light'}`} style={{ paddingTop: '128%' }} />
+                  <div
+                    key={i}
+                    className="rounded-xl overflow-hidden"
+                    style={{
+                      background: colors.surface.secondary,
+                      border: `1px solid ${colors.border.subtle}`,
+                    }}
+                  >
+                    <div
+                      className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"}`}
+                      style={{ paddingTop: "128%" }}
+                    />
                     <div className="p-3 space-y-2">
-                      <div className={`pg-skeleton ${isDark ? 'pg-skeleton-dark' : 'pg-skeleton-light'} h-3 rounded-full w-3/4`} />
-                      <div className={`pg-skeleton ${isDark ? 'pg-skeleton-dark' : 'pg-skeleton-light'} h-3 rounded-full w-1/2`} />
-                      <div className={`pg-skeleton ${isDark ? 'pg-skeleton-dark' : 'pg-skeleton-light'} h-4 rounded-full w-1/3 mt-2`} />
+                      <div
+                        className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"} h-3 rounded-full w-3/4`}
+                      />
+                      <div
+                        className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"} h-3 rounded-full w-1/2`}
+                      />
+                      <div
+                        className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"} h-4 rounded-full w-1/3 mt-2`}
+                      />
                     </div>
                   </div>
                 ))}
@@ -496,20 +736,63 @@ export default function ProductsPage() {
             {!isLoading && filteredProducts.length === 0 && (
               <div className="flex flex-col items-center py-20 text-center">
                 <div className="text-6xl mb-5">🔍</div>
-                <h2 className="text-xl font-bold mb-2" style={{ color: colors.text.primary }}>No products found</h2>
-                <p className="text-sm mb-6 max-w-xs" style={{ color: colors.text.tertiary }}>Try adjusting your filters or search term to find what you're looking for.</p>
-                <button onClick={() => { setFilters({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget }); setSelectedCategory("All"); }} className="text-sm font-bold underline" style={{ color: colors.text.accent }}>Clear all filters</button>
+                <h2
+                  className="text-xl font-bold mb-2"
+                  style={{ color: colors.text.primary }}
+                >
+                  No products found
+                </h2>
+                <p
+                  className="text-sm mb-6 max-w-xs"
+                  style={{ color: colors.text.tertiary }}
+                >
+                  Try adjusting your filters or search term to find what you're
+                  looking for.
+                </p>
+                <button
+                  onClick={() => {
+                    setFilters({
+                      sort: "default",
+                      rating: null,
+                      inStock: false,
+                      onSale: false,
+                      budget: maxBudget,
+                    });
+                    setSelectedCategory("All");
+                  }}
+                  className="text-sm font-bold underline"
+                  style={{ color: colors.text.accent }}
+                >
+                  Clear all filters
+                </button>
               </div>
             )}
 
-
-            <div ref={gridRef} className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6">
-
-              {gridItems.map((item) => (
-                item.type === "ad"
-                  ? <InlineAd key={`ad-${item.idx}`} product={item.adProduct} type={item.adType} allProducts={allProducts} />
-                  : <ProductCard key={item.product.id} product={item.product} onQuickView={handleQuickView} onToggleCompare={toggleCompare} isCompared={compareList.some((c) => c.id === item.product.id)} canAdd={compareList.length < 2} />
-              ))}
+            <div
+              ref={gridRef}
+              className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
+              {gridItems.map((item) =>
+                item.type === "ad" ? (
+                  <InlineAd
+                    key={`ad-${item.idx}`}
+                    product={item.adProduct}
+                    type={item.adType}
+                    allProducts={allProducts}
+                  />
+                ) : (
+                  <ProductCard
+                    key={item.product.id}
+                    product={item.product}
+                    onQuickView={handleQuickView}
+                    onToggleCompare={toggleCompare}
+                    isCompared={compareList.some(
+                      (c) => c.id === item.product.id,
+                    )}
+                    canAdd={compareList.length < 2}
+                  />
+                ),
+              )}
 
               <ViewMoreBtn
                 onClick={handleLoadMore}
@@ -522,17 +805,59 @@ export default function ProductsPage() {
             {/* Comparison floating bar */}
             <AnimatePresence>
               {compareList.length > 0 && (
-                <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }} className="fixed bottom-0 sm:bottom-6 left-0 sm:left-1/2 sm:-translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-fit px-3 sm:px-5 py-4 sm:py-3 rounded-t-3xl sm:rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-2xl border-t sm:border backdrop-blur-xl" style={{ background: isDark ? 'rgba(30,30,34,0.95)' : 'rgba(255,255,255,0.95)', borderColor: colors.border.default }}>
-                  <span className="text-[10px] sm:text-xs font-bold shrink-0" style={{ color: colors.text.secondary }}>{compareList.length}/2<span className="hidden sm:inline"> selected</span></span>
+                <motion.div
+                  initial={{ y: 80, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 80, opacity: 0 }}
+                  className="fixed bottom-0 sm:bottom-6 left-0 sm:left-1/2 sm:-translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-fit px-3 sm:px-5 py-4 sm:py-3 rounded-t-3xl sm:rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-2xl border-t sm:border backdrop-blur-xl"
+                  style={{
+                    background: isDark
+                      ? "rgba(30,30,34,0.95)"
+                      : "rgba(255,255,255,0.95)",
+                    borderColor: colors.border.default,
+                  }}
+                >
+                  <span
+                    className="text-[10px] sm:text-xs font-bold shrink-0"
+                    style={{ color: colors.text.secondary }}
+                  >
+                    {compareList.length}/2
+                    <span className="hidden sm:inline"> selected</span>
+                  </span>
                   <div className="flex items-center gap-2">
                     {compareList.map((p) => (
-                      <div key={p.id} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden border shrink-0" style={{ borderColor: colors.border.default }}>
-                        <img src={p.image} alt="" className="w-full h-full object-cover" />
+                      <div
+                        key={p.id}
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden border shrink-0"
+                        style={{ borderColor: colors.border.default }}
+                      >
+                        <img
+                          src={p.image}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     ))}
                   </div>
-                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCompare(true)} disabled={compareList.length < 2} className="px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all disabled:opacity-40 shrink-0" style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Compare</motion.button>
-                  <button onClick={clearCompare} className="text-[10px] sm:text-xs font-bold shrink-0" style={{ color: colors.text.tertiary }}>Clear</button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setShowCompare(true)}
+                    disabled={compareList.length < 2}
+                    className="px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-bold transition-all disabled:opacity-40 shrink-0"
+                    style={{
+                      background: colors.cta.primary,
+                      color: colors.cta.primaryText,
+                    }}
+                  >
+                    Compare
+                  </motion.button>
+                  <button
+                    onClick={clearCompare}
+                    className="text-[10px] sm:text-xs font-bold shrink-0"
+                    style={{ color: colors.text.tertiary }}
+                  >
+                    Clear
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -544,14 +869,62 @@ export default function ProductsPage() {
       <AnimatePresence>
         {mobileFilterOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileFilterOpen(false)} className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm lg:hidden" />
-            <motion.div initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.8 }} className="fixed bottom-0 left-0 right-0 z-[2001] rounded-t-[32px] p-8 lg:hidden max-h-[90vh] overflow-y-auto shadow-[0_-20px_40px_rgba(0,0,0,0.2)]" style={{ background: colors.surface.primary }}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileFilterOpen(false)}
+              className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm lg:hidden"
+            />
+            <motion.div
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%" }}
+              transition={{
+                type: "spring",
+                damping: 25,
+                stiffness: 200,
+                mass: 0.8,
+              }}
+              className="fixed bottom-0 left-0 right-0 z-[2001] rounded-t-[32px] p-8 lg:hidden max-h-[90vh] overflow-y-auto shadow-[0_-20px_40px_rgba(0,0,0,0.2)]"
+              style={{ background: colors.surface.primary }}
+            >
               <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-serif font-bold" style={{ color: colors.text.primary }}>Filters</h2>
-                <button onClick={() => setMobileFilterOpen(false)} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: colors.surface.tertiary, color: colors.text.primary }}><IconClose /></button>
+                <h2
+                  className="text-2xl font-serif font-bold"
+                  style={{ color: colors.text.primary }}
+                >
+                  Filters
+                </h2>
+                <button
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{
+                    background: colors.surface.tertiary,
+                    color: colors.text.primary,
+                  }}
+                >
+                  <IconClose />
+                </button>
               </div>
-              <FilterSidebar filters={filters} setFilters={setFilters} maxBudget={maxBudget} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} matchingCount={filteredProducts.length} />
-              <button onClick={() => setMobileFilterOpen(false)} className="w-full mt-8 py-4 rounded-2xl font-bold" style={{ background: colors.cta.primary, color: colors.cta.primaryText }}>Apply Filters</button>
+              <FilterSidebar
+                filters={filters}
+                setFilters={setFilters}
+                maxBudget={maxBudget}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                matchingCount={filteredProducts.length}
+              />
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="w-full mt-8 py-4 rounded-2xl font-bold"
+                style={{
+                  background: colors.cta.primary,
+                  color: colors.cta.primaryText,
+                }}
+              >
+                Apply Filters
+              </button>
             </motion.div>
           </>
         )}
@@ -567,7 +940,13 @@ export default function ProductsPage() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showCompare && <CompareModal items={compareList} onClose={() => setShowCompare(false)} onRemove={removeCompare} />}
+        {showCompare && (
+          <CompareModal
+            items={compareList}
+            onClose={() => setShowCompare(false)}
+            onRemove={removeCompare}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

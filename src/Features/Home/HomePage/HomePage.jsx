@@ -51,8 +51,6 @@ import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 import GlobalCommandPalette from "../../../Components/GlobalCommandPalette";
 import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
 
-
-
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 // ─── Skeleton loader ──────────────────────────────────────────────────────────
@@ -80,16 +78,17 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
   // Products
-  const { data: products = [], isLoading } = useAllProducts();
+  const { data: products = [], isLoading, error } = useAllProducts();
+  console.log("Home page error", error);
 
   // still testing Modal
   const [quickViewProduct, setQuickViewProduct] = useState(null);
-  
+
   // Global listener for Quick View requests from any ProductCard anywhere
   useEffect(() => {
     const handleQuickView = (e) => setQuickViewProduct(e.detail);
-    window.addEventListener('open-quickview', handleQuickView);
-    return () => window.removeEventListener('open-quickview', handleQuickView);
+    window.addEventListener("open-quickview", handleQuickView);
+    return () => window.removeEventListener("open-quickview", handleQuickView);
   }, []);
 
   // Product slices
@@ -111,11 +110,18 @@ export default function HomePage() {
   const recommendedForYou = products.slice(3, 8);
   const basedOnBrowsing = products.slice(0, 12);
 
-
-
   // Loading state
   if (isLoading && !products.length) {
     return <HomePageLoadingState />;
+  }
+
+  if (error) {
+    return (
+      <div>
+        Error: {error.message}
+        {console.log(error)}
+      </div>
+    );
   }
 
   return (
@@ -137,7 +143,10 @@ export default function HomePage() {
       <MostLovedSection products={mostLoved} isLoading={isLoading} />
       <TrendingSection products={trending} isLoading={isLoading} />
       <TrendingTags />
-      <RecommendedForYouSection products={recommendedForYou} isLoading={isLoading} />
+      <RecommendedForYouSection
+        products={recommendedForYou}
+        isLoading={isLoading}
+      />
       <FlashSaleSection products={flashDeals} isLoading={isLoading} />
       <DealOfTheDay product={dealOfDay} isLoading={isLoading} />
       <BestSellersSection products={bestSellers} isLoading={isLoading} />
@@ -166,7 +175,10 @@ export default function HomePage() {
       {/* Brands & Feedback */}
       <ShopByBrandSection />
       <RealPurchaseFeedbackSection />
-      <BasedOnBrowsingSection products={basedOnBrowsing} isLoading={isLoading} />
+      <BasedOnBrowsingSection
+        products={basedOnBrowsing}
+        isLoading={isLoading}
+      />
 
       <TestimonialsCarousel />
       <NewsletterSection />

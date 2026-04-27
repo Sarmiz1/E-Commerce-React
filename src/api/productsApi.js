@@ -1,85 +1,115 @@
 // src/api/productsApi.js
-
 import { supabase } from "../supabaseClient";
+import { createResourceApi } from "./createResourceApi";
 
-const PRODUCT_SELECT =
-  "*, product_variants(*), product_images(*)";
+// 🔥 Ultimate select string with explicit relationship hints
+const PRODUCT_SELECT = `
+  *,
+  seller:seller_public!seller_id (
+    id,
+    full_name,
+    avatar_url,
+    store_name,
+    store_slug,
+    store_logo,
+    rating,
+    is_verified_store,
+    trust_score,
+    seller_badges
+  ),
+  product_variants(*),
+  product_images(*)
+`;
 
-const productsTable = () =>
-  supabase.from("products").select(PRODUCT_SELECT);
-
-const fetchProducts = async (builder, single = false) => {
-  const { data, error } = single
-    ? await builder.single()
-    : await builder;
-
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Product not found");
-
-  return data;
-};
+// 🔥 Create base resources
+export const productsResource = createResourceApi("products", PRODUCT_SELECT);
+export const cartApi = createResourceApi("cart_items");
+export const ordersApi = createResourceApi("orders");
 
 export const ProductsAPI = {
   getAll: () => ({
     queryKey: ["products"],
     queryFn: () =>
-      fetchProducts(
-        productsTable()
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-      ),
+      productsResource.list(supabase, [
+        ["is_active", "eq", true],
+        ["created_at", "order", { ascending: false }],
+      ]),
   }),
 
   getById: (id) => ({
     queryKey: ["product", id],
-    queryFn: () =>
-      fetchProducts(
-        productsTable().eq("id", id),
-        true
-      ),
+    queryFn: () => productsResource.get(supabase, id),
   }),
-
-  
 
   getBySlug: (slug) => ({
     queryKey: ["product", slug],
-    queryFn: () =>
-      fetchProducts(
-        productsTable()
-          .eq("slug", slug)
-          .eq("is_active", true),
-        true
-      ),
+    queryFn: async () => {
+      const data = await productsResource.list(supabase, [
+        ["slug", "eq", slug],
+        ["is_active", "eq", true],
+      ]);
+
+      if (!data?.length) {
+        throw new Error("Product not found");
+      }
+
+      return data[0];
+    },
   }),
 
   getByKeywords: (keywordsArray) => ({
     queryKey: ["products", keywordsArray],
     queryFn: () =>
-      fetchProducts(
-        productsTable()
-          .eq("is_active", true)
-          .overlaps("keywords", keywordsArray)
-          .order("created_at", { ascending: false })
-      ),
+      productsResource.list(supabase, [
+        ["is_active", "eq", true],
+        ["keywords", "overlaps", keywordsArray],
+        ["created_at", "order", { ascending: false }],
+      ]),
   }),
 
   recommendations: (productID, limit = 8) => ({
-  queryKey: ["product-recommendations", productID, limit],
+    queryKey: ["product-recommendations", productID, limit],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc(
+        "get_ranked_similar_products",
+        {
+          target_id: productID,
+          limit_count: limit,
+        }
+      );
 
-  queryFn: async () => {
-    const { data, error } = await supabase.rpc(
-      "get_ranked_similar_products",
-      {
-        target_id: productID,
-        limit_count: limit,
+      if (error) {
+        throw new Error(
+          error.message || "Failed to fetch recommendations"
+        );
       }
-    );
 
-    if (error) {
-      throw new Error(error.message || "Failed to fetch recommendations");
-    }
+      return data ?? [];
+    },
+  }),
+};
 
+// Also keep storeApi logic here for backward compatibility if needed
+export const storeApi = {
+  getMyStore: async (userId) => {
+    const { data, error } = await supabase
+      .from("seller_profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (error) throw error;
     return data;
   },
-}),
+
+  getDashboardStats: async (userId) => {
+    const { data, error } = await supabase
+      .from("seller_dashboard_stats")
+      .select("*")
+      .eq("seller_id", userId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

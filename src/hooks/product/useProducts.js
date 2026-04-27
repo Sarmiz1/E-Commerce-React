@@ -1,12 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
+import { ProductsAPI } from "../../api/productsApi";
+
+import { useQuery } from "@tanstack/react-query";
 import { ProductsAPI } from "../../../api/productsApi";
 
 export const useProductById = (id) => {
-  return useQuery(ProductsAPI.getById(id));
+  return useQuery({
+    ...ProductsAPI.getById(id),
+    enabled: !!id,
+  });
 };
 
 export const useProductBySlug = (slug) => {
-  return useQuery(ProductsAPI.getBySlug(slug));
+  return useQuery({
+    ...ProductsAPI.getBySlug(slug),
+    enabled: !!slug,
+  });
 };
 
 export const useAllProducts = () => {
