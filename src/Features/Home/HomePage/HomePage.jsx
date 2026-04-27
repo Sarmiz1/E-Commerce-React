@@ -1,17 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { useAllProducts } from "../../Product/Hooks/useProducts";
+import { useAllProducts } from "../../../Hooks/product/useProducts"; 
 import { STYLES } from "./Styles/styles";
-import { CATEGORIES } from "./Data/categories";
-import { BRANDS } from "./Data/brands";
-import { PERKS } from "./Data/perks";
-import { TESTIMONIALS } from "./Data/testimonials";
 
 import MarqueeStrip from "./Components/MarqueeStrip";
-import ProductCard from "../../../Components/Ui/ProductCard";
 import Navbar from "../../../Components/Navbar";
 
 // import Skeleton from "./Components/Sections/Skeleton";
@@ -36,7 +28,6 @@ import FilterableGrid from "./Components/Sections/FilterableGrid";
 import LookbookSection from "./Components/Sections/LookbookSection";
 import TrustStrip from "./Components/Sections/TrustStrip";
 import TrendingTags from "./Components/Sections/TrendingTags";
-import BrandMarquee from "./Components/Sections/BrandMarquee";
 import HotRightNowSection from "./Components/Sections/HotRightNowSection";
 import MostLovedSection from "./Components/Sections/MostLovedSection";
 import RecommendedForYouSection from "./Components/Sections/RecommendedForYouSection";
@@ -51,29 +42,6 @@ import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 import GlobalCommandPalette from "../../../Components/GlobalCommandPalette";
 import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-
-// ─── Skeleton loader ──────────────────────────────────────────────────────────
-
-// ─── Section components (each owns its hooks) ─────────────────────────────────
-
-// ─── Back to Top ──────────────────────────────────────────────────────────────
-
-// ─── Deal of the Day ──────────────────────────────────────────────────────────
-
-// ─── Auto-scroll product strip (infinite loop) ────────────────────────────────
-
-// ─── Bento Product Grid ───────────────────────────────────────────────────────
-
-// ─── Recently Viewed (tag-filtered grid) ──────────────────────────────────────
-
-// ─── Lookbook / Style Guide Section ──────────────────────────────────────────
-
-// ─── Trust & Guarantee Strip ──────────────────────────────────────────────────
-
-// ─── Recently Trending Tags ───────────────────────────────────────────────────
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {

@@ -14,7 +14,7 @@ export function StoreHeader({ storeInfo, colors }) {
   return (
     <div className="flex items-start text-xs">
       {/* LEFT SIDE */}
-      <div className="flex items-start gap-2 min-w-0">
+      <div className="flex items-start gap-2 min-w-0 items-center">
         {/* Logo */}
         {storeInfo?.store_logo && (
           <img
@@ -52,7 +52,7 @@ export function StoreHeader({ storeInfo, colors }) {
       {/* RIGHT SIDE (BADGES ONLY IF EXIST) */}
       {hasBadges && (
         <div className="ml-auto flex items-center shrink-0">
-          <UserBadges badges={storeInfo.badges} compact />
+          <UserBadges badges={storeInfo.badges} compact size="sm"/>
         </div>
       )}
     </div>

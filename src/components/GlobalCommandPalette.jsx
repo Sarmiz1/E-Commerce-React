@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAllProducts } from "../Features/Product/Hooks/useProducts"; 
+import { useAllProducts } from "../Hooks/product/useProducts"; 
 import { useTheme } from "../Context/theme/ThemeContext"; 
 import { formatMoneyCents } from "../Utils/formatMoneyCents";
 
