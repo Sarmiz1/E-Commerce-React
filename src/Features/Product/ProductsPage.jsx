@@ -31,6 +31,7 @@ import { PAGE_SIZE, AD_INTERVAL, SORT_OPTIONS, CATEGORIES } from "./constants";
 
 // Extracted Components & Hooks
 import { PG_STYLES } from "./Styles/ProductsPageStyles";
+import CategoryHeroLinks from "./Components/CategoryHeroLinks";
 import InlineAd from "./Components/InlineAd";
 import ViewMoreBtn from "./Components/ViewMoreBtn";
 import CompareModal from "./Components/CompareModal";
@@ -106,6 +107,9 @@ export default function ProductsPage() {
       {!isLoading && allProducts.length > 0 && (
         <LiveTicker products={allProducts} />
       )}
+
+      {/* Hero Links for Categories */}
+      <CategoryHeroLinks />
 
       <div
         className="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between border-b"
