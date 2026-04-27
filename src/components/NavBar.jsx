@@ -667,12 +667,12 @@ const SEARCH_CATEGORIES = [
 
 // Mega Content Ctegory
 const megaContentCategory = [
-  { label: "Women's", emoji: "👗", color: "from-rose-400 to-pink-500" },
-  { label: "Men's", emoji: "👔", color: "from-sky-400 to-blue-500" },
-  { label: "Bags", emoji: "👜", color: "from-amber-400 to-orange-500" },
-  { label: "Watches", emoji: "⌚", color: "from-emerald-400 to-teal-500" },
-  { label: "Shoes", emoji: "👠", color: "from-violet-400 to-purple-500" },
-  { label: "Beauty", emoji: "🧴", color: "from-pink-400 to-rose-500" },
+  { label: "Women's", emoji: "👗", color: "from-rose-400 to-pink-500", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=200&h=200" },
+  { label: "Men's", emoji: "👔", color: "from-sky-400 to-blue-500", image: "https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&q=80&w=200&h=200" },
+  { label: "Bags", emoji: "👜", color: "from-amber-400 to-orange-500", image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=200&h=200" },
+  { label: "Watches", emoji: "⌚", color: "from-emerald-400 to-teal-500", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&q=80&w=200&h=200" },
+  { label: "Shoes", emoji: "👠", color: "from-violet-400 to-purple-500", image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=200&h=200" },
+  { label: "Beauty", emoji: "🧴", color: "from-pink-400 to-rose-500", image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=200&h=200" },
 ]
 
 // Special offers
@@ -1774,10 +1774,12 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                       <motion.button key={cat.label}
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.05 }}
                         onClick={() => { navigate("/products"); setMobileOpen(false); }}
-                        className={`bg-gradient-to-br ${cat.color} text-white p-4 rounded-2xl text-left flex flex-col gap-1`}
+                        className="relative overflow-hidden text-white p-4 rounded-2xl text-left flex flex-col gap-1 group"
                       >
-                        <span className="text-2xl">{cat.emoji}</span>
-                        <span className="font-bold text-sm">{cat.label}</span>
+                        <img src={cat.image} alt={cat.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors duration-300" />
+                        <span className="relative z-10 text-2xl">{cat.emoji}</span>
+                        <span className="relative z-10 font-bold text-sm drop-shadow-md">{cat.label}</span>
                       </motion.button>
                     ))}
                   </div>
