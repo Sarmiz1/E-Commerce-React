@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import ModernNavbar from "../../../Components/ModernNavbar";
+import ModernNavbar from "../../../../Components/ModernNavbar";
 import Section1_Hero from "./Components/Section1_Hero";
 import Section2_PainClock from "./Components/Section2_PainClock";
 import Section3_Dream from "./Components/Section3_Dream";

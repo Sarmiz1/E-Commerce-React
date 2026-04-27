@@ -18,7 +18,7 @@ import TradeLayout from "../Layout/TradeLayout";
 import Navbar from "../Components/Navbar";
 
 // ─── Core Pages ───────────────────────────────────────────────────────────────
-import HomePage from "../Features/Home/HomePage/HomePage";
+import HomePage from "../Features/HomePage/HomePage";
 import ProductsPage from "../Features/Product/ProductsPage";
 import TrackingPage from "../Features/Orders/Tracking/TrackingPage";
 import ProductDetail from "../Features/Product/ProductDetails/ProductDetail";
