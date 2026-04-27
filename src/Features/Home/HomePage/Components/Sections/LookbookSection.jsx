@@ -4,7 +4,7 @@ import { useTheme } from "../../../../../Context/theme/ThemeContext";
 import ProductCard from "../../../../../Components/Ui/ProductCard";
 
 export default function LookbookSection({ products, isLoading }) {
-  const { isDark, colors } = useTheme();
+  const { isDark } = useTheme();
   const [activeProduct, setActiveProduct] = useState(null);
 
   if (isLoading || !products || products.length < 3) return null;

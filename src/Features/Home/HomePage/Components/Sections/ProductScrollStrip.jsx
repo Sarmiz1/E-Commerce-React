@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../../../../../Utils/formatMoneyCents";
 import { CATEGORIES } from "../../Data/categories";
 import { BRANDS } from "../../Data/brands";
 import { PERKS } from "../../Data/perks";
@@ -26,7 +25,6 @@ export default function ProductScrollStrip({ products, isLoading, title, label }
   const startX = useRef(0);
   const currentX = useRef(0);
   const dragStartX = useRef(0);
-  const animRef = useRef(null);
   const speed = useRef(0.6); // px per frame
 
   // Auto-scroll
