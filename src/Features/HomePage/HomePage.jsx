@@ -41,6 +41,7 @@ import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
 import GlobalCommandPalette from "../../Components/GlobalCommandPalette";
 import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
+import SEO from "../../Components/SEO";
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -94,6 +95,11 @@ export default function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
+      <SEO 
+        title="WooSho | Premium Fashion & Lifestyle E-Commerce"
+        description="Discover exclusive drops, premium brands, and curated lifestyle collections at WooSho. Elevate your wardrobe with our latest arrivals and flash deals."
+        keywords="WooSho, premium fashion, luxury streetwear, exclusive drops, curated collections, lifestyle, online marketplace, e-commerce"
+      />
       <GlobalCommandPalette />
       <Navbar />
       <style>{STYLES}</style>
