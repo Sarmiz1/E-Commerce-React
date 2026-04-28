@@ -188,6 +188,7 @@ export function UserBadges({ badges = [], compact = false, size = "md" }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+      <style>{BADGE_CSS}</style>
       {visible.map((type, i) => (
         <Badge key={type} type={type} size={size} delay={i * 60} />
       ))}

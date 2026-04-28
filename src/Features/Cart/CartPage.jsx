@@ -52,9 +52,6 @@ import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import ProductCard from "../../Components/Ui/ProductCard";
 
-// Mocked Cart removed
-// import { mockedCart } from "../../Data/mockedCart";
-
 
 gsap.registerPlugin(ScrollTrigger);
 

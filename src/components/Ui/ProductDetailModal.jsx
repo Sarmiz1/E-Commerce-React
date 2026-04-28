@@ -22,6 +22,8 @@ import { useSizeGuide } from "../../Hooks/product/useSizeGuide";
 import { getStoreInfo } from "../../Utils/getStoreInfo";
 import { StoreHeader } from "./StoreHeader";
 import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
+import { useProductVariants } from "../../Hooks/useProductVariants";
+import { getProductCategory } from "../../Features/Product/ProductDetails/Utils/productHelpers";
 
 const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   const {
@@ -149,6 +151,10 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
 
   // STORE INFO
   const storeInfo = getStoreInfo(product);
+  
+  // Dynamic variants via shared hook
+  const category = useMemo(() => getProductCategory(product?.keywords || []), [product?.keywords]);
+  const { availableColors, availableSizes } = useProductVariants(product, category);
 
   return (
     <motion.div
@@ -366,22 +372,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                       )}
                     </p>
                     <div className="flex flex-wrap gap-3">
-                      {(product?.product_variants
-                        ? Array.from(
-                            new Set(
-                              product.product_variants
-                                .map((v) => v.color)
-                                .filter(Boolean),
-                            ),
-                          ).map((c) => ({
-                            label: c,
-                            hex: COLOR_KEYWORDS[c.toLowerCase()] || "#ccc",
-                          }))
-                        : [
-                            { hex: "#1a1a2e", label: "Midnight" },
-                            { hex: "#f8fafc", label: "Silver" },
-                          ]
-                      ).map((col) => (
+                      {availableColors.map((col) => (
                         <button
                           key={col.label}
                           type="button"

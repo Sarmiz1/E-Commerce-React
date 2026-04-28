@@ -29,7 +29,6 @@ import { OrderAPI } from "../../api/orderApi";
 
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
-// import { mockedCart } from "../../Data/mockedCart";
 
 gsap.registerPlugin(ScrollTrigger);
 

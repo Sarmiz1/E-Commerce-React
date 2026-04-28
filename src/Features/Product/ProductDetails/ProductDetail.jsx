@@ -23,6 +23,7 @@ import { ThumbnailGallery } from "./Components/ThumbnailGallery";
 import { ColorSelector } from "./Components/ColorSelector";
 import { SizeSelector } from "./Components/SizeSelector";
 import { AddToCartPanel } from "./Components/AddToCartPanel";
+import { COLOR_KEYWORDS } from "../Utils/constants";
 import { ReviewsSection } from "./Components/ReviewsSection";
 import { ProductTabs } from "./Components/ProductTabs";
 import { PriceAlertModal } from "./Components/PriceAlertModal";
@@ -34,12 +35,17 @@ import {
   SIZE_MAP,
   getProductCategory,
 } from "./Utils/productHelpers";
+import { getStoreInfo } from "../../../Utils/getStoreInfo";
+import { StoreHeader } from "../../../Components/Ui/StoreHeader";
+import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useProductVariants } from "../../../Hooks/useProductVariants";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function ProductDetail() {
   const { productSlug } = useParams();
   const navigate = useNavigate();
+  const { colors } = useTheme();
 
   const { data: product, isFetchingProduct } = useProductBySlug(productSlug, {
     enabled: !!productSlug,
@@ -116,8 +122,9 @@ export default function ProductDetail() {
   if (!product) return <ProductNotFound />;
 
   const category = getProductCategory(product.keywords);
-  const availableColors = PRODUCT_COLORS[category] || PRODUCT_COLORS.default;
-  const availableSizes = SIZE_MAP[category] || null;
+  
+  // Use shared hook for variants
+  const { availableColors, availableSizes } = useProductVariants(product, category);
   const sku =
     "SE-" +
     String(product.id || "")
@@ -126,6 +133,15 @@ export default function ProductDetail() {
   const onSale = product.price_cents < 2000;
   const origPrice = onSale ? Math.round(product.price_cents * 1.35) : null;
   const lowStock = (product.rating_count || 0) < 50;
+  const storeInfo = getStoreInfo(product);
+
+  // Map theme colors to StoreHeader requirements
+  const storeHeaderColors = {
+    text: {
+      tertiary: "var(--mist)",
+      accent: "var(--gold)"
+    }
+  };
 
   return (
     <div
@@ -406,27 +422,9 @@ export default function ProductDetail() {
                   </h1>
                 </div>
 
-                {/* Seller */}
+                {/* Seller / Store Header */}
                 <div className="pd-r">
-                  <span
-                    className="text-xs"
-                    style={{
-                      color: "var(--mist)",
-                      fontFamily: "Jost,sans-serif",
-                    }}
-                  >
-                    Sold by{" "}
-                  </span>
-                  <Link
-                    to="/seller/woosho-store"
-                    className="text-xs font-medium pd-link-hover"
-                    style={{
-                      color: "var(--gold)",
-                      fontFamily: "Jost,sans-serif",
-                    }}
-                  >
-                    WooSho Atelier
-                  </Link>
+                  <StoreHeader storeInfo={storeInfo} colors={storeHeaderColors} />
                 </div>
 
                 {/* Rating */}

@@ -465,8 +465,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useRegisterCartIcon } from "../Context/cart/CartAnimationContext";
 // import { getData } from "../api/apiClients";
 import { formatMoneyCents } from "../Utils/formatMoneyCents";
-import { useCartState } from "../Context/cart/CartContext";
-import { mockedCart } from "../Data/mockedCart";
+import { useCartState, useCartActions } from "../Context/cart/CartContext";
 import { Logo } from "./Ui/Logo";
 import { ThemeToggle } from "./Ui/ThemeToggle";
 
@@ -925,12 +924,9 @@ function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave })
 }
 
 // ─── Main Navbar ──────────────────────────────────────────────────────────────
-export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIconRef }) {
-
-  //+++++++++++++++++++++++++++++++++++++++++++++++
-  //        FAKE CART
-  const cart = mockedCart
-  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+export default function Navbar({ cartIconRef: externalCartIconRef }) {
+  const { cart, cartCount } = useCartState();
+  const { removeItem } = useCartActions();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -956,10 +952,6 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
   const [accountTip, setAccountTip] = useState(false);
   const [searchTip, setSearchTip] = useState(false);
 
-  // Read cart count from context (authoritative) with prop as fallback.
-  // This ensures the badge updates even when the parent forgets to pass cart.
-  const { cart: ctxCart, cartCount: ctxCartCount } = useCartState();
-  const cartCount = ctxCartCount ?? (ctxCart ?? cart).reduce((a, i) => a + (i.quantity || 0), 0);
   const prevCartCount = useRef(cartCount);
   const searchRef = useRef(null);
   const cartBtnRef = useRef(null);
@@ -1341,11 +1333,17 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
             {/* Cart bag — with hover preview */}
             <div 
               className="relative group"
-              onMouseEnter={() => setCartHover(true)}
-              onMouseLeave={() => setCartHover(false)}
+              onMouseEnter={() => { if (window.innerWidth >= 768) setCartHover(true); }}
+              onMouseLeave={() => { if (window.innerWidth >= 768) setCartHover(false); }}
             >
               <button
                 ref={cartRef}
+                onClick={(e) => {
+                  if (window.innerWidth < 768) {
+                    e.preventDefault();
+                    setCartHover(!cartHover);
+                  }
+                }}
                 title={cartCount > 0 ? `Shopping bag · ${cartCount} item${cartCount !== 1 ? "s" : ""}` : "Shopping bag · Empty"}
                 className={`nb-icon-btn transition-all duration-200 ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"}`}
                 aria-label={`Shopping bag, ${cartCount} items`}
@@ -1365,8 +1363,8 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                 </AnimatePresence>
               </button>
 
-              {/* Cart hover panel — desktop only */}
-              <div className="hidden md:block">
+              {/* Cart hover panel — Now responsive for mobile and desktop */}
+              <div>
                 <AnimatePresence>
                   {cartHover && (
                     <motion.div
@@ -1376,12 +1374,12 @@ export default function Navbar({ onRemoveFromCart, cartIconRef: externalCartIcon
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                       style={{ transformOrigin: "top right" }}
-                      className="absolute top-full right-0 pt-[14px] z-50 w-[360px]"
+                      className="absolute top-full right-0 pt-[14px] z-50 w-[calc(100vw-24px)] md:w-[360px] max-w-[360px]"
                     >
                       <div className="w-full max-h-[480px] rounded-[24px] overflow-hidden bg-white/98 shadow-[0_24px_80px_rgba(0,0,0,0.18),0_4px_16px_rgba(0,0,0,0.08)] border border-black/5 backdrop-blur-[24px] flex flex-col">
                         <CartPreview
                           cart={cart}
-                          onRemove={onRemoveFromCart || (() => { })}
+                          onRemove={removeItem}
                           onNavigate={(href) => { navigate(href); setCartHover(false); }}
                           formatMoney={formatMoneyCents}
                         />
