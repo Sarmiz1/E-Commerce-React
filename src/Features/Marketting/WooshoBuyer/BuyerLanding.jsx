@@ -1,16 +1,18 @@
-import React from "react";
-import HeroSection from "./sections/HeroSection";
-import ProblemSection from "./sections/ProblemSection";
-import SolutionSection from "./sections/SolutionSection";
-import SmartFeaturesSection from "./sections/SmartFeaturesSection";
-import CategoriesSection from "./sections/CategoriesSection";
-import SocialProofSection from "./sections/SocialProofSection";
-import TrustSection from "./sections/TrustSection";
-import FinalCtaSection from "./sections/FinalCtaSection";
-import ShopSmartSection from "./sections/ShopSmartSection";
-import AllInOneAppSection from "./sections/AllInOneAppSection";
-import ModernNavbar from "../../../Components/ModernNavbar";
-import SEO from "../../../Components/SEO";
+import React, { Suspense, lazy } from "react";
+const HeroSection = lazy(() => import("./sections/HeroSection"));
+const ProblemSection = lazy(() => import("./sections/ProblemSection"));
+const SolutionSection = lazy(() => import("./sections/SolutionSection"));
+const SmartFeaturesSection = lazy(() => import("./sections/SmartFeaturesSection"));
+const CategoriesSection = lazy(() => import("./sections/CategoriesSection"));
+const SocialProofSection = lazy(() => import("./sections/SocialProofSection"));
+const TrustSection = lazy(() => import("./sections/TrustSection"));
+const FinalCtaSection = lazy(() => import("./sections/FinalCtaSection"));
+const ShopSmartSection = lazy(() => import("./sections/ShopSmartSection"));
+const AllInOneAppSection = lazy(() => import("./sections/AllInOneAppSection"));
+const ModernNavbar = lazy(() => import("../../../Components/ModernNavbar"));
+const SEO = lazy(() => import("../../../Components/SEO"));
+const InteractiveProductDemo = lazy(() => import("../Components/InteractiveProductDemo"));
+const LeadCaptureForm = lazy(() => import("../Components/LeadCaptureForm"));
 
 const links = [
   { label: "Shop", href: "/products" },
@@ -38,7 +40,7 @@ const links = [
 const BuyerLanding = () => {
 
   return (
-    <>
+    <Suspense fallback={<div className="h-screen w-full flex items-center justify-center text-gray-500 bg-white">Loading WooSho Buyer...</div>}>
       <SEO 
         title="WooSho Buyer - Smart Shopping, Curated for You"
         description="Experience AI-curated shopping with WooSho. Find exactly what you need with our intelligent shopping assistant."
@@ -61,6 +63,8 @@ const BuyerLanding = () => {
           <SmartFeaturesSection />
         </div>
 
+        <InteractiveProductDemo />
+
         <div id="shop-smart">
           <ShopSmartSection />
         </div>
@@ -78,11 +82,22 @@ const BuyerLanding = () => {
           <TrustSection />
         </div>
 
+        <section className="bg-slate-50 px-6 py-20">
+          <div className="mx-auto max-w-3xl">
+            <LeadCaptureForm
+              audience="buyer"
+              title="Get smarter shopping drops"
+              description="Join the buyer list for launch drops, personalized collections, and AI shopping updates."
+              cta="Join Buyer List"
+            />
+          </div>
+        </section>
+
         <div id="cta">
           <FinalCtaSection />
         </div>
       </div>
-    </>
+    </Suspense>
   );
 };
 

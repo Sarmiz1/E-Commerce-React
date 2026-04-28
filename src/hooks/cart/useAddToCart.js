@@ -4,6 +4,7 @@ import { useAuth } from "../../Context/auth/AuthContext";
 import { useCartState } from "../../Context/cart/CartContext";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
+import { trackEvent } from "../../Utils/analytics";
 
 /**
  * useAddToCart
@@ -84,7 +85,18 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
       return result;
     },
 
-    onSuccess: () => {
+    onSuccess: (_data, variables = {}) => {
+      const finalProductId = variables.overrideProductId ?? productId;
+      const finalVariantId = variables.overrideOpts?.variantId ?? variantId;
+      const finalQuantity = variables.overrideOpts?.quantity ?? quantity;
+
+      trackEvent("add_to_cart", {
+        productId: finalProductId,
+        variantId: finalVariantId,
+        quantity: finalQuantity,
+        userId: user?.id || null,
+      });
+
       // Show success state for 1.5s
       setSuccess(true);
       setTimeout(() => setSuccess(false), 1500);
@@ -97,6 +109,8 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
       }
     },
   });
+
+  const { mutate, isPending, error, reset } = mutation;
 
   const handleAdd = useCallback(
     (eOrProductId, opts) => {
@@ -111,19 +125,19 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
         overrideOpts = opts;
       }
 
-      mutation.mutate({ overrideProductId, overrideOpts });
+      mutate({ overrideProductId, overrideOpts });
     },
-    [mutation]
+    [mutate]
   );
 
   return {
     handleAdd,
     mutate: handleAdd,  // alias for components that destructure `mutate`
-    loading: mutation.isPending,
-    isPending: mutation.isPending,
+    loading: isPending,
+    isPending,
     success,
     isSuccess: success,
-    error: mutation.error,
-    reset: mutation.reset,
+    error,
+    reset,
   };
 }

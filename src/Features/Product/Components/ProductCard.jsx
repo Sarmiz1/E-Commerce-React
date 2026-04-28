@@ -8,6 +8,7 @@ import { IconStar } from "../../../Components/Icons/IconStar";
 import { getProductImages } from "../../../Utils/getProductImages"; 
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 import CompareButton from "../../../Components/Ui/CompareButton";
+import { prefetchProductOnHover } from "../../../Utils/prefetchProductOnHover";
 
 const checkDate = (product) => Date.now() - new Date(product?.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
 
@@ -30,15 +31,16 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
   }, [maxImages]);
 
   // ── Parallax shadow ──
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const cardRef = useRef(null);
 
   const handleMouseEnter = useCallback(() => {
+    if (product.slug) prefetchProductOnHover(product.slug);
     if (product.video && videoRef.current) {
       setShowVid(true);
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => { });
     }
-  }, [product.video]);
+  }, [product.slug, product.video]);
 
   const handleMouseLeave = useCallback(() => {
     if (product.video && videoRef.current) {
@@ -46,15 +48,20 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
       videoRef.current.currentTime = 0;
       setShowVid(false);
     }
-    setMousePos({ x: 0, y: 0 });
+    if (cardRef.current) {
+      cardRef.current.style.setProperty("--mx", "0");
+      cardRef.current.style.setProperty("--my", "0");
+    }
     setActiveImgIdx(0);
   }, [product.video]);
 
   const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setMousePos({ x, y });
+    cardRef.current.style.setProperty("--mx", x);
+    cardRef.current.style.setProperty("--my", y);
   };
 
   const onSale = product.price_cents < 2000;
@@ -63,6 +70,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
   return (
     <motion.div
       layout
+      ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
@@ -70,14 +78,22 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
       style={{
         background: colors.surface.secondary,
         border: `1px solid ${colors.border.subtle}`,
-        boxShadow: mousePos.x !== 0 
-          ? `${-mousePos.x * 15}px ${-mousePos.y * 15}px 30px rgba(0,0,0,${isDark ? 0.4 : 0.1})` 
-          : isDark ? "none" : "0 1px 4px rgba(0,0,0,0.04)",
-        transform: mousePos.x !== 0 
-          ? `perspective(1000px) rotateX(${mousePos.y * -5}deg) rotateY(${mousePos.x * 5}deg) translateY(-4px)` 
-          : "none"
+        "--mx": 0,
+        "--my": 0,
+        boxShadow: "var(--card-shadow)",
+        transform: "var(--card-transform)",
       }}
     >
+      <style>{`
+        .pg-card-enter {
+          --card-shadow: ${isDark ? "none" : "0 1px 4px rgba(0,0,0,0.04)"};
+          --card-transform: none;
+        }
+        .pg-card-enter:hover {
+          --card-shadow: calc(var(--mx) * -15px) calc(var(--my) * -15px) 30px rgba(0,0,0,${isDark ? 0.4 : 0.1});
+          --card-transform: perspective(1000px) rotateX(calc(var(--my) * -5deg)) rotateY(calc(var(--mx) * 5deg)) translateY(-4px);
+        }
+      `}</style>
       {/* Image area with hover carousel */}
       <Link 
         to={`/products/${product.slug || product.id}`} 
@@ -144,7 +160,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
 
         {/* Wishlist heart */}
         <WishlistHeart 
-          onToggle={(status) => console.log(`Product ${product.id} liked: ${status}`)}
+          onToggle={() => {}}
         />
 
         {/* Compare button */}

@@ -37,6 +37,7 @@ export function ActiveFilterChips({ filters, selectedCategory, setFilters, setSe
   if (filters.rating !== null) chips.push({ id: "rating", label: `${filters.rating}+★` });
   if (filters.inStock) chips.push({ id: "stock", label: "In Stock" });
   if (filters.onSale) chips.push({ id: "sale", label: "On Sale" });
+  if (filters.search?.trim()) chips.push({ id: "search", label: `"${filters.search.trim()}"` });
   if (filters.budget < maxBudget) chips.push({ id: "budget", label: `< ${formatMoneyCents(filters.budget)}` });
   
   if (!chips.length) return null;
@@ -47,6 +48,7 @@ export function ActiveFilterChips({ filters, selectedCategory, setFilters, setSe
     if (id === "rating") setFilters((f) => ({ ...f, rating: null }));
     if (id === "stock") setFilters((f) => ({ ...f, inStock: false }));
     if (id === "sale") setFilters((f) => ({ ...f, onSale: false }));
+    if (id === "search") setFilters((f) => ({ ...f, search: "" }));
     if (id === "budget") setFilters((f) => ({ ...f, budget: maxBudget }));
   };
 
@@ -153,7 +155,7 @@ const FilterSidebar = React.memo(function FilterSidebar({ filters, setFilters, m
   const { colors, isDark } = useTheme();
 
   const resetAll = useCallback(() => {
-    setFilters({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget });
+    setFilters({ sort: "default", rating: null, inStock: false, onSale: false, budget: maxBudget, search: "" });
     setSelectedCategory("All");
   }, [maxBudget, setFilters, setSelectedCategory]);
 
@@ -163,6 +165,7 @@ const FilterSidebar = React.memo(function FilterSidebar({ filters, setFilters, m
     (filters.inStock ? 1 : 0) +
     (filters.onSale ? 1 : 0) +
     (filters.sort !== "default" ? 1 : 0) +
+    (filters.search?.trim() ? 1 : 0) +
     (filters.budget < maxBudget ? 1 : 0);
 
   return (

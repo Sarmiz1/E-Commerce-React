@@ -13,6 +13,7 @@ export const ACTIVITY_TEMPLATES = [
 
 export const SORT_OPTIONS = [
   { value: "default", label: "Best Match" },
+  { value: "recommended", label: "Recommended" },
   { value: "price-asc", label: "Price: Low" },
   { value: "price-desc", label: "Price: High" },
   { value: "rating", label: "Top Rated" },

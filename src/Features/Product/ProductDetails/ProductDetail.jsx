@@ -1,27 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   useProductBySlug,
   useProductRecommendations,
 } from "../../../Hooks/product/useProducts";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { IconSpinner } from "../../../Components/Icons/IconSpinner";
 import { useProductDetail } from "./Hooks/useProductDetail";
 import { DETAIL_STYLES } from "./Styles/DetailStyles";
-import { StarRating } from "./Components/StarRating";
 import { ThumbnailGallery } from "./Components/ThumbnailGallery";
 import { AddToCartPanel } from "./Components/AddToCartPanel";
 import { ReviewsSection } from "./Components/ReviewsSection";
 import { ProductTabs } from "./Components/ProductTabs";
 import { PriceAlertModal } from "./Components/PriceAlertModal";
 import { PredictivePairings } from "./Components/PredictivePairings";
+import { StickyATCBar } from "./Components/StickyATCBar";
+import ProductQAndA from "./Components/ProductQAndA";
+import DetailPurchaseIntel from "./Components/DetailPurchaseIntel";
 import { ProductNotFound } from "./Components/ProductNotFound";
 import { getStoreInfo } from "../../../Utils/getStoreInfo";
-import { useTheme } from "../../../Context/theme/ThemeContext";
 import { useProductInventory } from "../../../Hooks/useProductInventory";
 import { hasPriceAlert } from "./Utils/productHelpers";
+import { useRecentlyViewed } from "../Hooks/useRecentlyViewed";
+import { useAnalyticsEvent } from "../../../Hooks/useAnalyticsEvent";
+import SEO from "../../../Components/SEO";
 
 // Atomic Details Components
 import DetailBreadcrumb from "./Components/DetailBreadcrumb";
@@ -35,8 +39,8 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function ProductDetail() {
   const { productSlug } = useParams();
-  const navigate = useNavigate();
-  const { colors } = useTheme();
+  const { addProduct: addRecentlyViewed } = useRecentlyViewed();
+  const trackEvent = useAnalyticsEvent();
 
   const { data: product, isFetchingProduct } = useProductBySlug(productSlug, {
     enabled: !!productSlug,
@@ -84,6 +88,12 @@ export default function ProductDetail() {
     return () => obs.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!product) return;
+    addRecentlyViewed(product);
+    trackEvent("product_detail_viewed", { productId: product.id });
+  }, [addRecentlyViewed, product, trackEvent]);
+
   const imageRef = useRef(null);
   const rightRef = useRef(null);
 
@@ -110,8 +120,6 @@ export default function ProductDetail() {
     return () => tl.kill();
   }, [product]);
 
-  if (!product) return <ProductNotFound />;
-
   // Global product inventory logic (Colors, Sizes, Systems)
   const {
     availableColors,
@@ -122,6 +130,9 @@ export default function ProductDetail() {
     hasSizes,
     productType
   } = useProductInventory(product);
+
+  if (!product) return <ProductNotFound />;
+
   const sku =
     "SE-" +
     String(product.id || "")
@@ -131,6 +142,31 @@ export default function ProductDetail() {
   const origPrice = onSale ? Math.round(product.price_cents * 1.35) : null;
   const lowStock = (product.rating_count || 0) < 50;
   const storeInfo = getStoreInfo(product);
+  const variantId = product.product_variants?.[0]?.id || product.variants?.[0]?.id || null;
+  const productUrl = typeof window !== "undefined" ? window.location.href : undefined;
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    image: product.image,
+    sku,
+    brand: {
+      "@type": "Brand",
+      name: storeInfo.name || "WooSho",
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: product.rating_stars || 0,
+      reviewCount: product.rating_count || reviews.length || 1,
+    },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "USD",
+      price: ((product.price_cents || 0) / 100).toFixed(2),
+      availability: "https://schema.org/InStock",
+      url: productUrl,
+    },
+  };
 
   // Map theme colors to StoreHeader requirements
   const storeHeaderColors = {
@@ -146,6 +182,13 @@ export default function ProductDetail() {
       data-theme={isDark ? "dark" : "light"}
       style={{ background: "var(--pd-page)", color: "var(--cream)" }}
     >
+      <SEO
+        title={`${product.name} | WooSho`}
+        description={`Shop ${product.name} from ${storeInfo.name || "WooSho"} with reviews, product details, and personalized recommendations.`}
+        image={product.image}
+        type="product"
+        schema={productSchema}
+      />
       <style>{DETAIL_STYLES}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
@@ -175,6 +218,7 @@ export default function ProductDetail() {
                 onAddReview={handleAddReview}
                 user={user}
               />
+              <ProductQAndA product={product} />
             </div>
 
             {/* RIGHT: Sticky info + ATC panel */}
@@ -253,6 +297,14 @@ export default function ProductDetail() {
                 {/* Reassurance */}
                 <DetailReassurance />
 
+                <DetailPurchaseIntel
+                  product={product}
+                  selectedColor={selectedColor}
+                  selectedSize={selectedSize}
+                  hasSizes={hasSizes}
+                  lowStock={lowStock}
+                />
+
                 <div className="pd-r pd-rule" />
 
                 {/* Tabs */}
@@ -285,7 +337,7 @@ export default function ProductDetail() {
       </AnimatePresence>
 
       {/* ── STICKY ATC BAR ───────────────────────────────────────────── */}
-      {/* <StickyATCBar product={product} productId={product.id} variantId={product.variants?.[0]?.id || null} visible={atcOutOfView} /> */}
+      <StickyATCBar product={product} productId={product.id} variantId={variantId} visible={atcOutOfView} />
     </div>
   );
 }

@@ -1,24 +1,25 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, Suspense, lazy } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ModernNavbar from "../../../Components/ModernNavbar";
 import SEO from "../../../Components/SEO";
-import Section1_Hero from "./Components/Section1_Hero";
-import Section2_PainClock from "./Components/Section2_PainClock";
-import Section3_Dream from "./Components/Section3_Dream";
-import Section4_Features from "./Components/Section4_Features";
-import Section5_DualAi from "./Components/Section5_DualAi";
-import Section6_Map from "./Components/Section6_Map";
-import Section7_Comparison from "./Components/Section7_Comparison";
-import Section8_Pricing from "./Components/Section8_Pricing";
-import Section9_Cta from "./Components/Section9_Cta";
-import PulseTicker from "./Components/PulseTicker";
 
-// ── New photo sections (Framer Motion — no GSAP) ──────────────
-import SectionA_Community from "./Components/SectionA_Community";
-import SectionB_Delivery from "./Components/SectionB_Delivery";
-import SectionC_SellerWin from "./Components/SectionC_SellerWin";
-// ─────────────────────────────────────────────────────────────
+// Lazy load sections for performance
+const Section1_Hero = lazy(() => import("./Components/Section1_Hero"));
+const Section2_PainClock = lazy(() => import("./Components/Section2_PainClock"));
+const Section3_Dream = lazy(() => import("./Components/Section3_Dream"));
+const Section4_Features = lazy(() => import("./Components/Section4_Features"));
+const Section5_DualAi = lazy(() => import("./Components/Section5_DualAi"));
+const Section6_Map = lazy(() => import("./Components/Section6_Map"));
+const Section7_Comparison = lazy(() => import("./Components/Section7_Comparison"));
+const Section8_Pricing = lazy(() => import("./Components/Section8_Pricing"));
+const Section9_Cta = lazy(() => import("./Components/Section9_Cta"));
+const SectionA_Community = lazy(() => import("./Components/SectionA_Community"));
+const SectionB_Delivery = lazy(() => import("./Components/SectionB_Delivery"));
+const SectionC_SellerWin = lazy(() => import("./Components/SectionC_SellerWin"));
+const PulseTicker = lazy(() => import("./Components/PulseTicker"));
+const LeadCaptureForm = lazy(() => import("../Components/LeadCaptureForm"));
+const SellerRoiCalculator = lazy(() => import("../Components/SellerRoiCalculator"));
 
 // ─── Single registration point for the entire page ───────────
 // Do NOT call gsap.registerPlugin(ScrollTrigger) in any child component.
@@ -51,6 +52,16 @@ const links = [
 export default function SellerLanding() {
   const mainRef = useRef(null);
 
+  useEffect(() => {
+    // Force background and ensure cleanup
+    const originalBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = "#0A0A0A";
+    
+    return () => {
+      document.body.style.backgroundColor = originalBg;
+    };
+  }, []);
+
   return (
     <div
       ref={mainRef}
@@ -64,85 +75,84 @@ export default function SellerLanding() {
       />
 
       <ModernNavbar navLinks={links} pageView="sell" />
-      <style>{`body { background-color: #0A0A0A !important; }`}</style>
 
-      {/* ── 1. Hero ─────────────────────────────────────────── */}
-      <section id="seller-hero" className="seller-section min-h-screen w-full relative">
-        <Section1_Hero />
-      </section>
+      <Suspense fallback={<div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-violet-500/50">Loading Experience...</div>}>
+        {/* ── 1. Hero ─────────────────────────────────────────── */}
+        <section id="seller-hero" className="seller-section min-h-screen w-full relative">
+          <Section1_Hero />
+        </section>
 
-      {/* ── 2. Pain Clock ───────────────────────────────────── */}
-      <section id="seller-tax" className="seller-section min-h-screen w-full relative">
-        <Section2_PainClock />
-      </section>
+        {/* ── 2. Pain Clock ───────────────────────────────────── */}
+        <section id="seller-tax" className="seller-section min-h-screen w-full relative">
+          <Section2_PainClock />
+        </section>
 
-      {/* ── 3. Dream ────────────────────────────────────────── */}
-      <section id="seller-dream" className="seller-section min-h-screen w-full relative">
-        <Section3_Dream />
-      </section>
+        {/* ── 3. Dream ────────────────────────────────────────── */}
+        <section id="seller-dream" className="seller-section min-h-screen w-full relative">
+          <Section3_Dream />
+        </section>
 
-      {/* ── 4. Features ─────────────────────────────────────── */}
-      <section id="seller-features" className="seller-section min-h-screen w-full relative">
-        <Section4_Features />
-      </section>
+        {/* ── 4. Features ─────────────────────────────────────── */}
+        <section id="seller-features" className="seller-section min-h-screen w-full relative">
+          <Section4_Features />
+        </section>
 
-      {/* ── A. Community (NEW) ──────────────────────────────── */}
-      {/*
-          Placement rationale: right after Features, this section
-          backs up every feature claim with real human social proof.
-          Cialdini: Social Proof + Unity → "women like me are winning."
-      */}
-      <section id="seller-community" className="seller-section w-full relative">
-        <SectionA_Community />
-      </section>
+        {/* ── A. Community (NEW) ──────────────────────────────── */}
+        <section id="seller-community" className="seller-section w-full relative">
+          <SectionA_Community />
+        </section>
 
-      {/* ── 5. Dual AI ──────────────────────────────────────── */}
-      <section id="seller-dual-ai" className="seller-section min-h-screen w-full relative">
-        <Section5_DualAi />
-      </section>
+        {/* ── 5. Dual AI ──────────────────────────────────────── */}
+        <section id="seller-dual-ai" className="seller-section min-h-screen w-full relative">
+          <Section5_DualAi />
+        </section>
 
-      {/* ── 6. Map ──────────────────────────────────────────── */}
-      <section id="seller-map" className="seller-section min-h-screen w-full relative bg-black">
-        <Section6_Map />
-      </section>
+        {/* ── 6. Map ──────────────────────────────────────────── */}
+        <section id="seller-map" className="seller-section min-h-screen w-full relative bg-black">
+          <Section6_Map />
+        </section>
 
-      {/* ── B. Delivery (NEW) ───────────────────────────────── */}
-      {/*
-          Placement rationale: directly after Map — the map shows WHERE
-          we reach, the delivery truck shows HOW. Removes the #1 seller
-          objection: "who will deliver for me?"
-      */}
-      <section id="seller-delivery" className="seller-section w-full relative">
-        <SectionB_Delivery />
-      </section>
+        {/* ── B. Delivery (NEW) ───────────────────────────────── */}
+        <section id="seller-delivery" className="seller-section w-full relative">
+          <SectionB_Delivery />
+        </section>
 
-      {/* ── 7. Comparison ───────────────────────────────────── */}
-      <section id="seller-comparison" className="seller-section min-h-screen w-full relative">
-        <Section7_Comparison />
-      </section>
+        {/* ── 7. Comparison ───────────────────────────────────── */}
+        <section id="seller-comparison" className="seller-section min-h-screen w-full relative">
+          <Section7_Comparison />
+        </section>
 
-      {/* ── 8. Pricing ──────────────────────────────────────── */}
-      <section id="seller-pricing" className="seller-section min-h-screen w-full relative">
-        <Section8_Pricing />
-      </section>
+        {/* ── 8. Pricing ──────────────────────────────────────── */}
+        <section id="seller-pricing" className="seller-section min-h-screen w-full relative">
+          <Section8_Pricing />
+        </section>
 
-      {/* ── C. Seller Win (NEW) ─────────────────────────────── */}
-      {/*
-          Placement rationale: after Pricing, just before the CTA.
-          This is the final emotional bridge — buyer has seen features,
-          pricing, comparisons. Now they see THEMSELVES in the success
-          story. Dopamine spike right before the sign-up button.
-      */}
-      <section id="seller-win" className="seller-section w-full relative">
-        <SectionC_SellerWin />
-      </section>
+        <SellerRoiCalculator />
 
-      {/* ── 9. CTA ──────────────────────────────────────────── */}
-      <section id="seller-cta" className="seller-section min-h-screen w-full relative">
-        <Section9_Cta />
-      </section>
+        <section className="seller-section w-full bg-[#08080A] px-6 py-20">
+          <div className="mx-auto max-w-3xl">
+            <LeadCaptureForm
+              audience="seller"
+              title="Get seller launch access"
+              description="Join the seller list for onboarding, AI listing tools, and marketplace growth updates."
+              cta="Join Seller List"
+              dark
+            />
+          </div>
+        </section>
 
-      <PulseTicker />
+        {/* ── C. Seller Win (NEW) ─────────────────────────────── */}
+        <section id="seller-win" className="seller-section w-full relative">
+          <SectionC_SellerWin />
+        </section>
+
+        {/* ── 9. CTA ──────────────────────────────────────────── */}
+        <section id="seller-cta" className="seller-section min-h-screen w-full relative">
+          <Section9_Cta />
+        </section>
+
+        <PulseTicker />
+      </Suspense>
     </div>
   );
 }

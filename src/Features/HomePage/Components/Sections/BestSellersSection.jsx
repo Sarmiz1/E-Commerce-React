@@ -21,9 +21,6 @@ import QuickView from "../../../../Components/Ui/QuickView";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-export default function BestSellersSection({ products, isLoading }) {
-
-  console.log(products)
 
   const ref = useRef(null);
   useEffect(() => {
@@ -38,7 +35,6 @@ export default function BestSellersSection({ products, isLoading }) {
 
   const top = products[0];
   const rest = products.slice(1, 5);
-  console.log(top)
 
 
   return (
@@ -76,7 +72,7 @@ export default function BestSellersSection({ products, isLoading }) {
                   {/* Wishlist Button for #1 Item */}
                   <WishlistHeart 
                     className="absolute top-4 right-4" 
-                    onToggle={(s) => console.log(`BestSeller #1 liked: ${s}`)}
+                    onToggle={() => {}}
                   />
 
                   <div className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 text-xs font-black px-3 py-1.5 rounded-full">#1 BEST SELLER</div>

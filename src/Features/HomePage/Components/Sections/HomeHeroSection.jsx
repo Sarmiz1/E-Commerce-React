@@ -193,7 +193,6 @@ export default function HomeHeroSection({ heroFeatured }) {
                 {heroFeatured.rating_stars} · {heroFeatured.reviews || "2K"}{" "}
                 reviews
               </motion.div>
-              {console.log(heroFeatured)}
             </div>
           ) : (
             <div className="w-80 h-96 rounded-3xl bg-white/10 border border-white/20 backdrop-blur-sm" />

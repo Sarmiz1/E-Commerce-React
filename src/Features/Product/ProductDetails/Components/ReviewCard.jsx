@@ -1,15 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import gsap from 'gsap';
-import { Link } from 'react-router-dom';
-
-import { IconSpinner } from '../../../../Components/Icons/IconSpinner';
-import ProductCard from '../../../../Components/Ui/ProductCard';
-import { ErrorMessage } from '../../../../Components/ErrorMessage';
-import { 
-  BagIcon, HeartIcon, ShareIcon, ChevronLeft, ChevronRight, 
-  CheckIcon, SpinnerIcon, ShieldIcon, TruckIcon, RefreshIcon, 
-  BellIcon, CloseIcon, LockIcon 
-} from './Icons';
+import { motion } from 'framer-motion';
 import {  getAvatarGradient  } from '../Utils/productHelpers';
 
 // ─── ReviewCard ───────────────────────────────────────────────────────────────
@@ -35,6 +24,25 @@ export function ReviewCard({ review }) {
         <span className="text-[10px]" style={{ color: "var(--mist)", fontFamily: "Jost,sans-serif" }}>{review.date}</span>
       </div>
       <p className="text-sm leading-relaxed" style={{ color: "var(--silver)", fontFamily: "Jost,sans-serif" }}>{review.text}</p>
+      {(review.fit || review.quality) && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {review.fit && <span className="pd-chip px-2 py-1 rounded" style={{ color: "var(--gold)" }}>Fit: {review.fit}</span>}
+          {review.quality && <span className="pd-chip px-2 py-1 rounded" style={{ color: "var(--gold)" }}>Quality: {review.quality}</span>}
+        </div>
+      )}
+      {review.photos?.length > 0 && (
+        <div className="mt-3 flex gap-2">
+          {review.photos.slice(0, 3).map((src) => (
+            <img key={src} src={src} alt="" className="h-16 w-16 rounded-lg object-cover" />
+          ))}
+        </div>
+      )}
+      {review.sellerReply && (
+        <div className="mt-3 rounded-lg border border-white/5 bg-black/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: "var(--gold)" }}>Seller reply</p>
+          <p className="mt-1 text-sm leading-6" style={{ color: "var(--silver)" }}>{review.sellerReply}</p>
+        </div>
+      )}
     </motion.div>
   );
 }

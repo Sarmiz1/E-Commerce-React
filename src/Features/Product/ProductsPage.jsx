@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Context/theme/ThemeContext";
@@ -33,12 +32,14 @@ import CompareModal from "./Components/CompareModal";
 import StickyResultsBar from "./Components/StickyResultsBar";
 import RecentlyViewedStrip from "./Components/RecentlyViewedStrip";
 import { useProductsPageLogic } from "./Hooks/useProductsPageLogic";
+import { useAnalyticsEvent } from "../../Hooks/useAnalyticsEvent";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ProductsPage() {
   const { isDark, colors } = useTheme();
+  const trackEvent = useAnalyticsEvent();
 
   // Products
   const { data: allProducts = [], isLoading, isFetching } = useAllProducts();
@@ -63,7 +64,6 @@ export default function ProductsPage() {
   const {
     mobileFilterOpen,
     setMobileFilterOpen,
-    visibleCount,
     loadingMore,
     quickViewProduct,
     setQuickViewProduct,
@@ -79,6 +79,16 @@ export default function ProductsPage() {
     selectedCategory,
     sort: filters.sort,
   });
+
+  const handleTrackedQuickView = (product) => {
+    trackEvent("quick_view_opened", { productId: product?.id });
+    handleQuickView(product);
+  };
+
+  const handleTrackedCompare = (product) => {
+    trackEvent("compare_toggled", { productId: product?.id, selectedCount: compareList.length });
+    toggleCompare(product);
+  };
 
   // Hide body scrollbar when any modal is open
   useEffect(() => {
@@ -128,6 +138,7 @@ export default function ProductsPage() {
         colors={colors}
         selectedCategory={selectedCategory}
         sort={filters.sort}
+        search={filters.search}
         setFilters={setFilters}
         setMobileFilterOpen={setMobileFilterOpen}
       />
@@ -211,6 +222,7 @@ export default function ProductsPage() {
                     inStock: false,
                     onSale: false,
                     budget: maxBudget,
+                    search: "",
                   });
                   setSelectedCategory("All");
                 }}
@@ -234,12 +246,12 @@ export default function ProductsPage() {
                   <ProductCard
                     key={item.product.id}
                     product={item.product}
-                    onQuickView={handleQuickView}
-                    onToggleCompare={toggleCompare}
+                    onQuickView={handleTrackedQuickView}
+                    onToggleCompare={handleTrackedCompare}
                     isCompared={compareList.some(
                       (c) => c.id === item.product.id,
                     )}
-                    canAdd={compareList.length < 2}
+                    canAdd={compareList.length < 4}
                   />
                 ),
               )}

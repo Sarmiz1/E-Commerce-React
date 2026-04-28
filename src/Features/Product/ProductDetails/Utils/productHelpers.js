@@ -1,12 +1,12 @@
 export function loadReviews(productId) { try { const r = localStorage.getItem("WooSho-reviews-" + productId); return r ? JSON.parse(r) : []; } catch { return []; } }
-export function saveReviews(productId, reviews) { try { localStorage.setItem("WooSho-reviews-" + productId, JSON.stringify(reviews)); } catch { } }
+export function saveReviews(productId, reviews) { try { localStorage.setItem("WooSho-reviews-" + productId, JSON.stringify(reviews)); } catch { /* ignore storage errors */ } }
 export function loadWishlist() { try { const r = localStorage.getItem("WooSho-wishlist"); return r ? JSON.parse(r) : []; } catch { return []; } }
-export function saveWishlist(list) { try { localStorage.setItem("WooSho-wishlist", JSON.stringify(list)); } catch { } }
+export function saveWishlist(list) { try { localStorage.setItem("WooSho-wishlist", JSON.stringify(list)); } catch { /* ignore storage errors */ } }
 export function loadPriceAlerts() { try { const r = localStorage.getItem("WooSho-price-alerts"); return r ? JSON.parse(r) : []; } catch { return []; } }
-export function savePriceAlert(alert) { try { const a = loadPriceAlerts(); a.push(alert); localStorage.setItem("WooSho-price-alerts", JSON.stringify(a)); } catch { } }
+export function savePriceAlert(alert) { try { const a = loadPriceAlerts(); a.push(alert); localStorage.setItem("WooSho-price-alerts", JSON.stringify(a)); } catch { /* ignore storage errors */ } }
 export function hasPriceAlert(productId) { return loadPriceAlerts().some(a => a.productId === productId); }
 export function loadReviewerName() { try { return localStorage.getItem("WooSho-reviewer-name") || ""; } catch { return ""; } }
-export function saveReviewerName(name) { try { localStorage.setItem("WooSho-reviewer-name", name); } catch { } }
+export function saveReviewerName(name) { try { localStorage.setItem("WooSho-reviewer-name", name); } catch { /* ignore storage errors */ } }
 
 export function getProductCategory(keywords = []) {
   const kw = keywords.join(" ").toLowerCase();
@@ -33,9 +33,9 @@ export const SIZE_MAP = {
 export function getSeedReviews(product) {
   const base = product.rating_stars || 4;
   return [
-    { id: "seed-1", name: "Sarah M.", stars: Math.min(5, Math.round(base + 0.5)), text: "Absolutely love this product. Exactly as described and arrived in perfect condition. Would highly recommend!", date: "2 days ago", verified: true },
-    { id: "seed-2", name: "James K.", stars: Math.round(base), text: "Great quality and fast shipping. The product exceeded my expectations. Will definitely buy again.", date: "1 week ago", verified: true },
-    { id: "seed-3", name: "Amaka O.", stars: Math.max(1, Math.round(base - 0.5)), text: "Very good product overall. Packaging was excellent. Minor detail could be improved but overall great value.", date: "2 weeks ago", verified: false },
+    { id: "seed-1", name: "Sarah M.", stars: Math.min(5, Math.round(base + 0.5)), text: "Absolutely love this product. Exactly as described and arrived in perfect condition. Would highly recommend!", date: "2 days ago", verified: true, fit: "True to size", quality: "Premium", photos: product.image ? [product.image] : [] },
+    { id: "seed-2", name: "James K.", stars: Math.round(base), text: "Great quality and fast shipping. The product exceeded my expectations. Will definitely buy again.", date: "1 week ago", verified: true, fit: "Comfortable", quality: "Durable", sellerReply: "Thanks for the thoughtful review. We are glad it landed well." },
+    { id: "seed-3", name: "Amaka O.", stars: Math.max(1, Math.round(base - 0.5)), text: "Very good product overall. Packaging was excellent. Minor detail could be improved but overall great value.", date: "2 weeks ago", verified: false, fit: "As expected", quality: "Good" },
   ];
 }
 

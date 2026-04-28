@@ -39,16 +39,30 @@ import ExploreSellersSection from "./Components/Sections/ExploreSellersSection";
 import ShopByBrandSection from "./Components/Sections/ShopByBrandSection";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
+import ContinueShoppingSection from "./Components/Sections/ContinueShoppingSection";
+import EditorialCollectionsSection from "./Components/Sections/EditorialCollectionsSection";
 import GlobalCommandPalette from "../../Components/GlobalCommandPalette";
 import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 import SEO from "../../Components/SEO";
+import { usePersonalizedProducts } from "./Hooks/usePersonalizedProducts";
+import { HOME_GROWTH_SECTIONS } from "./homeSectionsConfig";
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function HomePage() {
   // Products
   const { data: products = [], isLoading, error } = useAllProducts();
-  console.log("Home page error", error);
+  
+  useEffect(() => {
+    if (error) console.log("Home page error", error);
+  }, [error]);
+
+  const personalized = usePersonalizedProducts(products);
+  const enabledGrowthSections = useMemo(() => 
+    HOME_GROWTH_SECTIONS.filter((section) => section.enabled)
+      .sort((a, b) => a.priority - b.priority),
+    []
+  );
 
   // still testing Modal
   const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -61,43 +75,28 @@ export default function HomePage() {
   }, []);
 
   // Product slices
-  const heroFeatured = products[0] || null;
-  const trending = products.slice(0, 6);
-  const bestSellers = products.slice(2, 8);
-  const newArrivals = products.slice(4, 8);
-  const flashDeals = products.slice(1, 5);
-  const editorsPicks = products.slice(3, 7);
-  const dealOfDay = products[5] || products[0] || null;
-  const scrollStrip = products.slice(0, 8);
-  const bentoProducts = products.slice(0, 5);
-  const filterGrid = products.slice(0, 12);
-  const lookbook = products.slice(0, 4);
+  const heroFeatured = useMemo(() => products[0] || null, [products]);
+  const trending = useMemo(() => products.slice(0, 6), [products]);
+  const bestSellers = useMemo(() => products.slice(2, 8), [products]);
+  const newArrivals = useMemo(() => products.slice(4, 8), [products]);
+  const flashDeals = useMemo(() => products.slice(1, 5), [products]);
+  const editorsPicks = useMemo(() => products.slice(3, 7), [products]);
+  const dealOfDay = useMemo(() => products[5] || products[0] || null, [products]);
+  const scrollStrip = useMemo(() => products.slice(0, 8), [products]);
+  const bentoProducts = useMemo(() => products.slice(0, 5), [products]);
+  const filterGrid = useMemo(() => products.slice(0, 12), [products]);
+  const lookbook = useMemo(() => products.slice(0, 4), [products]);
 
   // New premium section slices
-  const hotRightNow = products.slice(2, 10);
-  const mostLoved = products.slice(5, 13);
-  const recommendedForYou = products.slice(3, 8);
-  const basedOnBrowsing = products.slice(0, 12);
-
-  // Loading state
-  if (isLoading && !products.length) {
-    return <HomePageLoadingState />;
-  }
-
-  if (error) {
-    return (
-      <div>
-        Error: {error.message}
-        {console.log(error)}
-      </div>
-    );
-  }
-
-  return (
-    <div className="overflow-x-hidden">
-      <SEO 
-        title="WooSho | Premium Fashion & Lifestyle E-Commerce"
-        description="Discover exclusive drops, premium brands, and curated lifestyle collections at WooSho. Elevate your wardrobe with our latest arrivals and flash deals."
+  const hotRightNow = useMemo(() => products.slice(2, 10), [products]);
+  const mostLoved = useMemo(() => products.slice(5, 13), [products]);
+  const recommendedForYou = useMemo(() => personalized.hasSignals
+    ? personalized.forYou.slice(0, 5)
+    : products.slice(3, 8), [personalized, products]);
+  const basedOnBrowsing = useMemo(() => personalized.hasSignals
+    ? personalized.basedOnBrowsing
+    : products.slice(0, 12), [personalized, products]);
+  const continueShopping = personalized.continueShopping;
         keywords="WooSho, premium fashion, luxury streetwear, exclusive drops, curated collections, lifestyle, online marketplace, e-commerce"
       />
       <GlobalCommandPalette />
@@ -113,6 +112,9 @@ export default function HomePage() {
 
       {/* ── ALL SECTIONS ── */}
       <CategoriesSection />
+      {enabledGrowthSections.some((section) => section.id === "continue-shopping") && (
+        <ContinueShoppingSection products={continueShopping} />
+      )}
       <HotRightNowSection products={hotRightNow} isLoading={isLoading} />
       <MostLovedSection products={mostLoved} isLoading={isLoading} />
       <TrendingSection products={trending} isLoading={isLoading} />
@@ -138,6 +140,9 @@ export default function HomePage() {
       <EditorsPicks products={editorsPicks} isLoading={isLoading} />
       <LookbookSection products={lookbook} isLoading={isLoading} />
       <FilterableGrid products={filterGrid} isLoading={isLoading} />
+      {enabledGrowthSections.some((section) => section.id === "editorial-collections") && (
+        <EditorialCollectionsSection products={products} />
+      )}
       <HowItWorksSection />
       <PerksSection />
 

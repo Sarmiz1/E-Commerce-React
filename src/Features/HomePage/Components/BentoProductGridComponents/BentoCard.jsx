@@ -22,10 +22,9 @@ export const BentoCard = ({ product, className = '' }) => {
           className="top-3 right-12" 
         />
 
-        {/* Wishlist Button */}
         <WishlistHeart 
           className="absolute top-3 right-3" 
-          onToggle={(s) => console.log(`Bento ${product.id} liked: ${s}`)}
+          onToggle={() => {}}
         />
 
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-bold text-indigo-600 px-2 py-1 rounded-full">New</div>

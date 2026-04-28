@@ -12,6 +12,8 @@ const ModernAiChat = lazy(() => import("./Components/ModernAiChat.jsx"));
 const ModernCategories = lazy(() => import("./Components/ModernCategories"));
 const ModernWhy = lazy(() => import("./Components/ModernWhy"));
 const ModernGallery = lazy(() => import("./Components/ModernGallery"));
+const InteractiveProductDemo = lazy(() => import("../Components/InteractiveProductDemo"));
+const LeadCaptureForm = lazy(() => import("../Components/LeadCaptureForm"));
 const ModernCTA = lazy(() =>
   import("./Components/ModernCta").then((module) => ({
     default: module.ModernCTA,
@@ -30,21 +32,26 @@ export default function ModernLanding() {
         "#pain-points",
         "#platform",
         "#ai-chat",
+        "#interactive-demo",
         "#gallery",
         "#categories",
         "#why-woosho",
+        "#lead-capture",
         "#cta",
       ];
 
       sections.forEach((id) => {
-        gsap.from(id, {
-          ...REVEAL,
-          scrollTrigger: {
-            trigger: id,
-            start: "top 88%",
-            toggleActions: "play none none none",
-          },
-        });
+        const el = document.querySelector(id);
+        if (el) {
+          gsap.from(el, {
+            ...REVEAL,
+            scrollTrigger: {
+              trigger: el,
+              start: "top 88%",
+              toggleActions: "play none none none",
+            },
+          });
+        }
       });
     }, mainRef);
 
@@ -88,6 +95,10 @@ export default function ModernLanding() {
             <ModernAiChat />
           </div>
 
+          <div id="interactive-demo">
+            <InteractiveProductDemo />
+          </div>
+
           <div id="gallery">
             <ModernGallery />
           </div>
@@ -99,6 +110,17 @@ export default function ModernLanding() {
           <div id="why-woosho">
             <ModernWhy />
           </div>
+
+          <section id="lead-capture" className="bg-white px-6 py-20 dark:bg-[#0E0E10]">
+            <div className="mx-auto max-w-3xl">
+              <LeadCaptureForm
+                audience="marketplace"
+                title="Get WooSho launch updates"
+                description="Join the product list for shopper tools, seller releases, and marketplace experiments."
+                cta="Join Updates"
+              />
+            </div>
+          </section>
 
           <div id="cta">
             <ModernCTA />

@@ -51,6 +51,7 @@ import AddToCart from "./AddToCart";
 import { IconCart } from "../Icons/IconCart";
 import WishlistHeart from "./WishlistHeart";
 import QuickView from "./QuickView";
+import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -116,6 +117,7 @@ function NavigableWrapper({ product, children }) {
     if (product) {
       queryClient.setQueryData(["product", product.slug || product.id], product);
       queryClient.setQueryData(["product", product.id], product);
+      if (product.slug) prefetchProductOnHover(product.slug);
     }
   };
 
