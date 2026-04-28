@@ -22,6 +22,7 @@ export const CartEngine = {
     for (const item of guestCart) {
       await CartAPI.add({
         cartId,
+        productId: item.product_id,
         variantId: item.variant_id,
         quantity: item.quantity,
       });

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { useTheme } from "../../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { IconCart } from "../../../Components/Icons/IconCart"; 
@@ -8,6 +8,8 @@ import { IconStar } from "../../../Components/Icons/IconStar";
 import { getProductImages } from "../../../Utils/getProductImages"; 
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 import CompareButton from "../../../Components/Ui/CompareButton";
+import QuickView from "../../../Components/Ui/QuickView";
+import { useAddToCart } from "../../../Hooks/cart/useAddToCart";
 import { prefetchProductOnHover } from "../../../Utils/prefetchProductOnHover";
 
 const checkDate = (product) => Date.now() - new Date(product?.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
@@ -17,6 +19,11 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
   const images = useMemo(() => getProductImages(product), [product]);
   const [showVid, setShowVid] = useState(false);
   const videoRef = useRef(null);
+  const {
+    handleAdd,
+    loading: addingToCart,
+    success: addedToCart,
+  } = useAddToCart(product?.id, { variantId: product?.variant_id, quantity: 1 });
   
   // ── Image hover carousel ──
   const [activeImgIdx, setActiveImgIdx] = useState(0);
@@ -66,9 +73,14 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
 
   const onSale = product.price_cents < 2000;
   const isNew = product.created_at && checkDate(product);
+  const handleAddToCart = useCallback((event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleAdd(event);
+  }, [handleAdd]);
 
   return (
-    <motion.div
+    <Motion.div
       layout
       ref={cardRef}
       onMouseEnter={handleMouseEnter}
@@ -159,6 +171,12 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
         </div>
 
         {/* Wishlist heart */}
+        <QuickView
+          product={product}
+          onQuickView={onQuickView}
+          className="top-2.5 right-12"
+        />
+
         <WishlistHeart 
           onToggle={() => {}}
         />
@@ -209,16 +227,23 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
           </div>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onQuickView(product); }}
+            onClick={handleAddToCart}
+            disabled={addingToCart}
             className="pg-cart-btn flex-shrink-0"
-            title="Quick view"
-            aria-label="Quick view product"
+            title={addedToCart ? "Added to cart" : "Add to cart"}
+            aria-label={addedToCart ? "Added to cart" : "Add product to cart"}
           >
-            <IconCart className="w-3.5 h-3.5" />
+            {addingToCart ? (
+              <span className="text-[10px] font-black leading-none">...</span>
+            ) : addedToCart ? (
+              <span className="text-xs font-black leading-none">✓</span>
+            ) : (
+              <IconCart className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 });
 

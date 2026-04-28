@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   useProductBySlug,
@@ -41,6 +41,7 @@ export default function ProductDetail() {
   const { productSlug } = useParams();
   const { addProduct: addRecentlyViewed } = useRecentlyViewed();
   const trackEvent = useAnalyticsEvent();
+  const [quantity, setQuantity] = useState(1);
 
   const { data: product, isFetchingProduct } = useProductBySlug(productSlug, {
     enabled: !!productSlug,
@@ -131,6 +132,21 @@ export default function ProductDetail() {
     productType
   } = useProductInventory(product);
 
+  const selectedVariant = useMemo(() => {
+    const variants = product?.product_variants || product?.variants || [];
+    if (!variants.length) return null;
+
+    return (
+      variants.find((variant) => {
+        const colorMatches = !selectedColor || variant.color === selectedColor;
+        const sizeMatches = !selectedSize || String(variant.size) === String(selectedSize);
+        return colorMatches && sizeMatches;
+      }) ||
+      variants.find((variant) => !selectedColor || variant.color === selectedColor) ||
+      variants[0]
+    );
+  }, [product, selectedColor, selectedSize]);
+
   if (!product) return <ProductNotFound />;
 
   const sku =
@@ -142,7 +158,7 @@ export default function ProductDetail() {
   const origPrice = onSale ? Math.round(product.price_cents * 1.35) : null;
   const lowStock = (product.rating_count || 0) < 50;
   const storeInfo = getStoreInfo(product);
-  const variantId = product.product_variants?.[0]?.id || product.variants?.[0]?.id || null;
+  const variantId = selectedVariant?.id || null;
   const productUrl = typeof window !== "undefined" ? window.location.href : undefined;
   const productSchema = {
     "@context": "https://schema.org",
@@ -283,7 +299,13 @@ export default function ProductDetail() {
 
                 {/* ATC */}
                 <div className="pd-r">
-                  <AddToCartPanel productId={product.id} atcRef={atcRef} />
+                  <AddToCartPanel
+                    productId={product.id}
+                    variantId={variantId}
+                    quantity={quantity}
+                    onQuantityChange={setQuantity}
+                    atcRef={atcRef}
+                  />
                 </div>
 
                 {/* Secondary actions */}
@@ -337,7 +359,14 @@ export default function ProductDetail() {
       </AnimatePresence>
 
       {/* ── STICKY ATC BAR ───────────────────────────────────────────── */}
-      <StickyATCBar product={product} productId={product.id} variantId={variantId} visible={atcOutOfView} />
+      <StickyATCBar
+        key={atcOutOfView ? "visible-atc" : "hidden-atc"}
+        product={product}
+        productId={product.id}
+        variantId={variantId}
+        quantity={quantity}
+        visible={atcOutOfView}
+      />
     </div>
   );
 }

@@ -20,7 +20,6 @@ export function NavbarActions({
   onSetWishlistTip,
   onSetAccountTip,
   onSetCartHover,
-  onRemoveCartItem,
   onNavigate,
   onToggleMobile,
   formatMoney,
@@ -33,7 +32,7 @@ export function NavbarActions({
         <button
           onClick={onToggleSearch}
           aria-label={searchOpen ? "Close search" : "Open search"}
-          className={`nb-icon-btn transition-all duration-200 ${iconTone} ${
+          className={`nb-icon-btn ${iconTone} ${
             searchOpen ? (isTop ? "bg-white/15 text-white" : "bg-indigo-50 !text-indigo-600") : ""
           }`}
         >
@@ -54,20 +53,20 @@ export function NavbarActions({
       </div>
 
       <div className="relative hidden md:block" onMouseEnter={() => onSetWishlistTip(true)} onMouseLeave={() => onSetWishlistTip(false)}>
-        <button onClick={() => onNavigate("/wishlist")} className={`nb-icon-btn transition-all duration-200 ${iconTone}`} aria-label="Wishlist">
+        <button onClick={() => onNavigate("/wishlist")} className={`nb-icon-btn ${iconTone}`} aria-label="Wishlist">
           <HeartIcon />
         </button>
         <Tooltip show={wishlistTip} label="Wishlist" />
       </div>
 
       <div className="relative hidden md:block" onMouseEnter={() => onSetAccountTip(true)} onMouseLeave={() => onSetAccountTip(false)}>
-        <button onClick={() => onNavigate("/account")} className={`nb-icon-btn transition-all duration-200 ${iconTone}`} aria-label="My Account">
+        <button onClick={() => onNavigate("/account")} className={`nb-icon-btn ${iconTone}`} aria-label="My Account">
           <UserIcon />
         </button>
         <Tooltip show={accountTip} label="My Account" />
       </div>
 
-      <div className={`hidden md:block w-px h-5 mx-1 transition-colors duration-300 ${isTop ? "bg-white/15" : "bg-gray-200"}`} />
+      <div className={`hidden md:block w-px h-5 mx-1 ${isTop ? "bg-white/15" : "bg-gray-200"}`} />
 
       <div className="flex items-center">
         <ThemeToggle />
@@ -91,7 +90,7 @@ export function NavbarActions({
             }
           }}
           title={cartCount > 0 ? `Shopping bag - ${cartCount} item${cartCount !== 1 ? "s" : ""}` : "Shopping bag - Empty"}
-          className={`nb-icon-btn transition-all duration-200 ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"}`}
+          className={`nb-icon-btn ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"}`}
           aria-label={`Shopping bag, ${cartCount} items`}
         >
           <BagIcon className="w-[22px] h-[22px]" />
@@ -125,7 +124,6 @@ export function NavbarActions({
               <div className="w-full max-h-[480px] rounded-[24px] overflow-hidden bg-white/98 shadow-[0_24px_80px_rgba(0,0,0,0.18),0_4px_16px_rgba(0,0,0,0.08)] border border-black/5 backdrop-blur-[24px] flex flex-col">
                 <CartPreview
                   cart={cart}
-                  onRemove={onRemoveCartItem}
                   onNavigate={(href) => {
                     onNavigate(href);
                     onSetCartHover(false);
@@ -140,7 +138,7 @@ export function NavbarActions({
 
       <button
         onClick={() => onNavigate("/ai-shop")}
-        className="hidden lg:flex items-center gap-1.5 font-bold text-[0.8125rem] px-4 py-2 rounded-full transition-all duration-300 ml-1"
+        className="hidden lg:flex items-center gap-1.5 font-bold text-[0.8125rem] px-4 py-2 rounded-full ml-1"
         style={
           isTop
             ? { background: "rgba(255,255,255,0.14)", color: "#fff", border: "1px solid rgba(255,255,255,0.22)" }
@@ -154,7 +152,7 @@ export function NavbarActions({
         onClick={onToggleMobile}
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
         title={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
-        className={`nb-icon-btn flex lg:hidden transition-all duration-200 ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"}`}
+        className={`nb-icon-btn flex lg:hidden ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"}`}
       >
         <AnimatePresence mode="wait">
           {mobileOpen ? (

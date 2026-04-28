@@ -29,7 +29,7 @@ export function DesktopNav({
           >
             <button
               onClick={() => onNavigate(link.href)}
-              className={`nb-navlink transition-all duration-200 ${
+              className={`nb-navlink ${
                 isTop
                   ? `text-white/80 hover:text-white ${isActive ? "bg-white/12 text-white" : "hover:bg-white/10"}`
                   : `text-gray-600 hover:text-gray-900 ${isActive ? "bg-gray-100 text-gray-900 font-bold" : "hover:bg-gray-100/80"}`
@@ -39,7 +39,7 @@ export function DesktopNav({
               {link.label}
               {hasMega && (
                 <Motion.span animate={{ rotate: activeMenu === link.label ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                  <ChevronDown className={`w-3 h-3 transition-colors ${isTop ? "text-white/50" : "text-gray-400"}`} />
+                  <ChevronDown className={`w-3 h-3 ${isTop ? "text-white/50" : "text-gray-400"}`} />
                 </Motion.span>
               )}
             </button>

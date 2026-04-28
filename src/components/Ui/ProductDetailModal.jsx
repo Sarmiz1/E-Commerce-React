@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion as Motion } from "framer-motion";
 import { useTheme } from "../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/Utils/constants";
@@ -22,7 +22,6 @@ import { useProductInventory } from "../../Hooks/useProductInventory";
 import { getStoreInfo } from "../../Utils/getStoreInfo";
 import { StoreHeader } from "./StoreHeader";
 import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
-import { getProductCategory } from "../../Features/Product/ProductDetails/Utils/productHelpers";
 
 const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   const {
@@ -153,12 +152,12 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   const storeInfo = getStoreInfo(product);
 
   return (
-    <motion.div
+    <Motion.div
       ref={ref}
       className="fixed inset-0 z-[1100]"
       style={{ pointerEvents: "none" }}
     >
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -167,7 +166,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
       />
 
       <div className="absolute inset-0 flex items-end md:items-center justify-center pointer-events-none">
-        <motion.div
+        <Motion.div
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
@@ -247,7 +246,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                 onClick={() => setIsZoomed(!isZoomed)}
               >
                 <AnimatePresence custom={imgDirection}>
-                  <motion.div
+                  <Motion.div
                     key={selectedImg}
                     custom={imgDirection}
                     variants={imgVariants}
@@ -261,7 +260,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                       alt=""
                       className={`w-full h-full object-cover transition-transform duration-500 ${isZoomed ? "scale-[1.8] cursor-zoom-out" : "scale-100 cursor-zoom-in"}`}
                     />
-                  </motion.div>
+                  </Motion.div>
                 </AnimatePresence>
               </div>
             </div>
@@ -446,7 +445,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                       {showSizeGuide &&
                         productType &&
                         SIZE_TABLES[productType] && (
-                          <motion.div
+                          <Motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
@@ -497,7 +496,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                                 ))}
                               </div>
                             </div>
-                          </motion.div>
+                          </Motion.div>
                         )}
                     </AnimatePresence>
                   </div>
@@ -555,7 +554,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                 </div>
 
                 <div className="flex gap-2">
-                  <motion.button
+                  <Motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={(e) => {
                       const matchedVariant = product?.product_variants?.find(
@@ -586,7 +585,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                   >
                     <AnimatePresence mode="wait">
                       {loading ? (
-                        <motion.span
+                        <Motion.span
                           key="loading"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -594,49 +593,49 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                           className="flex items-center justify-center"
                         >
                           <IconSpinner className="w-5 h-5" />
-                        </motion.span>
+                        </Motion.span>
                       ) : success ? (
-                        <motion.span
+                        <Motion.span
                           key="success"
                           initial={{ opacity: 0, scale: 0.5 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.5 }}
                           className="flex items-center justify-center gap-2"
                         >
-                          <motion.span
+                          <Motion.span
                             initial={{ rotate: -180 }}
                             animate={{ rotate: 0 }}
                             transition={{ type: "spring", stiffness: 300 }}
                           >
                             ✓
-                          </motion.span>{" "}
+                          </Motion.span>{" "}
                           Added to Cart
-                        </motion.span>
+                        </Motion.span>
                       ) : error ? (
-                        <motion.span
+                        <Motion.span
                           key="error"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                         >
                           Failed — Retry
-                        </motion.span>
+                        </Motion.span>
                       ) : (
-                        <motion.span
+                        <Motion.span
                           key="idle"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                         >
                           Add to Cart
-                        </motion.span>
+                        </Motion.span>
                       )}
                     </AnimatePresence>
                     {/* Sparkle burst on success */}
                     {success && (
                       <>
                         {[...Array(6)].map((_, i) => (
-                          <motion.span
+                          <Motion.span
                             key={i}
                             initial={{ opacity: 1, scale: 0, x: 0, y: 0 }}
                             animate={{
@@ -650,11 +649,11 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                             style={{ left: "50%", top: "50%" }}
                           >
                             ✦
-                          </motion.span>
+                          </Motion.span>
                         ))}
                       </>
                     )}
-                  </motion.button>
+                  </Motion.button>
 
                   <WishlistHeart 
                     className="w-14 !h-[unset] aspect-square rounded-2xl border flex items-center justify-center transition-all"
@@ -675,9 +674,9 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 });
 

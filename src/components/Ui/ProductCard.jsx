@@ -206,7 +206,7 @@ function StandardCard({ product }) {
             {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
           </div>
 
-          <AddToCart productId={product.id} className="w-full mt-2" />
+          <AddToCart productId={product.id} variant className="w-full mt-2" />
 
         </div>
       </motion.div>
@@ -552,7 +552,7 @@ function customWideCard({ product }) {
         </div>
         <div className="flex items-center justify-between mt-auto pt-2">
           <p className="font-black text-gray-900">{formatMoneyCents(product?.price_cents)}</p>
-          <AddToCart productId={product?.id} />
+          <AddToCart productId={product?.id} variantId={product?.variant_id} />
         </div>
       </div>
     </motion.div>

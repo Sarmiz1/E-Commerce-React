@@ -30,7 +30,7 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
     mutationFn: async ({ overrideProductId, overrideOpts } = {}) => {
       const finalProductId = overrideProductId ?? productId;
       const finalVariantId = overrideOpts?.variantId ?? variantId;
-      const finalQuantity = overrideOpts?.quantity ?? quantity;
+      const finalQuantity = Math.max(Number(overrideOpts?.quantity ?? quantity) || 1, 1);
 
       // ═══════════════════════════
       // 👤 GUEST FLOW (LOCAL ONLY)
@@ -46,7 +46,7 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
         const updated = existing
           ? guest.map((i) =>
               ((finalVariantId && i.variant_id === finalVariantId) || (!finalVariantId && i.product_id === finalProductId))
-                ? { ...i, quantity: i.quantity + finalQuantity }
+                ? { ...i, quantity: (Number(i.quantity) || 0) + finalQuantity }
                 : i
             )
           : [
@@ -60,12 +60,10 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
 
         CartEngine.setGuestCart(updated);
 
-        queryClient.setQueryData(["cart", undefined], {
-          items: updated,
-          cartId: null,
-        });
+        const normalizedCart = await CartAPI.loadGuestCart(updated);
+        queryClient.setQueryData(["cart", undefined], normalizedCart);
 
-        return updated;
+        return normalizedCart;
       }
 
       // ═══════════════════════════
@@ -88,7 +86,7 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
     onSuccess: (_data, variables = {}) => {
       const finalProductId = variables.overrideProductId ?? productId;
       const finalVariantId = variables.overrideOpts?.variantId ?? variantId;
-      const finalQuantity = variables.overrideOpts?.quantity ?? quantity;
+      const finalQuantity = Math.max(Number(variables.overrideOpts?.quantity ?? quantity) || 1, 1);
 
       trackEvent("add_to_cart", {
         productId: finalProductId,
@@ -116,13 +114,13 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
     (eOrProductId, opts) => {
       // It might be an event from a button click, or direct IDs from a manual call
       let overrideProductId;
-      let overrideOpts;
+      let overrideOpts = opts;
 
       if (eOrProductId?.stopPropagation) {
+        eOrProductId.preventDefault?.();
         eOrProductId.stopPropagation();
       } else if (eOrProductId) {
         overrideProductId = eOrProductId;
-        overrideOpts = opts;
       }
 
       mutate({ overrideProductId, overrideOpts });

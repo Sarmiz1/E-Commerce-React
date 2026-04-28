@@ -1,12 +1,13 @@
 export const NAVBAR_STYLES = `
   .nb-pill {
-    transition: background 0.38s ease, box-shadow 0.38s ease, border-color 0.38s ease, margin-top 0.38s ease;
+    transition: none;
+    will-change: background, box-shadow, border-color, margin-top;
   }
 
   .nb-icon-btn {
     display:flex;align-items:center;justify-content:center;
     width:38px;height:38px;border-radius:9999px;
-    transition:background 0.18s,transform 0.14s;
+    transition:transform 0.14s;
     cursor:pointer;border:none;outline:none;position:relative;flex-shrink:0;
   }
 
@@ -21,7 +22,7 @@ export const NAVBAR_STYLES = `
   .nb-navlink {
     position:relative;font-size:0.8125rem;font-weight:600;letter-spacing:0.03em;
     padding:6px 12px;border-radius:9999px;white-space:nowrap;
-    transition:color 0.2s,background 0.2s;cursor:pointer;border:none;outline:none;
+    transition:none;cursor:pointer;border:none;outline:none;
     display:flex;align-items:center;gap:4px;
   }
 

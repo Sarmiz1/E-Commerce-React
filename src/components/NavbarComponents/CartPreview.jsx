@@ -1,7 +1,8 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import { ArrowRight, BagIcon, TrashIcon } from "./Icons";
+import { ArrowRight, BagIcon } from "./Icons";
+import { DeleteFromCartBtn } from "../Ui/DeleteFromCartBtn";
 
-export function CartPreview({ cart, onRemove, onNavigate, formatMoney }) {
+export function CartPreview({ cart, onNavigate, formatMoney }) {
   const itemCount = cart.reduce((a, i) => a + i.quantity, 0);
   const totalPrice = cart.reduce((a, i) => a + (i.price ?? 0) * i.quantity, 0);
 
@@ -69,13 +70,7 @@ export function CartPreview({ cart, onRemove, onNavigate, formatMoney }) {
                     </p>
                   </div>
 
-                  <Motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => onRemove(item.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5"
-                  >
-                    <TrashIcon className="w-3 h-3 text-red-400 dark:text-red-500" />
-                  </Motion.button>
+                  <DeleteFromCartBtn itemId={item.id} />
                 </Motion.div>
               ))}
             </AnimatePresence>

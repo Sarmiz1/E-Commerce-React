@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 
 /**
  * QuickView button component
@@ -8,12 +8,17 @@ import { motion } from "framer-motion";
 const QuickView = ({ 
   product, 
   className = "top-3 right-3",
-  variant = "default" 
+  onQuickView,
 }) => {
   const handleQuickView = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!product) return;
+
+    if (typeof onQuickView === "function") {
+      onQuickView(product);
+      return;
+    }
     
     // Dispatch custom event for the global listener
     window.dispatchEvent(new CustomEvent('open-quickview', { 
@@ -22,7 +27,7 @@ const QuickView = ({
   };
 
   return (
-    <motion.button
+    <Motion.button
       type="button"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
@@ -48,7 +53,7 @@ const QuickView = ({
           d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
         />
       </svg>
-    </motion.button>
+    </Motion.button>
   );
 };
 

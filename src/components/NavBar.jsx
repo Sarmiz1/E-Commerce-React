@@ -1,11 +1,11 @@
 // src/components/Navbar.jsx
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion as Motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useRegisterCartIcon } from "../Context/cart/CartAnimationContext";
-import { useCartActions, useCartState } from "../Context/cart/CartContext";
+import { useCartState } from "../Context/cart/CartContext";
 import { useTheme } from "../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../Utils/formatMoneyCents";
 import { Logo } from "./Ui/Logo";
@@ -24,12 +24,13 @@ import {
 import { NAVBAR_STYLES } from "./NavbarComponents/navbarStyles";
 
 const getData = null;
+const NAVBAR_SCROLL_ENTER = 50;
+const NAVBAR_SCROLL_EXIT = 16;
 
 gsap.registerPlugin(ScrollToPlugin);
 
 export default function Navbar({ cartIconRef: externalCartIconRef }) {
   const { cart, cartCount } = useCartState();
-  const { removeItem } = useCartActions();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,11 +63,33 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
 
   useRegisterCartIcon(cartRef);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+  useLayoutEffect(() => {
+    let rafId = 0;
+
+    const syncScrolled = () => {
+      rafId = 0;
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+      setScrolled((current) => {
+        const next = current ? scrollY > NAVBAR_SCROLL_EXIT : scrollY > NAVBAR_SCROLL_ENTER;
+        return current === next ? current : next;
+      });
+    };
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(syncScrolled);
+    };
+
+    syncScrolled();
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
   }, []);
 
   useEffect(() => {
@@ -288,7 +311,6 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
             onSetWishlistTip={setWishlistTip}
             onSetAccountTip={setAccountTip}
             onSetCartHover={setCartHover}
-            onRemoveCartItem={removeItem}
             onNavigate={navigateAndClose}
             onToggleMobile={() => {
               setMobileOpen((open) => !open);

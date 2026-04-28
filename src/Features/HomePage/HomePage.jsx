@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useAllProducts } from "../../Hooks/product/useProducts"; 
 import { STYLES } from "./Styles/styles";
 
