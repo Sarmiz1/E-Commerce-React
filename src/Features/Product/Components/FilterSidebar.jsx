@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
-import { SORT_OPTIONS, CATEGORIES } from "../constants";
+import { SORT_OPTIONS, CATEGORIES } from "../Utils/constants";
 
 const CAT_ICONS = {
   All: "🛍️",

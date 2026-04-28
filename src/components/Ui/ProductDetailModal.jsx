@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
-import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/constants";
+import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/Utils/constants";
 import { IconStar } from "../Icons/IconStar";
 import { IconPlus } from "../Icons/IconPlus";
 import { IconClose } from "../Icons/IconClose";

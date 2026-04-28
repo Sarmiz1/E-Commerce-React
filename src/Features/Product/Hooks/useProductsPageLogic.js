@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import gsap from "gsap";
-import { PAGE_SIZE, AD_INTERVAL } from "../constants";
+import { PAGE_SIZE, AD_INTERVAL } from "../Utils/constants";
+import { useGridColumns } from "./useGridColumns";
 
 export function useProductsPageLogic({ allProducts, filteredProducts, isLoading, selectedCategory, sort }) {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -9,6 +10,7 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   const gridRef = useRef(null);
+  const { cols, adColSpan } = useGridColumns();
 
   useEffect(() => {
     const handleQuickView = (e) => setQuickViewProduct(e.detail);
@@ -45,10 +47,16 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
   }, [isLoading, selectedCategory, sort]);
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const allLoaded = visibleCount >= filteredProducts.length;
+
   const gridItems = useMemo(() => {
     const items = [];
+    let slotCount = 0;
+
     visibleProducts.forEach((product, i) => {
       items.push({ type: "product", product, idx: i });
+      slotCount += 1;
+
       if ((i + 1) % AD_INTERVAL === 0 && i < visibleProducts.length - 1) {
         items.push({
           type: "ad",
@@ -56,10 +64,26 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
           adProduct: allProducts[(i + 5) % allProducts.length],
           idx: i,
         });
+        slotCount += adColSpan;
       }
     });
+
+    // ── Dynamic row-fill trimming ──
+    // Only trim when there are more products to load.
+    // When all products are shown, allow a partial last row so nothing is hidden.
+    if (!allLoaded) {
+      let remainder = slotCount % cols;
+      while (remainder > 0 && items.length > 0) {
+        const last = items[items.length - 1];
+        const slots = last.type === "ad" ? adColSpan : 1;
+        items.pop();
+        slotCount -= slots;
+        remainder = slotCount % cols;
+      }
+    }
+
     return items;
-  }, [visibleProducts, allProducts]);
+  }, [visibleProducts, allProducts, cols, adColSpan, allLoaded]);
 
   return {
     mobileFilterOpen,

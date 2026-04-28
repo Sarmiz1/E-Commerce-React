@@ -1,6 +1,6 @@
 // src/Hooks/product/useSizeGuide.js
 import { useMemo, useState } from "react";
-import { SIZE_TABLES } from "../../Features/Product/constants";
+import { SIZE_TABLES } from "../../Features/Product/Utils/constants";
 
 /**
  * Custom hook to handle complex size mapping and system switching

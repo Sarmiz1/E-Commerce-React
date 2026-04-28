@@ -22,7 +22,7 @@ export default function InlineAd({ product, type, allProducts }) {
 
   if (type === "featured") {
     return (
-      <div className="col-span-full sm:col-span-2">
+      <div className="col-span-full xl:col-span-2">
         <Link
           to={`/products/${product.slug || product.id}`}
           className="block group h-full"
@@ -124,7 +124,7 @@ export default function InlineAd({ product, type, allProducts }) {
   }
 
   return (
-    <div className="col-span-full sm:col-span-2">
+    <div className="col-span-full xl:col-span-2">
       <Link
         to={`/products/${product.slug || product.id}`}
         className="block h-full group"

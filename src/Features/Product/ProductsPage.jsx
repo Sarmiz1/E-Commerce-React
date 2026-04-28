@@ -1,16 +1,9 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  useMemo,
-} from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { useTheme } from "../../Context/theme/ThemeContext";
-import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { IconSpinner } from "../../Components/Icons/IconSpinner";
 import { IconFilter } from "../../Components/Icons/IconFilter";
 import { IconClose } from "../../Components/Icons/IconClose";
@@ -27,7 +20,7 @@ import { useProductsFilter } from "./Hooks/useProductsFilter";
 import { useCompare } from "./Hooks/useCompare";
 
 // Constants
-import { PAGE_SIZE, AD_INTERVAL, SORT_OPTIONS, CATEGORIES } from "./constants";
+import { PAGE_SIZE, AD_INTERVAL, SORT_OPTIONS, CATEGORIES } from "./Utils/constants";
 
 // Extracted Components & Hooks
 import { PG_STYLES } from "./Styles/ProductsPageStyles";
@@ -43,7 +36,6 @@ import { useProductsPageLogic } from "./Hooks/useProductsPageLogic";
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ProductsPage() {
-  const navigate = useNavigate();
   const { isDark, colors } = useTheme();
 
   // Products

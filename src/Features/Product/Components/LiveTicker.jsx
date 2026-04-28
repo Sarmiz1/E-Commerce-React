@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Context/theme/ThemeContext";
-import { ACTIVITY_TEMPLATES } from "../constants";
+import { ACTIVITY_TEMPLATES } from "../Utils/constants";
 
 export default function LiveTicker({ products }) {
   const { colors, isDark } = useTheme();
