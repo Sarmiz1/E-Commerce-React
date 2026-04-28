@@ -1,6 +1,7 @@
 // src/Hooks/product/useSizeGuide.js
 import { useMemo, useState } from "react";
 import { SIZE_TABLES } from "../../Features/Product/Utils/constants";
+import { getProductCategory } from "../../Features/Product/ProductDetails/Utils/productHelpers";
 
 /**
  * Custom hook to handle complex size mapping and system switching
@@ -23,17 +24,16 @@ export const useSizeGuide = (product) => {
   // 2. Detect Product Type (Footwear vs Apparel)
   const productType = useMemo(() => {
     if (!product) return null;
-    const text = [
-      product.name || "",
-      product.short_description || "",
-      ...(product.keywords || []),
-      product.category?.name || ""
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    if (text.match(/shoe|boot|sneaker|footwear|heel|sandal|slide/)) return "footwear";
-    if (text.match(/shirt|dress|top|pant|jacket|hoodie|clothing|apparel|suit|short/)) return "apparel";
+    
+    // Check keywords first
+    const cat = getProductCategory(product.keywords);
+    if (cat === "shoes") return "footwear";
+    if (cat === "apparel") return "apparel";
+    
+    // Fallback to name/description scan if keywords are missing
+    const text = [product.name, product.short_description, product.description].join(" ").toLowerCase();
+    if (/shoe|sneaker|footwear|heel|flat|boot/.test(text)) return "footwear";
+    if (/apparel|shirt|sweater|pant|dress|hoodie|sock|beanie|shorts|robe/.test(text)) return "apparel";
     
     return null;
   }, [product]);
@@ -66,7 +66,9 @@ export const useSizeGuide = (product) => {
   // 5. Map sizes to the currently selected system
   const displaySizes = useMemo(() => {
     if (!rawSizes.length) return null;
-    if (!productType || !availableSystems.includes(sizeSystem)) return rawSizes;
+    if (!productType || !availableSystems.includes(sizeSystem)) {
+      return rawSizes.map(s => ({ raw: s, display: s }));
+    }
 
     const table = SIZE_TABLES[productType];
     const sourceValues = table[nativeSystem];
@@ -74,8 +76,10 @@ export const useSizeGuide = (product) => {
 
     return rawSizes.map((s) => {
       const idx = sourceValues.indexOf(String(s));
-      // If we find the size in the native system, map it to the target system index
-      return idx !== -1 ? targetValues[idx] || s : s;
+      return {
+        raw: s,
+        display: idx !== -1 ? targetValues[idx] || s : s
+      };
     });
   }, [rawSizes, sizeSystem, productType, nativeSystem, availableSystems]);
 

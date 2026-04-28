@@ -38,7 +38,7 @@ import {
 import { getStoreInfo } from "../../../Utils/getStoreInfo";
 import { StoreHeader } from "../../../Components/Ui/StoreHeader";
 import { useTheme } from "../../../Context/theme/ThemeContext";
-import { useProductVariants } from "../../../Hooks/useProductVariants";
+import { useProductInventory } from "../../../Hooks/useProductInventory";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -121,10 +121,16 @@ export default function ProductDetail() {
 
   if (!product) return <ProductNotFound />;
 
-  const category = getProductCategory(product.keywords);
-  
-  // Use shared hook for variants
-  const { availableColors, availableSizes } = useProductVariants(product, category);
+  // Global product inventory logic (Colors, Sizes, Systems)
+  const {
+    availableColors,
+    displaySizes: availableSizes,
+    sizeSystem,
+    setSizeSystem,
+    availableSystems,
+    hasSizes,
+    productType
+  } = useProductInventory(product);
   const sku =
     "SE-" +
     String(product.id || "")
@@ -502,12 +508,29 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Size */}
-                {availableSizes && (
+                {hasSizes && (
                   <div className="pd-r">
+                    <div className="flex items-center gap-2 mb-3">
+                      {availableSystems.map(sys => (
+                        <button
+                          key={sys}
+                          onClick={() => setSizeSystem(sys)}
+                          className="text-[9px] uppercase tracking-widest px-2 py-1 rounded border transition-all"
+                          style={{
+                            background: sizeSystem === sys ? "var(--gold)" : "transparent",
+                            color: sizeSystem === sys ? "var(--obsidian)" : "var(--silver)",
+                            borderColor: sizeSystem === sys ? "var(--gold)" : "var(--pd-b3)"
+                          }}
+                        >
+                          {sys}
+                        </button>
+                      ))}
+                    </div>
                     <SizeSelector
                       sizes={availableSizes}
                       selectedSize={selectedSize}
                       onSelect={setSelectedSize}
+                      productType={productType}
                     />
                   </div>
                 )}

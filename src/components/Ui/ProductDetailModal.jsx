@@ -18,11 +18,10 @@ import { IconHeart } from "../Icons/IconHeart";
 import { getProductImages } from "../../Utils/getProductImages";
 import WishlistHeart from "./WishlistHeart";
 import { useAddToCart } from "../../Hooks/cart/useAddToCart";
-import { useSizeGuide } from "../../Hooks/product/useSizeGuide";
+import { useProductInventory } from "../../Hooks/useProductInventory";
 import { getStoreInfo } from "../../Utils/getStoreInfo";
 import { StoreHeader } from "./StoreHeader";
 import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
-import { useProductVariants } from "../../Hooks/useProductVariants";
 import { getProductCategory } from "../../Features/Product/ProductDetails/Utils/productHelpers";
 
 const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
@@ -65,7 +64,8 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
     setSizeSystem,
     availableSystems,
     hasSizes,
-  } = useSizeGuide(product);
+    availableColors
+  } = useProductInventory(product);
 
   const goToImage = useCallback(
     (newIdx, forceDir) => {
@@ -151,10 +151,6 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
 
   // STORE INFO
   const storeInfo = getStoreInfo(product);
-  
-  // Dynamic variants via shared hook
-  const category = useMemo(() => getProductCategory(product?.keywords || []), [product?.keywords]);
-  const { availableColors, availableSizes } = useProductVariants(product, category);
 
   return (
     <motion.div
@@ -376,13 +372,13 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                         <button
                           key={col.label}
                           type="button"
-                          onClick={() => setSelectedColor(col)}
-                          className={`w-8 h-8 rounded-full transition-all ${selectedColor === col ? "scale-110 shadow-lg" : "hover:scale-105 opacity-80 hover:opacity-100"}`}
+                          onClick={() => setSelectedColor(col.name)}
+                          className={`w-8 h-8 rounded-full transition-all ${selectedColor === col.name ? "scale-110 shadow-lg" : "hover:scale-105 opacity-80 hover:opacity-100"}`}
                           style={{
                             background: col.hex,
                             border: `1px solid ${colors.border.subtle}`,
                             boxShadow:
-                              selectedColor === col
+                              selectedColor === col.name
                                 ? `0 0 0 2px ${colors.surface.elevated}, 0 0 0 4px ${colors.text.primary}`
                                 : undefined,
                           }}
@@ -403,11 +399,11 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                             className="ml-1 font-normal"
                             style={{ color: colors.text.tertiary }}
                           >
-                            · {selectedSize}
+                            · {displaySizes?.find(s => s.raw === selectedSize)?.display || selectedSize}
                           </span>
                         )}
                       </p>
-                      {hasSizes && (
+                      {hasSizes && productType && (
                         <button
                           onClick={() => setShowSizeGuide(!showSizeGuide)}
                           className="text-[11px] font-bold hover:underline"
@@ -419,14 +415,14 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                     </div>
                     {hasSizes && (
                       <div className="flex flex-wrap gap-2">
-                        {displaySizes.map((sz) => (
+                        {displaySizes?.map((sz) => (
                           <button
-                            key={sz}
+                            key={sz.raw}
                             type="button"
-                            onClick={() => setSelectedSize(sz)}
+                            onClick={() => setSelectedSize(sz.raw)}
                             className="min-w-[44px] px-3 py-2 text-xs font-bold rounded-xl border transition-all"
                             style={
-                              selectedSize === sz
+                              selectedSize === sz.raw
                                 ? {
                                     background: colors.text.primary,
                                     color: colors.text.inverse,
@@ -439,7 +435,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                                   }
                             }
                           >
-                            {sz}
+                            {sz.display}
                           </button>
                         ))}
                       </div>
@@ -485,8 +481,9 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                                 ))}
                               </div>
                               <div className="grid grid-cols-4 gap-px p-2">
-                                {(
-                                  SIZE_TABLES[productType][sizeSystem] || []
+                                {(productType && SIZE_TABLES[productType] && SIZE_TABLES[productType][sizeSystem]
+                                  ? SIZE_TABLES[productType][sizeSystem]
+                                  : []
                                 ).map((sz) => (
                                   <div
                                     key={sz}

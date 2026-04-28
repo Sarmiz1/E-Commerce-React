@@ -13,7 +13,7 @@ export function useProductDetail(product) {
   const [copied, setCopied] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy Link');
   const [reviews, setReviews] = useState([]);
-  const [selectedColor, setSelectedColor] = useState(0);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [hasAlert, setHasAlert] = useState(() => hasPriceAlert(productId));
