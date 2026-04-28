@@ -29,7 +29,7 @@ export default function StickyResultsBar({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -60, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed top-0 left-0 right-0 z-[90] flex justify-center px-4"
+          className="fixed top-[64px] md:top-[80px] left-0 right-0 z-[80] flex justify-center px-4"
         >
           <div 
             className="w-full max-w-screen-xl mt-2 px-5 py-2.5 rounded-2xl border flex items-center justify-between gap-4 backdrop-blur-xl"
