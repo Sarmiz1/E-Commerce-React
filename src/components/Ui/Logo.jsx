@@ -3,7 +3,7 @@ import logoDarkmode from "../../assets/logos/logo-darkmode.png";
 import logoLightmode from "../../assets/logos/logo-lightmode.png";
 
 
-export const Logo = ({ size = 10, pageView, isScrolled }) => {
+export const Logo = ({ size = 10, pageView, isScrolled, isDark: explicitDark }) => {
   // When isScrolled is explicitly provided (navbar context), use it directly
   // to pick the logo — both Navbar and ModernNavbar always go white-bg when
   // scrolled regardless of global dark/light theme, so dark: classes can't be used.
@@ -27,7 +27,14 @@ export const Logo = ({ size = 10, pageView, isScrolled }) => {
       </div>
 
       <div className="flex items-center">
-        {navbarControlled ? (
+        {typeof explicitDark === "boolean" ? (
+          /* Explicit theme override */
+          <img
+            src={explicitDark ? logoDarkmode : logoLightmode}
+            alt="Woosho Logo"
+            className={baseClass}
+          />
+        ) : navbarControlled ? (
           /* Navbar context: pick logo based on scroll state directly */
           <img
             src={isScrolled ? logoLightmode : logoDarkmode}

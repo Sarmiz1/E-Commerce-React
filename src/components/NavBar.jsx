@@ -468,6 +468,7 @@ import { formatMoneyCents } from "../Utils/formatMoneyCents";
 import { useCartState, useCartActions } from "../Context/cart/CartContext";
 import { Logo } from "./Ui/Logo";
 import { ThemeToggle } from "./Ui/ThemeToggle";
+import { useTheme } from "../Context/theme/ThemeContext";
 
 const getData = null
 
@@ -927,6 +928,7 @@ function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave })
 export default function Navbar({ cartIconRef: externalCartIconRef }) {
   const { cart, cartCount } = useCartState();
   const { removeItem } = useCartActions();
+  const { isDark, colors } = useTheme();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -1726,21 +1728,21 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="fixed top-0 right-0 bottom-0 z-[98] lg:hidden flex flex-col"
-              style={{ width: "min(360px, 88vw)", background: "rgba(255,255,255,0.99)", backdropFilter: "blur(32px)", boxShadow: "-8px 0 60px rgba(0,0,0,0.2)" }}
+              style={{ 
+                width: "min(360px, 88vw)", 
+                background: isDark ? "rgba(10,10,12,0.98)" : "rgba(255,255,255,0.99)", 
+                backdropFilter: "blur(32px)", 
+                boxShadow: isDark ? "-20px 0 80px rgba(0,0,0,0.5)" : "-8px 0 60px rgba(0,0,0,0.2)" 
+              }}
             >
               {/* Drawer header */}
-              <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div className={`flex items-center justify-between px-6 py-5 border-b ${isDark ? "border-white/5" : "border-gray-100"}`}>
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                  </div>
-                  <span className="font-black text-gray-900 text-base" style={{ fontFamily: "'Georgia','Palatino Linotype',serif" }}>
-                    Shop<span className="text-indigo-600">Ease</span>
-                  </span>
+                  <Logo isDark={isDark} />
                 </div>
                 <button onClick={() => setMobileOpen(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
-                  <CloseIcon className="w-4 h-4 text-gray-500" />
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition ${isDark ? "bg-white/10 hover:bg-white/20" : "bg-gray-100 hover:bg-gray-200"}`}>
+                  <CloseIcon className={`w-4 h-4 ${isDark ? "text-gray-300" : "text-gray-500"}`} />
                 </button>
               </div>
 
@@ -1754,7 +1756,9 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
                       <motion.button key={link.label}
                         initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                         onClick={() => { navigate(link.href); setMobileOpen(false); }}
-                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-left font-semibold text-sm transition-all duration-180 mb-1 ${isActive ? "bg-indigo-50 text-indigo-700" : "text-gray-700 hover:bg-gray-50"
+                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-left font-semibold text-sm transition-all duration-180 mb-1 ${isActive 
+                            ? (isDark ? "bg-white/10 text-white" : "bg-indigo-50 text-indigo-700") 
+                            : (isDark ? "text-gray-300 hover:bg-white/5" : "text-gray-700 hover:bg-gray-50")
                           } ${link.accent ? "!text-orange-500 font-black" : ""}`}
                       >
                         <span>{link.accent && "🔥 "}{link.label}</span>
@@ -1765,7 +1769,7 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
                 </div>
 
                 {/* Mega content — compact mobile version */}
-                <div className="px-4 py-3 border-t border-gray-100">
+                <div className={`px-4 py-3 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-3">Shop by Category</p>
                   <div className="grid grid-cols-2 gap-2">
                     {megaContentCategory.map((cat, i) => (
@@ -1784,34 +1788,41 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
                 </div>
 
                 {/* Special offers */}
-                <div className="px-4 py-3 border-t border-gray-100">
+                <div className={`px-4 py-3 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-3">Offers</p>
                   <div className="space-y-2">
                     {specialOffers.map((offer, i) => (
                       <motion.button key={offer.label}
                         initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + i * 0.05 }}
                         onClick={() => { navigate("/products"); setMobileOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all hover:scale-[1.01] ${offer.color}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all hover:scale-[1.01] ${
+                          isDark ? "bg-white/[0.03] border-white/5" : offer.color
+                        }`}
                       >
                         <div className="flex-1">
-                          <p className={`font-bold text-sm ${offer.textColor}`}>{offer.label}</p>
+                          <p className={`font-bold text-sm ${isDark ? "text-white" : offer.textColor}`}>{offer.label}</p>
                           <p className="text-gray-500 text-xs">{offer.desc}</p>
                         </div>
-                        <ArrowRight className={`w-4 h-4 ${offer.textColor} opacity-60`} />
+                        <ArrowRight className={`w-4 h-4 ${isDark ? "text-white/40" : offer.textColor} opacity-60`} />
                       </motion.button>
                     ))}
                   </div>
                 </div>
 
                 {/* Account links */}
-                <div className="px-4 py-3 border-t border-gray-100">
+                <div className={`px-4 py-3 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-2">Account</p>
                   {accountLinks.map((item, i) => (
                     <motion.button key={item.label}
                       initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.65 + i * 0.05 }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-700 hover:bg-gray-50 transition-all mb-1 text-sm font-semibold text-left"
+                      onClick={() => { navigate("/account"); setMobileOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all mb-1 text-sm font-semibold text-left ${
+                        isDark ? "text-gray-300 hover:bg-white/5" : "text-gray-700 hover:bg-gray-50"
+                      }`}
                     >
-                      <span className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0">{item.icon}</span>
+                      <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        isDark ? "bg-white/5 text-white" : "bg-gray-100 text-gray-500"
+                      }`}>{item.icon}</span>
                       {item.label}
                     </motion.button>
                   ))}
@@ -1819,7 +1830,7 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
               </div>
 
               {/* Drawer footer */}
-              <div className="px-4 py-5 border-t border-gray-100 bg-gray-50/50">
+              <div className={`px-4 py-5 border-t ${isDark ? "border-white/5 bg-black/20" : "border-gray-100 bg-gray-50/50"}`}>
                 <button onClick={() => { navigate("/products"); setMobileOpen(false); }}
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black py-4 rounded-2xl text-sm shadow-lg shadow-indigo-500/30">
                   Shop All Products →
@@ -1827,7 +1838,7 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
                 <p className="text-center text-gray-400 text-[11px] mt-2.5">🚀 Free shipping on orders over $50</p>
                 {/* Theme toggle in mobile drawer */}
                 <div className="flex items-center justify-center gap-3 mt-3">
-                  <span className="text-xs font-semibold text-gray-500">Theme</span>
+                  <span className={`text-xs font-semibold ${isDark ? "text-gray-400" : "text-gray-500"}`}>Theme</span>
                   <ThemeToggle />
                 </div>
               </div>

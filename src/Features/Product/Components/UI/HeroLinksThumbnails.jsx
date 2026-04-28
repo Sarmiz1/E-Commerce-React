@@ -107,7 +107,7 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
   useEffect(() => () => cancelAnimationFrame(momentumRaf.current), []);
 
   return (
-    <div className="max-w-screen-xl mx-auto px-6 pt-8">
+    <div className="w-full px-6 pt-8">
       <div
         ref={scrollRef}
         onMouseDown={handleMouseDown}
@@ -117,7 +117,7 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="flex gap-6 overflow-x-auto pb-4 items-center justify-start md:justify-center select-none"
+        className="flex gap-6 overflow-x-auto pb-4 items-center justify-start select-none"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
