@@ -23,8 +23,7 @@ const PRODUCT_SELECT = `
 
 // 🔥 Create base resources
 export const productsResource = createResourceApi("products", PRODUCT_SELECT);
-export const cartApi = createResourceApi("cart_items");
-export const ordersApi = createResourceApi("orders");
+
 
 export const ProductsAPI = {
   getAll: () => ({
