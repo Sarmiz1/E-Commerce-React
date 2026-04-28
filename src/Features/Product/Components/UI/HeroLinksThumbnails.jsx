@@ -1,42 +1,110 @@
-import React, { useRef, useState, useCallback } from 'react'
+import React, { useRef, useState, useCallback, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from "framer-motion";
 
-
 const HeroLinksThumbnails = ({ items, isDark, colors }) => {
   const scrollRef = useRef(null);
-  const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 });
+  const drag = useRef({
+    active: false,
+    startX: 0,
+    scrollLeft: 0,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
+  });
+  const momentumRaf = useRef(null);
   const [dragged, setDragged] = useState(false);
 
-  const handleMouseDown = useCallback((e) => {
+  // ── Momentum decay ──
+  const startMomentum = useCallback(() => {
+    cancelAnimationFrame(momentumRaf.current);
     const el = scrollRef.current;
     if (!el) return;
-    dragState.current = {
-      isDragging: true,
-      startX: e.pageX - el.offsetLeft,
+
+    let v = drag.current.velocity;
+    const decay = 0.95;
+    const minV = 0.5;
+
+    const tick = () => {
+      v *= decay;
+      if (Math.abs(v) < minV) return;
+      el.scrollLeft -= v;
+      momentumRaf.current = requestAnimationFrame(tick);
+    };
+    momentumRaf.current = requestAnimationFrame(tick);
+  }, []);
+
+  // ── Shared start / move / end logic ──
+  const onDragStart = useCallback((x) => {
+    cancelAnimationFrame(momentumRaf.current);
+    const el = scrollRef.current;
+    if (!el) return;
+    drag.current = {
+      active: true,
+      startX: x,
       scrollLeft: el.scrollLeft,
+      lastX: x,
+      lastTime: Date.now(),
+      velocity: 0,
     };
     setDragged(false);
+    el.style.scrollBehavior = "auto"; // disable smooth while dragging
   }, []);
 
-  const handleMouseUp = useCallback(() => {
-    dragState.current.isDragging = false;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    dragState.current.isDragging = false;
-  }, []);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!dragState.current.isDragging) return;
-    e.preventDefault();
-    setDragged(true);
+  const onDragMove = useCallback((x) => {
+    if (!drag.current.active) return;
     const el = scrollRef.current;
     if (!el) return;
-    const x = e.pageX - el.offsetLeft;
-    const walk = (x - dragState.current.startX) * 2;
-    el.scrollLeft = dragState.current.scrollLeft - walk;
+
+    const dx = x - drag.current.startX;
+    // Mark as dragged if moved more than 4px (prevents accidental drags)
+    if (Math.abs(dx) > 4) setDragged(true);
+
+    el.scrollLeft = drag.current.scrollLeft - dx;
+
+    // Track velocity
+    const now = Date.now();
+    const dt = now - drag.current.lastTime;
+    if (dt > 0) {
+      drag.current.velocity = (x - drag.current.lastX) / dt * 16; // normalize to ~16ms frame
+    }
+    drag.current.lastX = x;
+    drag.current.lastTime = now;
   }, []);
+
+  const onDragEnd = useCallback(() => {
+    if (!drag.current.active) return;
+    drag.current.active = false;
+    startMomentum();
+  }, [startMomentum]);
+
+  // ── Mouse events ──
+  const handleMouseDown = useCallback((e) => {
+    onDragStart(e.pageX);
+  }, [onDragStart]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!drag.current.active) return;
+    e.preventDefault();
+    onDragMove(e.pageX);
+  }, [onDragMove]);
+
+  const handleMouseUp = useCallback(() => onDragEnd(), [onDragEnd]);
+  const handleMouseLeave = useCallback(() => onDragEnd(), [onDragEnd]);
+
+  // ── Touch events ──
+  const handleTouchStart = useCallback((e) => {
+    onDragStart(e.touches[0].pageX);
+  }, [onDragStart]);
+
+  const handleTouchMove = useCallback((e) => {
+    onDragMove(e.touches[0].pageX);
+  }, [onDragMove]);
+
+  const handleTouchEnd = useCallback(() => onDragEnd(), [onDragEnd]);
+
+  // Cleanup RAF on unmount
+  useEffect(() => () => cancelAnimationFrame(momentumRaf.current), []);
 
   return (
     <div className="max-w-screen-xl mx-auto px-6 pt-8">
@@ -46,8 +114,16 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         className="flex gap-6 overflow-x-auto pb-4 items-center justify-start md:justify-center select-none"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          WebkitOverflowScrolling: "touch",
+          cursor: drag.current?.active ? "grabbing" : "grab",
+        }}
       >
         <style>{`
           div::-webkit-scrollbar { display: none; }
