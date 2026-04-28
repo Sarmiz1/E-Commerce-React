@@ -21,7 +21,7 @@ import QuickView from "../../../../Components/Ui/QuickView";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-
+export default function BestSellersSection({ products, isLoading }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current; if (!el) return;

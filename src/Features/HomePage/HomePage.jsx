@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAllProducts } from "../../Hooks/product/useProducts"; 
 import { STYLES } from "./Styles/styles";
@@ -97,6 +97,25 @@ export default function HomePage() {
     ? personalized.basedOnBrowsing
     : products.slice(0, 12), [personalized, products]);
   const continueShopping = personalized.continueShopping;
+
+  // Loading state
+  if (isLoading && !products.length) {
+    return <HomePageLoadingState />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Error: {error.message}
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-hidden">
+      <SEO 
+        title="WooSho | Premium Fashion & Lifestyle E-Commerce"
+        description="Discover exclusive drops, premium brands, and curated lifestyle collections at WooSho. Elevate your wardrobe with our latest arrivals and flash deals."
         keywords="WooSho, premium fashion, luxury streetwear, exclusive drops, curated collections, lifestyle, online marketplace, e-commerce"
       />
       <GlobalCommandPalette />
