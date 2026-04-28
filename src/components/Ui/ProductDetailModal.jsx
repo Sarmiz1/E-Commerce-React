@@ -16,6 +16,7 @@ import { IconClose } from "../Icons/IconClose";
 import { IconSpinner } from "../Icons/IconSpinner";
 import { IconHeart } from "../Icons/IconHeart";
 import { getProductImages } from "../../Utils/getProductImages";
+import WishlistHeart from "./WishlistHeart";
 import { useAddToCart } from "../../Hooks/cart/useAddToCart";
 import { useSizeGuide } from "../../Hooks/product/useSizeGuide";
 import { getStoreInfo } from "../../Utils/getStoreInfo";
@@ -667,29 +668,12 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                     )}
                   </motion.button>
 
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setWishlisted(!wishlisted)}
-                    className="w-14 rounded-2xl border flex items-center justify-center transition-all"
-                    style={
-                      wishlisted
-                        ? {
-                            background: isDark
-                              ? "rgba(239,68,68,0.1)"
-                              : "#fef2f2",
-                            borderColor: isDark
-                              ? "rgba(239,68,68,0.3)"
-                              : "#fecaca",
-                            color: "#ef4444",
-                          }
-                        : {
-                            borderColor: colors.border.default,
-                            color: colors.text.tertiary,
-                          }
-                    }
-                  >
-                    <IconHeart filled={wishlisted} />
-                  </motion.button>
+                  <WishlistHeart 
+                    className="w-14 !h-[unset] aspect-square rounded-2xl border flex items-center justify-center transition-all"
+                    showOnHover={false}
+                    isLiked={wishlisted}
+                    onToggle={setWishlisted}
+                  />
                 </div>
                 {/* Error Message */}
                 {error && (

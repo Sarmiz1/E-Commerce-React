@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Context/theme/ThemeContext";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 
 export default function InlineAd({ product, type, allProducts }) {
   const { isDark, colors } = useTheme();
@@ -22,10 +23,14 @@ export default function InlineAd({ product, type, allProducts }) {
 
   if (type === "featured") {
     return (
-      <div className="col-span-full xl:col-span-2">
+      <div className="col-span-full xl:col-span-2 relative group">
+        <WishlistHeart 
+          className="absolute top-4 right-4"
+          onToggle={(s) => console.log(`Ad ${product.id} liked: ${s}`)}
+        />
         <Link
           to={`/products/${product.slug || product.id}`}
-          className="block group h-full"
+          className="block h-full"
         >
           <motion.div
             whileHover="hover"
@@ -122,10 +127,14 @@ export default function InlineAd({ product, type, allProducts }) {
   }
 
   return (
-    <div className="col-span-full xl:col-span-2">
+    <div className="col-span-full xl:col-span-2 relative group">
+      <WishlistHeart 
+        className="absolute top-4 right-4"
+        onToggle={(s) => console.log(`Ad ${product.id} liked: ${s}`)}
+      />
       <Link
         to={`/products/${product.slug || product.id}`}
-        className="block h-full group"
+        className="block h-full"
       >
         <motion.div
           whileHover="hover"

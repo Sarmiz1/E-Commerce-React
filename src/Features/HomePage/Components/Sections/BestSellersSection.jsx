@@ -16,6 +16,8 @@ import FloatingOrbs from "../FloatingOrbs";
 import ProductCard from "../../../../Components/Ui/ProductCard";
 import { BentoCard } from "../BentoProductGridComponents/BentoCard";
 import AddToCart from "../../../../Components/Ui/AddToCart";
+import WishlistHeart from "../../../../Components/Ui/WishlistHeart";
+import QuickView from "../../../../Components/Ui/QuickView";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -48,7 +50,7 @@ export default function BestSellersSection({ products, isLoading }) {
         </div>
         <div className="grid lg:grid-cols-2 gap-8 items-start">
           <div className="hp-bs-left">
-            {isLoading ? <Skeleton variant="tall" count={1} /> : top && (
+            {isLoading ? <div className="h-[420px] bg-gray-100 rounded-3xl animate-pulse" /> : top && (
               <motion.div
                 data-cart-card
                 whileHover={{ y: -8 }}
@@ -64,7 +66,21 @@ export default function BestSellersSection({ products, isLoading }) {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  
+                  {/* Quick View Button */}
+                  <QuickView 
+                    product={top} 
+                    className="top-4 right-14" 
+                  />
+
+                  {/* Wishlist Button for #1 Item */}
+                  <WishlistHeart 
+                    className="absolute top-4 right-4" 
+                    onToggle={(s) => console.log(`BestSeller #1 liked: ${s}`)}
+                  />
+
                   <div className="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 text-xs font-black px-3 py-1.5 rounded-full">#1 BEST SELLER</div>
+                  
                   <div className="absolute bottom-0 left-0 right-0 p-7 text-white">
                     <Stars rating={top.rating_stars || 0} />
                     <h3 className="font-black text-2xl mt-2 mb-1 leading-tight">{top.name}</h3>
@@ -78,7 +94,7 @@ export default function BestSellersSection({ products, isLoading }) {
             )}
           </div>
           <div className="space-y-4">
-            {isLoading ? <Skeleton variant="wide" count={4} /> : rest.map((p) => <div key={p.id} className="hp-bs-right"><ProductCard product={p} variant="customWide" /></div>)}
+            {isLoading ? Array(4).fill(0).map((_, i) => <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse" />) : rest.map((p) => <div key={p.id} className="hp-bs-right"><ProductCard product={p} variant="customWide" /></div>)}
           </div>
         </div>
       </div>

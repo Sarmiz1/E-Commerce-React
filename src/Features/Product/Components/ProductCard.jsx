@@ -6,6 +6,8 @@ import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { IconCart } from "../../../Components/Icons/IconCart"; 
 import { IconStar } from "../../../Components/Icons/IconStar"; 
 import { getProductImages } from "../../../Utils/getProductImages"; 
+import WishlistHeart from "../../../Components/Ui/WishlistHeart";
+import CompareButton from "../../../Components/Ui/CompareButton";
 
 const checkDate = (product) => Date.now() - new Date(product?.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
 
@@ -57,14 +59,6 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
 
   const onSale = product.price_cents < 2000;
   const isNew = product.created_at && checkDate(product);
-
-  const handleComparePointerUp = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (typeof onToggleCompare === 'function') {
-      onToggleCompare(product);
-    }
-  }, [onToggleCompare, product]);
 
   return (
     <motion.div
@@ -149,37 +143,17 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
         </div>
 
         {/* Wishlist heart */}
-        <button
-          type="button"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-95 backdrop-blur-md"
-          style={{ 
-            background: "rgba(255,255,255,0.85)", 
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)" 
-          }}
-          title="Save to wishlist"
-        >
-          <svg className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </button>
+        <WishlistHeart 
+          onToggle={(status) => console.log(`Product ${product.id} liked: ${status}`)}
+        />
 
         {/* Compare button */}
-        {typeof onToggleCompare === 'function' && (
-          <button
-            type="button"
-            onPointerUp={handleComparePointerUp}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            disabled={!isCompared && !canAdd}
-            className="absolute bottom-10 right-2.5 z-10 w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold opacity-0 group-hover:opacity-100 transition-all duration-200"
-            style={{
-              background: isCompared ? colors.brand.electricBlue : "rgba(255,255,255,0.92)",
-              borderColor: isCompared ? colors.brand.electricBlue : "rgba(0,0,0,0.12)",
-              color: isCompared ? (isDark ? colors.text.inverse : "#fff") : colors.text.secondary,
-            }}
-            title={isCompared ? "Remove from compare" : canAdd ? "Compare" : "Max 2"}
-          >≡</button>
-        )}
+        <CompareButton 
+          product={product}
+          isCompared={isCompared}
+          onToggleCompare={onToggleCompare}
+          canAdd={canAdd}
+        />
 
         {/* Bottom gradient for text readability */}
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/10 to-transparent pointer-events-none z-[1]" />
