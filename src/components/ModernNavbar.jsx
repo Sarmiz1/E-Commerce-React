@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { EXPO, DEFAULT_LINKS } from "./ModernNavbarComponents/navConstants";
 import MondernNavLogo from "./ModernNavbarComponents/MondernNavLogo";
@@ -8,6 +8,7 @@ import DesktopLinks from "./ModernNavbarComponents/DesktopLinks";
 import DesktopActions from "./ModernNavbarComponents/DesktopActions";
 import MobileMenu from "./ModernNavbarComponents/MobileMenu";
 import { useCartState } from "../Context/cart/CartContext";
+import CartDropdownContent from "./ModernNavbarComponents/DesktopActionsComponents/CartDropdownContent";
 
 export default function ModernNavbar({
   navLinks = DEFAULT_LINKS,
@@ -120,24 +121,70 @@ export default function ModernNavbar({
             keepCart={keepCart}
           />
 
-          {/* ── Mobile toggle ── */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            className="md:hidden p-2 text-gray-900 dark:text-white"
-            onClick={() => setMobileMenuOpen((v) => !v)}
-          >
-            <AnimatePresence mode="wait">
+          {/* ── Mobile Actions ── */}
+          <div className="flex md:hidden items-center gap-1.5">
+            {/* Cart Mobile Toggle */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              className="relative p-2 text-gray-900 dark:text-white"
+              onClick={() => setCartOpen((v) => !v)}
+            >
+              <ShoppingCart size={22} />
+              <AnimatePresence>
+                {cartCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-[9px] font-black text-white rounded-full flex items-center justify-center border-2 border-white dark:border-black"
+                  >
+                    {cartCount > 9 ? "9+" : cartCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+
+            {/* Mobile menu toggle */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              className="p-2 text-gray-900 dark:text-white"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={mobileMenuOpen ? "x" : "menu"}
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </motion.div>
+              </AnimatePresence>
+            </motion.button>
+          </div>
+        </div>
+
+        {/* ── Cart Dropdown for Mobile (Positioned differently) ── */}
+        <div className="md:hidden">
+          <AnimatePresence>
+            {cartOpen && (
               <motion.div
-                key={mobileMenuOpen ? "x" : "menu"}
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.18 }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="absolute top-full left-0 right-0 p-5 z-[9001]"
               >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                <div className="bg-white dark:bg-[#121214] rounded-3xl shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
+                   <CartDropdownContent 
+                     cartItems={cartItems}
+                     cartCount={cartCount}
+                     setCartOpen={setCartOpen}
+                   />
+                </div>
               </motion.div>
-            </AnimatePresence>
-          </motion.button>
+            )}
+          </AnimatePresence>
         </div>
 
         <MobileMenu 

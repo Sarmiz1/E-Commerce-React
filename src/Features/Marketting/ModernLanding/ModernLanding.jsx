@@ -4,6 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ModernNavbar from "../../../Components/ModernNavbar.jsx";
 import SEO from "../../../Components/SEO.jsx";
 import ModernHero from "./Components/ModernHero";
+import MarketingSkeleton from "../Components/MarketingSkeleton";
 
 // Lazy load below-the-fold components for performance
 const ModernPainPoints = lazy(() => import("./Components/ModernPainPoints"));
@@ -76,13 +77,7 @@ export default function ModernLanding() {
           <ModernHero />
         </div>
 
-        <Suspense
-          fallback={
-            <div className="h-screen w-full flex items-center justify-center text-gray-500">
-              Loading...
-            </div>
-          }
-        >
+        <Suspense fallback={<MarketingSkeleton sections={3} />}>
           <div id="pain-points">
             <ModernPainPoints />
           </div>

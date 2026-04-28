@@ -1,5 +1,10 @@
 import React, { Suspense, lazy } from "react";
-const HeroSection = lazy(() => import("./sections/HeroSection"));
+import HeroSection from "./sections/HeroSection";
+import ModernNavbar from "../../../Components/ModernNavbar";
+import SEO from "../../../Components/SEO";
+import MarketingSkeleton from "../Components/MarketingSkeleton";
+
+// Lazy load below-the-fold sections for performance
 const ProblemSection = lazy(() => import("./sections/ProblemSection"));
 const SolutionSection = lazy(() => import("./sections/SolutionSection"));
 const SmartFeaturesSection = lazy(() => import("./sections/SmartFeaturesSection"));
@@ -9,8 +14,6 @@ const TrustSection = lazy(() => import("./sections/TrustSection"));
 const FinalCtaSection = lazy(() => import("./sections/FinalCtaSection"));
 const ShopSmartSection = lazy(() => import("./sections/ShopSmartSection"));
 const AllInOneAppSection = lazy(() => import("./sections/AllInOneAppSection"));
-const ModernNavbar = lazy(() => import("../../../Components/ModernNavbar"));
-const SEO = lazy(() => import("../../../Components/SEO"));
 const InteractiveProductDemo = lazy(() => import("../Components/InteractiveProductDemo"));
 const LeadCaptureForm = lazy(() => import("../Components/LeadCaptureForm"));
 
@@ -40,7 +43,7 @@ const links = [
 const BuyerLanding = () => {
 
   return (
-    <Suspense fallback={<div className="h-screen w-full flex items-center justify-center text-gray-500 bg-white">Loading WooSho Buyer...</div>}>
+    <>
       <SEO 
         title="WooSho Buyer - Smart Shopping, Curated for You"
         description="Experience AI-curated shopping with WooSho. Find exactly what you need with our intelligent shopping assistant."
@@ -48,56 +51,60 @@ const BuyerLanding = () => {
       />
       
       <ModernNavbar navLinks={links} />
+
       <div className="w-full bg-white font-sans antialiased selection:bg-blue-200 selection:text-blue-900 overflow-hidden">
+        {/* ── 1. Hero (Standard Load) ────────────────────────── */}
         <HeroSection />
 
-        <div id="problem">
-          <ProblemSection />
-        </div>
-
-        <div id="solution">
-          <SolutionSection />
-        </div>
-
-        <div id="features">
-          <SmartFeaturesSection />
-        </div>
-
-        <InteractiveProductDemo />
-
-        <div id="shop-smart">
-          <ShopSmartSection />
-        </div>
-
-        <div id="categories">
-          <CategoriesSection />
-        </div>
-
-        <div id="social">
-          <SocialProofSection />
-          <AllInOneAppSection />
-        </div>
-
-        <div id="trust">
-          <TrustSection />
-        </div>
-
-        <section className="bg-slate-50 px-6 py-20">
-          <div className="mx-auto max-w-3xl">
-            <LeadCaptureForm
-              audience="buyer"
-              title="Get smarter shopping drops"
-              description="Join the buyer list for launch drops, personalized collections, and AI shopping updates."
-              cta="Join Buyer List"
-            />
+        <Suspense fallback={<MarketingSkeleton sections={3} />}>
+          <div id="problem">
+            <ProblemSection />
           </div>
-        </section>
 
-        <div id="cta">
-          <FinalCtaSection />
-        </div>
+          <div id="solution">
+            <SolutionSection />
+          </div>
+
+          <div id="features">
+            <SmartFeaturesSection />
+          </div>
+
+          <InteractiveProductDemo />
+
+          <div id="shop-smart">
+            <ShopSmartSection />
+          </div>
+
+          <div id="categories">
+            <CategoriesSection />
+          </div>
+
+          <div id="social">
+            <SocialProofSection />
+            <AllInOneAppSection />
+          </div>
+
+          <div id="trust">
+            <TrustSection />
+          </div>
+
+          <section className="bg-slate-50 px-6 py-20">
+            <div className="mx-auto max-w-3xl">
+              <LeadCaptureForm
+                audience="buyer"
+                title="Get smarter shopping drops"
+                description="Join the buyer list for launch drops, personalized collections, and AI shopping updates."
+                cta="Join Buyer List"
+              />
+            </div>
+          </section>
+
+          <div id="cta">
+            <FinalCtaSection />
+          </div>
+        </Suspense>
       </div>
-    </Suspense>
+    </>
   );
 };
 

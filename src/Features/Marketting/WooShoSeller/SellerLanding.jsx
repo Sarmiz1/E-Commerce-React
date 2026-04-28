@@ -5,7 +5,10 @@ import ModernNavbar from "../../../Components/ModernNavbar";
 import SEO from "../../../Components/SEO";
 
 // Lazy load sections for performance
-const Section1_Hero = lazy(() => import("./Components/Section1_Hero"));
+import Section1_Hero from "./Components/Section1_Hero";
+import MarketingSkeleton from "../Components/MarketingSkeleton";
+
+// Lazy load below-the-fold sections for performance
 const Section2_PainClock = lazy(() => import("./Components/Section2_PainClock"));
 const Section3_Dream = lazy(() => import("./Components/Section3_Dream"));
 const Section4_Features = lazy(() => import("./Components/Section4_Features"));
@@ -76,11 +79,12 @@ export default function SellerLanding() {
 
       <ModernNavbar navLinks={links} pageView="sell" />
 
-      <Suspense fallback={<div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center text-violet-500/50">Loading Experience...</div>}>
-        {/* ── 1. Hero ─────────────────────────────────────────── */}
-        <section id="seller-hero" className="seller-section min-h-screen w-full relative">
-          <Section1_Hero />
-        </section>
+      {/* ── 1. Hero (Standard Load) ────────────────────────── */}
+      <section id="seller-hero" className="seller-section min-h-screen w-full relative">
+        <Section1_Hero />
+      </section>
+
+      <Suspense fallback={<MarketingSkeleton sections={4} />}>
 
         {/* ── 2. Pain Clock ───────────────────────────────────── */}
         <section id="seller-tax" className="seller-section min-h-screen w-full relative">
