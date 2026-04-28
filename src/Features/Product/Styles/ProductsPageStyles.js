@@ -22,6 +22,13 @@ export const PG_STYLES = `
   .pg-skeleton-light { background-image: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); }
   .pg-skeleton-dark { background-image: linear-gradient(90deg, #19191C 25%, #2C2C30 50%, #19191C 75%); }
 
+  /* ── Card entrance (auto-plays on DOM insert, perfect for infinite scroll) ── */
+  @keyframes pg-card-enter {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .pg-card-enter { animation: pg-card-enter 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+
   .pg-range { -webkit-appearance:none; appearance:none; background:transparent; cursor:pointer; width:100%; }
   .pg-range::-webkit-slider-runnable-track { height:3px; border-radius:9999px; background:var(--woo-border-default, #e5e7eb); }
   .pg-range::-webkit-slider-thumb {

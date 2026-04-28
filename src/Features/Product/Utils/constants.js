@@ -1,5 +1,5 @@
-export const PAGE_SIZE = 30; // Number of products per page
-export const AD_INTERVAL = 12; // Show ad after every 12.5 products
+export const PAGE_SIZE = 36;
+export const AD_INTERVAL = 6; // 6 products + 1 ad = fills rows cleanly at all breakpoints
 export const TICKER_MS = 4000;
 
 export const ACTIVITY_TEMPLATES = [

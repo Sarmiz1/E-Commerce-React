@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { motion, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
 import { useTheme } from "../../Context/theme/ThemeContext";
 import { IconSpinner } from "../../Components/Icons/IconSpinner";
 import { IconFilter } from "../../Components/Icons/IconFilter";
@@ -20,7 +19,7 @@ import { useProductsFilter } from "./Hooks/useProductsFilter";
 import { useCompare } from "./Hooks/useCompare";
 
 // Constants
-import { PAGE_SIZE, AD_INTERVAL, SORT_OPTIONS, CATEGORIES } from "./Utils/constants";
+import { SORT_OPTIONS } from "./Utils/constants";
 
 // Extracted Components & Hooks
 import { PG_STYLES } from "./Styles/ProductsPageStyles";
@@ -28,9 +27,9 @@ import CategoryHeroLinks from "./Components/CategoryHeroLinks";
 import InlineAd from "./Components/InlineAd";
 import ViewMoreBtn from "./Components/ViewMoreBtn";
 import CompareModal from "./Components/CompareModal";
+import StickyResultsBar from "./Components/StickyResultsBar";
+import RecentlyViewedStrip from "./Components/RecentlyViewedStrip";
 import { useProductsPageLogic } from "./Hooks/useProductsPageLogic";
-
-// ═══════════════════════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -66,9 +65,10 @@ export default function ProductsPage() {
     quickViewProduct,
     setQuickViewProduct,
     gridRef,
+    sentinelRef,
     handleQuickView,
-    handleLoadMore,
     gridItems,
+    allLoaded,
   } = useProductsPageLogic({
     allProducts,
     filteredProducts,
@@ -96,13 +96,31 @@ export default function ProductsPage() {
     >
       <style>{PG_STYLES}</style>
 
+      {/* ── Sticky Results Bar ── */}
+      <StickyResultsBar
+        resultCount={filteredProducts.length}
+        selectedCategory={selectedCategory}
+        sortLabel={SORT_OPTIONS.find((o) => o.value === filters.sort)?.label}
+        onOpenFilter={() => setMobileFilterOpen(true)}
+      >
+        <ActiveFilterChips
+          filters={filters}
+          selectedCategory={selectedCategory}
+          setFilters={setFilters}
+          setSelectedCategory={setSelectedCategory}
+          maxBudget={maxBudget}
+        />
+      </StickyResultsBar>
+
+      {/* ── Live Ticker ── */}
       {!isLoading && allProducts.length > 0 && (
         <LiveTicker products={allProducts} />
       )}
 
-      {/* Hero Links for Categories */}
+      {/* ── Hero Category Links ── */}
       <CategoryHeroLinks />
 
+      {/* ── Breadcrumb + Sort Bar ── */}
       <div
         className="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between border-b"
         style={{ borderColor: colors.border.subtle }}
@@ -118,7 +136,7 @@ export default function ProductsPage() {
           >
             Home
           </Link>
-          <span>/</span>
+          <span className="opacity-40">›</span>
           <span style={{ color: colors.text.primary }}>{selectedCategory}</span>
         </div>
 
@@ -145,6 +163,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
+      {/* ── Main Layout ── */}
       <div className="max-w-screen-xl mx-auto px-6 py-8">
         <div className="flex gap-10">
           {/* Desktop Sidebar */}
@@ -159,10 +178,12 @@ export default function ProductsPage() {
                 border: `1px solid ${colors.border.subtle}`,
               }}
             >
+              {/* Animated glow orb */}
               <div
                 className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
                 style={{
                   background: `radial-gradient(circle, ${colors.cta.primary}15 0%, transparent 70%)`,
+                  animation: "spin 20s linear infinite",
                 }}
               />
               <FilterSidebar
@@ -201,7 +222,7 @@ export default function ProductsPage() {
                   curated items for you.
                 </p>
 
-                {/* Shows spinner if products is beign refetched */}
+                {/* Shows spinner if products is being refetched */}
                 <span>{isFetching && <IconSpinner />}</span>
               </div>
             </div>
@@ -212,7 +233,7 @@ export default function ProductsPage() {
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-xl overflow-hidden"
+                    className="rounded-2xl overflow-hidden"
                     style={{
                       background: colors.surface.secondary,
                       border: `1px solid ${colors.border.subtle}`,
@@ -220,11 +241,11 @@ export default function ProductsPage() {
                   >
                     <div
                       className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"}`}
-                      style={{ paddingTop: "128%" }}
+                      style={{ paddingTop: "133%" }}
                     />
-                    <div className="p-3 space-y-2">
+                    <div className="p-3.5 space-y-2.5">
                       <div
-                        className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"} h-3 rounded-full w-3/4`}
+                        className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"} h-3.5 rounded-full w-3/4`}
                       />
                       <div
                         className={`pg-skeleton ${isDark ? "pg-skeleton-dark" : "pg-skeleton-light"} h-3 rounded-full w-1/2`}
@@ -274,9 +295,10 @@ export default function ProductsPage() {
               </div>
             )}
 
+            {/* ── Product Grid ── */}
             <div
               ref={gridRef}
-              className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6"
+              className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6"
             >
               {gridItems.map((item) =>
                 item.type === "ad" ? (
@@ -300,15 +322,16 @@ export default function ProductsPage() {
                 ),
               )}
 
+              {/* Infinite scroll sentinel + loading indicator */}
               <ViewMoreBtn
-                onClick={handleLoadMore}
+                sentinelRef={sentinelRef}
                 loading={loadingMore}
-                allLoaded={visibleCount >= filteredProducts.length}
+                allLoaded={allLoaded}
                 count={filteredProducts.length}
               />
             </div>
 
-            {/* Comparison floating bar */}
+            {/* ── Comparison floating bar ── */}
             <AnimatePresence>
               {compareList.length > 0 && (
                 <motion.div
@@ -371,7 +394,10 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Mobile Filter */}
+      {/* ── Recently Viewed Strip ── */}
+      <RecentlyViewedStrip />
+
+      {/* ── Mobile Filter Drawer ── */}
       <AnimatePresence>
         {mobileFilterOpen && (
           <>

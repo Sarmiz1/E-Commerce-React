@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import gsap from "gsap";
 import { PAGE_SIZE, AD_INTERVAL } from "../Utils/constants";
 import { useGridColumns } from "./useGridColumns";
 
@@ -10,8 +9,10 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   const gridRef = useRef(null);
+  const sentinelRef = useRef(null);
   const { cols, adColSpan } = useGridColumns();
 
+  // ── Quick-view global listener ──
   useEffect(() => {
     const handleQuickView = (e) => setQuickViewProduct(e.detail);
     window.addEventListener("open-quickview", handleQuickView);
@@ -20,34 +21,38 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
 
   const handleQuickView = useCallback((p) => setQuickViewProduct(p), []);
 
-  const handleLoadMore = useCallback(() => {
-    setLoadingMore(true);
-    setTimeout(() => {
-      setVisibleCount((v) => v + PAGE_SIZE);
-      setLoadingMore(false);
-    }, 600);
-  }, []);
+  // ── Infinite scroll via IntersectionObserver ──
+  const allLoaded = visibleCount >= filteredProducts.length;
 
   useEffect(() => {
-    if (!isLoading && gridRef.current) {
-      gsap.fromTo(
-        gridRef.current.children,
-        { opacity: 0, y: 30, scale: 0.95 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.05,
-          ease: "expo.out",
-          overwrite: "auto",
-        }
-      );
-    }
-  }, [isLoading, selectedCategory, sort]);
+    if (allLoaded || isLoading) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
 
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !loadingMore) {
+          setLoadingMore(true);
+          setTimeout(() => {
+            setVisibleCount((v) => v + PAGE_SIZE);
+            setLoadingMore(false);
+          }, 500);
+        }
+      },
+      { rootMargin: "400px" } // Trigger 400px before reaching bottom
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [allLoaded, isLoading, loadingMore]);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [selectedCategory, sort]);
+
+  // ── Build grid items with dynamic row-fill ──
   const visibleProducts = filteredProducts.slice(0, visibleCount);
-  const allLoaded = visibleCount >= filteredProducts.length;
 
   const gridItems = useMemo(() => {
     const items = [];
@@ -68,9 +73,7 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
       }
     });
 
-    // ── Dynamic row-fill trimming ──
-    // Only trim when there are more products to load.
-    // When all products are shown, allow a partial last row so nothing is hidden.
+    // Dynamic row-fill trimming (only when more products available)
     if (!allLoaded) {
       let remainder = slotCount % cols;
       while (remainder > 0 && items.length > 0) {
@@ -93,8 +96,9 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
     quickViewProduct,
     setQuickViewProduct,
     gridRef,
+    sentinelRef,
     handleQuickView,
-    handleLoadMore,
     gridItems,
+    allLoaded,
   };
 }
