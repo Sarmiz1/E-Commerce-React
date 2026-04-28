@@ -28,10 +28,8 @@ export default function InlineAd({ product, type, allProducts }) {
           className="block group h-full"
         >
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
             whileHover="hover"
-            className="relative rounded-2xl overflow-hidden flex items-center justify-between gap-4 cursor-pointer h-full border border-white/5"
+            className="pg-card-enter relative rounded-2xl overflow-hidden flex items-center justify-between gap-4 cursor-pointer h-full border border-white/5"
             variants={{
               hover: {
                 scale: 1.01,
@@ -130,10 +128,8 @@ export default function InlineAd({ product, type, allProducts }) {
         className="block h-full group"
       >
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
           whileHover="hover"
-          className="relative rounded-2xl overflow-hidden flex items-center justify-between gap-4 cursor-pointer h-full border border-amber-500/10"
+          className="pg-card-enter relative rounded-2xl overflow-hidden flex items-center justify-between gap-4 cursor-pointer h-full border border-amber-500/10"
           variants={{
             hover: {
               scale: 1.01,

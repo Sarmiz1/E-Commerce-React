@@ -36,10 +36,10 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
           setTimeout(() => {
             setVisibleCount((v) => v + PAGE_SIZE);
             setLoadingMore(false);
-          }, 500);
+          }, 100);
         }
       },
-      { rootMargin: "400px" } // Trigger 400px before reaching bottom
+      { rootMargin: "1000px" } // Trigger 1000px before reaching bottom
     );
 
     observer.observe(sentinel);
