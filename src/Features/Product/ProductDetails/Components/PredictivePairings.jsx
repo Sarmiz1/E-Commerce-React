@@ -39,12 +39,12 @@ export function PredictivePairings({ products, isFetching }) {
     <section ref={ref} className="py-20" style={{ background: "var(--pd-pair-bg)", borderTop: "1px solid var(--pd-pair-bdr)" }}>
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-12">
-          <p className="pd-chip mb-3" style={{ color: "var(--gold)" }}>Curated Pairings</p>
-          <h2 className="pd-display text-4xl font-light" style={{ color: "var(--cream)" }}>You May Also Desire</h2>
+          <p className="pd-chip mb-3" style={{ color: "var(--gold)" }}>Artisan Selection</p>
+          <h2 className="pd-display text-4xl font-light" style={{ color: "var(--cream)" }}>Complete the Look</h2>
           <p className="mt-2 text-sm" style={{ color: "var(--silver)", fontFamily: "Jost,sans-serif" }}>
-            Matched by style and sensibility
+            Handpicked pairings to elevate your signature style
           </p>
-          <span>{isFetching && <IconSpinner className="ml-2" />}</span>
+          {isFetching && <div className="flex justify-center mt-4"><IconSpinner /></div>}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {products.map(p => (

@@ -153,36 +153,57 @@ export function ThumbnailGallery({ product, imageRef }) {
               </span>
             </div>
 
-            {/* ── Magnifier lens — rebuilt ── */}
-            {zoomActive && containerSize.w > 0 && (
-              <div
-                className="pd-lens"
-                style={{
-                  width: LENS_SIZE,
-                  height: LENS_SIZE,
-                  left: lensLeft,
-                  top: lensTop,
-                }}
-              >
-                <img
-                  src={cv.src}
-                  alt=""
-                  draggable={false}
-                  onError={e => { e.target.onerror = null; e.target.src = "https://placehold.co/600x600?text=?"; }}
+            {/* ── Magnifier lens — High-Fidelity Refinement ── */}
+            <AnimatePresence>
+              {zoomActive && containerSize.w > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="pd-lens group"
                   style={{
+                    width: LENS_SIZE,
+                    height: LENS_SIZE,
+                    left: lensLeft,
+                    top: lensTop,
                     position: "absolute",
-                    width: zoomedW,
-                    height: zoomedH,
-                    left: zoomedLeft,
-                    top: zoomedTop,
-                    transform: cv.transform || "none",
-                    objectFit: "cover",
-                    maxWidth: "none",
-                    userSelect: "none",
+                    pointerEvents: "none",
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    border: "2px solid var(--gold)",
+                    boxShadow: "0 10px 40px rgba(0,0,0,0.4), inset 0 0 15px rgba(255,255,255,0.1)",
+                    zIndex: 20,
+                    background: "var(--pd-page)"
                   }}
-                />
-              </div>
-            )}
+                >
+                  <motion.img
+                    src={cv.src}
+                    alt=""
+                    draggable={false}
+                    onError={e => { e.target.onerror = null; e.target.src = "https://placehold.co/600x600?text=?"; }}
+                    initial={false}
+                    animate={{
+                      left: zoomedLeft,
+                      top: zoomedTop,
+                    }}
+                    transition={{ type: "spring", stiffness: 350, damping: 30, mass: 0.8 }}
+                    style={{
+                      position: "absolute",
+                      width: zoomedW,
+                      height: zoomedH,
+                      transform: cv.transform || "none",
+                      objectFit: "cover",
+                      maxWidth: "none",
+                      userSelect: "none",
+                      display: "block"
+                    }}
+                  />
+                  {/* Glass reflection overlay */}
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-transparent via-white/5 to-white/10" />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Trust badges */}

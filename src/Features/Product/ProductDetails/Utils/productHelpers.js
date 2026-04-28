@@ -84,3 +84,19 @@ export function generateSparklinePoints(productId, W, H) {
   const pathLen = Math.round(pts.reduce((acc, p, i) => { if (i === 0) return 0; const dx = p.x - pts[i - 1].x, dy = p.y - pts[i - 1].y; return acc + Math.sqrt(dx * dx + dy * dy); }, 0));
   return { pts, pathD, areaD, pathLen };
 }
+
+export function getReviewHighlights(product) {
+  const category = getProductCategory(product.keywords);
+  const baseHighlights = ["Excellent Quality", "Fast Shipping", "Verified Purchase"];
+  
+  const categoryMap = {
+    shoes: ["Comfortable Fit", "True to Size", "Stylish Design", "Great Arch Support"],
+    apparel: ["Soft Fabric", "Perfect Fit", "Premium Texture", "Vibrant Colors"],
+    kitchen: ["Easy to Clean", "Durable Build", "Professional Grade", "Ergonomic"],
+    home: ["Superior Comfort", "Minimalist Style", "Soft Touch", "High Durability"],
+    default: ["Value for Money", "Elegantly Packaged", "Versatile Use", "Premium Feel"]
+  };
+
+  const specific = categoryMap[category] || categoryMap.default;
+  return [...baseHighlights, ...specific.slice(0, 2)];
+}

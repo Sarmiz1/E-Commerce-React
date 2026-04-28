@@ -34,7 +34,9 @@ export function ColorSelector({ availableColors, selectedColor, onSelect }) {
         {availableColors.map((c) => (
           <motion.button key={c.name} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}
             onClick={() => onSelect(c.name)}
-            className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+            aria-label={`Select color: ${c.name}`}
+            aria-pressed={selectedColor === c.name}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
             style={{
               background: c.hex,
               boxShadow: selectedColor === c.name ? `0 0 0 2px var(--obsidian), 0 0 0 3.5px var(--gold)` : "none",

@@ -36,7 +36,9 @@ export function SizeSelector({ sizes, selectedSize, onSelect, productType }) {
         {sizes.map(s => (
           <motion.button key={s.raw} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(s.raw)}
-            className="min-w-[52px] py-2 px-3 rounded-lg text-xs font-medium transition-all duration-250"
+            aria-label={`Select size: ${s.display}`}
+            aria-current={selectedSize === s.raw ? "true" : "false"}
+            className="min-w-[52px] py-2 px-3 rounded-lg text-xs font-medium transition-all duration-250 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
             style={{
               fontFamily: "Jost,sans-serif",
               background: selectedSize === s.raw ? "var(--gold)" : "var(--pd-s2)",

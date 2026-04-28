@@ -17,16 +17,20 @@ import {
 // ─── ProductTabs ──────────────────────────────────────────────────────────────
 export function ProductTabs({ product }) {
   const [tab, setTab] = useState("description");
-  const tabs = [{ id: "description", label: "Description" }, { id: "details", label: "Details" }];
+  const tabs = [
+    { id: "description", label: "Description" }, 
+    { id: "details", label: "Details" },
+    { id: "shipping", label: "Shipping" }
+  ];
 
   const description = product.description || "A premium quality product crafted with meticulous attention to detail. Designed for everyday use, this piece combines enduring durability with refined style. Perfect for those who seek reliable, long-lasting quality.";
 
   return (
     <div className="mt-6">
-      <div className="flex gap-0 border-b" style={{ borderColor: "var(--pd-b2)" }}>
+      <div className="flex gap-0 border-b overflow-x-auto pd-thumbs" style={{ borderColor: "var(--pd-b2)" }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`relative px-4 py-3 text-xs font-medium tracking-widest uppercase transition-colors ${tab === t.id ? "pd-tab-on" : ""}`}
+            className={`relative px-4 py-3 text-xs font-medium tracking-widest uppercase transition-colors whitespace-nowrap ${tab === t.id ? "pd-tab-on" : ""}`}
             style={{ fontFamily: "Jost,sans-serif", color: tab === t.id ? "var(--gold)" : "var(--mist)" }}>
             {t.label}
           </button>
@@ -65,6 +69,25 @@ export function ProductTabs({ product }) {
                 <span className="text-xs font-medium text-right max-w-[55%] truncate" style={{ color: "var(--platinum)", fontFamily: "Jost,sans-serif" }}>{row.value}</span>
               </div>
             ))}
+          </motion.div>
+        )}
+        {tab === "shipping" && (
+          <motion.div key="ship" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}
+            className="pt-5 space-y-4">
+            <div className="flex items-start gap-3">
+              <TruckIcon className="w-5 h-5 text-gold mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-platinum">Complimentary Delivery</p>
+                <p className="text-xs text-mist leading-relaxed mt-1">Enjoy free standard shipping on all orders over $50. Premium express delivery is available at checkout for an additional fee.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <RefreshIcon className="w-5 h-5 text-gold mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-platinum">Artisan Returns Policy</p>
+                <p className="text-xs text-mist leading-relaxed mt-1">If you are not entirely satisfied with your purchase, we offer a seamless 30-day return window. Items must be in original condition with all tags attached.</p>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
