@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Users, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
+import MagneticButton from '../../Components/MagneticButton';
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
@@ -135,8 +136,8 @@ const FinalCtaSection = () => {
 
             {/* Buttons */}
             <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 mb-12">
-              <button
-                className="flex items-center justify-center gap-2.5 text-white px-9 py-4.5 rounded-full font-semibold text-base transition-all duration-200 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0"
+              <MagneticButton
+                className="flex items-center justify-center gap-2.5 text-white px-9 py-4.5 rounded-full font-semibold text-base transition-all duration-200"
                 style={{
                   background: 'linear-gradient(135deg,#2563eb,#0891b2)',
                   boxShadow: '0 6px 28px rgba(37,99,235,0.42)',
@@ -146,8 +147,8 @@ const FinalCtaSection = () => {
               >
                 Try WooSho Now
                 <ArrowRight size={17} />
-              </button>
-              <button
+              </MagneticButton>
+              <MagneticButton
                 className="flex items-center justify-center text-white px-9 rounded-full font-semibold text-base transition-all duration-200 hover:bg-white/10"
                 style={{
                   border: '1px solid rgba(255,255,255,0.16)',
@@ -156,7 +157,7 @@ const FinalCtaSection = () => {
                 onClick={() => navigate('/auth')}
               >
                 Create Free Account
-              </button>
+              </MagneticButton>
             </div>
 
             {/* Micro stats */}

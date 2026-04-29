@@ -5,6 +5,7 @@ import HeroSection from "./sections/HeroSection";
 import ModernNavbar from "../../../Components/ModernNavbar";
 import SEO from "../../../Components/SEO";
 import MarketingSkeleton from "../Components/MarketingSkeleton";
+import WS_IMG from '../../../assets/marketing/mktimg3.png';
 
 // GSAP registration once at module level is correct.
 gsap.registerPlugin(ScrollTrigger);
@@ -49,6 +50,9 @@ const BuyerLanding = () => {
 
   return (
     <>
+      {/* Critical Performance: Preload the heavy sprite panel */}
+      <link rel="preload" as="image" href={WS_IMG} />
+
       <SEO 
         title="WooSho Buyer - Smart Shopping, Curated for You"
         description="Experience AI-curated shopping with WooSho. Find exactly what you need with our intelligent shopping assistant."

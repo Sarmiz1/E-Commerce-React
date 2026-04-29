@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShoppingBag, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
+import MagneticButton from '../../Components/MagneticButton';
 
 const mockDatabase = [
   { id: 1, title: "Urban Black Kicks", price: formatMoneyCurrency(3500000).replace(".00", ""), img: "https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=400&q=80", tags: ["black", "sneakers", "urban"] },
@@ -14,7 +15,10 @@ const mockDatabase = [
 
 const HeroSection = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const params = new URLSearchParams(window.location.search);
+  const intent = params.get('intent');
+  
+  const [searchQuery, setSearchQuery] = useState(intent || '');
   const [isTyping, setIsTyping] = useState(false);
   const [filteredResults, setFilteredResults] = useState(mockDatabase.slice(0, 3));
 
@@ -52,9 +56,13 @@ const HeroSection = () => {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-6xl md:text-8xl font-black text-neutral-900 dark:text-white leading-[0.95] tracking-tighter"
           >
-            Smarter. <br />
-            Faster. <br />
-            <span className="text-neutral-400 dark:text-neutral-500">Curated.</span>
+            {intent === 'sneakers' ? (
+              <>The Perfect <br/><span className="text-neutral-400 dark:text-neutral-500">Kicks.</span></>
+            ) : intent === 'tech' ? (
+              <>The Latest <br/><span className="text-neutral-400 dark:text-neutral-500">Tech.</span></>
+            ) : (
+              <>Smarter. <br />Faster. <br /><span className="text-neutral-400 dark:text-neutral-500">Curated.</span></>
+            )}
           </motion.h1>
           
           <motion.p 
@@ -72,19 +80,19 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-4"
           >
-            <button
+            <MagneticButton
               className="flex items-center justify-center gap-3 bg-neutral-900 dark:bg-white text-white dark:text-black px-8 py-4 rounded-xl font-bold transition-transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => navigate('/ai-shop')}
             >
               Start Searching
               <ArrowRight className="w-5 h-5" />
-            </button>
-            <button
+            </MagneticButton>
+            <MagneticButton
               className="flex items-center justify-center gap-3 bg-neutral-100 dark:bg-[#1A1A1E] text-neutral-900 dark:text-white px-8 py-4 rounded-xl font-bold border border-transparent dark:border-white/5 transition-transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => navigate('/products/categories')}
             >
               Browse Catalog
-            </button>
+            </MagneticButton>
           </motion.div>
         </div>
 

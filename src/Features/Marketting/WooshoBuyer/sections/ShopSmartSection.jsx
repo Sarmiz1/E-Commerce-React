@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { MessageSquare, ShoppingBag, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
+import MagneticButton from '../../Components/MagneticButton';
 
 
 // ─── Image: public/1000174262.png ─────────────────────────────────────────────
@@ -109,20 +110,20 @@ const ShopSmartSection = () => {
           </p>
 
           <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-2">
-            <button
-              className="flex items-center justify-center gap-2.5 text-white px-8 py-4 rounded-full font-semibold transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 "
+            <MagneticButton
+              className="flex items-center justify-center gap-2.5 text-white px-8 py-4 rounded-full font-semibold transition-all duration-200"
               style={{ background: 'linear-gradient(135deg,#1d4ed8,#0284c7)', boxShadow: '0 4px 20px rgba(37,99,235,0.32)' }}
               onClick ={() => navigate('/auth')} 
             >
               <ShoppingBag className="w-4.5 h-4.5" />
               Start Shopping
-            </button>
-            <button 
+            </MagneticButton>
+            <MagneticButton 
               className="flex items-center justify-center gap-2.5 bg-neutral-100 dark:bg-white/5 text-neutral-900 dark:text-white px-8 py-4 rounded-full font-semibold hover:bg-neutral-600 transition-colors duration-200"
               onClick={() => navigate('/products/categories')}
             >
               Browse Categories
-            </button>
+            </MagneticButton>
           </div>
 
           {/* Micro social proof */}

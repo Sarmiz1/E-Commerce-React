@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import TiltCard from '../../Components/TiltCard';
 
 const FEATURES = [
   {
@@ -47,7 +48,7 @@ const SmartFeaturesSection = () => {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo(cardsRef.current,
+      gsap.fromTo('.smart-feat-card',
         { y: 50, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.9, stagger: 0.14, ease: "expo.out",
           scrollTrigger: { trigger: sectionRef.current, start: "top 68%" } }
@@ -76,9 +77,9 @@ const SmartFeaturesSection = () => {
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURES.map((feat, i) => (
-            <div
+            <TiltCard
               key={i}
-              ref={el => cardsRef.current[i] = el}
+              className="smart-feat-card"
               style={{
                 borderRadius: 24,
                 overflow: "hidden",
@@ -86,11 +87,9 @@ const SmartFeaturesSection = () => {
                 background: "#111113",
                 display: "flex",
                 flexDirection: "column",
-                transition: "transform 0.3s ease, border-color 0.3s",
                 cursor: "default",
+                position: "relative",
               }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.borderColor = `${feat.accent}44`; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; }}
             >
               {/* Image */}
               <div style={{ height: 160, position: "relative", overflow: "hidden" }}>
@@ -129,7 +128,7 @@ const SmartFeaturesSection = () => {
                   <span style={{ fontSize: 10, fontWeight: 700, color: feat.accent, textTransform: "uppercase", letterSpacing: "0.08em" }}>Always on</span>
                 </div>
               </div>
-            </div>
+            </TiltCard>
           ))}
         </div>
       </div>
