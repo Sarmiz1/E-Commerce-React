@@ -1,5 +1,344 @@
 // src/api/cartApi.js
 import { supabase } from "../supabaseClient";
+import { getAnalyticsSessionId, getStoredAnalyticsEvents } from "./track_events";
+import { WishlistAPI } from "./wishlistApi";
+
+const RECOMMENDATION_PRODUCT_SELECT = `
+  id,
+  name,
+  slug,
+  price_cents,
+  category_id,
+  brand,
+  keywords,
+  rating_stars,
+  rating_count,
+  image,
+  is_featured,
+  created_at
+`;
+
+const RECOMMENDATION_EVENT_TYPES = [
+  "product_click",
+  "view_product",
+  "product_detail_viewed",
+  "quick_view_opened",
+  "add_to_wishlist",
+  "add_to_cart",
+];
+
+const EVENT_WEIGHTS = {
+  product_click: 12,
+  view_product: 8,
+  product_detail_viewed: 10,
+  quick_view_opened: 6,
+  add_to_wishlist: 18,
+  add_to_cart: 14,
+};
+
+const normalizeProductIds = (ids = []) => {
+  const list = Array.isArray(ids) ? ids : [ids];
+  return [...new Set(list.filter(Boolean).map(String))];
+};
+
+const normalizeTextValues = (values = []) => [
+  ...new Set(values.filter(Boolean).map((value) => String(value).trim()).filter(Boolean)),
+];
+
+const keywordListFromProducts = (products = []) => [
+  ...new Set(
+    products
+      .flatMap((product) => (Array.isArray(product?.keywords) ? product.keywords : []))
+      .filter(Boolean)
+      .map((keyword) => String(keyword).toLowerCase()),
+  ),
+];
+
+const uniqueProducts = (groups = []) => {
+  const byId = new Map();
+
+  groups.flat().forEach((product) => {
+    if (product?.id && !byId.has(product.id)) {
+      byId.set(product.id, product);
+    }
+  });
+
+  return [...byId.values()];
+};
+
+const countKeywordOverlap = (product, seedKeywords) => {
+  if (!seedKeywords.size || !Array.isArray(product?.keywords)) return 0;
+
+  return product.keywords.reduce(
+    (count, keyword) => count + (seedKeywords.has(String(keyword).toLowerCase()) ? 1 : 0),
+    0,
+  );
+};
+
+const logScore = (value = 0, weight = 1) => Math.log(Number(value) + 1) * weight;
+
+const getAveragePrice = (products = []) => {
+  const prices = products
+    .map((product) => Number(product?.price_cents))
+    .filter((price) => Number.isFinite(price) && price > 0);
+
+  if (!prices.length) return null;
+  return prices.reduce((sum, price) => sum + price, 0) / prices.length;
+};
+
+const getPriceAffinityScore = (product, averagePrice) => {
+  if (!averagePrice) return 0;
+
+  const price = Number(product?.price_cents);
+  if (!Number.isFinite(price) || price <= 0) return 0;
+
+  const distance = Math.abs(price - averagePrice) / averagePrice;
+  return Math.max(0, 10 - distance * 20);
+};
+
+const daysSince = (date) => {
+  if (!date) return Infinity;
+  const time = new Date(date).getTime();
+  if (Number.isNaN(time)) return Infinity;
+  return (Date.now() - time) / (1000 * 60 * 60 * 24);
+};
+
+async function getCurrentUserId() {
+  try {
+    const { data } = await supabase.auth.getUser();
+    return data?.user?.id || null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchProductsByIds(productIds = []) {
+  const ids = normalizeProductIds(productIds);
+  if (!ids.length) return [];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(RECOMMENDATION_PRODUCT_SELECT)
+    .in("id", ids)
+    .eq("is_active", true)
+    .limit(ids.length);
+
+  if (error) return [];
+  return data || [];
+}
+
+async function fetchProductsByField(field, values = [], limit = 40) {
+  const normalizedValues = normalizeTextValues(values);
+  if (!normalizedValues.length) return [];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(RECOMMENDATION_PRODUCT_SELECT)
+    .eq("is_active", true)
+    .in(field, normalizedValues)
+    .limit(limit);
+
+  if (error) return [];
+  return data || [];
+}
+
+async function fetchProductsByKeywords(keywords = [], limit = 40) {
+  const normalizedKeywords = normalizeTextValues(keywords).slice(0, 24);
+  if (!normalizedKeywords.length) return [];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select(RECOMMENDATION_PRODUCT_SELECT)
+    .eq("is_active", true)
+    .overlaps("keywords", normalizedKeywords)
+    .limit(limit);
+
+  if (error) return [];
+  return data || [];
+}
+
+async function fetchPopularProducts(limit = 40) {
+  const { data, error } = await supabase
+    .from("products")
+    .select(RECOMMENDATION_PRODUCT_SELECT)
+    .eq("is_active", true)
+    .order("rating_count", { ascending: false })
+    .limit(limit);
+
+  if (error) return [];
+  return data || [];
+}
+
+async function fetchSimilarProducts(productIds = [], limit = 24) {
+  const ids = normalizeProductIds(productIds).slice(0, 4);
+  if (!ids.length) return { products: [], scoreById: new Map() };
+
+  const scoreById = new Map();
+  const results = await Promise.allSettled(
+    ids.map((targetId) =>
+      supabase.rpc("get_ranked_similar_products", {
+        target_id: targetId,
+        limit_count: Math.max(4, Math.ceil(limit / ids.length)),
+      }),
+    ),
+  );
+
+  const products = results.flatMap((result) => {
+    if (result.status !== "fulfilled" || result.value.error) return [];
+
+    return (result.value.data || []).map((product) => {
+      const rpcScore = Number(product.score) || 0;
+      const existingScore = scoreById.get(product.id) || 0;
+      scoreById.set(product.id, Math.max(existingScore, rpcScore));
+
+      return product;
+    });
+  });
+
+  return { products, scoreById };
+}
+
+async function fetchProductMetrics(productIds = []) {
+  const ids = normalizeProductIds(productIds);
+  if (!ids.length) return new Map();
+
+  const { data, error } = await supabase
+    .from("product_metrics")
+    .select("product_id, view_count, purchase_count, search_count, wishlisted_count")
+    .in("product_id", ids);
+
+  if (error) return new Map();
+
+  return new Map((data || []).map((metric) => [metric.product_id, metric]));
+}
+
+async function fetchWishlistProductIds(userId) {
+  const guestIds = WishlistAPI.getGuestWishlist();
+
+  if (!userId) return normalizeProductIds(guestIds);
+
+  const { data, error } = await supabase
+    .from("wishlists")
+    .select("product_id")
+    .limit(200);
+
+  if (error) return normalizeProductIds(guestIds);
+
+  return normalizeProductIds([
+    ...guestIds,
+    ...(data || []).map((item) => item.product_id),
+  ]);
+}
+
+async function fetchActivitySignals(userId) {
+  const signalByProductId = new Map();
+
+  const addSignal = ({ productId, eventType, quantity }) => {
+    if (!productId || !RECOMMENDATION_EVENT_TYPES.includes(eventType)) return;
+
+    const current = signalByProductId.get(productId) || 0;
+    const quantityBoost = Math.max(Number(quantity) || 1, 1);
+    signalByProductId.set(
+      productId,
+      current + (EVENT_WEIGHTS[eventType] || 1) * Math.min(quantityBoost, 5),
+    );
+  };
+
+  getStoredAnalyticsEvents().forEach((event) => {
+    addSignal({
+      productId: event.productId,
+      eventType: event.type,
+      quantity: event.quantity,
+    });
+  });
+
+  const sessionId = getAnalyticsSessionId();
+  let query = supabase
+    .from("events")
+    .select("product_id, event_type, quantity, user_id, session_id")
+    .not("product_id", "is", null)
+    .in("event_type", RECOMMENDATION_EVENT_TYPES)
+    .limit(200);
+
+  if (userId) {
+    query = query.or(`user_id.eq.${userId},session_id.eq.${sessionId}`);
+  } else {
+    query = query.eq("session_id", sessionId);
+  }
+
+  const { data, error } = await query;
+  if (!error) {
+    (data || []).forEach((event) => {
+      addSignal({
+        productId: event.product_id,
+        eventType: event.event_type,
+        quantity: event.quantity,
+      });
+    });
+  }
+
+  return signalByProductId;
+}
+
+function scoreRecommendation({
+  product,
+  cartProductIds,
+  cartSeeds,
+  wishlistProductIds,
+  wishlistSeeds,
+  activitySignals,
+  activitySeeds,
+  metricsById,
+  similarScoreById,
+}) {
+  if (cartProductIds.has(product.id)) return Number.NEGATIVE_INFINITY;
+
+  const cartCategories = new Set(cartSeeds.map((item) => item.category_id).filter(Boolean));
+  const wishlistCategories = new Set(wishlistSeeds.map((item) => item.category_id).filter(Boolean));
+  const activityCategories = new Set(activitySeeds.map((item) => item.category_id).filter(Boolean));
+  const cartBrands = new Set(cartSeeds.map((item) => item.brand).filter(Boolean));
+  const wishlistBrands = new Set(wishlistSeeds.map((item) => item.brand).filter(Boolean));
+  const activityBrands = new Set(activitySeeds.map((item) => item.brand).filter(Boolean));
+  const cartKeywords = new Set(keywordListFromProducts(cartSeeds));
+  const wishlistKeywords = new Set(keywordListFromProducts(wishlistSeeds));
+  const activityKeywords = new Set(keywordListFromProducts(activitySeeds));
+  const averageCartPrice = getAveragePrice(cartSeeds);
+  const metrics = metricsById.get(product.id) || {};
+
+  let score = 0;
+
+  if (similarScoreById.has(product.id)) {
+    score += 38 + Math.min(Number(similarScoreById.get(product.id)) || 0, 24);
+  }
+
+  if (cartCategories.has(product.category_id)) score += 28;
+  if (wishlistCategories.has(product.category_id)) score += 12;
+  if (activityCategories.has(product.category_id)) score += 10;
+
+  if (cartBrands.has(product.brand)) score += 14;
+  if (wishlistBrands.has(product.brand)) score += 8;
+  if (activityBrands.has(product.brand)) score += 6;
+
+  score += countKeywordOverlap(product, cartKeywords) * 6;
+  score += countKeywordOverlap(product, wishlistKeywords) * 4;
+  score += countKeywordOverlap(product, activityKeywords) * 3;
+  score += getPriceAffinityScore(product, averageCartPrice);
+
+  if (wishlistProductIds.has(product.id)) score += 18;
+  score += activitySignals.get(product.id) || 0;
+
+  score += logScore(metrics.view_count, 1.8);
+  score += logScore(metrics.search_count, 1.5);
+  score += logScore(metrics.purchase_count, 4);
+  score += logScore(metrics.wishlisted_count, 5);
+  score += (Number(product.rating_stars) || 0) * 2;
+  score += logScore(product.rating_count, 1.4);
+
+  if (product.is_featured) score += 3;
+  if (daysSince(product.created_at) <= 21) score += 2;
+
+  return score;
+}
 
 export const CartAPI = {
   // =========================
@@ -295,22 +634,77 @@ export const CartAPI = {
   // 📦 RECOMMENDATIONS
   // =========================
   cartRecommendations: (productIDs = [], limit = 8) => ({
-    queryKey: ["cart-recommendations", productIDs, limit],
+    queryKey: ["cart-recommendations", normalizeProductIds(productIDs), limit],
 
     queryFn: async () => {
-      const { data, error } = await supabase.rpc(
-        "get_cart_recommendations",
-        {
-          target_ids: productIDs,
-          limit_count: limit,
-        }
-      );
+      const cartProductIdsList = normalizeProductIds(productIDs);
+      const cartProductIds = new Set(cartProductIdsList);
+      const userId = await getCurrentUserId();
 
-      if (error) {
-        throw new Error(error.message || "Failed to fetch cart recommendations");
-      }
+      const [wishlistIdsList, activitySignals] = await Promise.all([
+        fetchWishlistProductIds(userId),
+        fetchActivitySignals(userId),
+      ]);
 
-      return data;
+      const wishlistProductIds = new Set(wishlistIdsList);
+      const activityProductIdsList = [...activitySignals.keys()];
+      const seedProductIds = normalizeProductIds([
+        ...cartProductIdsList,
+        ...wishlistIdsList,
+        ...activityProductIdsList,
+      ]);
+      const seedProducts = await fetchProductsByIds(seedProductIds);
+      const cartSeeds = seedProducts.filter((product) => cartProductIds.has(product.id));
+      const wishlistSeeds = seedProducts.filter((product) => wishlistProductIds.has(product.id));
+      const activitySeeds = seedProducts.filter((product) => activitySignals.has(product.id));
+      const intentSeeds = seedProducts.length ? seedProducts : cartSeeds;
+      const categoryIds = normalizeProductIds(intentSeeds.map((product) => product.category_id));
+      const brands = normalizeTextValues(intentSeeds.map((product) => product.brand));
+      const keywords = keywordListFromProducts(intentSeeds);
+      const candidateLimit = Math.max(limit * 10, 60);
+
+      const [
+        similarResult,
+        categoryProducts,
+        brandProducts,
+        keywordProducts,
+        popularProducts,
+      ] = await Promise.all([
+        fetchSimilarProducts(cartProductIdsList, candidateLimit),
+        fetchProductsByField("category_id", categoryIds, candidateLimit),
+        fetchProductsByField("brand", brands, candidateLimit),
+        fetchProductsByKeywords(keywords, candidateLimit),
+        fetchPopularProducts(candidateLimit),
+      ]);
+
+      const candidateProducts = uniqueProducts([
+        seedProducts,
+        similarResult.products,
+        categoryProducts,
+        brandProducts,
+        keywordProducts,
+        popularProducts,
+      ]).filter((product) => !cartProductIds.has(product.id));
+      const metricsById = await fetchProductMetrics(candidateProducts.map((product) => product.id));
+
+      return candidateProducts
+        .map((product) => ({
+          ...product,
+          recommendation_score: scoreRecommendation({
+            product,
+            cartProductIds,
+            cartSeeds,
+            wishlistProductIds,
+            wishlistSeeds,
+            activitySignals,
+            activitySeeds,
+            metricsById,
+            similarScoreById: similarResult.scoreById,
+          }),
+        }))
+        .filter((product) => Number.isFinite(product.recommendation_score))
+        .sort((a, b) => b.recommendation_score - a.recommendation_score)
+        .slice(0, limit);
     },
   }),
 };

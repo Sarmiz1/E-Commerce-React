@@ -36,13 +36,6 @@ export const CT_STYLES = `
   .ct-ticker{animation:ct-ticker 22s linear infinite}
   .ct-ticker:hover{animation-play-state:paused}
 
-  /* Row highlight flash */
-  @keyframes ct-highlight{
-    0%  {background:rgba(99,102,241,.12)}
-    100%{background:transparent}
-  }
-  .ct-highlight{animation:ct-highlight .6s ease-out forwards}
-
   /* Bubble pop */
   @keyframes ct-pop{0%{transform:scale(1)}40%{transform:scale(1.55)}70%{transform:scale(.88)}100%{transform:scale(1)}}
   .ct-pop{animation:ct-pop .38s cubic-bezier(.36,.07,.19,.97)}
@@ -57,6 +50,19 @@ export const CT_STYLES = `
 
   /* Input focus glow */
   .ct-input:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+  .dark .ct-input:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.15)}
+
+  /* Row highlight flash */
+  @keyframes ct-highlight{
+    0%  {background:rgba(99,102,241,.12)}
+    100%{background:transparent}
+  }
+  .ct-highlight{animation:ct-highlight .6s ease-out forwards}
+  .dark .ct-highlight{animation:ct-highlight-dark .6s ease-out forwards}
+  @keyframes ct-highlight-dark{
+    0%  {background:rgba(129,140,248,.15)}
+    100%{background:transparent}
+  }
 
   /* No scrollbar */
   .ct-no-scroll::-webkit-scrollbar{display:none}

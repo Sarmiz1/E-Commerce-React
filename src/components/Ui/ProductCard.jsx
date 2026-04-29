@@ -340,7 +340,7 @@ function CompactCard({ product }) {
         data-product-image={product.image}
         whileHover={{ y: -5, scale: 1.03 }}
         transition={{ duration: 0.22 }}
-        className="group bg-gray-50 rounded-2xl overflow-hidden hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100/60 flex flex-col h-full"
+        className="group bg-gray-50 dark:bg-neutral-800 rounded-2xl overflow-hidden hover:bg-white dark:hover:bg-neutral-700 hover:shadow-xl transition-all duration-300 border border-gray-100/60 dark:border-neutral-700/50 flex flex-col h-full"
       >
         <div className="relative overflow-hidden" style={{ aspectRatio: "1/1" }}>
           <img
@@ -366,12 +366,12 @@ function CompactCard({ product }) {
           )}
         </div>
         <div className="p-3 flex flex-col flex-1">
-          <p className="font-bold text-gray-900 text-xs line-clamp-1 mb-0.5 group-hover:text-indigo-700 transition-colors">
+          <p className="font-bold text-gray-900 dark:text-white text-xs line-clamp-1 mb-0.5 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">
             {product.name}
           </p>
           <Stars rating={product.rating_stars} count={product.rating_count} />
           <div className="flex items-center justify-between mt-auto pt-2">
-            <p className="font-black text-indigo-600 text-sm">{formatMoneyCents(product.price_cents)}</p>
+            <p className="font-black text-indigo-600 dark:text-indigo-400 text-sm">{formatMoneyCents(product.price_cents)}</p>
             <AddToCart productId={product.id} variant="icon" />
           </div>
         </div>

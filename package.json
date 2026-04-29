@@ -11,6 +11,7 @@
     "css": "tailwindcss -i ./src/index.css -o ./dist/output.css --watch"
   },
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.4.0",
     "@faker-js/faker": "^10.4.0",
     "@radix-ui/react-slot": "^1.2.4",
     "@supabase/supabase-js": "^2.103.3",

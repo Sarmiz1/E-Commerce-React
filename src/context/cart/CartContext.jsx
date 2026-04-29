@@ -9,7 +9,10 @@ import { queryClient } from "../../queries/queryClient";
 const CartStateContext = createContext(null);
 const CartActionsContext = createContext(null);
 
-const getCartItemKey = (item) => item?.id || item?.variant_id || item?.product_id;
+const getCartItemKey = (item) => {
+  if (!item || typeof item !== "object") return item;
+  return item?.id || item?.variant_id || item?.product_id;
+};
 
 const matchesGuestCartItem = (item, productId, variantId) => {
   if (variantId) return item?.variant_id === variantId;
@@ -136,7 +139,7 @@ export function CartProvider({ children }) {
   const { user } = useAuth();
 
   // ─── Cart query ───────────────────────────────────────────────────────────
-  const { data } = useQuery({
+  const { data, isLoading, isFetching, error, status } = useQuery({
     queryKey: ["cart", user?.id],
     queryFn: async () => {
       if (user?.id) {
@@ -187,6 +190,34 @@ export function CartProvider({ children }) {
         items: cart.filter((item) => !matchesCartItem(item, itemRef)),
       };
     },
+    onMutate: async (itemRef) => {
+      const cartQueryKey = ["cart", user?.id];
+
+      await queryClient.cancelQueries({ queryKey: cartQueryKey });
+
+      const previousCart = queryClient.getQueryData(cartQueryKey);
+      const previousGuestCart = !user?.id ? CartEngine.getGuestCart() : null;
+      const currentItems = previousCart?.items || cart;
+
+      queryClient.setQueryData(cartQueryKey, {
+        cartId: previousCart?.cartId ?? cartId,
+        items: currentItems.filter((item) => !matchesCartItem(item, itemRef)),
+      });
+
+      return { cartQueryKey, previousCart, previousGuestCart };
+    },
+    onError: (_error, _itemRef, context) => {
+      if (context?.cartQueryKey) {
+        queryClient.setQueryData(
+          context.cartQueryKey,
+          context.previousCart || { cartId, items: cart },
+        );
+      }
+
+      if (!user?.id && context?.previousGuestCart) {
+        CartEngine.setGuestCart(context.previousGuestCart);
+      }
+    },
     onSuccess: (data) => {
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
@@ -198,17 +229,121 @@ export function CartProvider({ children }) {
   });
 
   const updateQuantityMutation = useMutation({
-    mutationFn: ({ itemId, quantity }) =>
-      CartAPI.update({ cartItemId: itemId, quantity }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+    mutationFn: async ({ itemId, quantity }) => {
+      const safeQuantity = Math.max(Number(quantity) || 1, 1);
+      const cartItem = typeof itemId === "object"
+        ? itemId
+        : cart.find((item) => matchesCartItem(item, itemId));
+      const resolvedItemId = getCartItemKey(cartItem) || itemId;
+
+      if (user?.id) {
+        return CartAPI.update({ cartItemId: resolvedItemId, quantity: safeQuantity });
+      }
+
+      const guestCart = CartEngine.getGuestCart();
+      const normalizedGuestId = typeof resolvedItemId === "string" && resolvedItemId.startsWith("guest_")
+        ? resolvedItemId.slice("guest_".length)
+        : resolvedItemId;
+      const targetVariantId = cartItem?.variant_id || normalizedGuestId;
+      const targetProductId = cartItem?.product_id || normalizedGuestId;
+
+      const updatedGuestCart = guestCart.map((item) => {
+        const isMatch = cartItem?.variant_id
+          ? item.variant_id === targetVariantId
+          : cartItem?.product_id
+            ? item.product_id === targetProductId
+            : item.variant_id === normalizedGuestId || item.product_id === normalizedGuestId;
+
+        return isMatch ? { ...item, quantity: safeQuantity } : item;
+      });
+
+      CartEngine.setGuestCart(updatedGuestCart);
+      return CartAPI.loadGuestCart(updatedGuestCart);
+    },
+    onMutate: async ({ itemId, quantity }) => {
+      const cartQueryKey = ["cart", user?.id];
+      const safeQuantity = Math.max(Number(quantity) || 1, 1);
+
+      await queryClient.cancelQueries({ queryKey: cartQueryKey });
+
+      const previousCart = queryClient.getQueryData(cartQueryKey);
+      const previousGuestCart = !user?.id ? CartEngine.getGuestCart() : null;
+      const currentItems = previousCart?.items || cart;
+
+      queryClient.setQueryData(cartQueryKey, {
+        cartId: previousCart?.cartId ?? cartId,
+        items: currentItems.map((item) =>
+          matchesCartItem(item, itemId)
+            ? { ...item, quantity: safeQuantity }
+            : item,
+        ),
+      });
+
+      return { cartQueryKey, previousCart, previousGuestCart };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.cartQueryKey) {
+        queryClient.setQueryData(
+          context.cartQueryKey,
+          context.previousCart || { cartId, items: cart },
+        );
+      }
+
+      if (!user?.id && context?.previousGuestCart) {
+        CartEngine.setGuestCart(context.previousGuestCart);
+      }
+    },
+    onSuccess: (data) => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
+        return;
+      }
+
+      queryClient.setQueryData(["cart", undefined], data);
     },
   });
 
   const clearCartMutation = useMutation({
-    mutationFn: () => CartAPI.clear(cartId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+    mutationFn: async () => {
+      if (user?.id) return CartAPI.clear(cartId);
+
+      CartEngine.setGuestCart([]);
+      return { cartId: null, items: [] };
+    },
+    onMutate: async () => {
+      const cartQueryKey = ["cart", user?.id];
+
+      await queryClient.cancelQueries({ queryKey: cartQueryKey });
+
+      const previousCart = queryClient.getQueryData(cartQueryKey);
+      const previousGuestCart = !user?.id ? CartEngine.getGuestCart() : null;
+
+      queryClient.setQueryData(cartQueryKey, {
+        cartId: previousCart?.cartId ?? cartId,
+        items: [],
+      });
+
+      return { cartQueryKey, previousCart, previousGuestCart };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.cartQueryKey) {
+        queryClient.setQueryData(
+          context.cartQueryKey,
+          context.previousCart || { cartId, items: cart },
+        );
+      }
+
+      if (!user?.id && context?.previousGuestCart) {
+        CartEngine.setGuestCart(context.previousGuestCart);
+      }
+    },
+    onSuccess: (data) => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
+        return;
+      }
+
+      queryClient.setQueryData(["cart", undefined], data);
     },
   });
 
@@ -330,12 +465,14 @@ export function CartProvider({ children }) {
   const {
     mutate: removeItemMutate,
     isPending: removingItem,
+    variables: removeItemVariables,
     isSuccess: removeItemSuccess,
     error: removeItemError,
   } = removeItemMutation;
   const {
     mutate: updateQuantityMutate,
     isPending: updatingQuantity,
+    variables: updateQuantityVariables,
     isSuccess: updateQuantitySuccess,
     error: updateQuantityError,
   } = updateQuantityMutation;
@@ -393,9 +530,16 @@ export function CartProvider({ children }) {
       cart,
       cartId,
       cartCount: cart.reduce((a, b) => a + (b.quantity || 0), 0),
+      loading: isLoading,
+      fetching: isFetching,
+      error,
+      status,
     }),
-    [cart, cartId],
+    [cart, cartId, error, isFetching, isLoading, status],
   );
+
+  const removingItemId = getCartItemKey(removeItemVariables);
+  const updatingQuantityItemId = getCartItemKey(updateQuantityVariables?.itemId);
 
   const actions = useMemo(
   () => ({
@@ -413,11 +557,13 @@ export function CartProvider({ children }) {
     addItemsSuccess,
     addItemsError,
 
-    removingItem,
+    removingItem: removingItem ? removingItemId || true : false,
+    removingItemId,
     removeItemSuccess,
     removeItemError,
 
     updatingQuantity,
+    updatingQuantityItemId,
     updateQuantitySuccess,
     updateQuantityError,
 
@@ -438,9 +584,11 @@ export function CartProvider({ children }) {
     addItemsSuccess,
     addItemsError,
     removingItem,
+    removingItemId,
     removeItemSuccess,
     removeItemError,
     updatingQuantity,
+    updatingQuantityItemId,
     updateQuantitySuccess,
     updateQuantityError,
     clearingCart,

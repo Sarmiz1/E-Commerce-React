@@ -12,8 +12,8 @@ export function EmptyCart({ savedItems, onMoveToCart, navigate }) {
       >
         🛒
       </motion.div>
-      <h2 className="text-3xl font-black text-gray-900 mb-3">Your cart is empty</h2>
-      <p className="text-gray-400 text-base mb-8 max-w-sm leading-relaxed">
+      <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">Your cart is empty</h2>
+      <p className="text-gray-400 dark:text-neutral-500 text-base mb-8 max-w-sm leading-relaxed">
         Looks like you haven't added anything yet. Let's fix that.
       </p>
       <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
@@ -23,7 +23,7 @@ export function EmptyCart({ savedItems, onMoveToCart, navigate }) {
       </motion.button>
       {savedItems.length > 0 && (
         <div className="mt-16 w-full max-w-2xl mx-auto">
-          <p className="text-gray-400 text-sm mb-6">You have <span className="font-bold text-gray-700">{savedItems.length}</span> item{savedItems.length !== 1 ? "s" : ""} saved for later.</p>
+          <p className="text-gray-400 dark:text-neutral-500 text-sm mb-6">You have <span className="font-bold text-gray-700 dark:text-neutral-300">{savedItems.length}</span> item{savedItems.length !== 1 ? "s" : ""} saved for later.</p>
           <SavedForLater items={savedItems} onMoveToCart={onMoveToCart} />
         </div>
       )}

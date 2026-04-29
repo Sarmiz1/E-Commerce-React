@@ -8,6 +8,7 @@ import {
 import { fetchProductsLoader } from "../loaders/fetchProductsLoader";
 import { productDetailsLoader } from "../loaders/productDetailsLoader";
 import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
+import { cartRecommendationsLoader } from "../loaders/cartRecommendationsLoader";
 
 // ─── Layouts ──────────────────────────────────────────────────────────────────
 import RootLayout from "../Layout/RootLayout";
@@ -24,6 +25,7 @@ import TrackingPage from "../Features/Orders/Tracking/TrackingPage";
 import ProductDetail from "../Features/Product/ProductDetails/ProductDetail";
 import OtherPage from "../Features/OtherPage/OtherPage";
 import WishlistPage from "../Features/Wishlist/WishlistPage";
+import CartPage from "../Features/Cart/CartPage";
 
 // ─── Collection Pages ─────────────────────────────────────────────────────────
 import NewArrivalsPage from "../Features/Collections/pages/NewArrivalsPage";
@@ -321,12 +323,17 @@ const router = createBrowserRouter(
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
-          {/* <Route
+          <Route
             path="cart"
-            element={<><Navbar /><CartPage /></>}
+            element={
+              <>
+                <Navbar />
+                <CartPage />
+              </>
+            }
             loader={cartRecommendationsLoader}
             hydrateFallbackElement={<CartSkeleton />}
-          /> */}
+          />
 
           {/* ── Products  Layout── */}
           <Route

@@ -5,13 +5,13 @@ import { Ic } from "./CartConstants";
 export function StickyMobileBar({ total, itemCount, onCheckout }) {
   if (itemCount === 0) return null;
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 ct-sticky-rise bg-white/95 backdrop-blur-xl border-t border-gray-200 px-4 py-3 shadow-2xl">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 ct-sticky-rise bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-gray-200 dark:border-neutral-800 px-4 py-3 shadow-2xl transition-colors duration-300">
       <div className="flex items-center gap-3 max-w-lg mx-auto">
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-neutral-500">
             {itemCount} item{itemCount !== 1 ? "s" : ""}
           </p>
-          <p className="font-black text-gray-900 text-lg leading-tight">{formatMoneyCents(total)}</p>
+          <p className="font-black text-gray-900 dark:text-white text-lg leading-tight">{formatMoneyCents(total)}</p>
         </div>
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
           onClick={onCheckout}
