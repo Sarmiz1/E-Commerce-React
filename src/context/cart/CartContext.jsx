@@ -481,6 +481,7 @@ export function CartProvider({ children }) {
 
   const {
     mutate: removeItemMutate,
+    mutateAsync: removeItemMutateAsync,
     isPending: removingItem,
     variables: removeItemVariables,
     isSuccess: removeItemSuccess,
@@ -488,6 +489,7 @@ export function CartProvider({ children }) {
   } = removeItemMutation;
   const {
     mutate: updateQuantityMutate,
+    mutateAsync: updateQuantityMutateAsync,
     isPending: updatingQuantity,
     variables: updateQuantityVariables,
     isSuccess: updateQuantitySuccess,
@@ -501,6 +503,7 @@ export function CartProvider({ children }) {
   } = clearCartMutation;
   const {
     mutate: addItemMutate,
+    mutateAsync: addItemMutateAsync,
     isPending: addingItem,
     isSuccess: addItemSuccess,
     error: addItemError,
@@ -524,9 +527,19 @@ export function CartProvider({ children }) {
     [removeItemMutate],
   );
 
+  const removeItemAsync = useCallback(
+    (itemId) => removeItemMutateAsync(itemId),
+    [removeItemMutateAsync],
+  );
+
   const updateQuantity = useCallback(
     (itemId, quantity) => updateQuantityMutate({ itemId, quantity }),
     [updateQuantityMutate],
+  );
+
+  const updateQuantityAsync = useCallback(
+    (itemId, quantity) => updateQuantityMutateAsync({ itemId, quantity }),
+    [updateQuantityMutateAsync],
   );
 
   const clearCart = useCallback(
@@ -538,6 +551,12 @@ export function CartProvider({ children }) {
     (productId, variantId, quantity = 1) =>
       addItemMutate({ productId, variantId, quantity }),
     [addItemMutate],
+  );
+
+  const addItemAsync = useCallback(
+    (productId, variantId, quantity = 1) =>
+      addItemMutateAsync({ productId, variantId, quantity }),
+    [addItemMutateAsync],
   );
 
   const addItems = useCallback(
@@ -572,9 +591,12 @@ export function CartProvider({ children }) {
   const actions = useMemo(
   () => ({
     addItem,
+    addItemAsync,
     addItems,
     removeItem,
+    removeItemAsync,
     updateQuantity,
+    updateQuantityAsync,
     clearCart,
     applyPromo,
 
@@ -604,9 +626,12 @@ export function CartProvider({ children }) {
   }),
   [
     addItem,
+    addItemAsync,
     addItems,
     removeItem,
+    removeItemAsync,
     updateQuantity,
+    updateQuantityAsync,
     clearCart,
     applyPromo,
     addingItem,

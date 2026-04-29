@@ -14,12 +14,27 @@ const STEPS = [
 ];
 
 const AVATARS = [
-  'https://i.pravatar.cc/32?img=1',
-  'https://i.pravatar.cc/32?img=5',
-  'https://i.pravatar.cc/32?img=9',
-  'https://i.pravatar.cc/32?img=15',
-  'https://i.pravatar.cc/32?img=20',
+  { bg: "#6366f1" },
+  { bg: "#ec4899" },
+  { bg: "#10b981" },
+  { bg: "#f59e0b" },
+  { bg: "#8b5cf6" },
 ];
+
+const UserAvatar = ({ bg, isFirst }) => (
+  <svg 
+    width="32" height="32" viewBox="0 0 32 32" 
+    style={{
+      width: 32, height: 32, borderRadius: '50%',
+      border: '2px solid #060612',
+      marginLeft: isFirst ? 0 : -10,
+      backgroundColor: bg,
+    }}
+  >
+    <circle cx="16" cy="12" r="6" fill="#fff" opacity="0.6"/>
+    <path d="M6 32 C6 22 26 22 26 32" fill="#fff" opacity="0.4"/>
+  </svg>
+);
 
 export default function Section9_Cta() {
   const sectionRef = useRef(null);
@@ -153,18 +168,8 @@ export default function Section9_Cta() {
         {/* Social proof strip */}
         <div style={{ marginTop: 56, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex' }}>
-            {AVATARS.map((src, i) => (
-              <img
-                key={src}
-                src={src}
-                alt=""
-                style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  border: '2px solid #060612',
-                  marginLeft: i === 0 ? 0 : -10,
-                  objectFit: 'cover',
-                }}
-              />
+            {AVATARS.map((avatar, i) => (
+              <UserAvatar key={i} bg={avatar.bg} isFirst={i === 0} />
             ))}
           </div>
           <span style={{ fontSize: 13, color: '#9ca3af', fontWeight: 600 }}>

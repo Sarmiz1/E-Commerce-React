@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { Ic, Spinner } from "./CartConstants";
+import { getCartItemLineTotalCents, getCartItemUnitPriceCents } from "../Utils/cartItemUtils";
 
 function MechanicalDigit({ value, prevValue }) {
   const dir = value > prevValue ? "up" : "down";
@@ -40,8 +41,8 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
     setPrevQty(item.quantity);
   }, [item.quantity, prevQty]);
 
-  const price = item?.products?.price_cents || 0;
-  const lineTotal = price * item.quantity;
+  const price = getCartItemUnitPriceCents(item);
+  const lineTotal = getCartItemLineTotalCents(item);
 
   const dragX = useMotionValue(0);
   const opacity = useTransform(dragX, [-120, 0], [0, 1]);

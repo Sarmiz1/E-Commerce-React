@@ -1,6 +1,6 @@
+import { motion } from "framer-motion";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { Ic, FREE_SHIP_THRESHOLD } from "./CartConstants";
-import { motion } from "framer-motion";
 
 export function FreeShippingBar({ subtotal, discount }) {
   const effective = subtotal - discount;
@@ -14,7 +14,7 @@ export function FreeShippingBar({ subtotal, discount }) {
         <div className="flex items-center gap-2">
           <Ic.Truck c="w-4 h-4 text-blue-500" />
           <span className="text-sm font-bold text-blue-800 dark:text-blue-300">
-            {isFree ? "🎉 Free shipping unlocked!" : `Add ${formatMoneyCents(remaining)} for free shipping`}
+            {isFree ? "Free shipping unlocked" : `Add ${formatMoneyCents(remaining)} for free shipping`}
           </span>
         </div>
         <span className="text-xs text-blue-500 font-bold">{Math.round(pct)}%</span>
@@ -24,7 +24,7 @@ export function FreeShippingBar({ subtotal, discount }) {
           className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
           initial={{ width: "0%" }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.9, ease: "power3.out" }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
         />
       </div>
     </div>

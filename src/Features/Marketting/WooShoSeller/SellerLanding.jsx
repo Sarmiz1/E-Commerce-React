@@ -24,10 +24,8 @@ const PulseTicker = lazy(() => import("./Components/PulseTicker"));
 const LeadCaptureForm = lazy(() => import("../Components/LeadCaptureForm"));
 const SellerRoiCalculator = lazy(() => import("../Components/SellerRoiCalculator"));
 
-// ─── Single registration point for the entire page ───────────
-// Do NOT call gsap.registerPlugin(ScrollTrigger) in any child component.
+// GSAP registration once at module level is correct.
 gsap.registerPlugin(ScrollTrigger);
-// ─────────────────────────────────────────────────────────────
 
 const links = [
   { label: "Shop", href: "/products" },
@@ -55,16 +53,6 @@ const links = [
 export default function SellerLanding() {
   const mainRef = useRef(null);
 
-  useEffect(() => {
-    // Force background and ensure cleanup
-    const originalBg = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = "#0A0A0A";
-    
-    return () => {
-      document.body.style.backgroundColor = originalBg;
-    };
-  }, []);
-
   return (
     <div
       ref={mainRef}
@@ -84,55 +72,74 @@ export default function SellerLanding() {
         <Section1_Hero />
       </section>
 
-      <Suspense fallback={<MarketingSkeleton sections={4} />}>
-
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 2. Pain Clock ───────────────────────────────────── */}
         <section id="seller-tax" className="seller-section min-h-screen w-full relative">
           <Section2_PainClock />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 3. Dream ────────────────────────────────────────── */}
         <section id="seller-dream" className="seller-section min-h-screen w-full relative">
           <Section3_Dream />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 4. Features ─────────────────────────────────────── */}
         <section id="seller-features" className="seller-section min-h-screen w-full relative">
           <Section4_Features />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── A. Community (NEW) ──────────────────────────────── */}
         <section id="seller-community" className="seller-section w-full relative">
           <SectionA_Community />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 5. Dual AI ──────────────────────────────────────── */}
         <section id="seller-dual-ai" className="seller-section min-h-screen w-full relative">
           <Section5_DualAi />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 6. Map ──────────────────────────────────────────── */}
         <section id="seller-map" className="seller-section min-h-screen w-full relative bg-black">
           <Section6_Map />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── B. Delivery (NEW) ───────────────────────────────── */}
         <section id="seller-delivery" className="seller-section w-full relative">
           <SectionB_Delivery />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 7. Comparison ───────────────────────────────────── */}
         <section id="seller-comparison" className="seller-section min-h-screen w-full relative">
           <Section7_Comparison />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 8. Pricing ──────────────────────────────────────── */}
         <section id="seller-pricing" className="seller-section min-h-screen w-full relative">
           <Section8_Pricing />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         <SellerRoiCalculator />
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         <section className="seller-section w-full bg-[#08080A] px-6 py-20">
           <div className="mx-auto max-w-3xl">
             <LeadCaptureForm
@@ -144,17 +151,23 @@ export default function SellerLanding() {
             />
           </div>
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── C. Seller Win (NEW) ─────────────────────────────── */}
         <section id="seller-win" className="seller-section w-full relative">
           <SectionC_SellerWin />
         </section>
+      </Suspense>
 
+      <Suspense fallback={<MarketingSkeleton sections={1} />}>
         {/* ── 9. CTA ──────────────────────────────────────────── */}
         <section id="seller-cta" className="seller-section min-h-screen w-full relative">
           <Section9_Cta />
         </section>
+      </Suspense>
 
+      <Suspense fallback={null}>
         <PulseTicker />
       </Suspense>
     </div>

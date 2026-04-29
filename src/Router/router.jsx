@@ -8,7 +8,6 @@ import {
 import { fetchProductsLoader } from "../loaders/fetchProductsLoader";
 import { productDetailsLoader } from "../loaders/productDetailsLoader";
 import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
-import { cartRecommendationsLoader } from "../loaders/cartRecommendationsLoader";
 
 // ─── Layouts ──────────────────────────────────────────────────────────────────
 import RootLayout from "../Layout/RootLayout";
@@ -347,7 +346,6 @@ const router = createBrowserRouter(
                 <CartPage />
               </>
             }
-            loader={cartRecommendationsLoader}
             hydrateFallbackElement={<CartSkeleton />}
           />
 

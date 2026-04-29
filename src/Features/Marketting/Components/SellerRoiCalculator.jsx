@@ -2,14 +2,8 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Calculator, TrendingUp } from "lucide-react";
+import { formatMoneyCurrency } from "../../../Utils/formatMoneyCents";
 import { trackEvent } from "../../../api/track_events";
-
-const numberFormatter = new Intl.NumberFormat("en-US");
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
 
 export default function SellerRoiCalculator() {
   const [orders, setOrders] = useState(180);
@@ -77,10 +71,10 @@ export default function SellerRoiCalculator() {
                   </span>
                   <span className="text-sm font-black text-white">
                     {field.suffix
-                      ? `${numberFormatter.format(field.value)}${field.suffix}`
+                      ? `${field.value.toLocaleString()}${field.suffix}`
                       : field.label.includes("value")
-                        ? currencyFormatter.format(field.value)
-                        : numberFormatter.format(field.value)}
+                        ? formatMoneyCurrency(field.value * 100).replace(".00", "")
+                        : field.value.toLocaleString()}
                   </span>
                 </div>
                 <input
@@ -97,9 +91,9 @@ export default function SellerRoiCalculator() {
           </div>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
-            <Metric label="Added revenue" value={currencyFormatter.format(result.addedRevenue)} />
+            <Metric label="Added revenue" value={formatMoneyCurrency(result.addedRevenue * 100).replace(".00", "")} />
             <Metric label="Ops hours saved" value={`${result.opsHoursSaved}/wk`} />
-            <Metric label="Monthly lift" value={currencyFormatter.format(result.totalLift)} highlight />
+            <Metric label="Monthly lift" value={formatMoneyCurrency(result.totalLift * 100).replace(".00", "")} highlight />
           </div>
 
           <Link

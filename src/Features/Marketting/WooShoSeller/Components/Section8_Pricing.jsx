@@ -3,6 +3,7 @@ import { Check, Zap } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useNavigate } from 'react-router-dom';
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
 // FIX: removed imperative style.opacity mutations in onMouseEnter/onMouseLeave handlers.
@@ -32,7 +33,7 @@ const PLANS = [
   },
   {
     name: 'Growth',
-    price: '₦5,000',
+    price: formatMoneyCurrency(500000).replace(".00", ""),
     priceNote: '/ month',
     color: '#6366f1',
     badge: 'Most Popular',
@@ -52,7 +53,7 @@ const PLANS = [
   },
   {
     name: 'Pro',
-    price: '₦12,000',
+    price: formatMoneyCurrency(1200000).replace(".00", ""),
     priceNote: '/ month',
     color: '#f59e0b',
     badge: 'Best Value',

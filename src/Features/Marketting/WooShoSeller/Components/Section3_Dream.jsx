@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
 
@@ -39,12 +40,12 @@ function Notification({ icon, title, sub, time, color, delay }) {
 }
 
 const NOTIFICATIONS = [
-  { icon: '🛍️', title: 'New Order — ₦24,500', sub: 'Nike Air Force 1 · Chidi O.', color: '#10b981', time: '6:47 AM', delay: 0.2 },
+  { icon: '🛍️', title: `New Order — ${formatMoneyCurrency(2450000)}`, sub: 'Nike Air Force 1 · Chidi O.', color: '#10b981', time: '6:47 AM', delay: 0.2 },
   { icon: '⚡', title: 'AI replied to DM', sub: '"When will it ship?" answered automatically', color: '#6366f1', time: '7:12 AM', delay: 0.7 },
   { icon: '📦', title: 'Order dispatched', sub: 'Item #WS-0041 shipped to Abuja', color: '#f59e0b', time: '9:01 AM', delay: 1.2 },
-  { icon: '💰', title: 'Payout credited', sub: '₦182,400 sent to your account', color: '#22d3ee', time: '12:00 PM', delay: 1.7 },
+  { icon: '💰', title: `Payout credited`, sub: `${formatMoneyCurrency(18240000)} sent to your account`, color: '#22d3ee', time: '12:00 PM', delay: 1.7 },
   { icon: '🔥', title: '47 visitors on your store', sub: 'Sneakers collection is trending', color: '#ec4899', time: '3:30 PM', delay: 2.2 },
-  { icon: '🛍️', title: 'New Order — ₦67,000', sub: 'Premium Headset · Fatima B.', color: '#10b981', time: '6:00 PM', delay: 2.7 },
+  { icon: '🛍️', title: `New Order — ${formatMoneyCurrency(6700000)}`, sub: 'Premium Headset · Fatima B.', color: '#10b981', time: '6:00 PM', delay: 2.7 },
 ];
 
 const icons = [
@@ -148,7 +149,7 @@ export default function Section3_Dream() {
               <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 Woosho Seller
               </div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#fff' }}>₦274,900</div>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#fff' }}>{formatMoneyCurrency(27490000)}</div>
               <div style={{ fontSize: 11, color: '#10b981', fontWeight: 700 }}>↑ 23% today</div>
             </div>
 
@@ -174,7 +175,7 @@ export default function Section3_Dream() {
             boxShadow: '0 8px 24px rgba(16,185,129,0.4)',
           }}
         >
-          +₦24,500 💰
+          +{formatMoneyCurrency(2450000)} 💰
         </motion.div>
 
         <motion.div

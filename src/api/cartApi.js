@@ -407,13 +407,17 @@ export const CartAPI = {
     const normalized = (items || []).map((row) => {
       const variant = row.product_variants || {};
       const product = variant.products || {};
+      const unitPriceCents = variant.price_cents ?? product.price_cents ?? 0;
+      const quantity = Math.max(Number(row.quantity) || 1, 1);
 
       return {
         // ─ cart_item fields ─
         id: row.id,
-        quantity: row.quantity,
+        quantity,
         variant_id: row.variant_id,
         product_id: row.product_id,
+        unit_price_cents: unitPriceCents,
+        line_total_cents: unitPriceCents * quantity,
 
         // ─ nested objects (for CartPage / CartRow) ─
         products: {
@@ -421,7 +425,7 @@ export const CartAPI = {
           name: product.name,
           slug: product.slug,
           image: product.image,
-          price_cents: variant.price_cents ?? product.price_cents ?? 0,
+          price_cents: unitPriceCents,
           rating_stars: product.rating_stars,
           rating_count: product.rating_count,
         },
@@ -437,7 +441,7 @@ export const CartAPI = {
         name: product.name,
         image: product.image,
         thumbnail: product.image,
-        price: variant.price_cents ?? product.price_cents ?? 0,
+        price: unitPriceCents,
       };
     });
 
@@ -520,19 +524,23 @@ export const CartAPI = {
       } else if (item.product_id) {
         product = productsData.find((d) => d.id === item.product_id) || {};
       }
+      const unitPriceCents = v?.price_cents ?? product.price_cents ?? 0;
+      const quantity = Math.max(Number(item.quantity) || 1, 1);
       
       return {
         id: `guest_${item.variant_id || item.product_id}`, // UI requires an id
-        quantity: item.quantity,
+        quantity,
         variant_id: item.variant_id,
         product_id: item.product_id,
+        unit_price_cents: unitPriceCents,
+        line_total_cents: unitPriceCents * quantity,
 
         products: {
           id: product.id,
           name: product.name,
           slug: product.slug,
           image: product.image,
-          price_cents: v?.price_cents ?? product.price_cents ?? 0,
+          price_cents: unitPriceCents,
           rating_stars: product.rating_stars,
           rating_count: product.rating_count,
         },
@@ -547,7 +555,7 @@ export const CartAPI = {
         name: product.name,
         image: product.image,
         thumbnail: product.image,
-        price: v?.price_cents ?? product.price_cents ?? 0,
+        price: unitPriceCents,
       };
     });
 

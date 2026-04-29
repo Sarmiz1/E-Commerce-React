@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState, memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 
 const NOTIFICATIONS = [
   "Ngozi in Lagos just received an order ✓",
   "Emeka in Abuja just listed 5 new products",
   "Amara's AI replied to 12 buyers",
-  "A seller in Enugu just hit their first ₦500,000 month",
+  `A seller in Enugu just hit their first ${formatMoneyCurrency(50000000).replace(".00", "")} month`,
 ];
 
 const VISIBLE_DURATION = 5000;  // ms notification stays visible

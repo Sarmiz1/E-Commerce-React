@@ -1,16 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { CartAPI } from "../../api/cartApi";
-import { useCartState, useCartActions } from "../../Context/cart/CartContext";
-import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
-
-// Atomic Components
-import { CT_STYLES, Ic, FREE_SHIP_THRESHOLD, SHIPPING_COST } from "./Components/CartConstants";
+import { CT_STYLES, Ic } from "./Components/CartConstants";
 import { CartRow } from "./Components/CartRow";
 import { OrderSummary } from "./Components/OrderSummary";
 import { FreeShippingBar } from "./Components/FreeShippingBar";
@@ -23,159 +13,76 @@ import { StickyMobileBar } from "./Components/StickyMobileBar";
 import { OrderNotes } from "./Components/OrderNotes";
 import { CartSkeleton } from "./Components/CartSkeleton";
 import { UndoToast } from "./Components/UndoToast";
-
-gsap.registerPlugin(ScrollTrigger);
-
-const getItemProductId = (item) => item?.product_id || item?.products?.id || item?.product?.id;
-const getItemVariantId = (item) => item?.variant_id || item?.variant?.id || null;
+import { TrustBadges } from "./Components/TrustBadges";
+import useCartPageController from "./Hooks/useCartPageController";
 
 export default function CartPage() {
-  const navigate = useNavigate();
-
-  // ── Cart data from API ───o──────────────────────────────────────────────────
   const {
-    updateQuantity,
-    removeItem,
-    addItem,
-    applyPromo,
+    addItemAsync,
+    cartItems,
+    checkoutError,
+    discount,
+    displayRecommendations,
+    handleCheckout,
+    handleCloseQuickView,
+    handleMoveToCart,
+    handleQtyChange,
+    handleRemove,
+    handleRemovePromo,
+    handleSaveLater,
+    handleUndo,
+    headingRef,
+    isCheckingOut,
+    isEmpty,
+    loading,
+    navigate,
+    orderNote,
+    promo,
+    quickViewProduct,
+    recommendationsFetching,
     removingItemId,
+    savedForLater,
+    savings,
+    setOrderNote,
+    setUndoItem,
+    shipping,
+    subtotal,
+    total,
+    undoItem,
     updatingQuantityItemId,
-  } = useCartActions();
-  const { cart, totals, loading, error } = useCartState();
-  const cartItems = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
-
-  useShowErrorBoundary(error);
-
-  // ── Recommendations from API ───────────────────────────────────────────────
-  const cartRecommendationProductIds = useMemo(
-    () => cartItems.map((item) => getItemProductId(item)).filter(Boolean),
-    [cartItems]
-  );
-  const {
-    data: recommendations = [],
-    isFetching: recommendationsFetching,
-  } = useQuery({
-    ...CartAPI.cartRecommendations(cartRecommendationProductIds, 8),
-    enabled: !loading && cartRecommendationProductIds.length > 0,
-    placeholderData: (previousData) => previousData ?? [],
-  });
-
-  // ── UI state ───────────────────────────────────────────────────────────────
-  const [undoItem, setUndoItem] = useState(null);
-  const [savedForLater, setSavedForLater] = useState([]);
-  const [orderNote, setOrderNote] = useState("");
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [displayRecommendations, setDisplayRecommendations] = useState([]);
-  const [quickViewProduct, setQuickViewProduct] = useState(null);
-
-  useEffect(() => {
-    if (cartRecommendationProductIds.length === 0) {
-      setDisplayRecommendations([]);
-      return;
-    }
-
-    if (!recommendationsFetching) {
-      setDisplayRecommendations(recommendations);
-    }
-  }, [cartRecommendationProductIds.length, recommendations, recommendationsFetching]);
-
-  useEffect(() => {
-    const handleQuickView = (event) => {
-      if (event.detail) setQuickViewProduct(event.detail);
-    };
-
-    window.addEventListener("open-quickview", handleQuickView);
-    return () => window.removeEventListener("open-quickview", handleQuickView);
-  }, []);
-
-  // ── Totals ─────────────────────────────────────────────────────────────────
-  const { subtotal, discount, shipping, total, applied_promo: promo } = totals || { subtotal: 0, discount: 0, shipping: 0, total: 0, applied_promo: null };
-  const savings = discount + (subtotal >= 5000 && shipping === 0 && (!promo || promo.type !== "shipping") ? 499 : 0);
-
-  // ── Update quantity through cart context ───────────────────────────────────
-  const handleQtyChange = useCallback((itemId, newQty) => {
-    if (newQty < 1 || newQty > 10) return;
-    updateQuantity(itemId, newQty);
-  }, [updateQuantity]);
-
-  // ── Remove item with undo window ───────────────────────────────────────────
-  const handleRemove = useCallback((item) => {
-    setUndoItem({ id: item.id, name: item.products?.name, data: item });
-    removeItem(item);
-  }, [removeItem]);
-
-  // ── Undo remove ────────────────────────────────────────────────────────────
-  const handleUndo = useCallback(() => {
-    if (!undoItem) return;
-
-    const itemToRestore = undoItem.data;
-    setUndoItem(null);
-
-    addItem(
-      getItemProductId(itemToRestore),
-      getItemVariantId(itemToRestore),
-      itemToRestore.quantity
-    );
-  }, [undoItem, addItem]);
-
-  // ── Save for later ─────────────────────────────────────────────────────────
-  const handleSaveLater = useCallback((item) => {
-    setSavedForLater(prev => {
-      if (prev.some(i => i.id === item.id)) return prev;
-      return [...prev, item];
-    });
-
-    removeItem(item);
-  }, [removeItem]);
-
-  // ── Move saved item back to cart ───────────────────────────────────────────
-  const handleMoveToCart = useCallback((item) => {
-    setSavedForLater(prev =>
-      prev.filter(i => i.id !== item.id)
-    );
-
-    addItem(
-      getItemProductId(item),
-      getItemVariantId(item),
-      item.quantity
-    );
-  }, [addItem]);
-
-  // ── Checkout ───────────────────────────────────────────────────────────────
-  const handleCheckout = useCallback(() => {
-    if (!cartItems.length) return;
-    setIsCheckingOut(true);
-    setTimeout(() => navigate("/checkout"), 500);
-  }, [cartItems.length, navigate]);
-
-  // ── Hero entrance animation ────────────────────────────────────────────────
-  const headingRef = useRef(null);
-  useEffect(() => {
-    if (!headingRef.current) return;
-    gsap.fromTo(headingRef.current.querySelectorAll(".ct-head-item"),
-      { y: 30, opacity: 0 },
-      { y: 0, opacity: 1, stagger: 0.08, duration: 0.65, ease: "power3.out", clearProps: "all" }
-    );
-  }, []);
-
-  const isEmpty = !loading && cartItems.length === 0;
+    applyPromo,
+  } = useCartPageController();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 overflow-x-hidden pt-16 transition-colors duration-300">
       <style>{CT_STYLES}</style>
 
-      {/* ════════════════════════════════════════════════════════════
-          HERO HEADER
-      ════════════════════════════════════════════════════════════ */}
-      <div ref={headingRef} className="relative overflow-hidden bg-white dark:bg-neutral-900 border-b border-gray-100 dark:border-neutral-800 px-6 py-10 transition-colors duration-300">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-[0.025] pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at right center, #6366f1 0%, transparent 70%)" }} />
+      <div
+        ref={headingRef}
+        className="relative overflow-hidden bg-white dark:bg-neutral-900 border-b border-gray-100 dark:border-neutral-800 px-6 py-10 transition-colors duration-300"
+      >
+        <div
+          className="absolute right-0 top-0 bottom-0 w-1/3 opacity-[0.025] pointer-events-none"
+          style={{ background: "radial-gradient(ellipse at right center, #6366f1 0%, transparent 70%)" }}
+        />
 
         <div className="max-w-6xl mx-auto">
           <div className="ct-head-item flex items-center gap-2 text-xs text-gray-400 mb-6 font-medium">
-            <button onClick={() => navigate("/")} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Home</button>
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Home
+            </button>
             <span>/</span>
-            <button onClick={() => navigate("/products")} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Products</button>
+            <button
+              type="button"
+              onClick={() => navigate("/products")}
+              className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
+              Products
+            </button>
             <span>/</span>
             <span className="text-gray-700 dark:text-neutral-300 font-bold">Cart</span>
           </div>
@@ -187,13 +94,13 @@ export default function CartPage() {
               </h1>
               <p className="ct-head-item text-gray-400 dark:text-neutral-500 mt-2 text-base">
                 {loading
-                  ? "Loading…"
+                  ? "Loading..."
                   : cartItems.length === 0
                     ? "Your cart is empty"
                     : `${cartItems.length} item${cartItems.length !== 1 ? "s" : ""} ready to checkout`}
               </p>
             </div>
-            {cartItems.length > 0 && (
+            {cartItems.length > 0 ? (
               <div className="ct-head-item flex items-center gap-2">
                 <motion.div
                   key={cartItems.length}
@@ -205,16 +112,13 @@ export default function CartPage() {
                 </motion.div>
                 <Ic.Bag c="w-6 h-6 text-gray-300 dark:text-neutral-700" />
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
 
       <SavingsTicker savings={savings} />
 
-      {/* ════════════════════════════════════════════════════════════
-          MAIN GRID
-      ════════════════════════════════════════════════════════════ */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-28 lg:pb-8">
         {isEmpty ? (
           <EmptyCart savedItems={savedForLater} onMoveToCart={handleMoveToCart} navigate={navigate} />
@@ -230,11 +134,11 @@ export default function CartPage() {
                   <CartSkeleton count={cartItems.length} />
                 ) : (
                   <AnimatePresence mode="popLayout">
-                    {cartItems.map((item, i) => (
+                    {cartItems.map((item, index) => (
                       <CartRow
                         key={item.id}
                         item={item}
-                        index={i}
+                        index={index}
                         onQtyChange={handleQtyChange}
                         onRemove={handleRemove}
                         onSaveLater={handleSaveLater}
@@ -250,10 +154,10 @@ export default function CartPage() {
                 <OrderNotes value={orderNote} onChange={setOrderNote} />
               </div>
 
-              <BundleOptimizer 
-                cartItems={cartItems} 
-                recommendations={displayRecommendations} 
-                onAddItem={addItem}
+              <BundleOptimizer
+                cartItems={cartItems}
+                recommendations={displayRecommendations}
+                onAddItem={addItemAsync}
               />
 
               <SavedForLater items={savedForLater} onMoveToCart={handleMoveToCart} />
@@ -263,19 +167,7 @@ export default function CartPage() {
                 isRefreshing={recommendationsFetching}
               />
 
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { icon: "🔒", title: "Secure Checkout", sub: "256-bit SSL" },
-                  { icon: "↩️", title: "Free 30-Day Returns", sub: "No questions" },
-                  { icon: "🚀", title: "Fast Dispatch", sub: "Within 24h" },
-                ].map((t) => (
-                  <div key={t.title} className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl p-4 text-center shadow-sm transition-colors duration-300">
-                    <div className="text-2xl mb-1.5">{t.icon}</div>
-                    <p className="font-bold text-gray-900 dark:text-white text-xs">{t.title}</p>
-                    <p className="text-gray-400 dark:text-neutral-500 text-[10px] mt-0.5">{t.sub}</p>
-                  </div>
-                ))}
-              </div>
+              <TrustBadges />
             </div>
 
             <div className="hidden lg:block sticky top-24">
@@ -287,43 +179,41 @@ export default function CartPage() {
                 itemCount={cartItems.length}
                 promo={promo}
                 onApplyPromo={applyPromo}
-                onRemovePromo={() => {
-                  applyPromo(null).catch(() => {});
-                }}
+                onRemovePromo={handleRemovePromo}
                 onCheckout={handleCheckout}
                 isCheckingOut={isCheckingOut}
+                checkoutError={checkoutError}
               />
             </div>
           </div>
         )}
       </div>
 
-      {!isEmpty && (
+      {!isEmpty ? (
         <StickyMobileBar
           total={total}
           itemCount={cartItems.length}
           onCheckout={handleCheckout}
+          isCheckingOut={isCheckingOut}
+          checkoutError={checkoutError}
         />
-      )}
+      ) : null}
 
       <AnimatePresence>
-        {quickViewProduct && (
-          <ProductDetailModal
-            product={quickViewProduct}
-            onClose={() => setQuickViewProduct(null)}
-          />
-        )}
+        {quickViewProduct ? (
+          <ProductDetailModal product={quickViewProduct} onClose={handleCloseQuickView} />
+        ) : null}
       </AnimatePresence>
 
       <AnimatePresence>
-        {undoItem && (
+        {undoItem ? (
           <UndoToast
             key={undoItem.id}
             item={{ name: undoItem.name }}
             onUndo={handleUndo}
             onExpire={() => setUndoItem(null)}
           />
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );

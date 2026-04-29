@@ -9,6 +9,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { formatMoneyCurrency } from "../../../../Utils/formatMoneyCents";
 
 const notifications = [
   "AI optimized pricing for Urban Kicks: +3 sales",
@@ -129,7 +130,7 @@ export default function Section1_Hero() {
                   <DollarSign size={16} /> Total Revenue
                 </div>
                 <div className="text-3xl font-bold text-white tracking-tight">
-                  ₦{revenue.toLocaleString()}
+                  {formatMoneyCurrency(revenue * 100)}
                 </div>
                 <div className="text-xs text-green-400 mt-2 font-bold flex items-center gap-1">
                   <TrendingUp size={12} /> +12.5% vs yesterday

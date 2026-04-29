@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Bot, User, CheckCircle2 } from 'lucide-react';
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 
 export default function Section5_DualAi() {
   const [phase, setPhase] = useState(0);
@@ -156,7 +157,7 @@ export default function Section5_DualAi() {
                   initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                   className="mt-4 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-300"
                 >
-                  &gt; TRANSACTION COMPLETED (₦42,500)<br />
+                  &gt; TRANSACTION COMPLETED ({formatMoneyCurrency(4250000)})<br />
                   &gt; Stripe Payout initiated.<br />
                   &gt; Awaiting pickup.
                 </motion.div>

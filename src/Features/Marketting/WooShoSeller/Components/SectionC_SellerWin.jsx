@@ -15,8 +15,9 @@
 
 import { useCallback } from "react";
 import { motion } from "framer-motion";
-import SELLER_WIN_IMG from  "../../../../assets/marketing/sellersImg3.png"
 import { Link } from 'react-router-dom'
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
+import SELLER_WIN_IMG from  "../../../../assets/marketing/sellersImg3.png";
 
 
 
@@ -148,7 +149,7 @@ export default function SectionC_SellerWin() {
               className="absolute bottom-6 left-6 bg-black/75 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3"
             >
               <p className="text-[10px] text-white/40 uppercase tracking-widest">This month</p>
-              <p className="text-2xl font-black text-white mt-1">₦284,000</p>
+              <p className="text-2xl font-black text-white mt-1">{formatMoneyCurrency(28400000)}</p>
               <div className="flex items-center gap-1 mt-1">
                 <svg className="w-3 h-3 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
