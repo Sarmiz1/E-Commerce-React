@@ -72,6 +72,7 @@ export default function BestSellersSection({ products, isLoading }) {
                   {/* Wishlist Button for #1 Item */}
                   <WishlistHeart 
                     className="absolute top-4 right-4" 
+                    productId={top.id}
                     onToggle={() => {}}
                   />
 

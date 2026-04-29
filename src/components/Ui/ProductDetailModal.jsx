@@ -49,7 +49,6 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [qty, setQty] = useState(1);
-  const [wishlisted, setWishlisted] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   const touchStartX = useRef(null);
@@ -658,8 +657,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                   <WishlistHeart 
                     className="w-14 !h-[unset] aspect-square rounded-2xl border flex items-center justify-center transition-all"
                     showOnHover={false}
-                    isLiked={wishlisted}
-                    onToggle={setWishlisted}
+                    productId={product?.id}
                   />
                 </div>
                 {/* Error Message */}

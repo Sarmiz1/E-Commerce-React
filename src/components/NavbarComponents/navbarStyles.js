@@ -45,6 +45,35 @@ export const NAVBAR_STYLES = `
   @keyframes nb-pop { 0%{transform:scale(1)} 40%{transform:scale(1.6)} 70%{transform:scale(0.85)} 100%{transform:scale(1)} }
   .nb-pop { animation: nb-pop 0.45s cubic-bezier(0.36,0.07,0.19,0.97) }
 
+  @keyframes nb-wishlist-blink {
+    0%,100% {
+      background:#ef4444;
+      box-shadow:0 0 0 0 rgba(239,68,68,0.28),0 6px 14px rgba(239,68,68,0.18);
+    }
+    50% {
+      background:#b91c1c;
+      box-shadow:0 0 0 4px rgba(239,68,68,0),0 6px 16px rgba(185,28,28,0.2);
+    }
+  }
+
+  .nb-wishlist-alert {
+    width:30px !important;
+    height:30px !important;
+    margin:4px;
+    color:#fff !important;
+    background:#ef4444 !important;
+    animation:nb-wishlist-blink 1.25s ease-in-out infinite;
+  }
+
+  .nb-wishlist-alert:hover {
+    color:#fff !important;
+    background:#dc2626 !important;
+  }
+
+  .nb-wishlist-alert svg {
+    fill:currentColor;
+  }
+
   .nb-mega-link {
     display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;
     font-size:0.8125rem;font-weight:500;color:#4b5563;

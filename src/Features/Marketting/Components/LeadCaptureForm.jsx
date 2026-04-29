@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "../../../supabaseClient";
-import { trackEvent } from "../../../Utils/analytics";
+import { trackEvent } from "../../../api/track_events";
 import { useExperiment } from "../../../Hooks/useExperiment";
 
 const LEAD_STORE_KEY = "woosho.marketing.leads";
@@ -53,7 +53,10 @@ export default function LeadCaptureForm({
 
     setStatus("saving");
     persistLeadLocally(lead);
-    trackEvent("lead_capture_submitted", { audience, emailDomain: form.email.split("@")[1] });
+    trackEvent({
+      eventType: "lead_capture_submitted",
+      metadata: { audience, emailDomain: form.email.split("@")[1] },
+    });
 
     try {
       await supabase.from("marketing_leads").insert(lead);

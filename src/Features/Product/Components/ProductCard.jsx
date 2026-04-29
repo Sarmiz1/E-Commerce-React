@@ -11,8 +11,19 @@ import CompareButton from "../../../Components/Ui/CompareButton";
 import QuickView from "../../../Components/Ui/QuickView";
 import { useAddToCart } from "../../../Hooks/cart/useAddToCart";
 import { prefetchProductOnHover } from "../../../Utils/prefetchProductOnHover";
+import { getAnalyticsSessionId, trackEvent } from "../../../api/track_events";
 
 const checkDate = (product) => Date.now() - new Date(product?.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
+
+function trackProductView(productId) {
+  if (!productId) return;
+
+  trackEvent({
+    eventType: "view_product",
+    productId,
+    sessionId: getAnalyticsSessionId(),
+  });
+}
 
 const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCompared, onToggleCompare, canAdd }) {
   const { isDark, colors } = useTheme();
@@ -78,6 +89,9 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
     event.stopPropagation();
     handleAdd(event);
   }, [handleAdd]);
+  const handleViewProduct = useCallback(() => {
+    trackProductView(product.id);
+  }, [product.id]);
 
   return (
     <Motion.div
@@ -112,6 +126,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
         className="relative block overflow-hidden" 
         style={{ paddingTop: "133%", background: colors.surface.tertiary }}
         onMouseMove={handleImageMouseMove}
+        onClick={handleViewProduct}
       >
         {images.map((src, i) => (
           <img
@@ -178,6 +193,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
         />
 
         <WishlistHeart 
+          productId={product.id}
           onToggle={() => {}}
         />
 
@@ -195,7 +211,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
 
       {/* Product info */}
       <div className="p-3.5 flex flex-col gap-1.5 flex-1">
-        <Link to={`/products/${product.slug || product.id}`}>
+        <Link to={`/products/${product.slug || product.id}`} onClick={handleViewProduct}>
           <p className="text-[13px] line-clamp-2 leading-[1.35] transition-colors font-medium group-hover:text-indigo-600"
             style={{ color: colors.text.primary }}
           >{product.name}</p>

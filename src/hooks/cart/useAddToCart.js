@@ -4,7 +4,14 @@ import { useAuth } from "../../Context/auth/AuthContext";
 import { useCartState } from "../../Context/cart/CartContext";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
-import { trackEvent } from "../../Utils/analytics";
+import { trackEvent } from "../../api/track_events";
+import { WishlistAPI } from "../../api/wishlistApi";
+
+const wishlistKey = (userId) => ["wishlist", userId || "guest"];
+
+function removeProductId(productIds, productId) {
+  return (productIds || []).filter((id) => id && id !== productId);
+}
 
 /**
  * useAddToCart
@@ -83,12 +90,14 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
       return result;
     },
 
-    onSuccess: (_data, variables = {}) => {
+    onSuccess: async (_data, variables = {}) => {
       const finalProductId = variables.overrideProductId ?? productId;
       const finalVariantId = variables.overrideOpts?.variantId ?? variantId;
       const finalQuantity = Math.max(Number(variables.overrideOpts?.quantity ?? quantity) || 1, 1);
+      const currentWishlistKey = wishlistKey(user?.id);
 
-      trackEvent("add_to_cart", {
+      trackEvent({
+        eventType: "add_to_cart",
         productId: finalProductId,
         variantId: finalVariantId,
         quantity: finalQuantity,
@@ -104,6 +113,43 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
         queryClient.invalidateQueries({
           queryKey: ["cart", user.id],
         });
+      }
+
+      if (!finalProductId) return;
+
+      const cachedWishlist = queryClient.getQueryData(currentWishlistKey);
+      const currentWishlist = cachedWishlist ?? (!user?.id ? WishlistAPI.getGuestWishlist() : []);
+      const wasWishlisted = currentWishlist.includes(finalProductId);
+      const nextWishlist = removeProductId(currentWishlist, finalProductId);
+
+      if (wasWishlisted) {
+        queryClient.setQueryData(currentWishlistKey, nextWishlist);
+      }
+
+      try {
+        if (user?.id) {
+          await WishlistAPI.remove(finalProductId);
+          queryClient.invalidateQueries({ queryKey: currentWishlistKey });
+        } else if (wasWishlisted) {
+          WishlistAPI.setGuestWishlist(nextWishlist);
+        }
+
+        if (wasWishlisted) {
+          trackEvent({
+            eventType: "remove_from_wishlist",
+            productId: finalProductId,
+            userId: user?.id || null,
+            metadata: {
+              signal: "most_loved",
+              reason: "added_to_cart",
+            },
+          });
+        }
+      } catch (wishlistError) {
+        if (wasWishlisted) {
+          queryClient.setQueryData(currentWishlistKey, currentWishlist);
+        }
+        console.warn("Failed to remove product from wishlist after adding to cart", wishlistError);
       }
     },
   });

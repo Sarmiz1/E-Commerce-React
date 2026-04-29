@@ -5,7 +5,7 @@ import { Search, Sparkles } from "lucide-react";
 import { useAllProducts } from "../../../Hooks/product/useProducts";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { rankProductsBySemanticQuery } from "../../../Utils/semanticProductSearch";
-import { trackEvent } from "../../../Utils/analytics";
+import { trackEvent } from "../../../api/track_events";
 
 const DEMO_QUERIES = [
   "comfortable sneakers under $80",
@@ -59,7 +59,10 @@ export default function InteractiveProductDemo({ dark = false }) {
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
-                trackEvent("marketing_demo_search_changed", { query: event.target.value });
+                trackEvent({
+                  eventType: "marketing_demo_search_changed",
+                  metadata: { query: event.target.value },
+                });
               }}
               className="w-full bg-transparent text-sm font-bold outline-none"
             />
@@ -92,7 +95,13 @@ export default function InteractiveProductDemo({ dark = false }) {
                   <Link
                     key={product.id}
                     to={`/products/${product.slug || product.id}`}
-                    onClick={() => trackEvent("marketing_demo_product_clicked", { productId: product.id, query })}
+                    onClick={() =>
+                      trackEvent({
+                        eventType: "marketing_demo_product_clicked",
+                        productId: product.id,
+                        metadata: { query },
+                      })
+                    }
                     className={`group grid grid-cols-[76px_1fr_auto] items-center gap-4 rounded-2xl border p-3 transition ${
                       dark
                         ? "border-white/10 bg-black/20 hover:bg-white/[0.06]"
@@ -121,4 +130,3 @@ export default function InteractiveProductDemo({ dark = false }) {
     </section>
   );
 }
-

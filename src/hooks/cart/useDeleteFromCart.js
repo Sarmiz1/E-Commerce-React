@@ -4,7 +4,7 @@ import { useAuth } from "../../Context/auth/AuthContext";
 import { useCartState } from "../../Context/cart/CartContext";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
-import { trackEvent } from "../../Utils/analytics";
+import { trackEvent } from "../../api/track_events";
 
 /**
  * useDeleteFromCart
@@ -136,7 +136,8 @@ export function useDeleteFromCart(productId, { variantId } = {}) {
     onSuccess: (_data, variables = {}) => {
       const finalProductId = variables.overrideProductId ?? productId;
       const finalVariantId = variables.overrideOpts?.variantId ?? variantId;
-      trackEvent("remove_from_cart", {
+      trackEvent({
+        eventType: "remove_from_cart",
         productId: finalProductId,
         variantId: finalVariantId,
         userId: user?.id || null,

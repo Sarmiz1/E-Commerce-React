@@ -48,6 +48,7 @@ export default function RecentlyViewedStrip() {
             >
               <WishlistHeart 
                 className="absolute top-2 right-2 scale-75 origin-top-right"
+                productId={product.id}
                 onToggle={(s) => console.log(`Recent product ${product.id} liked: ${s}`)}
               />
               <Link

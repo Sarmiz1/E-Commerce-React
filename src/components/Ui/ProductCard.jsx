@@ -41,9 +41,8 @@
 //  URL without DOM traversal — immune to layout changes inside the card.
 
 import { useNavigate, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import Stars from "../Stars";
 import { useTrackProductClick } from "../../Hooks/useTrackProductClick";
@@ -52,6 +51,7 @@ import { IconCart } from "../Icons/IconCart";
 import WishlistHeart from "./WishlistHeart";
 import QuickView from "./QuickView";
 import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
+import { getAnalyticsSessionId, trackEvent } from "../../api/track_events";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -72,19 +72,32 @@ function Badge({ label, colorClass }) {
   );
 }
 
+function trackProductView(productId) {
+  if (!productId) return;
+
+  trackEvent({
+    eventType: "view_product",
+    productId,
+    sessionId: getAnalyticsSessionId(),
+  });
+}
+
 // ── Live Velocity Badge (Simulated) ──────────────────────────────────────────
 function LiveVelocityBadge({ productId }) {
-  const [velocity, setVelocity] = useState(null);
+  if (!productId) return null;
+  let velocity = null;
+  const setVelocity = (nextVelocity) => {
+    velocity = nextVelocity;
+  };
   
-  useEffect(() => {
-    if (!productId) return;
+  {
     const hash = String(productId).split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
     const num = Math.abs(hash % 100);
     
     if (num > 80) setVelocity({ type: 'scarcity', text: `Only ${num % 5 + 1} left` });
     else if (num > 60) setVelocity({ type: 'velocity', text: `🔥 ${num} viewing` });
     else if (num > 40) setVelocity({ type: 'sales', text: `${num} bought recently` });
-  }, [productId]);
+  }
 
   if (!velocity) return null;
 
@@ -138,6 +151,7 @@ function NavigableWrapper({ product, children }) {
 
     // ✅ track only real product card clicks
     trackClick(productId);
+    trackProductView(productId);
 
     navigate(`/products/${product.slug || product.id}`);
   };
@@ -158,7 +172,7 @@ function StandardCard({ product }) {
 
   return (
     <NavigableWrapper product={product}>
-      <motion.div
+      <Motion.div
         data-product-image={product.image}
         whileHover={{ y: -10, boxShadow: "0 32px 64px rgba(79,70,229,0.14)" }}
         transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
@@ -178,6 +192,7 @@ function StandardCard({ product }) {
           <QuickView product={product} className="top-3 right-12" />
           <WishlistHeart 
             className="absolute top-3 right-3" 
+            productId={product.id}
             onToggle={(s) => console.log(`StdCard ${product.id} liked: ${s}`)}
           />
           <LiveVelocityBadge productId={product?.id} />
@@ -209,7 +224,7 @@ function StandardCard({ product }) {
           <AddToCart productId={product.id} variant className="w-full mt-2" />
 
         </div>
-      </motion.div>
+      </Motion.div>
     </NavigableWrapper>
   );
 }
@@ -220,7 +235,7 @@ function StandardCard({ product }) {
 function HorizontalCard({ product }) {
   return (
     <NavigableWrapper product={product}>
-      <motion.div
+      <Motion.div
         data-product-image={product.image}
         whileHover={{ x: 4, boxShadow: "0 8px 32px rgba(79,70,229,0.10)" }}
         transition={{ duration: 0.2 }}
@@ -228,6 +243,7 @@ function HorizontalCard({ product }) {
       >
         <WishlistHeart 
           className="absolute top-2 right-2 scale-75" 
+          productId={product.id}
           onToggle={(s) => console.log(`HCard ${product.id} liked: ${s}`)}
         />
         <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0">
@@ -257,7 +273,7 @@ function HorizontalCard({ product }) {
             <AddToCart productId={product.id} variant="pill" />
           </div>
         </div>
-      </motion.div>
+      </Motion.div>
     </NavigableWrapper>
   );
 }
@@ -270,7 +286,7 @@ function OverlayCard({ product }) {
 
   return (
     <NavigableWrapper product={product}>
-      <motion.div
+      <Motion.div
         data-product-image={product.image}
         whileHover={{ y: -8, scale: 1.02 }}
         transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
@@ -291,6 +307,7 @@ function OverlayCard({ product }) {
         <QuickView product={product} className="top-3 right-12" />
         <WishlistHeart 
           className="absolute top-3 right-3" 
+          productId={product.id}
           onToggle={(s) => console.log(`OverlayCard ${product.id} liked: ${s}`)}
         />
         {onSale && (
@@ -306,7 +323,7 @@ function OverlayCard({ product }) {
             <AddToCart productId={product.id} variant="ghost" className="!py-1.5 !px-3 !text-xs" />
           </div>
         </div>
-      </motion.div>
+      </Motion.div>
     </NavigableWrapper>
   );
 }
@@ -319,7 +336,7 @@ function CompactCard({ product }) {
 
   return (
     <NavigableWrapper product={product}>
-      <motion.div
+      <Motion.div
         data-product-image={product.image}
         whileHover={{ y: -5, scale: 1.03 }}
         transition={{ duration: 0.22 }}
@@ -339,6 +356,7 @@ function CompactCard({ product }) {
           <QuickView product={product} className="top-2 right-10 scale-75" />
           <WishlistHeart 
             className="absolute top-2 right-2 scale-75" 
+            productId={product.id}
             onToggle={(s) => console.log(`CompactCard ${product.id} liked: ${s}`)}
           />
           {onSale && (
@@ -357,7 +375,7 @@ function CompactCard({ product }) {
             <AddToCart productId={product.id} variant="icon" />
           </div>
         </div>
-      </motion.div>
+      </Motion.div>
     </NavigableWrapper>
   );
 }
@@ -368,7 +386,7 @@ function CompactCard({ product }) {
 function GhostCard({ product }) {
   return (
     <NavigableWrapper product={product}>
-      <motion.div
+      <Motion.div
         data-product-image={product.image}
         whileHover={{ y: -10, scale: 1.02 }}
         transition={{ duration: 0.25 }}
@@ -388,6 +406,7 @@ function GhostCard({ product }) {
           <QuickView product={product} className="top-3 right-12" />
           <WishlistHeart 
             className="absolute top-3 right-3" 
+            productId={product.id}
             onToggle={(s) => console.log(`GhostCard ${product.id} liked: ${s}`)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
@@ -402,7 +421,7 @@ function GhostCard({ product }) {
             <AddToCart productId={product.id} variant="ghost" />
           </div>
         </div>
-      </motion.div>
+      </Motion.div>
     </NavigableWrapper>
   );
 }
@@ -420,11 +439,14 @@ function NavigateCard({ product }) {
       <QuickView product={product} className="top-3 right-12 z-30" />
       <WishlistHeart 
         className="absolute top-3 right-3 z-30" 
+        productId={product.id}
         onToggle={(s) => console.log(`NavCard ${product.id} liked: ${s}`)}
       />
-      <Link to={`/products/${product.slug || product.id}`}
+      <Link
+        to={`/products/${product.slug || product.id}`}
+        onClick={() => trackProductView(product.id)}
         className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-3xl h-full">
-        <motion.div
+        <Motion.div
           whileHover={{ y: -8, boxShadow: "0 20px 48px rgba(79,70,229,0.12)" }}
           transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
           className="relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-shadow duration-300 flex flex-col h-full border border-gray-100/80"
@@ -462,7 +484,7 @@ function NavigateCard({ product }) {
               {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
       </Link>
     </div>
   );
@@ -484,6 +506,7 @@ function StaticCard({ product }) {
     >
       <WishlistHeart 
         className="absolute top-3 right-3" 
+        productId={product.id}
         onToggle={(s) => console.log(`StaticCard ${product.id} liked: ${s}`)}
       />
       <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
@@ -522,7 +545,7 @@ function StaticCard({ product }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function customWideCard({ product }) {
   return (
-    <motion.div
+    <Motion.div
       data-cart-card
       whileHover={{ x: 4 }}
       className="hp-prod-card group flex gap-4 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 h-full relative"
@@ -530,10 +553,15 @@ function customWideCard({ product }) {
       <QuickView product={product} className="top-2 right-10 scale-75" />
       <WishlistHeart 
         className="absolute top-2 right-2 scale-75" 
+        productId={product.id}
         onToggle={(s) => console.log(`CWCard ${product.id} liked: ${s}`)}
       />
       <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
-        <Link to={`/products/${product?.slug || product?.id}`} className="cursor-pointer">
+        <Link
+          to={`/products/${product?.slug || product?.id}`}
+          onClick={() => trackProductView(product?.id)}
+          className="cursor-pointer"
+        >
           <img
             src={product?.image}
             alt={product?.name}
@@ -555,7 +583,7 @@ function customWideCard({ product }) {
           <AddToCart productId={product?.id} variantId={product?.variant_id} />
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   )
 }
 
@@ -589,7 +617,7 @@ export default function ProductCard({ product, variant = "standard" }) {
 
   const Card = VARIANT_MAP[variant];
   if (!Card) {
-    if (process.env.NODE_ENV !== "production") {
+    if (import.meta.env.DEV) {
       console.warn(`[ProductCard] Unknown variant "${variant}". Valid: ${Object.keys(VARIANT_MAP).join(", ")}`);
     }
     return null;

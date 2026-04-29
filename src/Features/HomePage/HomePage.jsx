@@ -6,6 +6,8 @@ import { STYLES } from "./Styles/styles";
 import MarqueeStrip from "./Components/MarqueeStrip";
 import Navbar from "../../Components/Navbar";
 
+
+
 // import Skeleton from "./Components/Sections/Skeleton";
 import CategoriesSection from "./Components/Sections/CategoriesSection";
 import TrendingSection from "./Components/Sections/TrendingSection";

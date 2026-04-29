@@ -23,6 +23,7 @@ import ProductsPage from "../Features/Product/ProductsPage";
 import TrackingPage from "../Features/Orders/Tracking/TrackingPage";
 import ProductDetail from "../Features/Product/ProductDetails/ProductDetail";
 import OtherPage from "../Features/OtherPage/OtherPage";
+import WishlistPage from "../Features/Wishlist/WishlistPage";
 
 // ─── Collection Pages ─────────────────────────────────────────────────────────
 import NewArrivalsPage from "../Features/Collections/pages/NewArrivalsPage";
@@ -308,6 +309,17 @@ const router = createBrowserRouter(
             }
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<TrackingSkeleton />}
+          />
+          <Route
+            path="product/wishlist"
+            element={
+              <>
+                <Navbar />
+                <WishlistPage />
+              </>
+            }
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
           />
           {/* <Route
             path="cart"

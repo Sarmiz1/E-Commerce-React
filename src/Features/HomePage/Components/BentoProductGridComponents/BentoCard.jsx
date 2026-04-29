@@ -24,6 +24,7 @@ export const BentoCard = ({ product, className = '' }) => {
 
         <WishlistHeart 
           className="absolute top-3 right-3" 
+          productId={product.id}
           onToggle={() => {}}
         />
 

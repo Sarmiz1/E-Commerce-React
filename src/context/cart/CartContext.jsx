@@ -16,6 +16,43 @@ const matchesGuestCartItem = (item, productId, variantId) => {
   return !item?.variant_id && item?.product_id === productId;
 };
 
+const normalizeCartAddition = (item) => {
+  const productId = item?.productId ?? item?.product_id ?? item?.id ?? null;
+  const variantId = item?.variantId ?? item?.variant_id ?? null;
+  const quantity = Math.max(Number(item?.quantity) || 1, 1);
+
+  if (!productId && !variantId) return null;
+
+  return { productId, variantId, quantity };
+};
+
+const mergeGuestCartAdditions = (guestCart, additions) =>
+  additions.reduce((currentCart, addition) => {
+    const hasExistingItem = currentCart.some((item) =>
+      matchesGuestCartItem(item, addition.productId, addition.variantId),
+    );
+
+    if (hasExistingItem) {
+      return currentCart.map((item) =>
+        matchesGuestCartItem(item, addition.productId, addition.variantId)
+          ? {
+              ...item,
+              quantity: (Number(item.quantity) || 0) + addition.quantity,
+            }
+          : item,
+      );
+    }
+
+    return [
+      ...currentCart,
+      {
+        product_id: addition.productId,
+        variant_id: addition.variantId,
+        quantity: addition.quantity,
+      },
+    ];
+  }, guestCart);
+
 const matchesCartItem = (item, target) => {
   const targetId = typeof target === "object" ? getCartItemKey(target) : target;
 
@@ -148,6 +185,53 @@ export function CartProvider({ children }) {
     },
   });
 
+  const addItemsMutation = useMutation({
+    mutationFn: async (items = []) => {
+      const additions = (Array.isArray(items) ? items : [items])
+        .map(normalizeCartAddition)
+        .filter(Boolean);
+
+      if (user?.id) {
+        let activeCartId = cartId;
+
+        if (!activeCartId) {
+          const loadedCart = await CartAPI.load(user.id);
+          activeCartId = loadedCart?.cartId;
+        }
+
+        if (!activeCartId) {
+          throw new Error("Cart not loaded yet. Please try again.");
+        }
+
+        await Promise.all(
+          additions.map(({ productId, variantId, quantity }) =>
+            CartAPI.add({
+              cartId: activeCartId,
+              productId,
+              variantId,
+              quantity,
+            }),
+          ),
+        );
+
+        return CartAPI.load(user.id);
+      }
+
+      const guestCart = CartEngine.getGuestCart();
+      const updatedGuestCart = mergeGuestCartAdditions(guestCart, additions);
+
+      CartEngine.setGuestCart(updatedGuestCart);
+      return CartAPI.loadGuestCart(updatedGuestCart);
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["cart", user?.id], data);
+
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
+      }
+    },
+  });
+
   const {
     mutate: removeItemMutate,
     isPending: removingItem,
@@ -172,6 +256,12 @@ export function CartProvider({ children }) {
     isSuccess: addItemSuccess,
     error: addItemError,
   } = addItemMutation;
+  const {
+    mutateAsync: addItemsMutateAsync,
+    isPending: addingItems,
+    isSuccess: addItemsSuccess,
+    error: addItemsError,
+  } = addItemsMutation;
 
   // ─── Stable action callbacks ──────────────────────────────────────────────
 
@@ -196,6 +286,11 @@ export function CartProvider({ children }) {
     [addItemMutate],
   );
 
+  const addItems = useCallback(
+    (items) => addItemsMutateAsync(items),
+    [addItemsMutateAsync],
+  );
+
   // ─── Context values ──────────────────────────────────────────────────────
 
   const state = useMemo(
@@ -210,6 +305,7 @@ export function CartProvider({ children }) {
   const actions = useMemo(
   () => ({
     addItem,
+    addItems,
     removeItem,
     updateQuantity,
     clearCart,
@@ -217,6 +313,10 @@ export function CartProvider({ children }) {
     addingItem,
     addItemSuccess,
     addItemError,
+
+    addingItems,
+    addItemsSuccess,
+    addItemsError,
 
     removingItem,
     removeItemSuccess,
@@ -232,12 +332,16 @@ export function CartProvider({ children }) {
   }),
   [
     addItem,
+    addItems,
     removeItem,
     updateQuantity,
     clearCart,
     addingItem,
     addItemSuccess,
     addItemError,
+    addingItems,
+    addItemsSuccess,
+    addItemsError,
     removingItem,
     removeItemSuccess,
     removeItemError,

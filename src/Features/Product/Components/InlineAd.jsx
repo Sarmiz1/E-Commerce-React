@@ -26,6 +26,7 @@ export default function InlineAd({ product, type, allProducts }) {
       <div className="col-span-full xl:col-span-2 relative group">
         <WishlistHeart 
           className="absolute top-4 right-4"
+          productId={product.id}
           onToggle={(s) => console.log(`Ad ${product.id} liked: ${s}`)}
         />
         <Link
@@ -130,6 +131,7 @@ export default function InlineAd({ product, type, allProducts }) {
     <div className="col-span-full xl:col-span-2 relative group">
       <WishlistHeart 
         className="absolute top-4 right-4"
+        productId={product.id}
         onToggle={(s) => console.log(`Ad ${product.id} liked: ${s}`)}
       />
       <Link

@@ -1,15 +1,19 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
+import { useWishlist } from "../../Hooks/useWishlist";
 import { Logo } from "../Ui/Logo";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { ArrowRight, BagIcon, CloseIcon, HeartIcon, UserIcon } from "./Icons";
 
 const accountLinks = [
-  { icon: <UserIcon className="w-4 h-4" />, label: "My Account" },
-  { icon: <HeartIcon className="w-4 h-4" />, label: "Wishlist" },
-  { icon: <BagIcon className="w-4 h-4" />, label: "My Orders" },
+  { icon: <UserIcon className="w-4 h-4" />, label: "My Account", href: "/account" },
+  { icon: <HeartIcon className="w-4 h-4" />, label: "Wishlist", href: "/product/wishlist" },
+  { icon: <BagIcon className="w-4 h-4" />, label: "My Orders", href: "/tracking" },
 ];
 
 export function MobileDrawer({ open, isDark, pathname, links, categories, offers, onClose, onNavigate }) {
+  const { wishlistCount } = useWishlist();
+  const hasWishlistItems = wishlistCount > 0;
+
   return (
     <AnimatePresence>
       {open && (
@@ -116,21 +120,53 @@ export function MobileDrawer({ open, isDark, pathname, links, categories, offers
 
               <div className={`px-4 py-3 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-2">Account</p>
-                {accountLinks.map((item, i) => (
-                  <Motion.button
-                    key={item.label}
-                    initial={{ opacity: 0, x: 12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.65 + i * 0.05 }}
-                    onClick={() => onNavigate("/account")}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all mb-1 text-sm font-semibold text-left ${
-                      isDark ? "text-gray-300 hover:bg-white/5" : "text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/5 text-white" : "bg-gray-100 text-gray-500"}`}>{item.icon}</span>
-                    {item.label}
-                  </Motion.button>
-                ))}
+                {accountLinks.map((item, i) => {
+                  const isWishlist = item.href === "/product/wishlist";
+                  const isActive = pathname === item.href;
+                  const showWishlistState = isWishlist && hasWishlistItems;
+                  const itemLabel = showWishlistState
+                    ? `Wishlist (${wishlistCount > 99 ? "99+" : wishlistCount})`
+                    : item.label;
+
+                  return (
+                    <Motion.button
+                      key={item.label}
+                      initial={{ opacity: 0, x: 12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.65 + i * 0.05 }}
+                      onClick={() => onNavigate(item.href)}
+                      aria-label={isWishlist ? `Wishlist, ${wishlistCount} saved item${wishlistCount === 1 ? "" : "s"}` : item.label}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all mb-1 text-sm font-semibold text-left ${
+                        isActive
+                          ? isDark
+                            ? "bg-white/10 text-white"
+                            : "bg-indigo-50 text-indigo-700"
+                          : isDark
+                            ? "text-gray-300 hover:bg-white/5"
+                            : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span
+                        className={`relative w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                          showWishlistState
+                            ? "bg-red-500 text-white shadow-lg shadow-red-500/25 animate-pulse"
+                            : isDark
+                              ? "bg-white/5 text-white"
+                              : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {item.icon}
+                        {showWishlistState && (
+                          <span className="absolute -right-1.5 -top-1.5 min-w-[17px] h-[17px] rounded-full bg-white px-1 text-[9px] font-black leading-[17px] text-red-600 shadow">
+                            {wishlistCount > 99 ? "99+" : wishlistCount}
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex-1">{itemLabel}</span>
+                      {isActive && <span className="w-2 h-2 rounded-full bg-indigo-500" />}
+                    </Motion.button>
+                  );
+                })}
               </div>
             </div>
 

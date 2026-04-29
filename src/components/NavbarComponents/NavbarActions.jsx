@@ -1,4 +1,5 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
+import { useWishlist } from "../../Hooks/useWishlist";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { CartPreview } from "./CartPreview";
 import { BagIcon, CloseIcon, HeartIcon, MenuIcon, SearchIcon, UserIcon } from "./Icons";
@@ -25,6 +26,11 @@ export function NavbarActions({
   formatMoney,
 }) {
   const iconTone = isTop ? "text-white/80 hover:text-white hover:bg-white/12" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100";
+  const { wishlistCount } = useWishlist();
+  const hasWishlistItems = wishlistCount > 0;
+  const wishlistLabel = hasWishlistItems
+    ? `Wishlist, ${wishlistCount} saved item${wishlistCount === 1 ? "" : "s"}`
+    : "Wishlist";
 
   return (
     <div className="flex items-center gap-1 ml-auto flex-shrink-0">
@@ -53,10 +59,28 @@ export function NavbarActions({
       </div>
 
       <div className="relative hidden md:block" onMouseEnter={() => onSetWishlistTip(true)} onMouseLeave={() => onSetWishlistTip(false)}>
-        <button onClick={() => onNavigate("/wishlist")} className={`nb-icon-btn ${iconTone}`} aria-label="Wishlist">
-          <HeartIcon />
+        <button
+          onClick={() => onNavigate("/product/wishlist")}
+          className={`nb-icon-btn ${hasWishlistItems ? "nb-wishlist-alert" : iconTone}`}
+          aria-label={wishlistLabel}
+          title={wishlistLabel}
+        >
+          <HeartIcon className="w-4 h-4" />
+          <AnimatePresence>
+            {hasWishlistItems && (
+              <Motion.span
+                key={wishlistCount}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="nb-pop absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-[10px] font-black text-red-600 shadow flex items-center justify-center"
+              >
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </Motion.span>
+            )}
+          </AnimatePresence>
         </button>
-        <Tooltip show={wishlistTip} label="Wishlist" />
+        <Tooltip show={wishlistTip} label={wishlistLabel} />
       </div>
 
       <div className="relative hidden md:block" onMouseEnter={() => onSetAccountTip(true)} onMouseLeave={() => onSetAccountTip(false)}>

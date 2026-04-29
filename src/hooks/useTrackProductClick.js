@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import { trackEvent } from "../Utils/analytics";
+import { trackEvent } from "../api/track_events";
 
 export function useTrackProductClick() {
   return useCallback((productId) => {
     if (!productId) return;
 
-    trackEvent("product_click", { productId });
+    trackEvent({ eventType: "product_click", productId });
   }, []);
 }

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Calculator, TrendingUp } from "lucide-react";
-import { trackEvent } from "../../../Utils/analytics";
+import { trackEvent } from "../../../api/track_events";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -104,7 +104,12 @@ export default function SellerRoiCalculator() {
 
           <Link
             to="/signup?role=seller&source=roi"
-            onClick={() => trackEvent("seller_roi_cta_clicked", result)}
+            onClick={() =>
+              trackEvent({
+                eventType: "seller_roi_cta_clicked",
+                metadata: result,
+              })
+            }
             className="mt-6 flex h-14 items-center justify-center gap-2 rounded-2xl bg-white px-5 py-4 text-sm font-black text-black transition hover:bg-violet-100"
           >
             Start with this estimate

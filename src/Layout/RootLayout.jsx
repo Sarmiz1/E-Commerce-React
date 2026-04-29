@@ -1,7 +1,10 @@
-import { Outlet, useNavigation } from "react-router-dom";
+import { useEffect } from "react";
+import { Outlet, useLocation, useNavigation } from "react-router-dom";
 import { CartAnimationProvider } from "../Context/cart/CartAnimationContext"; 
 import AiFloatingWidget from "../Features/AiAssistant/AiFloatingWidget";
 import WooshoAI from "../Features/AiAssistant/WooshoAI";
+import { useAuth } from "../Context/auth/AuthContext";
+import { trackEvent } from "../api/track_events";
 import {
   ProductsSkeleton,
   ProductDetailSkeleton,
@@ -33,9 +36,30 @@ function getSkeletonForPath(pathname) {
   return null;
 }
 
+let lastTrackedPageView = "";
+
 export default function RootLayout() {
   const navigation = useNavigation();
+  const location = useLocation();
+  const { user } = useAuth();
   const isNavigating = navigation.state === "loading";
+
+  useEffect(() => {
+    const page = `${location.pathname}${location.search}${location.hash}`;
+    if (lastTrackedPageView === page) return;
+
+    lastTrackedPageView = page;
+    trackEvent({
+      eventType: "page_view",
+      userId: user?.id || null,
+      metadata: {
+        path: location.pathname,
+        search: location.search,
+        hash: location.hash,
+        routeKey: location.key,
+      },
+    });
+  }, [location.hash, location.key, location.pathname, location.search, user?.id]);
 
   // When navigating, show the skeleton matching the target route
   const skeleton = isNavigating

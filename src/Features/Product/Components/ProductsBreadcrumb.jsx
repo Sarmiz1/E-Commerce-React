@@ -5,7 +5,7 @@ import { Search, Sparkles } from "lucide-react";
 import { IconFilter } from "../../../Components/Icons/IconFilter";
 import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
 import { SORT_OPTIONS } from "../Utils/constants";
-import { trackEvent } from "../../../Utils/analytics";
+import { trackEvent } from "../../../api/track_events";
 
 export default function ProductsBreadcrumb({ 
   colors, 
@@ -49,7 +49,12 @@ export default function ProductsBreadcrumb({
             value={search || ""}
             onChange={(event) => setFilters((f) => ({ ...f, search: event.target.value }))}
             onBlur={() => {
-              if (search?.trim()) trackEvent("products_search_submitted", { query: search.trim() });
+              if (search?.trim()) {
+                trackEvent({
+                  eventType: "products_search_submitted",
+                  metadata: { query: search.trim() },
+                });
+              }
             }}
             className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none placeholder:font-medium"
             placeholder="Search with intent"

@@ -26,6 +26,7 @@ import { hasPriceAlert } from "./Utils/productHelpers";
 import { useRecentlyViewed } from "../Hooks/useRecentlyViewed";
 import { useAnalyticsEvent } from "../../../Hooks/useAnalyticsEvent";
 import SEO from "../../../Components/SEO";
+import { getProductImages } from "../../../Utils/getProductImages";
 
 // Atomic Details Components
 import DetailBreadcrumb from "./Components/DetailBreadcrumb";
@@ -57,9 +58,6 @@ export default function ProductDetail() {
     isDark,
     user,
     wishlisted,
-    shareOpen,
-    copied,
-    copyLabel,
     reviews,
     selectedColor,
     setSelectedColor,
@@ -70,9 +68,6 @@ export default function ProductDetail() {
     hasAlert,
     setHasAlert,
     toggleWishlist,
-    handleShare,
-    handleCopyLink,
-    shareToURL,
     handleAddReview,
   } = useProductDetail(product);
 
@@ -159,30 +154,51 @@ export default function ProductDetail() {
   const lowStock = (product.rating_count || 0) < 50;
   const storeInfo = getStoreInfo(product);
   const variantId = selectedVariant?.id || null;
-  const productUrl = typeof window !== "undefined" ? window.location.href : undefined;
+  const productUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/products/${product.slug || product.id}`
+      : undefined;
+  const productImages = getProductImages(product);
+  const productDescription =
+    product.description ||
+    `Shop ${product.name} from ${storeInfo.name || "WooSho"} with reviews, product details, and personalized recommendations.`;
+  const productKeywords = [
+    product.name,
+    storeInfo.name,
+    ...(Array.isArray(product.keywords) ? product.keywords : []),
+  ].filter(Boolean).join(", ");
+  const productAvailability =
+    product.stock_quantity === 0
+      ? "https://schema.org/OutOfStock"
+      : "https://schema.org/InStock";
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    image: product.image,
+    description: productDescription,
+    image: productImages.length ? productImages : product.image,
     sku,
     brand: {
       "@type": "Brand",
       name: storeInfo.name || "WooSho",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: product.rating_stars || 0,
-      reviewCount: product.rating_count || reviews.length || 1,
-    },
     offers: {
       "@type": "Offer",
       priceCurrency: "USD",
       price: ((product.price_cents || 0) / 100).toFixed(2),
-      availability: "https://schema.org/InStock",
+      availability: productAvailability,
+      itemCondition: "https://schema.org/NewCondition",
       url: productUrl,
     },
   };
+
+  if ((product.rating_stars || 0) > 0 && (product.rating_count || reviews.length || 0) > 0) {
+    productSchema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: product.rating_stars,
+      reviewCount: product.rating_count || reviews.length,
+    };
+  }
 
   // Map theme colors to StoreHeader requirements
   const storeHeaderColors = {
@@ -200,8 +216,10 @@ export default function ProductDetail() {
     >
       <SEO
         title={`${product.name} | WooSho`}
-        description={`Shop ${product.name} from ${storeInfo.name || "WooSho"} with reviews, product details, and personalized recommendations.`}
-        image={product.image}
+        description={productDescription}
+        keywords={productKeywords}
+        canonical={productUrl}
+        image={productImages[0] || product.image}
         type="product"
         schema={productSchema}
       />
@@ -245,14 +263,9 @@ export default function ProductDetail() {
               >
                 {/* Top action row */}
                 <DetailActionsRow 
+                  product={product}
                   wishlisted={wishlisted}
                   toggleWishlist={toggleWishlist}
-                  shareOpen={shareOpen}
-                  handleShare={handleShare}
-                  shareToURL={shareToURL}
-                  handleCopyLink={handleCopyLink}
-                  copied={copied}
-                  copyLabel={copyLabel}
                 />
 
                 {/* Product Main Info */}

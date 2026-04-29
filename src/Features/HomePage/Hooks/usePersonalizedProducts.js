@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { getStoredAnalyticsEvents } from "../../../Utils/analytics";
+import { getStoredAnalyticsEvents } from "../../../api/track_events";
 import { useRecentlyViewed } from "../../Product/Hooks/useRecentlyViewed";
 
 function productTokens(product) {

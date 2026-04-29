@@ -1,19 +1,38 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useWishlist } from "../../Hooks/useWishlist";
 
 const WishlistHeart = ({ 
+  productId,
   isLiked: initialLiked = false, 
   onToggle, 
   className = "absolute top-2.5 right-2.5",
   showOnHover = true 
 }) => {
-  const [isLiked, setIsLiked] = useState(initialLiked);
+  const [fallbackLiked, setFallbackLiked] = useState(initialLiked);
+  const {
+    isWishlisted,
+    toggleWishlist,
+    isPending,
+  } = useWishlist(productId, { initialLiked });
+
+  useEffect(() => {
+    setFallbackLiked(initialLiked);
+  }, [initialLiked]);
+
+  const isLiked = productId ? isWishlisted : fallbackLiked;
 
   const handleToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
     const newStatus = !isLiked;
-    setIsLiked(newStatus);
+
+    if (productId) {
+      toggleWishlist();
+    } else {
+      setFallbackLiked(newStatus);
+    }
+
     if (onToggle) onToggle(newStatus);
   };
 
@@ -21,12 +40,16 @@ const WishlistHeart = ({
     <button
       type="button"
       onClick={handleToggle}
+      disabled={isPending}
       className={`z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-90 backdrop-blur-md shadow-sm ${showOnHover ? "opacity-0 group-hover:opacity-100" : "opacity-100"} ${className}`}
       style={{
         background: isLiked ? "rgba(239, 68, 68, 0.1)" : "rgba(255, 255, 255, 0.8)",
         border: `1px solid ${isLiked ? "rgba(239, 68, 68, 0.2)" : "rgba(0, 0, 0, 0.05)"}`,
+        opacity: isPending ? 0.7 : undefined,
       }}
       title={isLiked ? "Remove from wishlist" : "Add to wishlist"}
+      aria-pressed={isLiked}
+      aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
     >
       <div className="relative w-4 h-4 flex items-center justify-center">
         {/* Heart Icon */}

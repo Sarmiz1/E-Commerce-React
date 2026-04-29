@@ -33,6 +33,7 @@ import StickyResultsBar from "./Components/StickyResultsBar";
 import RecentlyViewedStrip from "./Components/RecentlyViewedStrip";
 import { useProductsPageLogic } from "./Hooks/useProductsPageLogic";
 import { useAnalyticsEvent } from "../../Hooks/useAnalyticsEvent";
+import SEO from "../../Components/SEO";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -90,6 +91,54 @@ export default function ProductsPage() {
     toggleCompare(product);
   };
 
+  const pageSubject = filters.search
+    ? `Search results for "${filters.search}"`
+    : selectedCategory && selectedCategory !== "All"
+      ? `${selectedCategory} products`
+      : "Shop products";
+  const pageTitle = `${pageSubject} | WooSho`;
+  const pageDescription = filters.search
+    ? `Explore WooSho products matching ${filters.search}, compare prices, reviews, and seller details in one place.`
+    : selectedCategory && selectedCategory !== "All"
+      ? `Shop ${selectedCategory.toLowerCase()} on WooSho. Find curated products with reviews, quick view, wishlist, and easy cart checkout.`
+      : "Shop curated products on WooSho with reviews, quick view, wishlist, and easy cart checkout.";
+  const pageKeywords = [
+    "WooSho",
+    "online shopping",
+    "products",
+    selectedCategory !== "All" ? selectedCategory : "",
+    filters.search,
+  ].filter(Boolean).join(", ");
+  const canonicalUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/products${
+          selectedCategory && selectedCategory !== "All"
+            ? `?category=${encodeURIComponent(selectedCategory)}`
+            : ""
+        }`
+      : undefined;
+  const productListSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: pageTitle,
+    description: pageDescription,
+    url: canonicalUrl,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: filteredProducts.length,
+      itemListElement: filteredProducts.slice(0, 24).map((product, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: product.name,
+        image: product.image,
+        url:
+          typeof window !== "undefined"
+            ? `${window.location.origin}/products/${product.slug || product.id}`
+            : undefined,
+      })),
+    },
+  };
+
   // Hide body scrollbar when any modal is open
   useEffect(() => {
     if (mobileFilterOpen || showCompare || quickViewProduct) {
@@ -107,6 +156,15 @@ export default function ProductsPage() {
       className="min-h-screen pt-20"
       style={{ background: colors.surface.primary, color: colors.text.primary }}
     >
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        keywords={pageKeywords}
+        canonical={canonicalUrl}
+        type="website"
+        noIndex={Boolean(filters.search)}
+        schema={productListSchema}
+      />
       <style>{PG_STYLES}</style>
 
       {/* ── Sticky Results Bar ── */}

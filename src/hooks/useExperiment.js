@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { trackEvent } from "../Utils/analytics";
+import { trackEvent } from "../api/track_events";
 
 const STORAGE_PREFIX = "woosho.experiment.";
 
@@ -32,9 +32,12 @@ export function useExperiment(key, variants) {
   });
 
   useEffect(() => {
-    trackEvent("experiment_viewed", {
-      experimentKey: key,
-      variantId: assignment.id,
+    trackEvent({
+      eventType: "experiment_viewed",
+      metadata: {
+        experimentKey: key,
+        variantId: assignment.id,
+      },
     });
   }, [assignment.id, key]);
 
