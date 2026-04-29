@@ -34,6 +34,7 @@ import RecentlyViewedStrip from "./Components/RecentlyViewedStrip";
 import { useProductsPageLogic } from "./Hooks/useProductsPageLogic";
 import { useAnalyticsEvent } from "../../Hooks/useAnalyticsEvent";
 import SEO from "../../Components/SEO";
+import { getProductImages } from "../../Utils/getProductImages";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -117,6 +118,11 @@ export default function ProductsPage() {
             : ""
         }`
       : undefined;
+  const seoImage = (() => {
+    const heroProduct = filteredProducts[0] || allProducts[0];
+    if (!heroProduct) return undefined;
+    return getProductImages(heroProduct)[0] || heroProduct.image;
+  })();
   const productListSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -161,6 +167,7 @@ export default function ProductsPage() {
         description={pageDescription}
         keywords={pageKeywords}
         canonical={canonicalUrl}
+        image={seoImage}
         type="website"
         noIndex={Boolean(filters.search)}
         schema={productListSchema}

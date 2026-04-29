@@ -226,6 +226,26 @@ export const CartAPI = {
     return data;
   },
 
+  addBulk: async ({ cartId, items = [] }) => {
+    const payload = items
+      .map((item) => ({
+        product_id: item.productId ?? item.product_id,
+        variant_id: item.variantId ?? item.variant_id,
+        quantity: Math.max(Number(item.quantity) || 1, 1),
+      }))
+      .filter((item) => item.product_id && item.variant_id);
+
+    if (!cartId || payload.length === 0) return [];
+
+    const { data, error } = await supabase.rpc("add_cart_items_bulk", {
+      p_cart_id: cartId,
+      p_items: payload,
+    });
+
+    if (error) throw error;
+    return data || [];
+  },
+
   // =========================
   // 🔁 UPDATE ITEM
   // =========================

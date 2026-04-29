@@ -1,0 +1,153 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { Link } from "react-router-dom";
+import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { Ic, Spinner } from "./CartConstants";
+
+function MechanicalDigit({ value, prevValue }) {
+  const dir = value > prevValue ? "up" : "down";
+  const cls = dir === "up" ? "ct-flip-up" : "ct-flip-down";
+  const keyRef = useRef(0);
+  keyRef.current++;
+  return (
+    <span className="relative inline-block overflow-hidden leading-none w-[1ch] text-center select-none">
+      <span key={keyRef.current} className={cls}>{value}</span>
+    </span>
+  );
+}
+
+function QtyStepperButton({ dir, onClick, disabled }) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.82 }}
+      transition={{ type: "spring", stiffness: 600, damping: 18 }}
+      onClick={onClick}
+      disabled={disabled}
+      className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-500 hover:text-indigo-700 hover:bg-indigo-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-bold text-lg leading-none select-none"
+    >
+      {dir === "plus" ? "+" : "−"}
+    </motion.button>
+  );
+}
+
+export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendingQty, isRemoving }) {
+  const [prevQty, setPrevQty] = useState(item.quantity);
+  const rowRef = useRef(null);
+
+  useEffect(() => {
+    if (!rowRef.current || prevQty === item.quantity) return;
+    rowRef.current.classList.remove("ct-highlight");
+    void rowRef.current.offsetWidth;
+    rowRef.current.classList.add("ct-highlight");
+    setPrevQty(item.quantity);
+  }, [item.quantity, prevQty]);
+
+  const price = item?.products?.price_cents || 0;
+  const lineTotal = price * item.quantity;
+
+  const dragX = useMotionValue(0);
+  const opacity = useTransform(dragX, [-120, 0], [0, 1]);
+  const deleteOpacity = useTransform(dragX, [-120, -60], [1, 0]);
+
+  const handleDragEnd = useCallback((_, info) => {
+    if (info.offset.x < -100) onRemove(item.id, item.product?.name);
+  }, [item, onRemove]);
+
+  return (
+    <div className="relative overflow-hidden rounded-3xl">
+      <motion.div style={{ opacity: deleteOpacity }}
+        className="absolute inset-0 bg-red-50 rounded-3xl flex items-center justify-end pr-6 pointer-events-none">
+        <div className="flex flex-col items-center gap-1 text-red-400">
+          <Ic.Trash c="w-5 h-5" />
+          <span className="text-[9px] font-black uppercase tracking-wider">Remove</span>
+        </div>
+      </motion.div>
+
+      <motion.div
+        ref={rowRef}
+        style={{ x: dragX, opacity }}
+        drag="x" dragConstraints={{ left: -150, right: 0 }}
+        dragElastic={{ left: 0.2, right: 0 }}
+        onDragEnd={handleDragEnd}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, x: -80, height: 0, marginBottom: 0 }}
+        transition={{ delay: index * 0.06, duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+        layout
+        className="relative bg-white border border-gray-100/80 rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-grab active:cursor-grabbing"
+      >
+        <div className="flex gap-4 items-start">
+          <Link to={`/products/${item.product?.slug || item.product?.id}`} className="flex-shrink-0">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 hover:scale-105 transition-transform duration-300">
+              {item.products?.image && (
+                <img src={item.products.image} alt={item.products.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/200x200?text=No+Image";
+                  }}
+                  className="w-full h-full object-cover" loading="lazy" />
+              )}
+            </div>
+          </Link>
+
+          <div className="flex-1 min-w-0">
+            <Link to={`/products/${item.products?.slug || item.products?.id}`}>
+              <p className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 hover:text-indigo-700 transition-colors">
+                {item.products?.name || "Product"}
+              </p>
+            </Link>
+
+            {item.products?.rating_stars > 0 && (
+              <div className="flex items-center gap-1 mt-1">
+                {Array(5).fill(0).map((_, i) => (
+                  <svg key={i} className={`w-3 h-3 ${i < Math.floor(item.products.rating_stars) ? "text-yellow-400" : "text-gray-200"}`}
+                    fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                ))}
+                <span className="text-gray-400 text-[10px] ml-0.5">({item.products.rating_count})</span>
+              </div>
+            )}
+
+            <p className="text-indigo-600 font-black text-base mt-2">
+              {formatMoneyCents(price)}
+              <span className="text-gray-400 text-xs font-normal ml-1">each</span>
+            </p>
+
+            <div className="flex items-center gap-2 mt-3">
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl">
+                <QtyStepperButton dir="minus" disabled={item.quantity <= 1 || pendingQty}
+                  onClick={() => onQtyChange(item.id, item.quantity - 1)} />
+                <div className="relative overflow-hidden w-7 text-center tabular-nums font-black text-sm text-gray-900 select-none">
+                  {pendingQty ? <Spinner c="w-3 h-3 mx-auto" /> : (
+                    <MechanicalDigit value={item.quantity} prevValue={prevQty} />
+                  )}
+                </div>
+                <QtyStepperButton dir="plus" disabled={item.quantity >= 10 || pendingQty}
+                  onClick={() => onQtyChange(item.id, item.quantity + 1)} />
+              </div>
+
+              <button onClick={() => onSaveLater(item)}
+                className="flex items-center gap-1 text-gray-400 hover:text-rose-500 transition-colors text-xs font-semibold">
+                <Ic.Heart c="w-3.5 h-3.5" /> Save
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            <p className="font-black text-gray-900 text-base">{formatMoneyCents(lineTotal)}</p>
+            <motion.button
+              whileHover={{ scale: 1.12, color: "#ef4444" }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onRemove(item.id, item.products?.name)}
+              disabled={isRemoving}
+              className="text-gray-300 hover:text-red-400 transition-colors disabled:opacity-40"
+            >
+              {isRemoving ? <Spinner c="w-4 h-4" /> : <Ic.Trash c="w-4 h-4" />}
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}

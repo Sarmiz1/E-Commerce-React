@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { useWishlist } from "../../Hooks/useWishlist";
-import { useAddToCart } from "../../Hooks/cart/useAddToCart";
+import { useCartActions } from "../../Context/cart/CartContext";
 import { useAuth } from "../../Context/auth/AuthContext";
 import { WishlistAPI } from "../../api/wishlistApi";
+import { trackEvent } from "../../api/track_events";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { getProductImages } from "../../Utils/getProductImages";
 import AddToCart from "../../Components/Ui/AddToCart";
@@ -15,6 +16,7 @@ import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 import QuickView from "../../Components/Ui/QuickView";
 import WishlistHeart from "../../Components/Ui/WishlistHeart";
 import ShareButton from "../../Components/Ui/ShareButton";
+import SEO from "../../Components/SEO";
 
 const PAGE_SIZE = 12;
 
@@ -81,12 +83,12 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-[24px] bg-white dark:bg-slate-900 p-2 sm:p-3 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] ${isSelected ? 'ring-2 ring-slate-900 dark:ring-white shadow-xl' : 'ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'}`}
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-[24px] bg-white dark:bg-slate-900 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] ${isSelected ? 'ring-2 ring-slate-900 dark:ring-white shadow-xl' : 'ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'}`}
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] bg-slate-50 dark:bg-white mix-blend-multiply dark:mix-blend-normal">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-50 dark:bg-white">
         <button 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSelect(product.id); }}
-          className={`absolute left-3 top-3 z-30 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-all ${isSelected ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-900 opacity-100 scale-110' : 'bg-white/90 dark:bg-slate-800/90 border-slate-300 dark:border-slate-600 opacity-0 group-hover:opacity-100 hover:border-slate-400 dark:hover:border-slate-500'}`}
+          className={`absolute left-4 top-4 z-30 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-all ${isSelected ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-900 opacity-100 scale-110' : 'bg-white/90 dark:bg-slate-800/90 border-slate-300 dark:border-slate-600 opacity-0 group-hover:opacity-100 hover:border-slate-400 dark:hover:border-slate-500'}`}
         >
           {isSelected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
         </button>
@@ -94,15 +96,15 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect 
         <QuickView
           product={product}
           onQuickView={onQuickView}
-          className="absolute right-14 top-3 z-20 bg-white/90 dark:bg-slate-800/90 opacity-0 shadow-sm backdrop-blur-md transition-all group-hover:opacity-100 hover:scale-110"
+          className="absolute right-16 top-4 z-20 bg-white/90 dark:bg-slate-800/90 opacity-0 shadow-sm backdrop-blur-md transition-all group-hover:opacity-100 hover:scale-110"
         />
         <WishlistHeart
           productId={product.id}
           showOnHover={false}
-          className="absolute right-3 top-3 z-20 bg-white/90 dark:bg-slate-800/90 shadow-sm backdrop-blur-md transition-transform hover:scale-110"
+          className="absolute right-4 top-4 z-20 bg-white/90 dark:bg-slate-800/90 shadow-sm backdrop-blur-md transition-transform hover:scale-110"
         />
 
-        <div className="absolute left-3 bottom-3 z-10 flex flex-col gap-1.5 pointer-events-none">
+        <div className="absolute left-4 bottom-4 z-10 flex flex-col gap-1.5 pointer-events-none">
           {hasPriceDrop && (
             <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 dark:bg-red-500/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-red-600 dark:text-red-400 backdrop-blur-md">
               <TrendingDown className="h-3 w-3" />
@@ -122,7 +124,7 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect 
             <img
               src={image}
               alt={product?.name || "Wishlist product"}
-              className="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110"
+              className="h-full w-full object-cover object-center mix-blend-multiply dark:mix-blend-normal transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110"
               loading="lazy"
             />
           ) : (
@@ -133,7 +135,7 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect 
         </Link>
       </div>
 
-      <div className="flex flex-1 flex-col justify-between px-2 pb-2 pt-4">
+      <div className="flex flex-1 flex-col justify-between p-5 sm:p-6">
         <Link to={productDetailHref(product)} className="flex flex-col">
           <div className="flex items-center justify-between gap-2">
              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{getProductSize(product)}</span>
@@ -179,11 +181,11 @@ function WishlistSkeletonGrid() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: index * 0.05 }}
-          className="relative flex h-[460px] flex-col justify-between overflow-hidden rounded-[24px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 sm:p-3 shadow-sm"
+          className="relative flex h-[460px] flex-col overflow-hidden rounded-[24px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm"
         >
-          <div className="mx-auto h-[280px] w-full animate-pulse rounded-[16px] bg-slate-50 dark:bg-slate-800/50" />
+          <div className="h-[60%] w-full animate-pulse bg-slate-50 dark:bg-slate-800/50" />
           
-          <div className="mt-4 flex flex-col gap-3 px-2">
+          <div className="flex flex-col gap-3 p-5 sm:p-6">
              <div className="flex justify-between">
                  <div className="h-2.5 w-12 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
                  <div className="h-2.5 w-10 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
@@ -191,9 +193,7 @@ function WishlistSkeletonGrid() {
              <div className="h-4 w-full animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
              <div className="h-4 w-2/3 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
              <div className="mt-1 h-5 w-20 animate-pulse rounded-full bg-slate-100 dark:bg-slate-800" />
-          </div>
-          <div className="mt-4 px-2 pb-2">
-            <div className="h-12 w-full animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+             <div className="mt-4 h-12 w-full animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
           </div>
         </motion.div>
       ))}
@@ -278,7 +278,7 @@ function WishlistNewsletter() {
             setSubscribed(false);
           }}
           placeholder="Enter your email address"
-          className="h-16 flex-1 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 text-lg font-medium text-slate-950 dark:text-white shadow-sm outline-none transition placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-slate-950 dark:focus:border-white focus:ring-1 focus:ring-slate-950 dark:focus:ring-white"
+          className="min-h-14 w-full flex-none rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 text-base font-medium leading-6 text-slate-950 dark:text-white shadow-sm outline-none transition placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-slate-950 dark:focus:border-white focus:ring-1 focus:ring-slate-950 dark:focus:ring-white sm:min-h-16 sm:flex-1 sm:px-6 sm:text-lg"
         />
         <button
           type="submit"
@@ -302,7 +302,7 @@ export default function WishlistPage() {
   const { data: products = [], isLoading: productsLoading } = useAllProducts();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { handleAdd } = useAddToCart();
+  const { addItems, addingItems } = useCartActions();
 
   const wishlistProducts = useMemo(() => {
     const positionById = new Map(productIds.map((id, index) => [id, index]));
@@ -320,6 +320,41 @@ export default function WishlistPage() {
   const visibleProducts = sortedProducts.slice(0, visibleCount);
   const isLoading = wishlistLoading || productsLoading;
   const hasMore = visibleCount < sortedProducts.length;
+  const wishlistQueryKey = ["wishlist", user?.id || "guest"];
+  const bulkBusy = isProcessing || addingItems;
+  const wishlistCanonical =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/product/wishlist`
+      : undefined;
+  const wishlistSeoImage = (() => {
+    const heroProduct = sortedProducts[0] || wishlistProducts[0];
+    if (!heroProduct) return undefined;
+    return getProductImages(heroProduct)[0] || heroProduct.image;
+  })();
+  const wishlistDescription = wishlistCount
+    ? `Review ${wishlistCount} saved WooSho product${wishlistCount === 1 ? "" : "s"}, compare favorites, and move loved items into your cart.`
+    : "Save your favorite WooSho products, build a personal wishlist, and return later to compare or add them to cart.";
+  const wishlistSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Your Wishlist | WooSho",
+    description: wishlistDescription,
+    url: wishlistCanonical,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: sortedProducts.length,
+      itemListElement: sortedProducts.slice(0, 24).map((product, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: product.name,
+        image: getProductImages(product)[0] || product.image,
+        url:
+          typeof window !== "undefined"
+            ? `${window.location.origin}${productDetailHref(product)}`
+            : undefined,
+      })),
+    },
+  };
 
   const handleToggleSelect = (id) => {
     setSelectedIds((prev) => {
@@ -338,34 +373,139 @@ export default function WishlistPage() {
     }
   };
 
+  const removeWishlistOptimistically = (idsArray) => {
+    const idsSet = new Set(idsArray.filter(Boolean));
+    const previousProductIds = queryClient.getQueryData(wishlistQueryKey) || productIds;
+    const nextProductIds = previousProductIds.filter((id) => !idsSet.has(id));
+
+    queryClient.setQueryData(wishlistQueryKey, nextProductIds);
+
+    if (!user?.id) {
+      WishlistAPI.setGuestWishlist(nextProductIds);
+    }
+
+    return previousProductIds;
+  };
+
+  const restoreWishlist = (previousProductIds) => {
+    if (!previousProductIds) return;
+
+    queryClient.setQueryData(wishlistQueryKey, previousProductIds);
+
+    if (!user?.id) {
+      WishlistAPI.setGuestWishlist(previousProductIds);
+    }
+  };
+
+  const persistWishlistRemoval = async (idsArray) => {
+    const ids = [...new Set(idsArray.filter(Boolean))];
+    if (!ids.length || !user?.id) return;
+    await WishlistAPI.removeMany(ids);
+  };
+
   const handleBulkRemove = async () => {
-    if (selectedIds.size === 0) return;
+    if (selectedIds.size === 0 || bulkBusy) return;
+
+    const idsArray = Array.from(selectedIds);
+    const previousProductIds = removeWishlistOptimistically(idsArray);
+
     setIsProcessing(true);
     try {
-      const idsArray = Array.from(selectedIds);
-      if (user?.id) {
-        await Promise.allSettled(idsArray.map((id) => WishlistAPI.remove(id)));
-        queryClient.invalidateQueries({ queryKey: ["wishlist", user.id] });
-      } else {
-        const currentGuest = WishlistAPI.getGuestWishlist();
-        const nextGuest = currentGuest.filter((id) => !selectedIds.has(id));
-        WishlistAPI.setGuestWishlist(nextGuest);
-        queryClient.setQueryData(["wishlist", "guest"], nextGuest);
-      }
+      await persistWishlistRemoval(idsArray);
+      trackEvent({
+        eventType: "remove_from_wishlist_bulk",
+        quantity: idsArray.length,
+        userId: user?.id || null,
+        metadata: {
+          signal: "most_loved",
+          product_ids: idsArray,
+          source: "wishlist_bulk_remove",
+        },
+      });
       setSelectedIds(new Set());
+    } catch (error) {
+      restoreWishlist(previousProductIds);
+      console.error("Failed to remove wishlist items", error);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleBulkAddToCart = (ids) => {
-    if (!ids || ids.length === 0) return;
-    ids.forEach((id) => handleAdd(id));
-    setSelectedIds(new Set());
+  const handleBulkAddToCart = async (productsToAdd) => {
+    const productsArray = (productsToAdd || []).filter((product) => product?.id);
+    if (!productsArray.length || bulkBusy) return;
+
+    const cartItems = productsArray
+      .map((product) => {
+        const variantId = getDefaultVariantId(product);
+        const variant = product?.product_variants?.find((item) => item?.id === variantId);
+
+        if (!variantId) return null;
+
+        return {
+          productId: product.id,
+          variantId,
+          quantity: 1,
+          product,
+          variant,
+        };
+      })
+      .filter(Boolean);
+
+    if (!cartItems.length) return;
+
+    const productIdsToRemove = cartItems.map((item) => item.productId);
+    const previousProductIds = removeWishlistOptimistically(productIdsToRemove);
+
+    setIsProcessing(true);
+    try {
+      await addItems(cartItems);
+      await persistWishlistRemoval(productIdsToRemove);
+
+      trackEvent({
+        eventType: "add_to_cart_bulk",
+        quantity: cartItems.length,
+        userId: user?.id || null,
+        metadata: {
+          product_ids: productIdsToRemove,
+          variant_ids: cartItems.map((item) => item.variantId),
+          source: "wishlist_bulk",
+        },
+      });
+
+      trackEvent({
+        eventType: "remove_from_wishlist_bulk",
+        quantity: productIdsToRemove.length,
+        userId: user?.id || null,
+        metadata: {
+          signal: "most_loved",
+          reason: "added_to_cart",
+          product_ids: productIdsToRemove,
+          source: "wishlist_bulk",
+        },
+      });
+
+      setSelectedIds(new Set());
+    } catch (error) {
+      restoreWishlist(previousProductIds);
+      console.error("Failed to add wishlist items to cart", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <main className="min-h-screen bg-slate-50/50 dark:bg-slate-950 pb-32 pt-28 text-slate-950 dark:text-white transition-colors duration-300">
+      <SEO
+        title="Your Wishlist | WooSho"
+        description={wishlistDescription}
+        keywords="WooSho wishlist, saved products, favorite products, shopping wishlist"
+        canonical={wishlistCanonical}
+        image={wishlistSeoImage}
+        type="website"
+        noIndex
+        schema={wishlistSchema}
+      />
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         
         {/* Premium Header */}
@@ -436,18 +576,19 @@ export default function WishlistPage() {
                       <div className="flex items-center gap-2 pr-1">
                         <button 
                           onClick={handleBulkRemove} 
-                          disabled={isProcessing}
+                          disabled={bulkBusy}
                           className="group inline-flex h-11 items-center gap-2 rounded-xl bg-white/10 dark:bg-slate-900/5 px-6 text-sm font-bold text-white dark:text-slate-900 transition hover:bg-red-500 hover:text-white dark:hover:bg-red-500 disabled:opacity-50"
                         >
                           <Trash2 className="h-4 w-4" />
                           <span className="hidden sm:inline">Remove</span>
                         </button>
                         <button 
-                          onClick={() => handleBulkAddToCart(Array.from(selectedIds))} 
-                          className="group inline-flex h-11 items-center gap-2 rounded-xl bg-white dark:bg-slate-900 px-6 text-sm font-bold text-slate-900 dark:text-white transition hover:scale-105"
+                          onClick={() => handleBulkAddToCart(sortedProducts.filter((product) => selectedIds.has(product.id)))} 
+                          disabled={bulkBusy}
+                          className="group inline-flex h-11 items-center gap-2 rounded-xl bg-white dark:bg-slate-900 px-6 text-sm font-bold text-slate-900 dark:text-white transition hover:scale-105 disabled:opacity-60"
                         >
                           <ShoppingCart className="h-4 w-4" />
-                          <span className="hidden sm:inline">Add to Cart</span>
+                          <span className="hidden sm:inline">{bulkBusy ? "Adding" : "Add to Cart"}</span>
                         </button>
                       </div>
                     </motion.div>
@@ -490,11 +631,12 @@ export default function WishlistPage() {
                       </div>
                       
                       <button 
-                        onClick={() => handleBulkAddToCart(sortedProducts.map((p) => p.id))} 
-                        className="group inline-flex h-11 items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 px-6 text-sm font-bold text-slate-900 dark:text-white transition hover:bg-slate-100 dark:hover:bg-slate-700"
+                        onClick={() => handleBulkAddToCart(sortedProducts)} 
+                        disabled={bulkBusy}
+                        className="group inline-flex h-11 items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 px-6 text-sm font-bold text-slate-900 dark:text-white transition hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-60"
                       >
                          <ShoppingCart className="h-4 w-4 transition-transform group-hover:scale-110" />
-                         <span className="hidden sm:inline">Add All to Cart</span>
+                         <span className="hidden sm:inline">{bulkBusy ? "Adding All" : "Add All to Cart"}</span>
                       </button>
                     </motion.div>
                   )}

@@ -62,4 +62,16 @@ export const WishlistAPI = {
 
     if (error) throw error;
   },
+
+  async removeMany(productIds = []) {
+    const ids = [...new Set(productIds.filter(Boolean))];
+    if (!ids.length) return;
+
+    const { error } = await supabase
+      .from(WISHLIST_TABLE)
+      .delete()
+      .in("product_id", ids);
+
+    if (error) throw error;
+  },
 };

@@ -56,7 +56,11 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
       if (user?.id) {
         if (nextLiked) await WishlistAPI.add(productId);
         else await WishlistAPI.remove(productId);
-        return WishlistAPI.load();
+        return applyWishlistChange(
+          queryClient.getQueryData(queryKey) || productIds,
+          productId,
+          nextLiked,
+        );
       }
 
       const nextProductIds = applyWishlistChange(productIds, productId, nextLiked);
@@ -91,11 +95,6 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
             signal: "most_loved",
           },
         });
-      }
-    },
-    onSettled: () => {
-      if (user?.id) {
-        queryClient.invalidateQueries({ queryKey });
       }
     },
   });

@@ -17,13 +17,29 @@ const matchesGuestCartItem = (item, productId, variantId) => {
 };
 
 const normalizeCartAddition = (item) => {
-  const productId = item?.productId ?? item?.product_id ?? item?.id ?? null;
-  const variantId = item?.variantId ?? item?.variant_id ?? null;
+  const product = item?.product ?? item?.products ?? null;
+  const variants = product?.product_variants || product?.variants || [];
+  const variantId =
+    item?.variantId ??
+    item?.variant_id ??
+    item?.variant?.id ??
+    variants.find((variant) => variant?.id)?.id ??
+    null;
+  const variant =
+    item?.variant ??
+    variants.find((candidate) => candidate?.id === variantId) ??
+    null;
+  const productId =
+    item?.productId ??
+    item?.product_id ??
+    product?.id ??
+    item?.id ??
+    null;
   const quantity = Math.max(Number(item?.quantity) || 1, 1);
 
-  if (!productId && !variantId) return null;
+  if (!productId || !variantId) return null;
 
-  return { productId, variantId, quantity };
+  return { productId, variantId, quantity, product, variant };
 };
 
 const mergeGuestCartAdditions = (guestCart, additions) =>
@@ -52,6 +68,58 @@ const mergeGuestCartAdditions = (guestCart, additions) =>
       },
     ];
   }, guestCart);
+
+const mergeCartAdditions = (cartItems, additions) =>
+  additions.reduce((currentCart, addition) => {
+    const existingItem = currentCart.find((item) =>
+      matchesGuestCartItem(item, addition.productId, addition.variantId),
+    );
+
+    if (existingItem) {
+      return currentCart.map((item) =>
+        matchesGuestCartItem(item, addition.productId, addition.variantId)
+          ? {
+              ...item,
+              quantity: (Number(item.quantity) || 0) + addition.quantity,
+            }
+          : item,
+      );
+    }
+
+    const product = addition.product || {};
+    const variant = addition.variant || {};
+    const price = variant.price_cents ?? product.price_cents ?? 0;
+
+    return [
+      ...currentCart,
+      {
+        id: `optimistic_${addition.variantId}`,
+        quantity: addition.quantity,
+        variant_id: addition.variantId,
+        product_id: addition.productId,
+        products: {
+          id: addition.productId,
+          name: product.name,
+          slug: product.slug,
+          image: product.image,
+          price_cents: price,
+          rating_stars: product.rating_stars,
+          rating_count: product.rating_count,
+        },
+        variant: {
+          id: addition.variantId,
+          color: variant.color,
+          size: variant.size,
+          price_cents: price,
+        },
+        name: product.name,
+        image: product.image,
+        thumbnail: product.image,
+        price,
+        optimistic: true,
+      },
+    ];
+  }, cartItems);
 
 const matchesCartItem = (item, target) => {
   const targetId = typeof target === "object" ? getCartItemKey(target) : target;
@@ -191,6 +259,10 @@ export function CartProvider({ children }) {
         .map(normalizeCartAddition)
         .filter(Boolean);
 
+      if (!additions.length) {
+        throw new Error("No valid cart items to add.");
+      }
+
       if (user?.id) {
         let activeCartId = cartId;
 
@@ -203,16 +275,10 @@ export function CartProvider({ children }) {
           throw new Error("Cart not loaded yet. Please try again.");
         }
 
-        await Promise.all(
-          additions.map(({ productId, variantId, quantity }) =>
-            CartAPI.add({
-              cartId: activeCartId,
-              productId,
-              variantId,
-              quantity,
-            }),
-          ),
-        );
+        await CartAPI.addBulk({
+          cartId: activeCartId,
+          items: additions,
+        });
 
         return CartAPI.load(user.id);
       }
@@ -223,12 +289,41 @@ export function CartProvider({ children }) {
       CartEngine.setGuestCart(updatedGuestCart);
       return CartAPI.loadGuestCart(updatedGuestCart);
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["cart", user?.id], data);
+    onMutate: async (items = []) => {
+      const additions = (Array.isArray(items) ? items : [items])
+        .map(normalizeCartAddition)
+        .filter(Boolean);
+      const cartQueryKey = ["cart", user?.id];
 
-      if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
+      if (!additions.length) return { cartQueryKey };
+
+      await queryClient.cancelQueries({ queryKey: cartQueryKey });
+
+      const previousCart = queryClient.getQueryData(cartQueryKey);
+      const previousGuestCart = !user?.id ? CartEngine.getGuestCart() : null;
+      const currentItems = previousCart?.items || cart;
+
+      queryClient.setQueryData(cartQueryKey, {
+        cartId: previousCart?.cartId ?? cartId,
+        items: mergeCartAdditions(currentItems, additions),
+      });
+
+      return { cartQueryKey, previousCart, previousGuestCart };
+    },
+    onError: (_error, _items, context) => {
+      if (context?.cartQueryKey) {
+        queryClient.setQueryData(
+          context.cartQueryKey,
+          context.previousCart || { cartId, items: cart },
+        );
       }
+
+      if (!user?.id && context?.previousGuestCart) {
+        CartEngine.setGuestCart(context.previousGuestCart);
+      }
+    },
+    onSuccess: (data, _items, context) => {
+      queryClient.setQueryData(context?.cartQueryKey || ["cart", user?.id], data);
     },
   });
 
