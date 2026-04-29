@@ -4,8 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Smartphone, Zap, ShieldCheck, Heart, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 
-
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 // ─── Image: public/1000174262.png ─────────────────────────────────────────────
 // Panel 2: top-right → background-position: 100% 0%

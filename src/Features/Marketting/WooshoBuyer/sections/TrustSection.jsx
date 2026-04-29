@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Shield, CreditCard, Truck, MessageCircle } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 // ─── Image: public/1000174262.png ─────────────────────────────────────────────
 // Panel 5: bottom-left → background-position: 0% 100%

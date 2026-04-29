@@ -60,7 +60,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Star } from "lucide-react";
 
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 const REVIEWS = [
   {

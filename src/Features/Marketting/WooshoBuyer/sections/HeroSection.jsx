@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShoppingBag, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 
 const mockDatabase = [
-  { id: 1, title: "Urban Black Kicks", price: "₦35,000", img: "https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=400&q=80", tags: ["black", "sneakers", "urban"] },
-  { id: 2, title: "Midnight Runners", price: "₦38,500", img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80", tags: ["black", "running", "performance"] },
-  { id: 3, title: "Stealth Trainers", price: "₦39,900", img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80", tags: ["stealth", "training", "minimal", "black"] },
-  { id: 4, title: "Ivory Classics", price: "₦42,000", img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80", tags: ["white", "classic", "leather", "sneakers"] },
-  { id: 5, title: "Crimson High-Tops", price: "₦45,000", img: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=400&q=80", tags: ["red", "high-top", "canvas"] }
+  { id: 1, title: "Urban Black Kicks", price: formatMoneyCurrency(3500000).replace(".00", ""), img: "https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=400&q=80", tags: ["black", "sneakers", "urban"] },
+  { id: 2, title: "Midnight Runners", price: formatMoneyCurrency(3850000).replace(".00", ""), img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80", tags: ["black", "running", "performance"] },
+  { id: 3, title: "Stealth Trainers", price: formatMoneyCurrency(3990000).replace(".00", ""), img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80", tags: ["stealth", "training", "minimal", "black"] },
+  { id: 4, title: "Ivory Classics", price: formatMoneyCurrency(4200000).replace(".00", ""), img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80", tags: ["white", "classic", "leather", "sneakers"] },
+  { id: 5, title: "Crimson High-Tops", price: formatMoneyCurrency(4500000).replace(".00", ""), img: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=400&q=80", tags: ["red", "high-top", "canvas"] }
 ];
 
 const HeroSection = () => {

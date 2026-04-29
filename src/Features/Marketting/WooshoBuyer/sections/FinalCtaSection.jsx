@@ -5,8 +5,7 @@ import { ArrowRight, Users, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
 
-
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 // ─── Image: public/1000174262.png ─────────────────────────────────────────────
 // Panel 6: bottom-right → background-position: 100% 100%

@@ -1,8 +1,13 @@
 import React, { Suspense, lazy } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroSection from "./sections/HeroSection";
 import ModernNavbar from "../../../Components/ModernNavbar";
 import SEO from "../../../Components/SEO";
 import MarketingSkeleton from "../Components/MarketingSkeleton";
+
+// GSAP registration once at module level is correct.
+gsap.registerPlugin(ScrollTrigger);
 
 // Lazy load below-the-fold sections for performance
 const ProblemSection = lazy(() => import("./sections/ProblemSection"));
@@ -56,38 +61,54 @@ const BuyerLanding = () => {
         {/* ── 1. Hero (Standard Load) ────────────────────────── */}
         <HeroSection />
 
-        <Suspense fallback={<MarketingSkeleton sections={3} />}>
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="problem">
             <ProblemSection />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="solution">
             <SolutionSection />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="features">
             <SmartFeaturesSection />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <InteractiveProductDemo />
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="shop-smart">
             <ShopSmartSection />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="categories">
             <CategoriesSection />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="social">
             <SocialProofSection />
             <AllInOneAppSection />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="trust">
             <TrustSection />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <section className="bg-slate-50 px-6 py-20">
             <div className="mx-auto max-w-3xl">
               <LeadCaptureForm
@@ -98,7 +119,9 @@ const BuyerLanding = () => {
               />
             </div>
           </section>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="cta">
             <FinalCtaSection />
           </div>

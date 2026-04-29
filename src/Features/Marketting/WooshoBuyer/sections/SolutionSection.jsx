@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 const SolutionSection = () => {
   const sectionRef = useRef(null);
@@ -56,7 +57,7 @@ const SolutionSection = () => {
         
         <div className="bg-neutral-50 dark:bg-white/5 p-8 rounded-3xl border border-neutral-200 dark:border-white/10 shadow-lg relative h-[500px] flex flex-col">
            <div className="bg-white dark:bg-[#0a0a0a] p-4 rounded-xl shadow-sm mb-6 max-w-[80%] self-end">
-             <p className="text-neutral-800 dark:text-neutral-200 font-medium text-sm md:text-base">"I need an outfit for a tech conference, smart casual, budget ₦150k"</p>
+             <p className="text-neutral-800 dark:text-neutral-200 font-medium text-sm md:text-base">"I need an outfit for a tech conference, smart casual, budget {formatMoneyCurrency(15000000).replace(".00", "")}"</p>
            </div>
            
            <div className="grid grid-cols-2 gap-4 mt-auto">

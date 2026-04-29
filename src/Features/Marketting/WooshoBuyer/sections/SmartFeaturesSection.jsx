@@ -38,7 +38,7 @@ const FEATURES = [
 ];
 
 
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 
 const SmartFeaturesSection = () => {

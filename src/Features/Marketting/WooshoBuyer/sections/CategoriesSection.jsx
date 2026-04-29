@@ -6,7 +6,7 @@ import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
 import { formatLink } from '../../../../Utils/formatLink'
 
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 // ─── Image: public/1000174262.png ─────────────────────────────────────────────
 // Panel 3: middle-left → background-position: 0% 50%

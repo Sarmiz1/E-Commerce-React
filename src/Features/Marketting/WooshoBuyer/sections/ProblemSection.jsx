@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Frown, ShieldAlert, Infinity } from 'lucide-react';
 
-gsap.registerPlugin(ScrollTrigger);
+// FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
 const problems = [
   { icon: <Infinity className="w-10 h-10 text-neutral-400 mb-4" />, text: "Too many products." },
