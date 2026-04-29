@@ -1,6 +1,4 @@
-import React, { useEffect, useRef, Suspense, lazy } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import React, { Suspense, lazy } from "react";
 import ModernNavbar from "../../../Components/ModernNavbar.jsx";
 import SEO from "../../../Components/SEO.jsx";
 import ModernHero from "./Components/ModernHero";
@@ -20,44 +18,13 @@ const ModernCTA = lazy(() =>
     default: module.ModernCTA,
   })),
 );
+const AnimatedStats = lazy(() => import("./Components/AnimatedStats"));
+const SocialProofTicker = lazy(() => import("../Components/SocialProofTicker"));
+const ExitIntentPopup = lazy(() => import("../Components/ExitIntentPopup"));
 
-gsap.registerPlugin(ScrollTrigger);
 
 export default function ModernLanding() {
-  const mainRef = useRef(null);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const REVEAL = { opacity: 0, y: 56, duration: 0.65, ease: "power4.out" };
-      const sections = [
-        "#pain-points",
-        "#platform",
-        "#ai-chat",
-        "#interactive-demo",
-        "#gallery",
-        "#categories",
-        "#why-woosho",
-        "#lead-capture",
-        "#cta",
-      ];
-
-      sections.forEach((id) => {
-        const el = document.querySelector(id);
-        if (el) {
-          gsap.from(el, {
-            ...REVEAL,
-            scrollTrigger: {
-              trigger: el,
-              start: "top 88%",
-              toggleActions: "play none none none",
-            },
-          });
-        }
-      });
-    }, mainRef);
-
-    return () => ctx.revert();
-  }, []);
 
   return (
     <>
@@ -70,42 +37,61 @@ export default function ModernLanding() {
       />
 
       <main
-        ref={mainRef}
         className="bg-white dark:bg-[#0E0E10] selection:bg-blue-600/30"
       >
         <div id="hero">
           <ModernHero />
         </div>
 
-        <Suspense fallback={<MarketingSkeleton sections={3} />}>
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="pain-points">
             <ModernPainPoints />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="platform">
             <ModernPlatform />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="ai-chat">
             <ModernAiChat />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="interactive-demo">
             <InteractiveProductDemo />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="gallery">
             <ModernGallery />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="categories">
             <ModernCategories />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="why-woosho">
             <ModernWhy />
           </div>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+          <div id="stats">
+            <AnimatedStats />
+          </div>
+        </Suspense>
+
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <section id="lead-capture" className="bg-white px-6 py-20 dark:bg-[#0E0E10]">
             <div className="mx-auto max-w-3xl">
               <LeadCaptureForm
@@ -116,19 +102,23 @@ export default function ModernLanding() {
               />
             </div>
           </section>
+        </Suspense>
 
+        <Suspense fallback={<MarketingSkeleton sections={1} />}>
           <div id="cta">
             <ModernCTA />
           </div>
         </Suspense>
-        {/* 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        Test Ground
- 
-*/}
 
-        {/* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */}
       </main>
+
+      {/* Elite overlays — lazy loaded, non-blocking */}
+      <Suspense fallback={null}>
+        <SocialProofTicker />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ExitIntentPopup />
+      </Suspense>
     </>
   );
 }

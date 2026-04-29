@@ -26,6 +26,8 @@ import ProductDetail from "../Features/Product/ProductDetails/ProductDetail";
 import OtherPage from "../Features/OtherPage/OtherPage";
 import WishlistPage from "../Features/Wishlist/WishlistPage";
 import CartPage from "../Features/Cart/CartPage";
+import CheckoutPage from "../Features/Checkout/CheckoutPage";
+import OrdersPage from "../Features/Orders/OrdersPage";
 
 // ─── Collection Pages ─────────────────────────────────────────────────────────
 import NewArrivalsPage from "../Features/Collections/pages/NewArrivalsPage";
@@ -66,7 +68,7 @@ import {
 
 // JUST TEsT
 
-const isLoggedIn = true; // Simulate authentication status (replace with real auth logic)
+const isLoggedIn = false; // Simulate authentication status (replace with real auth logic)
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -293,14 +295,28 @@ const router = createBrowserRouter(
 
         {/* Trade Layout */}
         <Route element={<TradeLayout />}>
-          {/* <Route path="checkout" element={<CheckoutPage />} /> */}
+          <Route
+            path="checkout"
+            element={
+              <>
+                <Navbar />
+                <CheckoutPage />
+              </>
+            }
+            hydrateFallbackElement={<CartSkeleton />}
+          />
 
-          {/* <Route
+          <Route
             path="orders"
-            element={<OrdersPage />}
+            element={
+              <>
+                <Navbar />
+                <OrdersPage />
+              </>
+            }
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<OrdersSkeleton />}
-          /> */}
+          />
           <Route
             path="tracking"
             element={

@@ -154,6 +154,7 @@ export function CartProvider({ children }) {
   });
 
   const cart = useMemo(() => data?.items || [], [data?.items]);
+  const cartTotals = useMemo(() => data?.totals || { subtotal: 0, discount: 0, shipping: 0, total: 0, applied_promo: null }, [data?.totals]);
   const cartId = data?.cartId || null;
 
   // ─── Mutations ────────────────────────────────────────────────────────────
@@ -210,7 +211,7 @@ export function CartProvider({ children }) {
       if (context?.cartQueryKey) {
         queryClient.setQueryData(
           context.cartQueryKey,
-          context.previousCart || { cartId, items: cart },
+          context.previousCart || { cartId, items: cart, totals: cartTotals },
         );
       }
 
@@ -449,7 +450,7 @@ export function CartProvider({ children }) {
       if (context?.cartQueryKey) {
         queryClient.setQueryData(
           context.cartQueryKey,
-          context.previousCart || { cartId, items: cart },
+          context.previousCart || { cartId, items: cart, totals: cartTotals },
         );
       }
 
@@ -460,6 +461,22 @@ export function CartProvider({ children }) {
     onSuccess: (data, _items, context) => {
       queryClient.setQueryData(context?.cartQueryKey || ["cart", user?.id], data);
     },
+  });
+
+  const applyPromoMutation = useMutation({
+    mutationFn: async (promoCode) => {
+      if (user?.id) return CartAPI.applyPromo(cartId, promoCode);
+      throw new Error("Log in to apply promo codes.");
+    },
+    onSuccess: (totalsData) => {
+      // Just update the totals manually in the cache, no need to invalidate whole cart
+      if (user?.id) {
+         queryClient.setQueryData(["cart", user.id], old => ({
+             ...old,
+             totals: totalsData
+         }));
+      }
+    }
   });
 
   const {
@@ -495,6 +512,11 @@ export function CartProvider({ children }) {
     error: addItemsError,
   } = addItemsMutation;
 
+  const {
+    mutateAsync: applyPromoMutateAsync,
+    isPending: applyingPromo,
+  } = applyPromoMutation;
+
   // ─── Stable action callbacks ──────────────────────────────────────────────
 
   const removeItem = useCallback(
@@ -523,19 +545,25 @@ export function CartProvider({ children }) {
     [addItemsMutateAsync],
   );
 
+  const applyPromo = useCallback(
+    (promoCode) => applyPromoMutateAsync(promoCode),
+    [applyPromoMutateAsync],
+  );
+
   // ─── Context values ──────────────────────────────────────────────────────
 
   const state = useMemo(
     () => ({
       cart,
       cartId,
+      totals: cartTotals,
       cartCount: cart.reduce((a, b) => a + (b.quantity || 0), 0),
       loading: isLoading,
       fetching: isFetching,
       error,
       status,
     }),
-    [cart, cartId, error, isFetching, isLoading, status],
+    [cart, cartId, cartTotals, error, isFetching, isLoading, status],
   );
 
   const removingItemId = getCartItemKey(removeItemVariables);
@@ -548,6 +576,7 @@ export function CartProvider({ children }) {
     removeItem,
     updateQuantity,
     clearCart,
+    applyPromo,
 
     addingItem,
     addItemSuccess,
@@ -570,6 +599,8 @@ export function CartProvider({ children }) {
     clearingCart,
     clearCartSuccess,
     clearCartError,
+
+    applyingPromo,
   }),
   [
     addItem,
@@ -577,6 +608,7 @@ export function CartProvider({ children }) {
     removeItem,
     updateQuantity,
     clearCart,
+    applyPromo,
     addingItem,
     addItemSuccess,
     addItemError,
@@ -594,6 +626,7 @@ export function CartProvider({ children }) {
     clearingCart,
     clearCartSuccess,
     clearCartError,
+    applyingPromo,
   ],
 );   
 

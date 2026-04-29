@@ -1,44 +1,47 @@
-import { memo, useRef, useState } from 'react';
+import { memo } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MousePointer2, ArrowRight, Sparkles } from 'lucide-react';
+import MagneticButton from '../../Components/MagneticButton';
+import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 import heroImg from '../../../../assets/marketing/hero-blur.png';
 
-// Premium Magnetic Button Component
-const MagneticButton = ({ children, className, onClick }) => {
-  const ref = useRef(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  const handleMouse = (e) => {
-    const { clientX, clientY } = e;
-    const { height, width, left, top } = ref.current.getBoundingClientRect();
-    const middleX = clientX - (left + width / 2);
-    const middleY = clientY - (top + height / 2);
-    setPosition({ x: middleX * 0.2, y: middleY * 0.2 });
-  };
-
-  const reset = () => {
-    setPosition({ x: 0, y: 0 });
-  };
-
-  const { x, y } = position;
-  return (
-    <motion.button
-      ref={ref}
-      onMouseMove={handleMouse}
-      onMouseLeave={reset}
-      animate={{ x, y }}
-      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
-      className={className}
-      onClick={onClick}
-    >
-      {children}
-    </motion.button>
-  );
-};
 
 const ModernHero = memo(function ModernHero() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const ref = searchParams.get('ref');
+
+  // Personalized copy based on referral source
+  const heroVariants = {
+    seller: {
+      titleWords: ["Grow", "Sales.", "Smarter", "Selling."],
+      subtitle: "Reach high-intent buyers instantly with AI-powered product matching. Zero wasted ad spend. Pure demand.",
+      primaryCta: "Start Selling",
+      primaryLink: "/auth",
+      secondaryCta: "See How It Works",
+      secondaryLink: "/seller",
+    },
+    buyer: {
+      titleWords: ["Discover", "More.", "Search", "Less."],
+      subtitle: "Stop scrolling endlessly. Woosho's AI learns what you love and surfaces the perfect products — instantly.",
+      primaryCta: "Start Shopping",
+      primaryLink: "/auth",
+      secondaryCta: "Browse Products",
+      secondaryLink: "/products",
+    },
+    default: {
+      titleWords: ["Smarter", "Shopping.", "Smarter", "Selling."],
+      subtitle: "Woosho uses built-in AI to match the right products with the right people — instantly. Experience commerce that understands you.",
+      primaryCta: "Start Shopping",
+      primaryLink: "/auth",
+      secondaryCta: "Start Selling",
+      secondaryLink: "/auth",
+    },
+  };
+
+  const hero = heroVariants[ref] || heroVariants.default;
 
   // Mouse Parallax Setup
   const mouseX = useMotionValue(0);
@@ -51,7 +54,6 @@ const ModernHero = memo(function ModernHero() {
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;
     const { innerWidth, innerHeight } = window;
-    // Normalize coordinates from -1 to 1
     const x = (clientX / innerWidth - 0.5) * 2;
     const y = (clientY / innerHeight - 0.5) * 2;
     mouseX.set(x);
@@ -67,9 +69,6 @@ const ModernHero = memo(function ModernHero() {
   
   const card2X = useTransform(smoothMouseX, [-1, 1], [-40, 40]);
   const card2Y = useTransform(smoothMouseY, [-1, 1], [-40, 40]);
-
-  // Title Splitting for Kinetic Typography
-  const titleWords = ["Smarter", "Shopping.", "Smarter", "Selling."];
 
   return (
     <section 
@@ -94,9 +93,9 @@ const ModernHero = memo(function ModernHero() {
         {/* TEXT CONTENT */}
         <div className="text-left relative z-20">
           <div className="flex flex-wrap text-6xl md:text-8xl font-extrabold tracking-tight leading-[0.9] text-gray-900 dark:text-white mb-8 select-none">
-            {titleWords.map((word, index) => (
+            {hero.titleWords.map((word, index) => (
               <motion.span
-                key={index}
+                key={`${ref}-${index}`}
                 initial={{ opacity: 0, y: 60, rotateX: -40 }}
                 animate={{ opacity: 1, y: 0, rotateX: 0 }}
                 transition={{ 
@@ -127,7 +126,7 @@ const ModernHero = memo(function ModernHero() {
             <span className="absolute -left-8 top-1 text-blue-500/50 hidden md:block animate-pulse">
               <Sparkles size={24}/>
             </span>
-            Woosho uses built-in AI to match the right products with the right people — instantly. Experience commerce that understands you.
+            {hero.subtitle}
           </motion.p>
 
           <motion.div
@@ -138,9 +137,9 @@ const ModernHero = memo(function ModernHero() {
           >
             <MagneticButton 
               className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 flex items-center gap-2 group transition-colors"
-              onClick={()=> navigate('/auth')}
+              onClick={()=> navigate(hero.primaryLink)}
             >
-              <span>Start Shopping</span>
+              <span>{hero.primaryCta}</span>
               <motion.div animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
                 <ArrowRight size={20} />
               </motion.div>
@@ -148,9 +147,9 @@ const ModernHero = memo(function ModernHero() {
             
             <MagneticButton 
               className="px-8 py-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white font-bold rounded-2xl transition-colors border border-transparent dark:border-white/10"
-              onClick={()=> navigate('/auth')}
+              onClick={()=> navigate(hero.secondaryLink)}
             >
-              Start Selling
+              {hero.secondaryCta}
             </MagneticButton>
           </motion.div>
 
@@ -162,9 +161,9 @@ const ModernHero = memo(function ModernHero() {
             className="mt-16 flex items-center gap-6"
           >
             <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0E0E10] bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden transition-transform hover:-translate-y-1 hover:z-10 relative cursor-pointer">
-                  <img src={`https://i.pravatar.cc/100?u=${i}`} alt="user" className="w-full h-full object-cover" />
+              {['#6366F1', '#EC4899', '#F59E0B', '#10B981'].map((color, i) => (
+                <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0E0E10] flex items-center justify-center overflow-hidden transition-transform hover:-translate-y-1 hover:z-10 relative cursor-pointer" style={{ background: color }}>
+                  <svg className="w-5 h-5 text-white/80" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.5c-3.3 0-9.8 1.6-9.8 4.9v2.4h19.6v-2.4c0-3.3-6.5-4.9-9.8-4.9z"/></svg>
                 </div>
               ))}
             </div>
@@ -200,11 +199,11 @@ const ModernHero = memo(function ModernHero() {
               className="absolute -top-10 -right-4 glass-card p-4 rounded-2xl z-20 flex shadow-2xl bg-white/70 dark:bg-[#1A1A1E]/80 backdrop-blur-md border border-white/20 dark:border-white/10"
             >
               <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-green-500/30">
-                ₦
+                💰
               </div>
               <div className="ml-3">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Live Sale</p>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">₦48,500</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">{formatMoneyCurrency(4850000)}</p>
               </div>
             </motion.div>
 

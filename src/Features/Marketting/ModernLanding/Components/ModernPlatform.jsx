@@ -43,10 +43,10 @@ const ModernPlatform = memo(function ModernPlatform() {
         </div>
 
         {/* BENTO GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 auto-rows-[400px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 md:auto-rows-[400px]">
           
           {/* Main Large Card */}
-          <BentoCard className="md:col-span-2 flex flex-col md:flex-row items-center gap-8 p-10 md:p-12 shadow-2xl shadow-blue-500/5">
+          <BentoCard className="md:col-span-2 flex flex-col gap-8 p-8 sm:p-10 md:p-12 md:flex-row md:items-center shadow-2xl shadow-blue-500/5">
             <div className="flex-1 space-y-6 z-10">
               <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center border border-blue-200 dark:border-blue-500/20">
                 <Target className="text-blue-600" size={28} />
@@ -56,11 +56,11 @@ const ModernPlatform = memo(function ModernPlatform() {
                 Buy and sell based on true needs, not just keywords. Our AI engine understands naturally spoken requests and maps them to the exact product graph.
               </p>
             </div>
-            <div className="flex-1 relative w-full h-full min-h-[250px] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-black/50">
+            <div className="flex-1 relative w-full min-h-[220px] md:h-full rounded-2xl overflow-hidden border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-black/50">
                {/* Abstract Mock UI */}
-               <div className="absolute inset-0 p-6 flex flex-col gap-4">
+               <div className="absolute inset-0 p-4 sm:p-6 flex flex-col gap-4">
                   <div className="w-full h-12 rounded-full bg-white dark:bg-[#2C2C30] border border-gray-200 dark:border-white/10 flex items-center px-4 gap-3 shadow-sm">
-                     <Search size={18} className="text-gray-400"/>
+                     <Search size={18} className="text-gray-400 flex-shrink-0"/>
                      <div className="h-4 w-1/2 bg-gray-200 dark:bg-white/10 rounded overflow-hidden">
                         <motion.div 
                           animate={{ x: ["-100%", "100%"] }}
@@ -69,7 +69,7 @@ const ModernPlatform = memo(function ModernPlatform() {
                         />
                      </div>
                   </div>
-                  <div className="flex gap-4 h-full">
+                  <div className="flex gap-4 flex-1 min-h-0">
                     <div className="flex-1 rounded-xl bg-white/50 dark:bg-[#2C2C30]/50 border border-gray-200/50 dark:border-white/5" />
                     <div className="flex-1 rounded-xl bg-white/50 dark:bg-[#2C2C30]/50 border border-gray-200/50 dark:border-white/5" />
                   </div>

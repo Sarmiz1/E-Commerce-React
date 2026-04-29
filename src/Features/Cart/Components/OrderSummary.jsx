@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { Ic, Spinner, PROMOS } from "./CartConstants";
+import { Ic, Spinner } from "./CartConstants";
 
 function PromoInput({ promo, onApply, onRemove }) {
   const [code, setCode] = useState("");
@@ -12,13 +12,15 @@ function PromoInput({ promo, onApply, onRemove }) {
     const clean = code.trim().toUpperCase();
     if (!clean) { setError("Enter a promo code."); return; }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 400));
-    setLoading(false);
-    const found = PROMOS[clean];
-    if (!found) { setError("Invalid promo code. Try SAVE10 or WELCOME20."); return; }
-    setError("");
-    setCode("");
-    onApply({ code: clean, ...found });
+    try {
+      await onApply(clean);
+      setError("");
+      setCode("");
+    } catch (err) {
+      setError(err.message || "Invalid promo code.");
+    } finally {
+      setLoading(false);
+    }
   }, [code, onApply]);
 
   return (

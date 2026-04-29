@@ -18,6 +18,7 @@ import { SavingsTicker } from "./Components/SavingsTicker";
 import { EmptyCart } from "./Components/EmptyCart";
 import { SavedForLater } from "./Components/SavedForLater";
 import { RecommendedRow } from "./Components/RecommendedRow";
+import { BundleOptimizer } from "./Components/BundleOptimizer";
 import { StickyMobileBar } from "./Components/StickyMobileBar";
 import { OrderNotes } from "./Components/OrderNotes";
 import { CartSkeleton } from "./Components/CartSkeleton";
@@ -36,10 +37,11 @@ export default function CartPage() {
     updateQuantity,
     removeItem,
     addItem,
+    applyPromo,
     removingItemId,
     updatingQuantityItemId,
   } = useCartActions();
-  const { cart, loading, error } = useCartState();
+  const { cart, totals, loading, error } = useCartState();
   const cartItems = useMemo(() => (Array.isArray(cart) ? cart : []), [cart]);
 
   useShowErrorBoundary(error);
@@ -61,7 +63,6 @@ export default function CartPage() {
   // ── UI state ───────────────────────────────────────────────────────────────
   const [undoItem, setUndoItem] = useState(null);
   const [savedForLater, setSavedForLater] = useState([]);
-  const [promo, setPromo] = useState(null);
   const [orderNote, setOrderNote] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [displayRecommendations, setDisplayRecommendations] = useState([]);
@@ -88,23 +89,8 @@ export default function CartPage() {
   }, []);
 
   // ── Totals ─────────────────────────────────────────────────────────────────
-  const subtotal = useMemo(
-    () => cartItems.reduce((s, i) => s + (i.products?.price_cents || 0) * i.quantity, 0),
-    [cartItems]
-  );
-  const discount = useMemo(() => {
-    if (!promo) return 0;
-    if (promo.type === "percent") return Math.round(subtotal * promo.value / 100);
-    if (promo.type === "fixed") return promo.value;
-    return 0;
-  }, [promo, subtotal]);
-  const shipping = useMemo(() => {
-    if (!cartItems.length) return 0;
-    if (promo?.type === "shipping") return 0;
-    return subtotal - discount >= FREE_SHIP_THRESHOLD ? 0 : SHIPPING_COST;
-  }, [promo, subtotal, discount, cartItems.length]);
-  const total = subtotal - discount + shipping;
-  const savings = discount + (subtotal >= FREE_SHIP_THRESHOLD ? SHIPPING_COST : 0);
+  const { subtotal, discount, shipping, total, applied_promo: promo } = totals || { subtotal: 0, discount: 0, shipping: 0, total: 0, applied_promo: null };
+  const savings = discount + (subtotal >= 5000 && shipping === 0 && (!promo || promo.type !== "shipping") ? 499 : 0);
 
   // ── Update quantity through cart context ───────────────────────────────────
   const handleQtyChange = useCallback((itemId, newQty) => {
@@ -241,7 +227,7 @@ export default function CartPage() {
 
               <div className="space-y-4">
                 {loading ? (
-                  <CartSkeleton />
+                  <CartSkeleton count={cartItems.length} />
                 ) : (
                   <AnimatePresence mode="popLayout">
                     {cartItems.map((item, i) => (
@@ -263,6 +249,12 @@ export default function CartPage() {
               <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-gray-100 dark:border-neutral-800 p-5 shadow-sm transition-colors duration-300">
                 <OrderNotes value={orderNote} onChange={setOrderNote} />
               </div>
+
+              <BundleOptimizer 
+                cartItems={cartItems} 
+                recommendations={displayRecommendations} 
+                onAddItem={addItem}
+              />
 
               <SavedForLater items={savedForLater} onMoveToCart={handleMoveToCart} />
 
@@ -294,8 +286,10 @@ export default function CartPage() {
                 total={total}
                 itemCount={cartItems.length}
                 promo={promo}
-                onApplyPromo={setPromo}
-                onRemovePromo={() => setPromo(null)}
+                onApplyPromo={applyPromo}
+                onRemovePromo={() => {
+                  applyPromo(null).catch(() => {});
+                }}
                 onCheckout={handleCheckout}
                 isCheckingOut={isCheckingOut}
               />

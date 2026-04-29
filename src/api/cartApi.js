@@ -380,6 +380,7 @@ export const CartAPI = {
         color,
         size,
         price_cents,
+        stock_quantity,
 
         products (
           id,
@@ -429,6 +430,7 @@ export const CartAPI = {
           color: variant.color,
           size: variant.size,
           price_cents: variant.price_cents,
+          stock_quantity: variant.stock_quantity,
         },
 
         // ─ flat shortcuts (for CartDropdown / CartPreview) ─
@@ -439,9 +441,34 @@ export const CartAPI = {
       };
     });
 
+    // 4. ═══ GET TOTALS (BACKEND) ═══
+    let totals = null;
+    try {
+      const { data: rpcTotals, error: rpcError } = await supabase.rpc('get_cart_totals', { p_cart_id: cart.id });
+      if (!rpcError && rpcTotals) {
+        totals = rpcTotals;
+      }
+    } catch (e) {
+      // Ignore RPC error, fallback to client calculation
+    }
+
+    // Fallback if RPC doesn't exist yet
+    if (!totals) {
+      const subtotal = normalized.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const shipping = subtotal >= 5000 ? 0 : 499;
+      totals = {
+        subtotal,
+        discount: 0,
+        shipping,
+        total: subtotal + shipping,
+        applied_promo: null
+      };
+    }
+
     return {
       cartId: cart.id,
       items: normalized,
+      totals,
     };
   },
 
@@ -465,7 +492,7 @@ export const CartAPI = {
       const { data, error } = await supabase
         .from("product_variants")
         .select(`
-          id, color, size, price_cents,
+          id, color, size, price_cents, stock_quantity,
           products ( id, name, slug, image, price_cents, rating_stars, rating_count )
         `)
         .in("id", variantIds);
@@ -514,6 +541,7 @@ export const CartAPI = {
           color: v?.color,
           size: v?.size,
           price_cents: v?.price_cents,
+          stock_quantity: v?.stock_quantity,
         },
 
         name: product.name,
@@ -523,7 +551,32 @@ export const CartAPI = {
       };
     });
 
-    return { cartId: null, items: normalized };
+    const subtotal = normalized.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = subtotal >= 5000 ? 0 : 499;
+    const totals = {
+      subtotal,
+      discount: 0,
+      shipping,
+      total: subtotal + shipping,
+      applied_promo: null
+    };
+
+    return { cartId: null, items: normalized, totals };
+  },
+
+  // =========================
+  // 🏷️ APPLY PROMO CODE (API)
+  // =========================
+  applyPromo: async (cartId, promoCode) => {
+    if (!cartId) throw new Error("No active cart");
+    const { data, error } = await supabase.rpc('get_cart_totals', { p_cart_id: cartId, p_promo_code: promoCode });
+    if (error) throw error;
+    
+    // Check if promo was actually applied
+    if (promoCode && !data.applied_promo) {
+       throw new Error("Invalid or expired promo code, or order minimum not met.");
+    }
+    return data;
   },
 
   // =========================

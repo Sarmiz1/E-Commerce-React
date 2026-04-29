@@ -13,8 +13,6 @@ const ModernWhy = memo(function ModernWhy() {
     <>
       {/* Keyframes injected once */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&display=swap');
-
         @keyframes marqueeFwd {
           from { transform: translateX(0); }
           to   { transform: translateX(-33.333%); }
@@ -23,23 +21,6 @@ const ModernWhy = memo(function ModernWhy() {
           from { transform: translateX(-33.333%); }
           to   { transform: translateX(0); }
         }
-
-        :root {
-          --card-bg:      #ffffff;
-          --card-border:  rgba(0,0,0,0.07);
-          --marquee-bg:   rgba(0,0,0,0.02);
-          --marquee-fade: #f9fafb;
-          --stat-bg:      rgba(0,0,0,0.02);
-        }
-        .dark {
-          --card-bg:      #19191C;
-          --card-border:  rgba(255,255,255,0.06);
-          --marquee-bg:   rgba(255,255,255,0.02);
-          --marquee-fade: #131315;
-          --stat-bg:      rgba(255,255,255,0.03);
-        }
-
-        #why-woosho * { font-family: 'Sora', sans-serif; }
       `}</style>
 
       <section

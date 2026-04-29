@@ -11,6 +11,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { formatMoneyCurrency } from "../../../../Utils/formatMoneyCents";
 import shoeImg from "../../../../assets/marketing/shoe-stealth.png";
 
 const cta = [
@@ -190,7 +191,7 @@ const ModernAiChat = memo(function ModernAiChat() {
                     <h4 className="font-bold text-lg text-gray-900 dark:text-white">
                       Stealth Vector X1
                     </h4>
-                    <span className="text-blue-600 font-bold">₦48,500</span>
+                    <span className="text-blue-600 font-bold">{formatMoneyCurrency(4850000)}</span>
                   </div>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">
                     Breathable mesh with adaptive carbon-fiber support.

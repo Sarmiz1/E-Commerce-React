@@ -133,6 +133,7 @@ const ModernCategories = memo(function ModernCategories() {
               <img 
                 src={cat.image} 
                 alt={cat.title} 
+                loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-8 transition-opacity duration-500">

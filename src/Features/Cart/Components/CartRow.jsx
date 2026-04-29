@@ -78,7 +78,9 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
           <Link to={`/products/${item.products?.slug || item.products?.id}`} className="flex-shrink-0">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 hover:scale-105 transition-transform duration-300">
               {item.products?.image && (
-                <img src={item.products.image} alt={item.products.name}
+                <motion.img 
+                  layoutId={`product-image-${item.products?.id}`}
+                  src={item.products.image} alt={item.products.name}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "https://placehold.co/200x200?text=No+Image";
@@ -90,9 +92,12 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
 
           <div className="flex-1 min-w-0">
             <Link to={`/products/${item.products?.slug || item.products?.id}`}>
-              <p className="font-bold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 hover:text-indigo-700 dark:hover:text-indigo-400 transition-colors">
+              <motion.p 
+                layoutId={`product-title-${item.products?.id}`}
+                className="font-bold text-gray-900 dark:text-white text-sm leading-snug line-clamp-2 hover:text-indigo-700 dark:hover:text-indigo-400 transition-colors"
+              >
                 {item.products?.name || "Product"}
-              </p>
+              </motion.p>
             </Link>
 
             {item.products?.rating_stars > 0 && (
@@ -121,7 +126,8 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
                     <MechanicalDigit value={item.quantity} prevValue={prevQty} />
                   )}
                 </div>
-                <QtyStepperButton dir="plus" disabled={item.quantity >= 10 || pendingQty}
+                <QtyStepperButton dir="plus" 
+                  disabled={item.quantity >= 10 || pendingQty || (item.variant?.stock_quantity != null && item.quantity >= item.variant.stock_quantity)}
                   onClick={() => onQtyChange(item.id, item.quantity + 1)} />
               </div>
 
@@ -130,6 +136,17 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
                 <Ic.Heart c="w-3.5 h-3.5" /> Save
               </button>
             </div>
+
+            {item.variant?.stock_quantity > 0 && item.variant?.stock_quantity <= 5 && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-800/50 rounded-md text-[11px] font-bold text-amber-700 dark:text-amber-400 overflow-hidden"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                Only {item.variant.stock_quantity} remaining in stock
+              </motion.div>
+            )}
           </div>
 
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
