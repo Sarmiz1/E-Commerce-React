@@ -125,21 +125,46 @@ function normalizeEventArgs(eventOrType, payload = {}) {
   };
 }
 
-async function sendTrackedEvent(event) {
+function toFunctionEventRow(event) {
+  return {
+    event_type: event.eventType,
+    product_id: event.productId,
+    variant_id: event.variantId,
+    quantity: event.quantity,
+    user_id: event.userId,
+    session_id: event.sessionId,
+    metadata: {
+      ...event.metadata,
+      visitor_id: event.visitorId,
+    },
+  };
+}
+
+function toStoredEvent(event) {
+  return {
+    id: makeId("evt"),
+    type: event.eventType,
+    payload: event.metadata,
+    sessionId: event.sessionId,
+    visitorId: event.visitorId,
+    userId: event.userId,
+    productId: event.productId,
+    variantId: event.variantId,
+    quantity: event.quantity,
+    createdAt: new Date().toISOString(),
+    path: event.metadata.path || "",
+  };
+}
+
+async function sendTrackedEvents(events) {
+  if (!events.length) return;
+
   try {
     const { error } = await supabase.functions.invoke("track-event", {
-      body: {
-        event_type: event.eventType,
-        product_id: event.productId,
-        variant_id: event.variantId,
-        quantity: event.quantity,
-        user_id: event.userId,
-        session_id: event.sessionId,
-        metadata: {
-          ...event.metadata,
-          visitor_id: event.visitorId,
-        },
-      },
+      body:
+        events.length === 1
+          ? toFunctionEventRow(events[0])
+          : { events: events.map(toFunctionEventRow) },
     });
 
     if (error) throw error;
@@ -161,25 +186,24 @@ async function sendTrackedEvent(event) {
 }
 
 export function trackEvent(eventOrType, payload) {
-  const normalized = normalizeEventArgs(eventOrType, payload);
-  if (!normalized.eventType) return null;
+  return trackEvents([
+    typeof eventOrType === "string"
+      ? { ...(payload || {}), eventType: eventOrType }
+      : eventOrType,
+  ])[0] || null;
+}
 
-  const event = {
-    id: makeId("evt"),
-    type: normalized.eventType,
-    payload: normalized.metadata,
-    sessionId: normalized.sessionId,
-    visitorId: normalized.visitorId,
-    userId: normalized.userId,
-    productId: normalized.productId,
-    variantId: normalized.variantId,
-    quantity: normalized.quantity,
-    createdAt: new Date().toISOString(),
-    path: normalized.metadata.path || "",
-  };
+export function trackEvents(events = []) {
+  const normalizedEvents = (Array.isArray(events) ? events : [events])
+    .map((event) => normalizeEventArgs(event))
+    .filter((event) => event.eventType);
 
-  writeStoredEvents([...readStoredEvents(), event]);
-  void sendTrackedEvent(normalized);
+  if (!normalizedEvents.length) return [];
 
-  return event;
+  const storedEvents = normalizedEvents.map(toStoredEvent);
+
+  writeStoredEvents([...readStoredEvents(), ...storedEvents]);
+  void sendTrackedEvents(normalizedEvents);
+
+  return storedEvents;
 };

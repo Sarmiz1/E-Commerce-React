@@ -8,7 +8,7 @@ import { useWishlist } from "../../Hooks/useWishlist";
 import { useCartActions } from "../../Context/cart/CartContext";
 import { useAuth } from "../../Context/auth/AuthContext";
 import { WishlistAPI } from "../../api/wishlistApi";
-import { trackEvent } from "../../api/track_events";
+import { trackEvent, trackEvents } from "../../api/track_events";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { getProductImages } from "../../Utils/getProductImages";
 import AddToCart from "../../Components/Ui/AddToCart";
@@ -462,28 +462,53 @@ export default function WishlistPage() {
       await addItems(cartItems);
       await persistWishlistRemoval(productIdsToRemove);
 
-      trackEvent({
-        eventType: "add_to_cart_bulk",
-        quantity: cartItems.length,
-        userId: user?.id || null,
-        metadata: {
-          product_ids: productIdsToRemove,
-          variant_ids: cartItems.map((item) => item.variantId),
-          source: "wishlist_bulk",
+      trackEvents([
+        ...cartItems.map((item) => ({
+          eventType: "add_to_cart",
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          userId: user?.id || null,
+          metadata: {
+            source: "wishlist_bulk",
+            bulk: true,
+          },
+        })),
+        ...cartItems.map((item) => ({
+          eventType: "remove_from_wishlist",
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: 1,
+          userId: user?.id || null,
+          metadata: {
+            signal: "most_loved",
+            reason: "added_to_cart",
+            source: "wishlist_bulk",
+            bulk: true,
+          },
+        })),
+        {
+          eventType: "add_to_cart_bulk",
+          quantity: cartItems.length,
+          userId: user?.id || null,
+          metadata: {
+            product_ids: productIdsToRemove,
+            variant_ids: cartItems.map((item) => item.variantId),
+            source: "wishlist_bulk",
+          },
         },
-      });
-
-      trackEvent({
-        eventType: "remove_from_wishlist_bulk",
-        quantity: productIdsToRemove.length,
-        userId: user?.id || null,
-        metadata: {
-          signal: "most_loved",
-          reason: "added_to_cart",
-          product_ids: productIdsToRemove,
-          source: "wishlist_bulk",
+        {
+          eventType: "remove_from_wishlist_bulk",
+          quantity: productIdsToRemove.length,
+          userId: user?.id || null,
+          metadata: {
+            signal: "most_loved",
+            reason: "added_to_cart",
+            product_ids: productIdsToRemove,
+            source: "wishlist_bulk",
+          },
         },
-      });
+      ]);
 
       setSelectedIds(new Set());
     } catch (error) {

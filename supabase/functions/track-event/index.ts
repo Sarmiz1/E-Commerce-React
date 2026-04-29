@@ -6,6 +6,7 @@ const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const supabase = createClient(supabaseUrl || "", serviceRoleKey || "");
 
 const TRACK_EVENTS_TABLE = Deno.env.get("TRACK_EVENTS_TABLE") || "events";
+const MAX_EVENTS_PER_REQUEST = 500;
 
 const jsonHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,6 +36,45 @@ function json(body: Record<string, unknown>, status = 200) {
   });
 }
 
+function normalizeEventRow(rawEvent: Record<string, unknown>) {
+  const {
+    event_type,
+    product_id,
+    variant_id,
+    quantity,
+    user_id,
+    session_id,
+    metadata = {},
+  } = rawEvent;
+
+  if (!event_type || typeof event_type !== "string") {
+    throw new Error("event_type is required");
+  }
+
+  const droppedIds = {
+    product_id: product_id && !normalizeUuid(product_id) ? product_id : null,
+    variant_id: variant_id && !normalizeUuid(variant_id) ? variant_id : null,
+    user_id: user_id && !normalizeUuid(user_id) ? user_id : null,
+  };
+
+  return {
+    event_type,
+    product_id: normalizeUuid(product_id),
+    variant_id: normalizeUuid(variant_id),
+    quantity: normalizeQuantity(quantity),
+    user_id: normalizeUuid(user_id),
+    session_id: session_id ?? null,
+    metadata: {
+      ...(metadata && typeof metadata === "object" && !Array.isArray(metadata)
+        ? metadata
+        : {}),
+      dropped_ids: Object.fromEntries(
+        Object.entries(droppedIds).filter(([, value]) => value),
+      ),
+    },
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: jsonHeaders });
@@ -50,42 +90,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    const {
-      event_type,
-      product_id,
-      variant_id,
-      quantity,
-      user_id,
-      session_id,
-      metadata = {},
-    } = await req.json();
+    const body = await req.json();
+    const rawEvents = Array.isArray(body?.events) ? body.events : [body];
 
-    if (!event_type) {
-      return json({ error: "event_type is required" }, 400);
+    if (!rawEvents.length) {
+      return json({ error: "At least one tracking event is required" }, 400);
     }
 
-    const droppedIds = {
-      product_id: product_id && !normalizeUuid(product_id) ? product_id : null,
-      variant_id: variant_id && !normalizeUuid(variant_id) ? variant_id : null,
-      user_id: user_id && !normalizeUuid(user_id) ? user_id : null,
-    };
+    if (rawEvents.length > MAX_EVENTS_PER_REQUEST) {
+      return json(
+        {
+          error: `Too many tracking events. Max ${MAX_EVENTS_PER_REQUEST} per request.`,
+        },
+        400,
+      );
+    }
 
-    const eventRow = {
-      event_type,
-      product_id: normalizeUuid(product_id),
-      variant_id: normalizeUuid(variant_id),
-      quantity: normalizeQuantity(quantity),
-      user_id: normalizeUuid(user_id),
-      session_id: session_id ?? null,
-      metadata: {
-        ...(metadata && typeof metadata === "object" ? metadata : {}),
-        dropped_ids: Object.fromEntries(
-          Object.entries(droppedIds).filter(([, value]) => value),
-        ),
-      },
-    };
+    const eventRows = rawEvents.map((event) =>
+      normalizeEventRow(
+        (event && typeof event === "object" ? event : {}) as Record<
+          string,
+          unknown
+        >,
+      ),
+    );
 
-    const { error } = await supabase.from(TRACK_EVENTS_TABLE).insert(eventRow);
+    const { error } = await supabase.from(TRACK_EVENTS_TABLE).insert(eventRows);
 
     if (error) {
       return json(
@@ -100,7 +130,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    return json({ success: true, table: TRACK_EVENTS_TABLE });
+    return json({
+      success: true,
+      inserted: eventRows.length,
+      table: TRACK_EVENTS_TABLE,
+    });
   } catch (err) {
     return json(
       { error: err instanceof Error ? err.message : "Tracking failed" },

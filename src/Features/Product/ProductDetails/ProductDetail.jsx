@@ -38,6 +38,40 @@ import DetailReassurance from "./Components/DetailReassurance";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const MAX_META_DESCRIPTION_LENGTH = 155;
+
+function cleanSeoText(value) {
+  if (!value) return "";
+
+  return String(value)
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function clampMetaDescription(value) {
+  const text = cleanSeoText(value);
+  if (text.length <= MAX_META_DESCRIPTION_LENGTH) return text;
+
+  const trimmed = text.slice(0, MAX_META_DESCRIPTION_LENGTH - 1).trimEnd();
+  const lastSpace = trimmed.lastIndexOf(" ");
+  return `${trimmed.slice(0, lastSpace > 80 ? lastSpace : trimmed.length).trimEnd()}...`;
+}
+
+function getAbsoluteUrl(value) {
+  if (!value) return undefined;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (typeof window === "undefined") return value;
+
+  return `${window.location.origin}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
 export default function ProductDetail() {
   const { productSlug } = useParams();
   const { addProduct: addRecentlyViewed } = useRecentlyViewed();
@@ -159,12 +193,32 @@ export default function ProductDetail() {
       ? `${window.location.origin}/products/${product.slug || product.id}`
       : undefined;
   const productImages = getProductImages(product);
-  const productDescription =
+  const productDescriptionSource =
     product.description ||
-    `Shop ${product.name} from ${storeInfo.name || "WooSho"} with reviews, product details, and personalized recommendations.`;
+    product.full_description ||
+    product.short_description ||
+    "";
+  const productDescription = cleanSeoText(productDescriptionSource);
+  const productMetaDescription = clampMetaDescription(
+    productDescription ||
+      `Shop ${product.name} from ${storeInfo.name || "WooSho"} with reviews, product details, and personalized recommendations.`,
+  );
+  const productSchemaDescription =
+    productDescription || productMetaDescription;
+  const productSeoImage = getAbsoluteUrl(productImages[0] || product.image);
+  const productBrandName =
+    typeof product.brand === "string"
+      ? product.brand
+      : product.brand?.name || storeInfo.name || "WooSho";
+  const productCategoryName =
+    typeof product.category === "string"
+      ? product.category
+      : product.category?.name || product.category_name;
   const productKeywords = [
     product.name,
     storeInfo.name,
+    productCategoryName,
+    productBrandName,
     ...(Array.isArray(product.keywords) ? product.keywords : []),
   ].filter(Boolean).join(", ");
   const productAvailability =
@@ -175,12 +229,14 @@ export default function ProductDetail() {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: productDescription,
-    image: productImages.length ? productImages : product.image,
+    description: productSchemaDescription,
+    image: productImages.length
+      ? productImages.map(getAbsoluteUrl).filter(Boolean)
+      : productSeoImage,
     sku,
     brand: {
       "@type": "Brand",
-      name: storeInfo.name || "WooSho",
+      name: productBrandName,
     },
     offers: {
       "@type": "Offer",
@@ -216,10 +272,10 @@ export default function ProductDetail() {
     >
       <SEO
         title={`${product.name} | WooSho`}
-        description={productDescription}
+        description={productMetaDescription}
         keywords={productKeywords}
         canonical={productUrl}
-        image={productImages[0] || product.image}
+        image={productSeoImage}
         type="product"
         schema={productSchema}
       />
