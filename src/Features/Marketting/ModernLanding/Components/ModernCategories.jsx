@@ -2,8 +2,7 @@ import { memo, useRef } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
-import fashionImg from '../../../../assets/marketing/cat-fashion.png';
-import sneakersImg from '../../../../assets/marketing/cat-sneakers.png';
+import { CATEGORY_MARQUEE_TEXT, CATEGORY_TILES } from '../Data/categoryTiles';
 
 const MarqueeText = ({ children, direction = 1 }) => {
   return (
@@ -33,57 +32,12 @@ const MarqueeText = ({ children, direction = 1 }) => {
 const ModernCategories = memo(function ModernCategories() {
   const navigate = useNavigate();
 
-  const categories = [
-    {
-      title: "High Fashion",
-      desc: "Curated luxury collections",
-      image: fashionImg,
-      size: "large",
-      link: "/high-fashion"
-    },
-    {
-      title: "Sneakers",
-      desc: "Limited drops & grail kicks",
-      image: sneakersImg,
-      size: "small",
-      link: "/sneakers"
-    },
-    {
-      title: "Electronics",
-      desc: "Next-gen tech gear",
-      image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800",
-      size: "small",
-      link: "/electronics"
-    },
-    {
-      title: "Beauty",
-      desc: "Ethical & effective care",
-      image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&q=80&w=800",
-      size: "medium",
-      link: "/beauty"
-    },
-    {
-      title: "Accessories",
-      desc: "The finishing touches",
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=800",
-      size: "medium",
-      link: "/accessories"
-    },
-    {
-      title: "Home Decor",
-      desc: "Minimalist living spaces",
-      image: "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?auto=format&fit=crop&q=80&w=800",
-      size: "medium",
-      link: "/home-decor"
-    }
-  ];
-
   return (
     <section id="categories" className="py-32 bg-white dark:bg-[#0E0E10] transition-colors relative overflow-hidden">
       
       {/* INFINITE MARQUEE BACKGROUND */}
       <div className="absolute top-10 left-0 w-full z-0 opacity-50 dark:opacity-30 pointer-events-none">
-        <MarqueeText direction={1}>EXPLORE COLLECTIONS • TRENDING NOW •</MarqueeText>
+        <MarqueeText direction={1}>{CATEGORY_MARQUEE_TEXT}</MarqueeText>
       </div>
 
       <div className="w-full px-6 md:px-12 relative z-10 mt-20 md:mt-40">
@@ -117,13 +71,14 @@ const ModernCategories = memo(function ModernCategories() {
 
         {/* MASONRY-STYLE GRID WITH SPOTLIGHT */}
         <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 h-auto md:h-[800px]">
-          {categories.map((cat, idx) => (
+          {CATEGORY_TILES.map((cat, idx) => (
             <motion.div
               key={cat.title}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               viewport={{ once: true, margin: "-50px" }}
+              onClick={() => navigate(cat.href)}
               className={`relative rounded-[32px] overflow-hidden group cursor-pointer border border-gray-200/50 dark:border-white/10 ${
                 cat.size === 'large' ? 'md:col-span-2 md:row-span-2' : 
                 cat.size === 'medium' ? 'md:col-span-2 md:row-span-1' : 
@@ -145,7 +100,10 @@ const ModernCategories = memo(function ModernCategories() {
                   <p className="text-white/70 text-base mb-4 font-medium">{cat.desc}</p>
                   <div 
                     className="flex items-center gap-2 text-blue-400 text-sm font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0"
-                    onClick={() => navigate(`/products`)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate(cat.href);
+                    }}
                   >
                     Explore Collection <ArrowUpRight size={16} />
                   </div>

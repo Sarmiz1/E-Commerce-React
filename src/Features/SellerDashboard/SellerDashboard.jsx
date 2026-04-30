@@ -36,7 +36,7 @@ function DashboardInner() {
   const isAI = activePage === 'ai_sales_assistant';
 
   return (
-    <div className="flex min-h-screen" style={{ background: colors.surface.primary }}>
+    <div className="flex min-h-screen mb-5" style={{ background: colors.surface.primary }}>
       <DashSidebar />
 
       {/* Main area */}

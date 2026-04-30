@@ -4,6 +4,7 @@ import { MessageSquare, ShoppingBag, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
 import MagneticButton from '../../Components/MagneticButton';
+import { BUYER_ORDERS_TODAY, BUYER_SHOPPER_COUNT, BUYER_SOCIAL_AVATARS } from '../Data/sectionsData.jsx';
 
 
 // ─── Image: public/1000174262.png ─────────────────────────────────────────────
@@ -17,12 +18,6 @@ const PANEL_1 = {
 
 
 // Todays Orders card data
-
-const ordersToday = [
-  { label: 'Orders today', value: '12,847', change: '18', color: '#059669' },
-]
-
-const shoppersCount = '2.4M'
 
 const ShopSmartSection = () => {
   const containerRef = useRef(null);
@@ -130,13 +125,13 @@ const ShopSmartSection = () => {
           <div className="flex items-center gap-3 pt-2">
             {/* Avatars */}
             <div className="flex -space-x-2">
-              {['🧑🏾', '👩🏽', '👨🏿', '👩🏾'].map((e, i) => (
+              {BUYER_SOCIAL_AVATARS.map((label, i) => (
                 <div
                   key={i}
                   className="w-8 h-8 rounded-full flex items-center justify-center text-sm border-2 border-white"
                   style={{ background: `hsl(${200 + i * 30},60%,70%)`, zIndex: 4 - i }}
                 >
-                  {e}
+                  {label}
                 </div>
               ))}
             </div>
@@ -147,7 +142,7 @@ const ShopSmartSection = () => {
                 ))}
               </div>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-                Loved by <strong className="text-neutral-700 dark:text-neutral-300">{shoppersCount}+</strong> shoppers
+                Loved by <strong className="text-neutral-700 dark:text-neutral-300">{BUYER_SHOPPER_COUNT}+</strong> shoppers
               </p>
             </div>
           </div>
@@ -187,12 +182,10 @@ const ShopSmartSection = () => {
           {/* Glass stat card — bottom-right */}
           <div
             ref={glassCardRef}
-            className="absolute bottom-6 right-6 flex items-center gap-3 px-4 py-3 rounded-2xl"
+            className="absolute bottom-6 right-6 flex items-center gap-3 px-4 py-3 rounded-2xl border border-white/70 bg-white/90 dark:border-white/10 dark:bg-[#111113]/85"
             style={{
-              background: 'rgba(255,255,255,0.88)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.7)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
               minWidth: 200,
             }}
@@ -206,13 +199,13 @@ const ShopSmartSection = () => {
             {/* Orders Stats */}
             <div>
               {
-                ordersToday.map((stat, i) => (
+                BUYER_ORDERS_TODAY.map((stat, i) => (
                   <div key={i}>
                     <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 leading-none mb-1">
                       {stat.label}
                     </p>
                     <p
-                      className="text-xl font-black text-neutral-900 leading-none"
+                      className="text-xl font-black text-neutral-900 dark:text-white leading-none"
                       style={{ fontVariantNumeric: 'tabular-nums' }}
                     >
                       {stat.value}
@@ -232,13 +225,10 @@ const ShopSmartSection = () => {
 
           {/* Trust pill — top-left */}
           <div
-            className="absolute top-5 left-5 flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold"
+            className="absolute top-5 left-5 flex items-center gap-2 px-3 py-2 rounded-full border border-white/70 bg-white/90 text-emerald-600 dark:border-white/10 dark:bg-[#111113]/85 dark:text-emerald-400 text-xs font-bold"
             style={{
-              background: 'rgba(255,255,255,0.88)',
               backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.7)',
               boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-              color: '#059669',
             }}
           >
             <span

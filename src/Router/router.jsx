@@ -67,7 +67,7 @@ import {
 
 // JUST TEsT
 
-const isLoggedIn = false; // Simulate authentication status (replace with real auth logic)
+const isLoggedIn = true; // Simulate authentication status (replace with real auth logic)
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -124,15 +124,6 @@ const router = createBrowserRouter(
         path="signup"
         lazy={() =>
           import("../Features/Auth/AuthPage").then((m) => ({
-            Component: m.default,
-          }))
-        }
-        hydrateFallbackElement={<GenericPageSkeleton />}
-      />
-      <Route
-        path="authnew"
-        lazy={() =>
-          import("../Features/Auth/AuthNew").then((m) => ({
             Component: m.default,
           }))
         }
@@ -328,7 +319,7 @@ const router = createBrowserRouter(
             hydrateFallbackElement={<TrackingSkeleton />}
           />
           <Route
-            path="product/wishlist"
+            path="/wishlist"
             element={
               <>
                 <Navbar />

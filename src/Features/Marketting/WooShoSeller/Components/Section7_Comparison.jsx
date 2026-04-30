@@ -2,26 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SELLER_OLD_WAY, SELLER_WOOSHO_WAY } from '../Data/sectionsData.jsx';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
-
-const OLD = [
-  'Answering DMs manually for hours',
-  'Writing product descriptions by guessing',
-  'No visibility into what buyers want',
-  'Payments delayed 7–14 days',
-  'Zero cross-platform reach',
-  'Generic storefront that looks like everyone else',
-];
-
-const NEW = [
-  'AI answers every question instantly, 24/7',
-  'AI writes optimised listings in 10 seconds',
-  'Real-time analytics and demand signals',
-  'Payouts in 48 hours, automatically',
-  'Reach 2.4M buyers on the social feed',
-  'Premium branded storefront, instantly',
-];
 
 export default function Section7_Comparison() {
   const sectionRef = useRef(null);
@@ -82,7 +65,7 @@ export default function Section7_Comparison() {
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {OLD.map((item) => (
+            {SELLER_OLD_WAY.map((item) => (
               <div key={item} className="comp-row" style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '12px 14px', borderRadius: 12,
@@ -116,7 +99,7 @@ export default function Section7_Comparison() {
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {NEW.map((item) => (
+            {SELLER_WOOSHO_WAY.map((item) => (
               <div key={item} className="comp-row" style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '12px 14px', borderRadius: 12,

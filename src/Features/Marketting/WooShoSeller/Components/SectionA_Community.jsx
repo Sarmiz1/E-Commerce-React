@@ -18,13 +18,8 @@ import { useCallback } from "react";
 import { motion } from "framer-motion";
 
 import COMMUNITY_IMG from "../../../../assets/marketing/sellersImg2.png";
+import { SELLER_COMMUNITY_STATS } from "../Data/sectionsData.jsx";
 // ──────────────────────────────────────────────────────────────
-
-const STATS = [
-  { value: "47K+", label: "Active Sellers" },
-  { value: "₦2.1B", label: "Paid Out Monthly" },
-  { value: "4.9★", label: "Seller Satisfaction" },
-];
 
 const fadeUp = (delay = 0) => ({
   hidden: { opacity: 0, y: 48 },
@@ -121,7 +116,7 @@ export default function SectionA_Community() {
             viewport={{ once: true, margin: "-80px" }}
             className="grid grid-cols-3 gap-4 mt-2"
           >
-            {STATS.map(({ value, label }) => (
+            {SELLER_COMMUNITY_STATS.map(({ value, label }) => (
               <div
                 key={label}
                 className="flex flex-col gap-1 p-4 rounded-2xl bg-white/[0.04] border border-white/[0.07]"

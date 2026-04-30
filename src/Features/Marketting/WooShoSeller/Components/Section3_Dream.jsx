@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
+import { SELLER_DREAM_BENEFITS, SELLER_DREAM_NOTIFICATIONS } from '../Data/sectionsData.jsx';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
 
@@ -38,21 +39,6 @@ function Notification({ icon, title, sub, time, color, delay }) {
     </motion.div>
   );
 }
-
-const NOTIFICATIONS = [
-  { icon: '🛍️', title: `New Order — ${formatMoneyCurrency(2450000)}`, sub: 'Nike Air Force 1 · Chidi O.', color: '#10b981', time: '6:47 AM', delay: 0.2 },
-  { icon: '⚡', title: 'AI replied to DM', sub: '"When will it ship?" answered automatically', color: '#6366f1', time: '7:12 AM', delay: 0.7 },
-  { icon: '📦', title: 'Order dispatched', sub: 'Item #WS-0041 shipped to Abuja', color: '#f59e0b', time: '9:01 AM', delay: 1.2 },
-  { icon: '💰', title: `Payout credited`, sub: `${formatMoneyCurrency(18240000)} sent to your account`, color: '#22d3ee', time: '12:00 PM', delay: 1.7 },
-  { icon: '🔥', title: '47 visitors on your store', sub: 'Sneakers collection is trending', color: '#ec4899', time: '3:30 PM', delay: 2.2 },
-  { icon: '🛍️', title: `New Order — ${formatMoneyCurrency(6700000)}`, sub: 'Premium Headset · Fatima B.', color: '#10b981', time: '6:00 PM', delay: 2.7 },
-];
-
-const icons = [
-  { icon: '🤖', text: 'AI answers customer questions 24/7' },
-  { icon: '📝', text: 'Auto-generates product descriptions' },
-  { icon: '💸', text: 'Payouts within 48 hours, automatically' },
-]
 
 export default function Section3_Dream() {
   const sectionRef = useRef(null);
@@ -110,7 +96,7 @@ export default function Section3_Dream() {
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {icons.map((item) => (
+          {SELLER_DREAM_BENEFITS.map((item) => (
             <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 18 }}>{item.icon}</span>
               <span style={{ fontSize: 14, color: '#d1d5db', fontWeight: 500 }}>{item.text}</span>
@@ -155,7 +141,7 @@ export default function Section3_Dream() {
 
             <div style={{ maxHeight: 380, overflow: 'hidden' }}>
               <AnimatePresence>
-                {visible && NOTIFICATIONS.map((n) => (
+                {visible && SELLER_DREAM_NOTIFICATIONS.map((n) => (
                   <Notification key={n.title} {...n} />
                 ))}
               </AnimatePresence>

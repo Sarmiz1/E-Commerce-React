@@ -1,28 +1,25 @@
 import React, { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { CATEGORIES } from "../../Data/categories";
-import { BRANDS } from "../../Data/brands";
-import { PERKS } from "../../Data/perks";
-import { TESTIMONIALS } from "../../Data/testimonials";
-import { HOW_IT_WORKS } from "../../Data/how-it-works";
 import SectionLabel from "../SectionLabel";
-import Stars from "../../../../Components/Stars";
-import ParticleField from "../ParticleField";
-import FloatingOrbs from "../FloatingOrbs";
-import ProductCard from "../../../../Components/Ui/ProductCard";
-import { BentoCard } from "../BentoProductGridComponents/BentoCard";
 import { getCategoryImageUrl } from "../../../../Utils/getCategoryImageUrl";
-import AddToCart from "../../../../Components/Ui/AddToCart";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+gsap.registerPlugin(ScrollTrigger);
 
-export default function CategoriesSection() {
+export default function CategoriesSection({ curations = [] }) {
   const ref = useRef(null);
   const navigate = useNavigate();
+  const cards = curations.length
+    ? curations
+    : CATEGORIES.map((category) => ({
+        ...category,
+        slug: category.label.toLowerCase(),
+      }));
+  const title = curations.length ? "Shop by Curation" : "Shop by Category";
+
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const t = setTimeout(() => {
@@ -35,7 +32,7 @@ export default function CategoriesSection() {
     <section ref={ref} className="py-20 max-w-7xl mx-auto px-6">
       <SectionLabel label="Collections" />
       <div className="flex items-end justify-between mb-12">
-        <h2 className="text-3xl font-black text-gray-900 dark:text-white/50">Shop by Category</h2>
+        <h2 className="text-3xl font-black text-gray-900 dark:text-white">{title}</h2>
         <motion.button 
           whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1"
           onClick={() => navigate("/products/categories")}
@@ -44,18 +41,18 @@ export default function CategoriesSection() {
         </motion.button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        {CATEGORIES.map((cat) => (
+        {cards.map((cat) => (
           <motion.div 
-            key={cat.label} 
+            key={cat.slug || cat.label} 
             whileHover={{ y: -6 }} 
             whileTap={{ scale: 0.96 }}
             className="hp-cat-card group relative rounded-2xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 h-[180px] sm:h-[220px] lg:h-[260px] bg-gray-900"
-            onClick={() => navigate(`/products/categories/${cat.label.toLowerCase()}`)}
+            onClick={() => navigate(`/products?search=${encodeURIComponent(cat.label || cat.name || cat.slug)}`)}
           >
             {/* Background Image full cover */}
             <img
-              src={getCategoryImageUrl(cat.path.toLowerCase())}
-              alt={cat.label}
+              src={cat.image || getCategoryImageUrl((cat.path || "").toLowerCase())}
+              alt={cat.label || cat.name}
               className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:scale-110"
             />
             
@@ -73,10 +70,10 @@ export default function CategoriesSection() {
                 transition={{ delay: 0.1 }}
               >
                 <h3 className="font-black text-white text-lg sm:text-xl leading-tight group-hover:text-indigo-200 transition-colors duration-300">
-                  {cat.label}
+                  {cat.label || cat.name}
                 </h3>
                 <p className="text-white/80 text-[10px] sm:text-xs mt-1 font-semibold tracking-widest uppercase">
-                  {cat.count}
+                  {cat.count || "Curated"}
                 </p>
               </motion.div>
             </div>

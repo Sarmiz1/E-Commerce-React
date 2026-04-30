@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SELLER_PAIN_CARDS } from '../Data/sectionsData.jsx';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
 // FIX: removed useState for `cost` and `isCapped` — replaced with DOM refs.
@@ -67,30 +68,14 @@ export default function Section2_PainClock() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="pain-card bg-neutral-900 border border-neutral-800 p-6 rounded-2xl">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              <span className="text-white font-bold block mb-2">You wake up to 40 DMs</span>
-              asking the same 4 questions. You answer them one by one, every morning. It never gets easier.
-            </p>
-          </div>
-          <div className="pain-card bg-neutral-900 border border-neutral-800 p-6 rounded-2xl">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              <span className="text-white font-bold block mb-2">You post a product.</span>
-              200 people see it. 3 ask about it. You get 0 sales. You post again tomorrow and hope.
-            </p>
-          </div>
-          <div className="pain-card bg-neutral-900 border border-neutral-800 p-6 rounded-2xl">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              <span className="text-white font-bold block mb-2">Your prices are guesses.</span>
-              Somewhere, a competitor charges 30% more for the same product and sells more.
-            </p>
-          </div>
-          <div className="pain-card bg-neutral-900 border border-neutral-800 p-6 rounded-2xl">
-            <p className="text-gray-300 text-sm leading-relaxed">
-              <span className="text-white font-bold block mb-2">You do 6 jobs at once.</span>
-              Photographer, copywriter, customer service rep, accountant. For the salary of zero.
-            </p>
-          </div>
+          {SELLER_PAIN_CARDS.map((card) => (
+            <div className="pain-card bg-neutral-900 border border-neutral-800 p-6 rounded-2xl" key={card.title}>
+              <p className="text-gray-300 text-sm leading-relaxed">
+                <span className="text-white font-bold block mb-2">{card.title}</span>
+                {card.body}
+              </p>
+            </div>
+          ))}
         </div>
 
         <p className="pain-card text-xl text-gray-400 mt-8 italic">

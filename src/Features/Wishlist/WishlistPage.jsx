@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, Heart, Star, ShoppingCart, TrendingDown, Clock, Check, Trash2, CheckSquare, Bell, LayoutGrid, List as ListIcon } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { useWishlist } from "../../Hooks/useWishlist";
@@ -310,6 +310,9 @@ export default function WishlistPage() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const topBarRef = useRef(null);
+  const topBarInView = useInView(topBarRef, { margin: "0px" });
+
   const { productIds, wishlistCount, isLoading: wishlistLoading } = useWishlist();
   const { data: products = [], isLoading: productsLoading } = useAllProducts();
   const queryClient = useQueryClient();
@@ -553,7 +556,7 @@ export default function WishlistPage() {
           ) : (
             <>
               {/* Sleek Action Bar */}
-              <div className="mb-8 h-[68px]">
+              <div ref={topBarRef} className="mb-8 h-[68px]">
                 <AnimatePresence mode="wait">
                   {selectedIds.size > 0 ? (
                     <motion.div 
@@ -660,29 +663,29 @@ export default function WishlistPage() {
               
               {/* Floating Magnetic Action Bar for Bulk Selection */}
               <AnimatePresence>
-                {selectedIds.size > 0 && (
+                {selectedIds.size > 0 && !topBarInView && (
                   <motion.div 
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
-                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 rounded-full bg-slate-900/90 dark:bg-white/90 px-6 py-4 backdrop-blur-xl shadow-2xl border border-white/10 dark:border-slate-900/10"
+                    className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between sm:justify-center w-[92%] sm:w-auto max-w-sm sm:max-w-none gap-3 sm:gap-6 rounded-[24px] sm:rounded-full bg-slate-900/95 dark:bg-white/95 px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-xl shadow-2xl border border-white/10 dark:border-slate-900/10"
                     style={{ transformStyle: 'preserve-3d' }}
                   >
-                    <span className="text-sm font-bold tracking-wide text-white dark:text-slate-900">
+                    <span className="hidden sm:block text-sm font-bold tracking-wide text-white dark:text-slate-900">
                       {selectedIds.size} Selected
                     </span>
-                    <div className="h-4 w-px bg-slate-700 dark:bg-slate-300" />
+                    <div className="hidden sm:block h-4 w-px bg-slate-700 dark:bg-slate-300" />
                     <button 
                       onClick={handleBulkRemove} 
                       disabled={bulkBusy}
-                      className="text-slate-300 hover:text-red-400 dark:text-slate-600 dark:hover:text-red-500 font-bold text-sm transition-colors"
+                      className="flex-1 sm:flex-none flex justify-center items-center h-11 sm:h-auto rounded-xl sm:rounded-none bg-white/10 sm:bg-transparent text-white sm:text-slate-300 hover:text-red-400 dark:bg-slate-900/5 dark:text-slate-900 dark:sm:text-slate-600 dark:hover:text-red-500 font-bold text-sm transition-colors"
                     >
-                      Remove
+                      Remove <span className="sm:hidden ml-1">({selectedIds.size})</span>
                     </button>
                     <button 
                       onClick={() => handleBulkAddToCart(sortedProducts.filter((product) => selectedIds.has(product.id)))} 
                       disabled={bulkBusy}
-                      className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-md transition-transform hover:scale-105 active:scale-95"
+                      className="flex-1 sm:flex-none flex justify-center items-center h-11 sm:h-auto bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-5 sm:py-2.5 rounded-xl sm:rounded-full font-bold text-sm shadow-md transition-transform hover:scale-105 active:scale-95"
                     >
                       Add to Cart
                     </button>

@@ -1,8 +1,10 @@
-import React, { Suspense, lazy } from "react";
-import ModernNavbar from "../../../Components/ModernNavbar.jsx";
+import React, { lazy } from "react";
 import SEO from "../../../Components/SEO.jsx";
 import ModernHero from "./Components/ModernHero";
-import MarketingSkeleton from "../Components/MarketingSkeleton";
+import MarketingNavbar from "../Components/MarketingNavbar.jsx";
+import LazyMarketingSection from "../Components/LazyMarketingSection.jsx";
+import { MARKETING_NAV_CTA, MARKETING_NAV_LINKS } from "./Data/navigation";
+import { LEAD_CAPTURE_CONTENT, MODERN_LANDING_SEO } from "./Data/pageContent";
 
 // Lazy load below-the-fold components for performance
 const ModernPainPoints = lazy(() => import("./Components/ModernPainPoints"));
@@ -24,16 +26,18 @@ const ExitIntentPopup = lazy(() => import("../Components/ExitIntentPopup"));
 
 
 export default function ModernLanding() {
-
-
   return (
     <>
-      <ModernNavbar pageView="home" />
+      <MarketingNavbar
+        cta={MARKETING_NAV_CTA}
+        navLinks={MARKETING_NAV_LINKS}
+        pageView="home"
+      />
 
       <SEO 
-        title="WooSho - The Future of E-Commerce" 
-        description="Discover a smarter way to shop and sell with WooSho's AI-powered e-commerce ecosystem."
-        keywords="e-commerce, AI shopping, online marketplace, WooSho"
+        title={MODERN_LANDING_SEO.title}
+        description={MODERN_LANDING_SEO.description}
+        keywords={MODERN_LANDING_SEO.keywords}
       />
 
       <main
@@ -43,82 +47,82 @@ export default function ModernLanding() {
           <ModernHero />
         </div>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="pain-points">
             <ModernPainPoints />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="platform">
             <ModernPlatform />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="ai-chat">
             <ModernAiChat />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="interactive-demo">
             <InteractiveProductDemo />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="gallery">
             <ModernGallery />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="categories">
             <ModernCategories />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="why-woosho">
             <ModernWhy />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="stats">
             <AnimatedStats />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <section id="lead-capture" className="bg-white px-6 py-20 dark:bg-[#0E0E10]">
             <div className="mx-auto max-w-3xl">
               <LeadCaptureForm
-                audience="marketplace"
-                title="Get WooSho launch updates"
-                description="Join the product list for shopper tools, seller releases, and marketplace experiments."
-                cta="Join Updates"
+                audience={LEAD_CAPTURE_CONTENT.audience}
+                title={LEAD_CAPTURE_CONTENT.title}
+                description={LEAD_CAPTURE_CONTENT.description}
+                cta={LEAD_CAPTURE_CONTENT.cta}
               />
             </div>
           </section>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="cta">
             <ModernCTA />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
       </main>
 
       {/* Elite overlays — lazy loaded, non-blocking */}
-      <Suspense fallback={null}>
+      <LazyMarketingSection fallback={null} minHeight={0} margin="200px">
         <SocialProofTicker />
-      </Suspense>
-      <Suspense fallback={null}>
+      </LazyMarketingSection>
+      <LazyMarketingSection fallback={null} minHeight={0} margin="200px">
         <ExitIntentPopup />
-      </Suspense>
+      </LazyMarketingSection>
     </>
   );
 }

@@ -10,13 +10,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatMoneyCurrency } from "../../../../Utils/formatMoneyCents";
-
-const notifications = [
-  "AI optimized pricing for Urban Kicks: +3 sales",
-  "Smart Listing generated for Stealth Trainers",
-  "High demand detected in Lagos region",
-  "Social Feed sync complete: 2.4k reach",
-];
+import { SELLER_FORECAST_BARS, SELLER_HERO_NOTIFICATIONS } from "../Data/heroData";
 
 export default function Section1_Hero() {
   const navigate = useNavigate();
@@ -25,7 +19,7 @@ export default function Section1_Hero() {
 
   useEffect(() => {
     const notifInterval = setInterval(() => {
-      setCurrentNotif((prev) => (prev + 1) % notifications.length);
+      setCurrentNotif((prev) => (prev + 1) % SELLER_HERO_NOTIFICATIONS.length);
     }, 4000);
 
     const revenueInterval = setInterval(() => {
@@ -176,7 +170,7 @@ export default function Section1_Hero() {
                     <Sparkles size={14} />
                   </div>
                   <p className="text-sm font-medium text-gray-200">
-                    {notifications[currentNotif]}
+                    {SELLER_HERO_NOTIFICATIONS[currentNotif]}
                   </p>
                 </motion.div>
               </AnimatePresence>
@@ -194,7 +188,7 @@ export default function Section1_Hero() {
               Demand Forecast
             </div>
             <div className="flex items-end gap-1 h-12">
-              {[40, 70, 45, 90, 65, 100].map((h, i) => (
+              {SELLER_FORECAST_BARS.map((h, i) => (
                 <div
                   key={i}
                   className="w-full bg-blue-500/50 rounded-t-sm"

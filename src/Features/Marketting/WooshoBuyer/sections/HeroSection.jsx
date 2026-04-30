@@ -4,28 +4,22 @@ import { Search, ShoppingBag, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 import MagneticButton from '../../Components/MagneticButton';
-
-const mockDatabase = [
-  { id: 1, title: "Urban Black Kicks", price: formatMoneyCurrency(3500000).replace(".00", ""), img: "https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=400&q=80", tags: ["black", "sneakers", "urban"] },
-  { id: 2, title: "Midnight Runners", price: formatMoneyCurrency(3850000).replace(".00", ""), img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=400&q=80", tags: ["black", "running", "performance"] },
-  { id: 3, title: "Stealth Trainers", price: formatMoneyCurrency(3990000).replace(".00", ""), img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=400&q=80", tags: ["stealth", "training", "minimal", "black"] },
-  { id: 4, title: "Ivory Classics", price: formatMoneyCurrency(4200000).replace(".00", ""), img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=400&q=80", tags: ["white", "classic", "leather", "sneakers"] },
-  { id: 5, title: "Crimson High-Tops", price: formatMoneyCurrency(4500000).replace(".00", ""), img: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=400&q=80", tags: ["red", "high-top", "canvas"] }
-];
+import { BUYER_HERO_COPY, BUYER_HERO_PRODUCTS } from '../Data/heroData';
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
   const intent = params.get('intent');
+  const heroCopy = BUYER_HERO_COPY[intent] || BUYER_HERO_COPY.default;
   
   const [searchQuery, setSearchQuery] = useState(intent || '');
   const [isTyping, setIsTyping] = useState(false);
-  const [filteredResults, setFilteredResults] = useState(mockDatabase.slice(0, 3));
+  const [filteredResults, setFilteredResults] = useState(BUYER_HERO_PRODUCTS.slice(0, 3));
 
   // Handle live search
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setFilteredResults(mockDatabase.slice(0, 3));
+      setFilteredResults(BUYER_HERO_PRODUCTS.slice(0, 3));
       setIsTyping(false);
       return;
     }
@@ -33,7 +27,7 @@ const HeroSection = () => {
     setIsTyping(true);
     const timeoutId = setTimeout(() => {
       const lowerQuery = searchQuery.toLowerCase();
-      const results = mockDatabase.filter(item => 
+      const results = BUYER_HERO_PRODUCTS.filter(item => 
         item.title.toLowerCase().includes(lowerQuery) || 
         item.tags.some(tag => tag.includes(lowerQuery))
       );
@@ -56,13 +50,12 @@ const HeroSection = () => {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-6xl md:text-8xl font-black text-neutral-900 dark:text-white leading-[0.95] tracking-tighter"
           >
-            {intent === 'sneakers' ? (
-              <>The Perfect <br/><span className="text-neutral-400 dark:text-neutral-500">Kicks.</span></>
-            ) : intent === 'tech' ? (
-              <>The Latest <br/><span className="text-neutral-400 dark:text-neutral-500">Tech.</span></>
-            ) : (
-              <>Smarter. <br />Faster. <br /><span className="text-neutral-400 dark:text-neutral-500">Curated.</span></>
-            )}
+            {heroCopy.lines.map((line) => (
+              <React.Fragment key={line}>
+                {line} <br />
+              </React.Fragment>
+            ))}
+            <span className="text-neutral-400 dark:text-neutral-500">{heroCopy.highlight}</span>
           </motion.h1>
           
           <motion.p 
@@ -139,7 +132,7 @@ const HeroSection = () => {
                     <img src={item.img} alt={item.title} className="w-16 h-16 object-cover rounded-xl" />
                     <div className="flex-1">
                       <h4 className="font-bold text-neutral-900 dark:text-white text-sm">{item.title}</h4>
-                      <p className="text-neutral-500 text-xs mt-1">{item.price}</p>
+                      <p className="text-neutral-500 text-xs mt-1">{formatMoneyCurrency(item.priceCents).replace(".00", "")}</p>
                     </div>
                     <button className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white mr-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
                       <ArrowRight size={14} />

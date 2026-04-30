@@ -3,7 +3,7 @@ import { Check, Zap } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useNavigate } from 'react-router-dom';
-import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
+import { SELLER_PRICING_PLANS } from '../Data/sectionsData.jsx';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
 // FIX: removed imperative style.opacity mutations in onMouseEnter/onMouseLeave handlers.
@@ -11,67 +11,6 @@ import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 //      next render pass would silently overwrite the value, causing inconsistent
 //      hover states. Replaced with a CSS class + :hover rule — the browser handles
 //      it natively with no React involvement needed.
-
-const PLANS = [
-  {
-    name: 'Starter',
-    price: 'Free',
-    priceNote: 'forever',
-    color: '#6b7280',
-    badge: null,
-    perks: [
-      '20 active listings',
-      '50 AI credits / month',
-      '4% transaction fee',
-      'Basic analytics',
-      'Community support',
-    ],
-    cta: 'Get Started Free',
-    ctaBg: 'rgba(255,255,255,0.07)',
-    ctaColor: '#f9fafb',
-    regLink: '/auth/signup?plan=free',
-  },
-  {
-    name: 'Growth',
-    price: formatMoneyCurrency(500000).replace(".00", ""),
-    priceNote: '/ month',
-    color: '#6366f1',
-    badge: 'Most Popular',
-    perks: [
-      'Unlimited listings',
-      '500 AI credits / month',
-      '3.5% transaction fee',
-      'AI pricing intelligence',
-      'Social commerce feed',
-      'Priority support',
-    ],
-    cta: 'Start 14-Day Trial',
-    ctaBg: '#6366f1',
-    ctaColor: '#fff',
-    featured: true,
-    regLink: '/auth/signup?plan=growth',
-  },
-  {
-    name: 'Pro',
-    price: formatMoneyCurrency(1200000).replace(".00", ""),
-    priceNote: '/ month',
-    color: '#f59e0b',
-    badge: 'Best Value',
-    perks: [
-      'Everything in Growth',
-      'Unlimited AI credits',
-      '3% transaction fee',
-      'Custom storefront branding',
-      'API access',
-      'Dedicated account manager',
-    ],
-    cta: 'Go Pro',
-    ctaBg: 'rgba(245,158,11,0.15)',
-    ctaColor: '#f59e0b',
-    ctaBorder: '1px solid rgba(245,158,11,0.4)',
-    regLink: '/auth/signup?plan=pro',
-  },
-];
 
 export default function Section8_Pricing() {
   const sectionRef = useRef(null);
@@ -122,7 +61,7 @@ export default function Section8_Pricing() {
       </div>
 
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-        {PLANS.map((plan, i) => (
+        {SELLER_PRICING_PLANS.map((plan, i) => (
           <div
             key={plan.name}
             className="pricing-card"

@@ -24,8 +24,12 @@ export default function EditorialCollectionsSection({ products }) {
               Shop by moment
             </h2>
           </div>
-          <p className="max-w-md text-sm leading-6" style={{ color: colors.text.tertiary }}>
-            Curated product stories give the marketplace a point of view beyond raw category browsing.
+          <p
+            className="max-w-md text-sm leading-6"
+            style={{ color: colors.text.tertiary }}
+          >
+            For every moment that matters. A refined selection of essentials and
+            standouts, curated to meet you exactly where you are.
           </p>
         </div>
 
@@ -47,7 +51,9 @@ export default function EditorialCollectionsSection({ products }) {
                   className="absolute inset-0 h-full w-full object-cover opacity-70 transition duration-700 group-hover:scale-105"
                   src={product.image}
                 />
-                <div className={`absolute inset-0 bg-gradient-to-br ${collection.accent} opacity-55 mix-blend-multiply`} />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${collection.accent} opacity-55 mix-blend-multiply`}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="relative flex h-full min-h-[420px] flex-col justify-end p-7 text-white">
                   <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/70">
@@ -75,4 +81,3 @@ export default function EditorialCollectionsSection({ products }) {
     </section>
   );
 }
-

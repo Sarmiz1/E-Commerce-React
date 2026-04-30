@@ -2,41 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import TiltCard from '../../Components/TiltCard';
-
-const FEATURES = [
-  {
-    icon: "🧠",
-    title: "AI Personalization",
-    desc: "Every result is tailored to your taste, budget, and browsing history. The more you shop, the smarter it gets.",
-    gradient: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-    img: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=400&q=80",
-    accent: "#818cf8",
-  },
-  {
-    icon: "⚡",
-    title: "Instant Comparison",
-    desc: "Compare prices, specs, and seller ratings across the entire catalog in real time — no tab switching.",
-    gradient: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)",
-    img: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80",
-    accent: "#38bdf8",
-  },
-  {
-    icon: "🔒",
-    title: "Secure Payments",
-    desc: "Bank-grade encryption on every transaction. Your payment details never leave our secure vault.",
-    gradient: "linear-gradient(135deg, #10b981 0%, #0ea5e9 100%)",
-    img: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=80",
-    accent: "#34d399",
-  },
-  {
-    icon: "🚀",
-    title: "Fast Delivery",
-    desc: "Same-day delivery in Lagos. Nationwide in 48 hours. Live tracking from warehouse to doorstep.",
-    gradient: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)",
-    img: "https://images.unsplash.com/photo-1568992688065-536aad8a12f6?w=400&q=80",
-    accent: "#fbbf24",
-  },
-];
+import { BUYER_SMART_FEATURES } from '../Data/sectionsData.jsx';
 
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
@@ -76,7 +42,7 @@ const SmartFeaturesSection = () => {
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {FEATURES.map((feat, i) => (
+          {BUYER_SMART_FEATURES.map((feat, i) => (
             <TiltCard
               key={i}
               className="smart-feat-card"
@@ -115,7 +81,7 @@ const SmartFeaturesSection = () => {
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 22,
                 }}>
-                  {feat.icon}
+                  <span className="text-[11px] font-black tracking-tight text-white">{feat.icon}</span>
                 </div>
               </div>
 

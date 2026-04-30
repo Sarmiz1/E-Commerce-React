@@ -3,24 +3,9 @@ import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight } from 'lucide-react';
-import { formatLink } from '../../../../Utils/formatLink';
-
-
-import img1 from '../../../../assets/marketing/shoe-stealth.png';
-import img2 from '../../../../assets/marketing/cat-sneakers.png';
-import img3 from '../../../../assets/marketing/neural-preview.png';
-import img4 from '../../../../assets/marketing/hero-blur.png';
-import img5 from '../../../../assets/marketing/cat-fashion.png';
+import { GALLERY_ITEMS } from '../Data/galleryItems';
 
 gsap.registerPlugin(ScrollTrigger);
-
-const ITEMS = [
-  { id: 1, title: 'Stealth Runner', subtitle: 'Built for the streets, engineered for the track.', label: 'NEW DROP', tag: 'FOOTWEAR', img: img1 },
-  { id: 2, title: 'Classic Kicks', subtitle: 'Timeless silhouette. Contemporary comfort.', label: 'BESTSELLER', tag: 'SNEAKERS', img: img2 },
-  { id: 3, title: 'Neural Vision', subtitle: 'AI-curated fashion that adapts to your style DNA.', label: 'AI POWERED', tag: 'TECHNOLOGY', img: img3 },
-  { id: 4, title: 'Blur Edit', subtitle: 'Limited edition pieces that define culture.', label: 'LIMITED', tag: 'EDITORIAL', img: img4 },
-  { id: 5, title: 'Mode Sauvage', subtitle: 'Unapologetic. Raw. Born from chaos and precision.', label: 'EXCLUSIVE', tag: 'FASHION', img: img5 },
-];
 
 const ModernGallery = memo(function ModernGallery() {
   const sectionRef = useRef(null);
@@ -100,7 +85,7 @@ const ModernGallery = memo(function ModernGallery() {
           onMouseUp={onDragEnd}
           onMouseLeave={onDragEnd}
         >
-          {ITEMS.map((item) => (
+          {GALLERY_ITEMS.map((item) => (
             <div
               key={item.id}
               className="g-card snap-start flex-shrink-0 relative rounded-2xl overflow-hidden group"
@@ -136,7 +121,7 @@ const ModernGallery = memo(function ModernGallery() {
 
                 {/* CTA */}
                 <div className="flex items-center gap-2 mt-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-400 ease-out cursor-pointer"
-                  onClick={() => navigate(`products/categories/${formatLink(item.tag)}`)}
+                  onClick={() => navigate(item.href)}
                 >
                   <span
                     className="text-xs font-bold text-white uppercase tracking-wider"

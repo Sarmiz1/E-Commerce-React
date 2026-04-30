@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { PARTNERS_ROW1, PARTNERS_ROW2, springSoft, springFast, staggerContainer, itemReveal } from "./whyConstants";
+import { springSoft, springFast, staggerContainer, itemReveal } from "./whyConstants";
+import { PARTNERS_ROW1, PARTNERS_ROW2, PARTNER_STATS } from "../../Data/whyContent";
 import MarqueeRow from "./MarqueeRow";
 
 export default function PartnersSection() {
@@ -100,12 +101,7 @@ export default function PartnersSection() {
         animate={inView ? "visible" : "hidden"}
         className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4"
       >
-        {[
-          { stat: "16+", label: "Integration Partners" },
-          { stat: "99.9%", label: "Payment Uptime" },
-          { stat: "₦2.4B", label: "GMV Processed" },
-          { stat: "48hrs", label: "Average Payout Speed" },
-        ].map(({ stat, label }) => (
+        {PARTNER_STATS.map(({ stat, label }) => (
           <motion.div
             key={label}
             variants={itemReveal}

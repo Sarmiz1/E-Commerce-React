@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Shield, CreditCard, Truck, MessageCircle } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
+import { BUYER_TRUST_ITEMS, BUYER_TRUST_STEPS } from '../Data/sectionsData.jsx';
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
@@ -14,39 +14,6 @@ const PANEL_5 = {
   backgroundPosition: '0% 100%',
   backgroundRepeat: 'no-repeat',
 };
-
-const ITEMS = [
-  {
-    icon: Shield,
-    text: 'Secure Payments',
-    sub: 'Paystack & Stripe — bank-grade encryption',
-    color: '#6366f1',
-  },
-  {
-    icon: CreditCard,
-    text: '₦ & $ Pricing',
-    sub: 'Naira and Dollar checkout supported',
-    color: '#10b981',
-  },
-  {
-    icon: Truck,
-    text: 'Fast Delivery',
-    sub: 'Same-day Lagos · 48h nationwide',
-    color: '#f59e0b',
-  },
-  {
-    icon: MessageCircle,
-    text: '24/7 Support',
-    sub: 'WhatsApp & live chat, always on',
-    color: '#ec4899',
-  },
-];
-
-const steps = [
-  { icon: Shield, label: 'Secure Payments' },
-  { icon: Truck, label: 'Fast Delivery' },
-  { icon: Shield, label: 'Trusted Service' },
-]
 
 const TrustSection = () => {
   const sectionRef = useRef(null);
@@ -133,7 +100,7 @@ const TrustSection = () => {
               }}
             >
               <div className="flex items-center gap-5 flex-wrap">
-                {steps.map(({ icon: Icon, label }, i) => (
+                {BUYER_TRUST_STEPS.map(({ icon: Icon, label }, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <Icon size={13} color="rgba(255,255,255,0.7)" />
                     <span
@@ -176,7 +143,7 @@ const TrustSection = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {ITEMS.map(({ icon: Icon, text, sub, color }, i) => (
+              {BUYER_TRUST_ITEMS.map(({ icon: Icon, text, sub, color }, i) => (
                 <div
                   key={i}
                   ref={el => (itemsRef.current[i] = el)}

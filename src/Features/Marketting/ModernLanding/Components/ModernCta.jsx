@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MagneticButton from "../../Components/MagneticButton";
+import { MODERN_CTA_CONTENT } from "../Data/pageContent";
 
 
 export const ModernCTA = memo(function ModernCTA() {
@@ -44,19 +45,19 @@ export const ModernCTA = memo(function ModernCTA() {
             </motion.div>
 
             <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
-              Ready to Experience <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-purple-300">Intelligent Commerce?</span>
+              {MODERN_CTA_CONTENT.title} <br className="hidden md:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-purple-300">{MODERN_CTA_CONTENT.highlightedTitle}</span>
             </h2>
             <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto font-medium">
-              Join thousands of buyers and sellers already using the world's most advanced AI matching engine.
+              {MODERN_CTA_CONTENT.description}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center w-full max-w-lg">
               <MagneticButton 
                 className="flex-1 py-5 bg-white text-gray-900 font-bold rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_rgba(255,255,255,0.5)] transition-shadow text-lg flex items-center justify-center gap-2 group"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate(MODERN_CTA_CONTENT.primaryCta.href)}
               >
-                <span>Start Shopping</span>
+                <span>{MODERN_CTA_CONTENT.primaryCta.label}</span>
                 <motion.div animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
                   <ArrowRight size={20} className="text-blue-600" />
                 </motion.div>
@@ -64,9 +65,9 @@ export const ModernCTA = memo(function ModernCTA() {
 
               <MagneticButton 
                 className="flex-1 py-5 bg-white/5 backdrop-blur-md text-white font-bold rounded-2xl border border-white/20 hover:bg-white/10 transition-colors text-lg"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate(MODERN_CTA_CONTENT.secondaryCta.href)}
               >
-                Grow Your Sales
+                {MODERN_CTA_CONTENT.secondaryCta.label}
               </MagneticButton>
             </div>
           </div>

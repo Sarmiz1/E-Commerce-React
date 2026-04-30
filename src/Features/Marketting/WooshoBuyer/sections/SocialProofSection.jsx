@@ -59,47 +59,9 @@ import React, { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Star } from "lucide-react";
+import { BUYER_REVIEWS, BUYER_SOCIAL_STATS } from "../Data/sectionsData.jsx";
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
-
-const REVIEWS = [
-  {
-    quote:
-      "Woosho's AI found the exact sneakers I wanted in under 10 seconds. Nothing else comes close.",
-    author: "Michael O.",
-    role: "Fashion Enthusiast",
-    location: "Lagos",
-    avatar:
-      "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=80&h=80&q=80&fit=crop",
-    rating: 5,
-  },
-  {
-    quote:
-      "I used to spend hours comparing prices across different sites. Now I just ask the AI and it handles everything.",
-    author: "Adaeze T.",
-    role: "Frequent Shopper",
-    location: "Abuja",
-    avatar:
-      "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&q=80&fit=crop",
-    rating: 5,
-  },
-  {
-    quote:
-      "Fastest checkout experience I've ever had. The recommendations are actually smart, not random.",
-    author: "Chukwudi K.",
-    role: "Tech Buyer",
-    location: "Port Harcourt",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&q=80&fit=crop&face=center",
-    rating: 5,
-  },
-];
-
-const stats = [
-  { value: "2.4M+", label: "Happy Shoppers" },
-  { value: "4.9★", label: "Average Rating" },
-  { value: "98%", label: "Satisfaction Rate" },
-]
 
 const SocialProofSection = () => {
   const sectionRef = useRef(null);
@@ -152,7 +114,7 @@ const SocialProofSection = () => {
 
         {/* Review Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {REVIEWS.map((rev, i) => (
+          {BUYER_REVIEWS.map((rev, i) => (
             <div
               key={i}
               ref={(el) => (cardsRef.current[i] = el)}
@@ -262,7 +224,7 @@ const SocialProofSection = () => {
           className="grid grid-cols-3 gap-8 mt-20 pt-12"
           style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
         >
-          {stats.map((s, i) => (
+          {BUYER_SOCIAL_STATS.map((s, i) => (
             <div key={i} className="text-center">
               <div
                 style={{

@@ -13,11 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { formatMoneyCurrency } from "../../../../Utils/formatMoneyCents";
 import shoeImg from "../../../../assets/marketing/shoe-stealth.png";
-
-const cta = [
-  { label: 'Meet your Assistant', link: 'woosho-ai ' },
-  { label: ' Learn More', link: 'buyer' }
-]
+import { AI_CHAT_CTA, AI_CHAT_DEMO, AI_CHAT_FEATURES } from "../Data/aiChatContent";
 
 const ModernAiChat = memo(function ModernAiChat() {
   const navigate = useNavigate();
@@ -56,11 +52,7 @@ const ModernAiChat = memo(function ModernAiChat() {
           </motion.p>
 
           <ul className="space-y-4 mb-10">
-            {[
-              "Multi-modal input (text & images)",
-              "Budget-aware filtering",
-              "Verified inventory only",
-            ].map((item, i) => (
+            {AI_CHAT_FEATURES.map((item, i) => (
               <motion.li
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
@@ -78,7 +70,7 @@ const ModernAiChat = memo(function ModernAiChat() {
           </ul>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-60  md:w-[30rem] lg:w-full">
-            {cta.map((btn, i) => (
+            {AI_CHAT_CTA.map((btn, i) => (
                 <motion.button 
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -86,7 +78,7 @@ const ModernAiChat = memo(function ModernAiChat() {
                   viewport={{ once: true }}
                   className="px-8 py-4 bg-gray-900 dark:bg-blue-600 text-white font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl hover:bg-blue-600 dark:hover:bg-gray-500"
                   key={i}
-                  onClick={() => navigate(`/${btn.link}`)}
+                  onClick={() => navigate(btn.href)}
                 >
                   {btn.label}
                 </motion.button>
@@ -130,7 +122,7 @@ const ModernAiChat = memo(function ModernAiChat() {
               >
                 <div className="bg-gray-100 dark:bg-white/5 px-4 py-2.5 rounded-2xl rounded-tr-none">
                   <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    black sneakers under 50k
+                    {AI_CHAT_DEMO.userQuery}
                   </p>
                 </div>
               </motion.div>
@@ -160,11 +152,10 @@ const ModernAiChat = memo(function ModernAiChat() {
                 className="bg-blue-50 dark:bg-blue-600/10 p-4 rounded-2xl rounded-tl-none border-l-4 border-blue-600"
               >
                 <p className="text-sm text-gray-900 dark:text-white font-medium mb-1">
-                  Got it. Showing 5 options for you.
+                  {AI_CHAT_DEMO.assistantTitle}
                 </p>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  I've filtered for performance models with high durability
-                  ratings.
+                  {AI_CHAT_DEMO.assistantBody}
                 </p>
               </motion.div>
 
@@ -189,12 +180,12 @@ const ModernAiChat = memo(function ModernAiChat() {
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-lg text-gray-900 dark:text-white">
-                      Stealth Vector X1
+                      {AI_CHAT_DEMO.product.name}
                     </h4>
-                    <span className="text-blue-600 font-bold">{formatMoneyCurrency(4850000)}</span>
+                    <span className="text-blue-600 font-bold">{formatMoneyCurrency(AI_CHAT_DEMO.product.priceCents)}</span>
                   </div>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">
-                    Breathable mesh with adaptive carbon-fiber support.
+                    {AI_CHAT_DEMO.product.description}
                   </p>
                   <button className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all">
                     Quick Add

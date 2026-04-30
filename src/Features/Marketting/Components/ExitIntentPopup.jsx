@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, ArrowRight } from "lucide-react";
+import { EXIT_INTENT_CONTENT } from "../Data/exitIntentContent";
 
 const EXIT_INTENT_KEY = "woosho.exit-intent-dismissed";
 
@@ -94,19 +95,19 @@ const ExitIntentPopup = memo(function ExitIntentPopup() {
                     animate={{ opacity: 1, y: 0 }}
                   >
                     <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">
-                      You're in! 🎉
+                      {EXIT_INTENT_CONTENT.successTitle}
                     </h3>
                     <p className="text-gray-500 dark:text-gray-400">
-                      Check your inbox for your exclusive welcome offer.
+                      {EXIT_INTENT_CONTENT.successDescription}
                     </p>
                   </motion.div>
                 ) : (
                   <>
                     <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2 leading-tight">
-                      Wait — grab your 20% off
+                      {EXIT_INTENT_CONTENT.title}
                     </h3>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 leading-relaxed">
-                      Sign up now and get an exclusive 20% discount on your first order. Don't miss out on smarter shopping.
+                      {EXIT_INTENT_CONTENT.description}
                     </p>
 
                     <form onSubmit={handleSubmit} className="space-y-3">
@@ -114,7 +115,7 @@ const ExitIntentPopup = memo(function ExitIntentPopup() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
+                        placeholder={EXIT_INTENT_CONTENT.inputPlaceholder}
                         required
                         className="w-full h-12 px-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/30 text-gray-900 dark:text-white text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/30 transition placeholder:text-gray-400 dark:placeholder:text-gray-600"
                       />
@@ -122,13 +123,13 @@ const ExitIntentPopup = memo(function ExitIntentPopup() {
                         type="submit"
                         className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2"
                       >
-                        Claim 20% Off
+                        {EXIT_INTENT_CONTENT.cta}
                         <ArrowRight size={16} />
                       </button>
                     </form>
 
                     <p className="text-[11px] text-gray-400 dark:text-gray-600 text-center mt-4">
-                      No spam. Unsubscribe anytime.
+                      {EXIT_INTENT_CONTENT.finePrint}
                     </p>
                   </>
                 )}

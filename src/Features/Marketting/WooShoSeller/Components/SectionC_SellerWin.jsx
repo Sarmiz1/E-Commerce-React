@@ -18,14 +18,7 @@ import { motion } from "framer-motion";
 import { Link } from 'react-router-dom'
 import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 import SELLER_WIN_IMG from  "../../../../assets/marketing/sellersImg3.png";
-
-
-
-const STEPS = [
-  { num: "01", title: "List your product", body: "Upload photos, set your price, add a description in under 5 minutes." },
-  { num: "02", title: "Get discovered", body: "Woosho promotes your store to thousands of buyers across Nigeria." },
-  { num: "03", title: "Get paid", body: "Funds hit your account automatically. No chasing, no delays." },
-];
+import { SELLER_WIN_STEPS } from '../Data/sectionsData.jsx';
 
 const fadeUp = (delay = 0) => ({
   hidden: { opacity: 0, y: 36 },
@@ -211,7 +204,7 @@ export default function SectionC_SellerWin() {
             variants={{ visible: { transition: { staggerChildren: 0.12, delayChildren: 0.3 } } }}
             className="flex flex-col gap-4"
           >
-            {STEPS.map(({ num, title, body }) => (
+            {SELLER_WIN_STEPS.map(({ num, title, body }) => (
               <motion.div
                 key={num}
                 variants={fadeUp()}

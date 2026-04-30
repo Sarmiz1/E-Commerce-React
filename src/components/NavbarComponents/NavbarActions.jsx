@@ -2,7 +2,14 @@ import { AnimatePresence, motion as Motion } from "framer-motion";
 import { useWishlist } from "../../Hooks/useWishlist";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { CartPreview } from "./CartPreview";
-import { BagIcon, CloseIcon, HeartIcon, MenuIcon, SearchIcon, UserIcon } from "./Icons";
+import {
+  BagIcon,
+  CloseIcon,
+  HeartIcon,
+  MenuIcon,
+  SearchIcon,
+  UserIcon,
+} from "./Icons";
 
 export function NavbarActions({
   isTop,
@@ -25,7 +32,9 @@ export function NavbarActions({
   onToggleMobile,
   formatMoney,
 }) {
-  const iconTone = isTop ? "text-white/80 hover:text-white hover:bg-white/12" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100";
+  const iconTone = isTop
+    ? "text-white/80 hover:text-white hover:bg-white/12"
+    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100";
   const { wishlistCount } = useWishlist();
   const hasWishlistItems = wishlistCount > 0;
   const wishlistLabel = hasWishlistItems
@@ -34,21 +43,41 @@ export function NavbarActions({
 
   return (
     <div className="flex items-center gap-1 ml-auto flex-shrink-0">
-      <div className="relative" onMouseEnter={() => onSetSearchTip(true)} onMouseLeave={() => onSetSearchTip(false)}>
+      <div
+        className="relative"
+        onMouseEnter={() => onSetSearchTip(true)}
+        onMouseLeave={() => onSetSearchTip(false)}
+      >
         <button
           onClick={onToggleSearch}
           aria-label={searchOpen ? "Close search" : "Open search"}
           className={`nb-icon-btn ${iconTone} ${
-            searchOpen ? (isTop ? "bg-white/15 text-white" : "bg-indigo-50 !text-indigo-600") : ""
+            searchOpen
+              ? isTop
+                ? "bg-white/15 text-white"
+                : "bg-indigo-50 !text-indigo-600"
+              : ""
           }`}
         >
           <AnimatePresence mode="wait">
             {searchOpen ? (
-              <Motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <Motion.span
+                key="x"
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
                 <CloseIcon />
               </Motion.span>
             ) : (
-              <Motion.span key="s" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <Motion.span
+                key="s"
+                initial={{ rotate: 90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: -90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
                 <SearchIcon />
               </Motion.span>
             )}
@@ -58,9 +87,13 @@ export function NavbarActions({
         <Tooltip show={searchTip && !searchOpen} label="Search" />
       </div>
 
-      <div className="relative hidden md:block" onMouseEnter={() => onSetWishlistTip(true)} onMouseLeave={() => onSetWishlistTip(false)}>
+      <div
+        className="relative hidden md:block"
+        onMouseEnter={() => onSetWishlistTip(true)}
+        onMouseLeave={() => onSetWishlistTip(false)}
+      >
         <button
-          onClick={() => onNavigate("/product/wishlist")}
+          onClick={() => onNavigate("/wishlist")}
           className={`nb-icon-btn ${hasWishlistItems ? "nb-wishlist-alert" : iconTone}`}
           aria-label={wishlistLabel}
           title={wishlistLabel}
@@ -83,14 +116,24 @@ export function NavbarActions({
         <Tooltip show={wishlistTip} label={wishlistLabel} />
       </div>
 
-      <div className="relative hidden md:block" onMouseEnter={() => onSetAccountTip(true)} onMouseLeave={() => onSetAccountTip(false)}>
-        <button onClick={() => onNavigate("/account")} className={`nb-icon-btn ${iconTone}`} aria-label="My Account">
+      <div
+        className="relative hidden md:block"
+        onMouseEnter={() => onSetAccountTip(true)}
+        onMouseLeave={() => onSetAccountTip(false)}
+      >
+        <button
+          onClick={() => onNavigate("/account")}
+          className={`nb-icon-btn ${iconTone}`}
+          aria-label="My Account"
+        >
           <UserIcon />
         </button>
         <Tooltip show={accountTip} label="My Account" />
       </div>
 
-      <div className={`hidden md:block w-px h-5 mx-1 ${isTop ? "bg-white/15" : "bg-gray-200"}`} />
+      <div
+        className={`hidden md:block w-px h-5 mx-1 ${isTop ? "bg-white/15" : "bg-gray-200"}`}
+      />
 
       <div className="flex items-center">
         <ThemeToggle />
@@ -99,10 +142,12 @@ export function NavbarActions({
       <div
         className="relative group"
         onMouseEnter={() => {
-          if (typeof window !== "undefined" && window.innerWidth >= 768) onSetCartHover(true);
+          if (typeof window !== "undefined" && window.innerWidth >= 768)
+            onSetCartHover(true);
         }}
         onMouseLeave={() => {
-          if (typeof window !== "undefined" && window.innerWidth >= 768) onSetCartHover(false);
+          if (typeof window !== "undefined" && window.innerWidth >= 768)
+            onSetCartHover(false);
         }}
       >
         <button
@@ -113,7 +158,11 @@ export function NavbarActions({
               onSetCartHover(!cartHover);
             }
           }}
-          title={cartCount > 0 ? `Shopping bag - ${cartCount} item${cartCount !== 1 ? "s" : ""}` : "Shopping bag - Empty"}
+          title={
+            cartCount > 0
+              ? `Shopping bag - ${cartCount} item${cartCount !== 1 ? "s" : ""}`
+              : "Shopping bag - Empty"
+          }
           className={`nb-icon-btn ${isTop ? "text-white hover:bg-white/12" : "text-gray-700 hover:bg-gray-100"}`}
           aria-label={`Shopping bag, ${cartCount} items`}
         >
@@ -165,8 +214,16 @@ export function NavbarActions({
         className="hidden lg:flex items-center gap-1.5 font-bold text-[0.8125rem] px-4 py-2 rounded-full ml-1"
         style={
           isTop
-            ? { background: "rgba(255,255,255,0.14)", color: "#fff", border: "1px solid rgba(255,255,255,0.22)" }
-            : { background: "linear-gradient(135deg,#2563eb,#6366f1)", color: "#fff", boxShadow: "0 4px 16px rgba(99,102,241,0.32)" }
+            ? {
+                background: "rgba(255,255,255,0.14)",
+                color: "#fff",
+                border: "1px solid rgba(255,255,255,0.22)",
+              }
+            : {
+                background: "linear-gradient(135deg,#2563eb,#6366f1)",
+                color: "#fff",
+                boxShadow: "0 4px 16px rgba(99,102,241,0.32)",
+              }
         }
       >
         AI Shop
@@ -180,11 +237,23 @@ export function NavbarActions({
       >
         <AnimatePresence mode="wait">
           {mobileOpen ? (
-            <Motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+            <Motion.span
+              key="x"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
               <CloseIcon className="w-5 h-5" />
             </Motion.span>
           ) : (
-            <Motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+            <Motion.span
+              key="m"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
               <MenuIcon />
             </Motion.span>
           )}

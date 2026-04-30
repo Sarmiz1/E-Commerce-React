@@ -11,7 +11,7 @@ const BottomBar = forwardRef(function BottomBar({ socialsRef }, ref) {
       style={{ opacity: 0 }}
     >
       {/* Left: Logo + copyright */}
-      <div className="flex items-center gap-4 flex-wrap justify-center md:justify-start">
+      <div className="flex items-center gap-2.5 flex-wrap justify-center md:justify-start">
         {/* Compact logo mark */}
         {/* <div className="flex items-center gap-2">
           <div
@@ -27,7 +27,11 @@ const BottomBar = forwardRef(function BottomBar({ socialsRef }, ref) {
             Woo<span className="text-blue-600">sho</span>
           </span>
         </div> */}
-        <Logo size={7} />
+        <div className="flex items-center gap-2">
+          <div className="translate-y-[1px]">
+            <Logo size={8} variant="footer" explicitDark={true} />
+          </div>
+        </div>
 
         {/* Dot separator */}
         <span className="hidden md:block w-1 h-1 rounded-full bg-gray-300 dark:bg-white/20" />

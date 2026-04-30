@@ -1,7 +1,8 @@
 import { memo, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Zap } from "lucide-react";
-import { BENEFITS, springBounce, springSoft } from "./ModernWhyComponents/whyConstants";
+import { springBounce, springSoft } from "./ModernWhyComponents/whyConstants";
+import { BENEFITS } from "../Data/whyContent";
 import BenefitCard from "./ModernWhyComponents/BenefitCard";
 import PartnersSection from "./ModernWhyComponents/PartnersSection";
 

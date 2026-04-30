@@ -2,59 +2,9 @@ import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { BarChart2, Bot, Zap, Globe, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const FEATURES = [
-  {
-    id: 'analytics',
-    icon: BarChart2,
-    label: 'Smart Analytics',
-    color: '#10b981',
-    headline: 'Know exactly what to stock',
-    desc: 'Real-time demand signals and competitor tracking give you the edge. Stop guessing — start growing.',
-    stat: { value: '40%', label: 'Revenue lift' },
-    url: '/sell/smart-analytics',
-    colSpan: 'lg:col-span-2',
-    rowSpan: 'lg:row-span-1'
-  },
-  {
-    id: 'writer',
-    icon: Zap,
-    label: 'AI Listing Writer',
-    color: '#f59e0b',
-    headline: 'Perfect listings in 10s',
-    desc: 'Snap a photo, describe it briefly, and Woosho AI writes a fully optimised, SEO-rich listing that ranks and sells.',
-    stat: { value: '10s', label: 'To publish' },
-    url: '/sell/ai-listing-writer',
-    colSpan: 'lg:col-span-1',
-    rowSpan: 'lg:row-span-2'
-  },
-  {
-    id: 'assistant',
-    icon: Bot,
-    label: 'AI Sales Assistant',
-    color: '#6366f1',
-    headline: 'Never miss a sale',
-    desc: 'Handles every buyer question — size, availability, shipping — instantly and accurately, 24/7.',
-    stat: { value: '3×', label: 'More conversions' },
-    url: '/sell/sales-assistant',
-    colSpan: 'lg:col-span-1',
-    rowSpan: 'lg:row-span-1'
-  },
-  {
-    id: 'social',
-    icon: Globe,
-    label: 'Social Commerce',
-    color: '#ec4899',
-    headline: 'Your products, everywhere',
-    desc: 'Automatically syncs to the Woosho social feed, reaching 2.4 million active buyers globally.',
-    stat: { value: '2.4M', label: 'Active buyers' },
-    url: '/sell/social-commerce-feed',
-    colSpan: 'lg:col-span-1',
-    rowSpan: 'lg:row-span-1'
-  },
-];
+import { SELLER_FEATURES } from '../Data/sectionsData.jsx';
 
 export default function Section4_Features() {
   const sectionRef = useRef(null);
@@ -92,7 +42,7 @@ export default function Section4_Features() {
 
       {/* Bento Box Grid */}
       <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-1 lg:grid-rows-2 gap-6 relative z-10">
-        {FEATURES.map((feat, idx) => (
+        {SELLER_FEATURES.map((feat, idx) => (
           <motion.div
             key={feat.id}
             initial={{ opacity: 0, y: 30 }}

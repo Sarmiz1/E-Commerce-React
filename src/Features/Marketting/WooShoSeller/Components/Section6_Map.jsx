@@ -1,26 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SELLER_CITIES, SELLER_MAP_STATS } from '../Data/sectionsData.jsx';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
-
-const CITIES = [
-  { name: 'Lagos', cx: 72, cy: 310, sellers: '12,400', r: 10 },
-  { name: 'Abuja', cx: 215, cy: 218, sellers: '8,200', r: 8 },
-  { name: 'Kano', cx: 220, cy: 100, sellers: '5,600', r: 7 },
-  { name: 'Port Harcourt', cx: 175, cy: 340, sellers: '4,900', r: 7 },
-  { name: 'Ibadan', cx: 105, cy: 265, sellers: '3,700', r: 6 },
-  { name: 'Kaduna', cx: 200, cy: 145, sellers: '2,800', r: 6 },
-  { name: 'Enugu', cx: 210, cy: 300, sellers: '2,300', r: 5 },
-  { name: 'Warri', cx: 145, cy: 330, sellers: '1,900', r: 5 },
-];
-
-const stats = [
-  { value: '36', label: 'States covered', color: '#6366f1' },
-  { value: '60K+', label: 'Active sellers', color: '#10b981' },
-  { value: '2.4M', label: 'Buyers reached', color: '#f59e0b' },
-  { value: '48h', label: 'Avg. payout', color: '#ec4899' },
-]
 
 export default function Section6_Map() {
   const sectionRef = useRef(null);
@@ -104,7 +87,7 @@ export default function Section6_Map() {
               strokeDasharray="4 6"
             />
 
-            {CITIES.map((city, i) => (
+            {SELLER_CITIES.map((city, i) => (
               <g key={city.name} className="map-city" style={{ transformOrigin: `${city.cx}px ${city.cy}px` }}>
                 <circle cx={city.cx} cy={city.cy} r={city.r * 2.5} fill="rgba(16,185,129,0.08)">
                   <animate attributeName="r" values={`${city.r * 1.5};${city.r * 3};${city.r * 1.5}`} dur="2.5s" repeatCount="indefinite" begin={`${i * 0.3}s`} />
@@ -118,10 +101,10 @@ export default function Section6_Map() {
               </g>
             ))}
 
-            {CITIES.slice(1).map((city) => (
+            {SELLER_CITIES.slice(1).map((city) => (
               <line
                 key={city.name}
-                x1={CITIES[0].cx} y1={CITIES[0].cy}
+                x1={SELLER_CITIES[0].cx} y1={SELLER_CITIES[0].cy}
                 x2={city.cx} y2={city.cy}
                 stroke="rgba(16,185,129,0.12)"
                 strokeWidth="1"
@@ -138,7 +121,7 @@ export default function Section6_Map() {
               Top seller cities
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {CITIES.slice(0, 5).map((city) => (
+              {SELLER_CITIES.slice(0, 5).map((city) => (
                 <div
                   key={city.name}
                   className="map-city"
@@ -159,7 +142,7 @@ export default function Section6_Map() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            {stats.map((s) => (
+            {SELLER_MAP_STATS.map((s) => (
               <div
                 key={s.label}
                 className="map-stat"

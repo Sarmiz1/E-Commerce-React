@@ -1,11 +1,17 @@
-import React, { Suspense, lazy } from "react";
+import React, { lazy } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroSection from "./sections/HeroSection";
-import ModernNavbar from "../../../Components/ModernNavbar";
 import SEO from "../../../Components/SEO";
-import MarketingSkeleton from "../Components/MarketingSkeleton";
+import MarketingNavbar from "../Components/MarketingNavbar";
+import LazyMarketingSection from "../Components/LazyMarketingSection";
 import WS_IMG from '../../../assets/marketing/mktimg3.png';
+import {
+  BUYER_LEAD_CAPTURE,
+  BUYER_NAV_CTA,
+  BUYER_NAV_LINKS,
+  BUYER_SEO,
+} from "./Data/pageData";
 
 // GSAP registration once at module level is correct.
 gsap.registerPlugin(ScrollTrigger);
@@ -20,16 +26,9 @@ const TrustSection = lazy(() => import("./sections/TrustSection"));
 const FinalCtaSection = lazy(() => import("./sections/FinalCtaSection"));
 const ShopSmartSection = lazy(() => import("./sections/ShopSmartSection"));
 const AllInOneAppSection = lazy(() => import("./sections/AllInOneAppSection"));
+const BuyerPremiumExperienceSection = lazy(() => import("./sections/BuyerPremiumExperienceSection"));
 const InteractiveProductDemo = lazy(() => import("../Components/InteractiveProductDemo"));
 const LeadCaptureForm = lazy(() => import("../Components/LeadCaptureForm"));
-
-const links = [
-  { label: "Shop", href: "/products" },
-  { label: "Features", href: "#features" },
-  { label: "Categories", href: "#categories" },
-  { label: "Get Started", href: "#cta" },
-  // { label: "Sign up", href: "/auth" },
-];
 
 /**
  * ─── IMPORTANT ───────────────────────────────────────────────────────────────
@@ -53,83 +52,87 @@ const BuyerLanding = () => {
       {/* Critical Performance: Preload the heavy sprite panel */}
       <link rel="preload" as="image" href={WS_IMG} />
 
-      <SEO 
-        title="WooSho Buyer - Smart Shopping, Curated for You"
-        description="Experience AI-curated shopping with WooSho. Find exactly what you need with our intelligent shopping assistant."
-        keywords="smart shopping, AI assistant, buy online, WooSho buyer"
+      <SEO
+        title={BUYER_SEO.title}
+        description={BUYER_SEO.description}
+        keywords={BUYER_SEO.keywords}
       />
       
-      <ModernNavbar navLinks={links} />
+      <MarketingNavbar cta={BUYER_NAV_CTA} navLinks={BUYER_NAV_LINKS} />
 
-      <div className="w-full bg-white font-sans antialiased selection:bg-blue-200 selection:text-blue-900 overflow-hidden">
+      <div className="w-full overflow-hidden bg-white font-sans antialiased selection:bg-blue-200 selection:text-blue-900 dark:bg-[#0a0a0a]">
         {/* ── 1. Hero (Standard Load) ────────────────────────── */}
         <HeroSection />
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="problem">
             <ProblemSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="solution">
             <SolutionSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="features">
             <SmartFeaturesSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <InteractiveProductDemo />
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="shop-smart">
             <ShopSmartSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="categories">
             <CategoriesSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="social">
             <SocialProofSection />
             <AllInOneAppSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="trust">
             <TrustSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
-          <section className="bg-slate-50 px-6 py-20">
+        <LazyMarketingSection>
+          <BuyerPremiumExperienceSection />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection>
+          <section className="bg-slate-50 px-6 py-20 dark:bg-[#08080A]">
             <div className="mx-auto max-w-3xl">
               <LeadCaptureForm
-                audience="buyer"
-                title="Get smarter shopping drops"
-                description="Join the buyer list for launch drops, personalized collections, and AI shopping updates."
-                cta="Join Buyer List"
+                audience={BUYER_LEAD_CAPTURE.audience}
+                title={BUYER_LEAD_CAPTURE.title}
+                description={BUYER_LEAD_CAPTURE.description}
+                cta={BUYER_LEAD_CAPTURE.cta}
               />
             </div>
           </section>
-        </Suspense>
+        </LazyMarketingSection>
 
-        <Suspense fallback={<MarketingSkeleton sections={1} />}>
+        <LazyMarketingSection>
           <div id="cta">
             <FinalCtaSection />
           </div>
-        </Suspense>
+        </LazyMarketingSection>
       </div>
     </>
   );

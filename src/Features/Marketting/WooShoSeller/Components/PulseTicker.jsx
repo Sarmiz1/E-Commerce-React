@@ -1,13 +1,6 @@
 import React, { useEffect, useRef, useState, memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
-
-const NOTIFICATIONS = [
-  "Ngozi in Lagos just received an order ✓",
-  "Emeka in Abuja just listed 5 new products",
-  "Amara's AI replied to 12 buyers",
-  `A seller in Enugu just hit their first ${formatMoneyCurrency(50000000).replace(".00", "")} month`,
-];
+import { SELLER_PULSE_NOTIFICATIONS } from '../Data/sectionsData.jsx';
 
 const VISIBLE_DURATION = 5000;  // ms notification stays visible
 const CYCLE_INTERVAL   = 20000; // ms between each appearance
@@ -30,7 +23,7 @@ function PulseTicker() {
 
     hideTimer.current = setTimeout(() => {
       setIsVisible(false);
-      indexRef.current = (indexRef.current + 1) % NOTIFICATIONS.length;
+      indexRef.current = (indexRef.current + 1) % SELLER_PULSE_NOTIFICATIONS.length;
     }, VISIBLE_DURATION);
   };
 
@@ -72,7 +65,7 @@ function PulseTicker() {
             </div>
             <div>
               <p className="text-sm text-gray-200 font-medium leading-snug">
-                {NOTIFICATIONS[currentIndex]}
+                {SELLER_PULSE_NOTIFICATIONS[currentIndex]}
               </p>
               <p className="text-xs text-indigo-400 mt-0.5">Just now</p>
             </div>

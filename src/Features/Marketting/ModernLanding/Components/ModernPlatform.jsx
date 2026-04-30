@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Cpu, Zap, Target, Search, BarChart3, Fingerprint } from 'lucide-react';
 import neuralImg from '../../../../assets/marketing/neural-preview.png';
+import { PLATFORM_CONTENT } from '../Data/platformContent';
 
 const BentoCard = ({ children, className = "", delay = 0 }) => (
   <motion.div
@@ -27,18 +28,18 @@ const ModernPlatform = memo(function ModernPlatform() {
             whileInView={{ opacity: 1 }}
             className="text-blue-600 font-bold tracking-widest text-xs uppercase"
           >
-            Built for the Future
+            {PLATFORM_CONTENT.eyebrow}
           </motion.span>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-7xl font-bold mt-4 mb-6 text-gray-900 dark:text-white leading-tight tracking-tight"
           >
-            One Intelligent <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Platform.</span>
+            {PLATFORM_CONTENT.heading.lineOne} <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">{PLATFORM_CONTENT.heading.highlight}</span>
           </motion.h2>
           <p className="text-gray-600 dark:text-gray-400 text-xl max-w-2xl mx-auto">
-            Everything you need to scale. Powered by real-time neural networks that learn and adapt to every user.
+            {PLATFORM_CONTENT.description}
           </p>
         </div>
 
@@ -51,9 +52,9 @@ const ModernPlatform = memo(function ModernPlatform() {
               <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center border border-blue-200 dark:border-blue-500/20">
                 <Target className="text-blue-600" size={28} />
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Intent Mapping</h3>
+              <h3 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{PLATFORM_CONTENT.intent.title}</h3>
               <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-                Buy and sell based on true needs, not just keywords. Our AI engine understands naturally spoken requests and maps them to the exact product graph.
+                {PLATFORM_CONTENT.intent.body}
               </p>
             </div>
             <div className="flex-1 relative w-full min-h-[220px] md:h-full rounded-2xl overflow-hidden border border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-black/50">
@@ -83,9 +84,9 @@ const ModernPlatform = memo(function ModernPlatform() {
               <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-500/10 flex items-center justify-center border border-purple-200 dark:border-purple-500/20">
                 <Cpu className="text-purple-600" size={28} />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Neural Analysis</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{PLATFORM_CONTENT.neural.title}</h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Deep behavioral analysis ensures every product choice fits seamlessly into the buyer's lifestyle.
+                {PLATFORM_CONTENT.neural.body}
               </p>
             </div>
             
@@ -98,7 +99,7 @@ const ModernPlatform = memo(function ModernPlatform() {
                 visible: { transition: { staggerChildren: 0.1 } }
               }}
             >
-               {[40, 70, 45, 90, 65, 100].map((h, i) => (
+               {PLATFORM_CONTENT.neural.bars.map((h, i) => (
                  <motion.div 
                     key={i}
                     variants={{
@@ -117,9 +118,9 @@ const ModernPlatform = memo(function ModernPlatform() {
               <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center border border-amber-200 dark:border-amber-500/20">
                 <Zap className="text-amber-600" size={28} />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">The Perfect Match</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{PLATFORM_CONTENT.matching.title}</h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Instant connections between high-intent buyers and premium sellers, maximizing conversion.
+                {PLATFORM_CONTENT.matching.body}
               </p>
             </div>
             <div className="mt-8 relative h-24 overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/5">
@@ -144,12 +145,12 @@ const ModernPlatform = memo(function ModernPlatform() {
             />
             <div className="absolute bottom-0 left-0 w-full p-10 z-20 flex justify-between items-end">
                <div>
-                  <h3 className="text-3xl font-bold text-white mb-2 tracking-tight">Predictive Analytics</h3>
-                  <p className="text-gray-300 max-w-md">Real-time inventory and yield optimization for enterprise sellers.</p>
+                  <h3 className="text-3xl font-bold text-white mb-2 tracking-tight">{PLATFORM_CONTENT.analytics.title}</h3>
+                  <p className="text-gray-300 max-w-md">{PLATFORM_CONTENT.analytics.body}</p>
                </div>
                <div className="hidden md:flex items-center gap-3 glass-card px-4 py-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md">
                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                 <span className="text-white text-sm font-bold">System Online</span>
+                 <span className="text-white text-sm font-bold">{PLATFORM_CONTENT.analytics.status}</span>
                </div>
             </div>
           </BentoCard>

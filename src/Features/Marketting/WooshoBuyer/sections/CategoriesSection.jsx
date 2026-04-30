@@ -5,6 +5,7 @@ import { Package } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
 import { formatLink } from '../../../../Utils/formatLink'
+import { BUYER_CATEGORIES, BUYER_DELIVERY_PROMISE } from '../Data/sectionsData.jsx';
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
@@ -16,41 +17,6 @@ const PANEL_3 = {
   backgroundPosition: '0% 57%',
   backgroundRepeat: 'no-repeat',
 };
-
-const categories = [
-  {
-    title: 'Fashion',
-    img: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=600&q=80',
-    colSpan: 'col-span-1 md:col-span-2',
-  },
-  {
-    title: 'Sneakers',
-    img: 'https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=400&q=80',
-    colSpan: 'col-span-1',
-  },
-  {
-    title: 'Electronics',
-    img: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=400&q=80',
-    colSpan: 'col-span-1',
-  },
-  {
-    title: 'Beauty',
-    img: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?auto=format&fit=crop&w=400&q=80',
-    colSpan: 'col-span-1',
-  },
-  {
-    title: 'Gadgets',
-    img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
-    colSpan: 'col-span-1 md:col-span-2',
-  },
-  {
-    title: 'Accessories',
-    img: 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?auto=format&fit=crop&w=400&q=80',
-    colSpan: 'col-span-1',
-  },
-];
-
-const delivery = '48H'; // This could be dynamic based on actual delivery times or offers
 
 const CategoriesSection = () => {
   const sectionRef    = useRef(null);
@@ -156,14 +122,14 @@ const CategoriesSection = () => {
               }}
             >
               <Package size={14} color="#fff" />
-              <span className="text-white text-xs font-bold">{delivery} Nationwide</span>
+              <span className="text-white text-xs font-bold">{BUYER_DELIVERY_PROMISE} Nationwide</span>
             </div>
           </div>
         </div>
 
         {/* ── Category Grid ───────────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[230px]">
-          {categories.map((cat, i) => (
+          {BUYER_CATEGORIES.map((cat, i) => (
             <div
               key={i}
               ref={el => (cardsRef.current[i] = el)}

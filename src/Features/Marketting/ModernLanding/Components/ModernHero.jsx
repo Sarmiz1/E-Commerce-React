@@ -5,6 +5,7 @@ import { MousePointer2, ArrowRight, Sparkles } from 'lucide-react';
 import MagneticButton from '../../Components/MagneticButton';
 import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
 import heroImg from '../../../../assets/marketing/hero-blur.png';
+import { DEFAULT_HERO_VARIANT, HERO_VARIANTS } from '../Data/heroContent';
 
 
 
@@ -13,35 +14,7 @@ const ModernHero = memo(function ModernHero() {
   const [searchParams] = useSearchParams();
   const ref = searchParams.get('ref');
 
-  // Personalized copy based on referral source
-  const heroVariants = {
-    seller: {
-      titleWords: ["Grow", "Sales.", "Smarter", "Selling."],
-      subtitle: "Reach high-intent buyers instantly with AI-powered product matching. Zero wasted ad spend. Pure demand.",
-      primaryCta: "Start Selling",
-      primaryLink: "/auth",
-      secondaryCta: "See How It Works",
-      secondaryLink: "/seller",
-    },
-    buyer: {
-      titleWords: ["Discover", "More.", "Search", "Less."],
-      subtitle: "Stop scrolling endlessly. Woosho's AI learns what you love and surfaces the perfect products — instantly.",
-      primaryCta: "Start Shopping",
-      primaryLink: "/auth",
-      secondaryCta: "Browse Products",
-      secondaryLink: "/products",
-    },
-    default: {
-      titleWords: ["Smarter", "Shopping.", "Smarter", "Selling."],
-      subtitle: "Woosho uses built-in AI to match the right products with the right people — instantly. Experience commerce that understands you.",
-      primaryCta: "Start Shopping",
-      primaryLink: "/auth",
-      secondaryCta: "Start Selling",
-      secondaryLink: "/auth",
-    },
-  };
-
-  const hero = heroVariants[ref] || heroVariants.default;
+  const hero = HERO_VARIANTS[ref] || HERO_VARIANTS[DEFAULT_HERO_VARIANT];
 
   // Mouse Parallax Setup
   const mouseX = useMotionValue(0);

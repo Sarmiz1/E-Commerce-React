@@ -1,25 +1,12 @@
 import React, { useRef, useEffect } from 'react';
-import { ArrowRight, Store, Zap, CreditCard } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useNavigate } from 'react-router-dom';
+import { SELLER_CTA_AVATARS, SELLER_CTA_GUARANTEES, SELLER_CTA_STEPS } from '../Data/sectionsData.jsx';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
-
-const STEPS = [
-  { icon: Store, label: 'Create your store', sub: '2 minutes to set up', color: '#6366f1' },
-  { icon: Zap, label: 'AI lists your products', sub: 'Upload a photo — done', color: '#f59e0b' },
-  { icon: CreditCard, label: 'Get paid in 48 hours', sub: 'Automatic payouts', color: '#10b981' },
-];
-
-const AVATARS = [
-  { bg: "#6366f1" },
-  { bg: "#ec4899" },
-  { bg: "#10b981" },
-  { bg: "#f59e0b" },
-  { bg: "#8b5cf6" },
-];
 
 const UserAvatar = ({ bg, isFirst }) => (
   <svg 
@@ -119,7 +106,7 @@ export default function Section9_Cta() {
 
         {/* 3 Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-          {STEPS.map(({ icon: Icon, label, sub, color }) => (
+          {SELLER_CTA_STEPS.map(({ icon: Icon, label, sub, color }) => (
             <div
               key={label}
               className="cta-step"
@@ -157,7 +144,7 @@ export default function Section9_Cta() {
           </motion.button>
 
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {['No credit card needed', 'Cancel anytime', 'Payout in 48hrs'].map((text) => (
+            {SELLER_CTA_GUARANTEES.map((text) => (
               <span key={text} style={{ fontSize: 12, fontWeight: 700, color: '#4b5563', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ color: '#10b981' }}>✓</span> {text}
               </span>
@@ -168,7 +155,7 @@ export default function Section9_Cta() {
         {/* Social proof strip */}
         <div style={{ marginTop: 56, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex' }}>
-            {AVATARS.map((avatar, i) => (
+            {SELLER_CTA_AVATARS.map((avatar, i) => (
               <UserAvatar key={i} bg={avatar.bg} isFirst={i === 0} />
             ))}
           </div>

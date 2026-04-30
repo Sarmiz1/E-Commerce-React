@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Smartphone, Zap, ShieldCheck, Heart, Star } from 'lucide-react';
+import { Smartphone, Heart, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
+import { BUYER_APP_STEPS } from '../Data/sectionsData.jsx';
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
@@ -14,27 +15,6 @@ const PANEL_2 = {
   backgroundPosition: '100% 0%',
   backgroundRepeat: 'no-repeat',
 };
-
-const steps = [
-  {
-    icon: <Zap size={20} />,
-    title: 'Fast',
-    desc: 'Find what you are looking for in seconds. Our smart search gets you straight to the best products without the hassle.',
-    color: '#2563eb',
-  },
-  {
-    icon: <Heart size={20} />,
-    title: 'Easy',
-    desc: 'An intuitive, clean interface designed so everyone in the family can browse and shop effortlessly.',
-    color: '#0891b2',
-  },
-  {
-    icon: <ShieldCheck size={20} />,
-    title: 'Reliable',
-    desc: 'Count on us for verified sellers, genuine products, and consistent delivery you can trust.',
-    color: '#059669',
-  },
-];
 
 const AllInOneAppSection = () => {
   const sectionRef  = useRef(null);
@@ -106,7 +86,9 @@ const AllInOneAppSection = () => {
               style={{ background: 'linear-gradient(to bottom, #dbeafe, #cffafe, #d1fae5)' }}
             />
 
-            {steps.map((step, i) => (
+            {BUYER_APP_STEPS.map((step, i) => {
+              const Icon = step.icon;
+              return (
               <div
                 key={i}
                 ref={el => (stepsRef.current[i] = el)}
@@ -121,7 +103,7 @@ const AllInOneAppSection = () => {
                     border: `2px solid ${step.color}33`,
                   }}
                 >
-                  {step.icon}
+                  <Icon size={20} />
                 </div>
 
                 {/* Content */}
@@ -130,7 +112,7 @@ const AllInOneAppSection = () => {
                   <p className="text-[14px] text-neutral-500 dark:text-neutral-400 leading-relaxed">{step.desc}</p>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 
@@ -165,13 +147,10 @@ const AllInOneAppSection = () => {
 
           {/* Floating AI prompt pill — top */}
           <div
-            className="absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-xs font-semibold whitespace-nowrap"
+            className="absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-white/80 bg-white/90 text-slate-800 dark:border-white/10 dark:bg-[#111113]/85 dark:text-white text-xs font-semibold whitespace-nowrap"
             style={{
-              background: 'rgba(255,255,255,0.9)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.8)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-              color: '#1e293b',
             }}
           >
             <div

@@ -5,6 +5,7 @@ import { ArrowRight, Users, Star } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
 import MagneticButton from '../../Components/MagneticButton';
+import { BUYER_FINAL_PROOF } from '../Data/sectionsData.jsx';
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)
 
@@ -168,7 +169,7 @@ const FinalCtaSection = () => {
                     <Star key={i} size={13} style={{ fill: '#fbbf24', color: '#fbbf24' }} />
                   ))}
                 </div>
-                <span className="text-sm font-bold text-white">4.9</span>
+                <span className="text-sm font-bold text-white">{BUYER_FINAL_PROOF.rating}</span>
                 <span className="text-sm text-neutral-500">rating</span>
               </div>
               <div
@@ -176,14 +177,14 @@ const FinalCtaSection = () => {
                 style={{ background: 'rgba(255,255,255,0.12)' }}
               />
               <span className="text-sm text-neutral-400">
-                <strong className="text-white">2.4M+</strong> shoppers trust WooSho
+                <strong className="text-white">{BUYER_FINAL_PROOF.shopperCount}</strong> shoppers trust WooSho
               </span>
               <div
                 className="w-px h-4"
                 style={{ background: 'rgba(255,255,255,0.12)' }}
               />
               <span className="text-sm text-neutral-400">
-                Free to start
+                {BUYER_FINAL_PROOF.finalNote}
               </span>
             </div>
           </div>

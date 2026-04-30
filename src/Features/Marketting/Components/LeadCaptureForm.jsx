@@ -4,6 +4,8 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "../../../supabaseClient";
 import { trackEvent } from "../../../api/track_events";
 import { useExperiment } from "../../../Hooks/useExperiment";
+import { useTheme } from "../../../Context/theme/ThemeContext";
+import { getLeadCaptureExperiments } from "../Data/leadCaptureExperiments";
 
 const LEAD_STORE_KEY = "woosho.marketing.leads";
 
@@ -21,13 +23,14 @@ export default function LeadCaptureForm({
   title = "Get early access",
   description = "Join the WooSho list for launches, marketplace updates, and smarter shopping tools.",
   cta = "Join Waitlist",
-  dark = false,
+  dark,
 }) {
-  const experiment = useExperiment(`lead-capture-${audience}`, [
-    { id: "control", title, cta, weight: 2 },
-    { id: "early-access", title: "Get early access", cta: "Request Access" },
-    { id: "drops", title: "Get launch drops first", cta: "Join The List" },
-  ]);
+  const { isDark } = useTheme();
+  const useDark = dark ?? isDark;
+  const experiment = useExperiment(
+    `lead-capture-${audience}`,
+    getLeadCaptureExperiments({ title, cta }),
+  );
   const [form, setForm] = useState({
     email: "",
     name: "",
@@ -67,13 +70,13 @@ export default function LeadCaptureForm({
     setStatus("saved");
   };
 
-  const surface = dark
+  const surface = useDark
     ? "border-white/10 bg-white/[0.04] text-white"
     : "border-slate-200 bg-white text-slate-950";
-  const muted = dark ? "text-white/60" : "text-slate-500";
+  const muted = useDark ? "text-white/60" : "text-slate-500";
   const input =
     "h-12 rounded-xl border px-4 text-sm outline-none transition focus:ring-2 focus:ring-blue-500/30";
-  const inputTheme = dark
+  const inputTheme = useDark
     ? "border-white/10 bg-black/20 text-white placeholder:text-white/35"
     : "border-slate-200 bg-slate-50 text-slate-950 placeholder:text-slate-400";
 

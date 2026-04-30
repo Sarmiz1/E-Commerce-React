@@ -13,55 +13,11 @@
  */
 
 import React from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 
 import DELIVERY_IMG from "../../../../assets/marketing/truck-delivery.png"
+import { SELLER_DELIVERY_BADGES, SELLER_DELIVERY_STATS } from "../Data/sectionsData.jsx";
 // ──────────────────────────────────────────────────────────────
-
-const TRUST_BADGES = [
-  {
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l3 3h3m3-13h2l3 3v10h-1m-5-3a2 2 0 104 0 2 2 0 00-4 0M6 19a2 2 0 100-4 2 2 0 000 4z" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    title: "Same-Day Pickup",
-    sub: "We collect from your door",
-  },
-  {
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13V7m0 13l6-3m-6-3l6 3m0 0l5.447-2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m0 13V7" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    title: "Nationwide Coverage",
-    sub: "All 36 states + FCT",
-  },
-  {
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    title: "Insured Packages",
-    sub: "Every order is protected",
-  },
-  {
-    icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    title: "Live Tracking",
-    sub: "Real-time for you & buyers",
-  },
-];
-
-const STATS = [
-  { value: "1.2M+", label: "Deliveries Completed" },
-  { value: "98.4%", label: "On-Time Rate" },
-  { value: "36", label: "States Covered" },
-];
 
 // stagger container
 const container = {
@@ -161,7 +117,7 @@ export default function SectionB_Delivery() {
             viewport={{ once: true }}
             className="mt-10 flex flex-wrap gap-6"
           >
-            {STATS.map(({ value, label }) => (
+            {SELLER_DELIVERY_STATS.map(({ value, label }) => (
               <motion.div key={label} variants={item} className="flex flex-col gap-0.5">
                 <span className="text-3xl font-black text-white">{value}</span>
                 <span className="text-xs text-white/40">{label}</span>
@@ -177,14 +133,14 @@ export default function SectionB_Delivery() {
             viewport={{ once: true }}
             className="mt-10 grid grid-cols-2 gap-3"
           >
-            {TRUST_BADGES.map(({ icon, title, sub }) => (
+            {SELLER_DELIVERY_BADGES.map(({ title, sub }) => (
               <motion.div
                 key={title}
                 variants={item}
                 className="flex items-start gap-3 p-4 rounded-2xl bg-white/[0.05] border border-white/[0.08] backdrop-blur-sm hover:bg-white/[0.08] transition-colors"
               >
                 <div className="shrink-0 w-9 h-9 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-400">
-                  {icon}
+                  <span className="h-2.5 w-2.5 rounded-full bg-violet-400 shadow-[0_0_14px_rgba(167,139,250,0.8)]" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{title}</p>

@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
-import { useAllProducts } from "../../Hooks/product/useProducts"; 
 import { STYLES } from "./Styles/styles";
 
 import MarqueeStrip from "./Components/MarqueeStrip";
@@ -46,20 +45,38 @@ const ExploreSellersSection = lazy(() => import("./Components/Sections/ExploreSe
 const ShopByBrandSection = lazy(() => import("./Components/Sections/ShopByBrandSection"));
 const ContinueShoppingSection = lazy(() => import("./Components/Sections/ContinueShoppingSection"));
 const EditorialCollectionsSection = lazy(() => import("./Components/Sections/EditorialCollectionsSection"));
-import { usePersonalizedProducts } from "./Hooks/usePersonalizedProducts";
+import { useHomeCurations } from "./Hooks/useHomeCurations";
 import { HOME_GROWTH_SECTIONS } from "./homeSectionsConfig";
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
+const uniqueProducts = (...groups) => {
+  const byId = new Map();
+  groups.flat().forEach((product) => {
+    if (product?.id && !byId.has(product.id)) {
+      byId.set(product.id, product);
+    }
+  });
+  return [...byId.values()];
+};
+
 export default function HomePage() {
-  // Products
-  const { data: products = [], isLoading, error } = useAllProducts();
+  const {
+    data: homeCurations,
+    isLoading,
+    error,
+  } = useHomeCurations();
   
   useEffect(() => {
-    if (error) console.log("Home page error", error);
+    if (error) console.log("Home page curation error", error);
   }, [error]);
 
-  const personalized = usePersonalizedProducts(products);
+  useEffect(() => {
+    if (homeCurations?.unavailableFeeds?.length) {
+      console.warn("Unavailable homepage curation feeds", homeCurations.unavailableFeeds);
+    }
+  }, [homeCurations?.unavailableFeeds]);
+
   const enabledGrowthSections = useMemo(() => 
     HOME_GROWTH_SECTIONS.filter((section) => section.enabled)
       .sort((a, b) => a.priority - b.priority),
@@ -76,32 +93,60 @@ export default function HomePage() {
     return () => window.removeEventListener("open-quickview", handleQuickView);
   }, []);
 
-  // Product slices
-  const heroFeatured = useMemo(() => products[0] || null, [products]);
-  const trending = useMemo(() => products.slice(0, 6), [products]);
-  const bestSellers = useMemo(() => products.slice(2, 8), [products]);
-  const newArrivals = useMemo(() => products.slice(4, 8), [products]);
-  const flashDeals = useMemo(() => products.slice(1, 5), [products]);
-  const editorsPicks = useMemo(() => products.slice(3, 7), [products]);
-  const dealOfDay = useMemo(() => products[5] || products[0] || null, [products]);
-  const scrollStrip = useMemo(() => products.slice(0, 8), [products]);
-  const bentoProducts = useMemo(() => products.slice(0, 5), [products]);
-  const filterGrid = useMemo(() => products.slice(0, 12), [products]);
-  const lookbook = useMemo(() => products.slice(0, 4), [products]);
+  const allCuratedProducts = useMemo(() => uniqueProducts(
+    homeCurations?.heroFeatured,
+    homeCurations?.trendingProducts,
+    homeCurations?.bestSellers,
+    homeCurations?.newArrivals,
+    homeCurations?.flashDeals,
+    homeCurations?.recommendedForUser,
+    homeCurations?.continueShopping,
+    homeCurations?.editorialCollections,
+    homeCurations?.hotRightNow,
+    homeCurations?.mostLoved,
+    homeCurations?.editorsPicks,
+    homeCurations?.dealOfTheDay,
+    homeCurations?.productScrollStrip,
+    homeCurations?.bentoProducts,
+    homeCurations?.filterGrid,
+    homeCurations?.lookbook,
+    homeCurations?.basedOnBrowsing,
+  ), [homeCurations]);
 
-  // New premium section slices
-  const hotRightNow = useMemo(() => products.slice(2, 10), [products]);
-  const mostLoved = useMemo(() => products.slice(5, 13), [products]);
-  const recommendedForYou = useMemo(() => personalized.hasSignals
-    ? personalized.forYou.slice(0, 5)
-    : products.slice(3, 8), [personalized, products]);
-  const basedOnBrowsing = useMemo(() => personalized.hasSignals
-    ? personalized.basedOnBrowsing
-    : products.slice(0, 12), [personalized, products]);
-  const continueShopping = personalized.continueShopping;
+  const heroFeatured = homeCurations?.heroFeatured?.[0] || homeCurations?.trendingProducts?.[0] || null;
+  const trending = homeCurations?.trendingProducts || [];
+  const bestSellers = homeCurations?.bestSellers || [];
+  const newArrivals = homeCurations?.newArrivals || [];
+  const flashDeals = homeCurations?.flashDeals || [];
+  const editorsPicks = homeCurations?.editorsPicks || [];
+  const editorialProducts = homeCurations?.editorialCollections?.length
+    ? homeCurations.editorialCollections
+    : allCuratedProducts;
+  const dealOfDay =
+    homeCurations?.dealOfTheDay?.[0] ||
+    flashDeals[0] ||
+    heroFeatured;
+  const scrollStrip = homeCurations?.productScrollStrip?.length
+    ? homeCurations.productScrollStrip
+    : allCuratedProducts.slice(0, 10);
+  const bentoProducts = homeCurations?.bentoProducts?.length
+    ? homeCurations.bentoProducts
+    : allCuratedProducts.slice(0, 5);
+  const filterGrid = homeCurations?.filterGrid?.length
+    ? homeCurations.filterGrid
+    : allCuratedProducts.slice(0, 12);
+  const lookbook = homeCurations?.lookbook?.length
+    ? homeCurations.lookbook
+    : allCuratedProducts.slice(0, 4);
+  const hotRightNow = homeCurations?.hotRightNow || [];
+  const mostLoved = homeCurations?.mostLoved || [];
+  const recommendedForYou = homeCurations?.recommendedForUser || [];
+  const basedOnBrowsing = homeCurations?.basedOnBrowsing || [];
+  const continueShopping = homeCurations?.continueShopping || [];
+  const curationCards = homeCurations?.curationCards || [];
 
   // Loading state
-  if (isLoading && !products.length) {
+  if (isLoading && !allCuratedProducts.length) {
     return <HomePageLoadingState />;
   }
 
@@ -134,7 +179,7 @@ export default function HomePage() {
       {/* ── ALL SECTIONS ── */}
       <LazyRender>
         <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading Categories...</div>}>
-          <CategoriesSection />
+          <CategoriesSection curations={curationCards} />
         </Suspense>
       </LazyRender>
 
@@ -259,7 +304,7 @@ export default function HomePage() {
       {enabledGrowthSections.some((section) => section.id === "editorial-collections") && (
         <LazyRender>
           <Suspense fallback={<div className="h-64" />}>
-            <EditorialCollectionsSection products={products} />
+            <EditorialCollectionsSection products={editorialProducts} />
           </Suspense>
         </LazyRender>
       )}
