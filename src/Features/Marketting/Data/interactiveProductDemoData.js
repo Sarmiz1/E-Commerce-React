@@ -1,0 +1,102 @@
+import shoeImg from "../../../assets/marketing/shoe-stealth.png";
+import sneakersImg from "../../../assets/marketing/cat-sneakers.png";
+import fashionImg from "../../../assets/marketing/cat-fashion.png";
+import heroImg from "../../../assets/marketing/hero-blur.png";
+import neuralImg from "../../../assets/marketing/neural-preview.png";
+
+export const DEMO_PRODUCTS = [
+  {
+    id: "demo-1",
+    name: "Stealth Runner X1 - Carbon Mesh",
+    slug: "stealth-runner-x1",
+    image: shoeImg,
+    price_cents: 7500,
+    rating_stars: 4.8,
+    rating_count: 142,
+    tags: ["sneakers", "running", "comfortable", "black"],
+    seller: { store_name: "AceKicks" },
+  },
+  {
+    id: "demo-2",
+    name: "Classic Retro Kicks - Heritage Edition",
+    slug: "classic-retro-kicks",
+    image: sneakersImg,
+    price_cents: 5999,
+    rating_stars: 4.6,
+    rating_count: 87,
+    tags: ["sneakers", "classic", "retro", "casual"],
+    seller: { store_name: "SoleCraft" },
+  },
+  {
+    id: "demo-3",
+    name: "Mode Sauvage - Couture Jacket",
+    slug: "mode-sauvage-jacket",
+    image: fashionImg,
+    price_cents: 12500,
+    rating_stars: 4.9,
+    rating_count: 56,
+    tags: ["fashion", "premium", "luxury", "gift", "home"],
+    seller: { store_name: "Maison Noir" },
+  },
+  {
+    id: "demo-4",
+    name: "Blur Edit - Limited Art Print",
+    slug: "blur-edit-print",
+    image: heroImg,
+    price_cents: 3500,
+    rating_stars: 4.7,
+    rating_count: 34,
+    tags: ["home", "art", "gift", "decor", "premium"],
+    seller: { store_name: "WooSho Originals" },
+  },
+  {
+    id: "demo-5",
+    name: "Neural Glow - Skincare Set",
+    slug: "neural-glow-set",
+    image: neuralImg,
+    price_cents: 4200,
+    rating_stars: 4.5,
+    rating_count: 210,
+    tags: ["beauty", "skincare", "glow", "reviews", "great"],
+    seller: { store_name: "GlowLab" },
+  },
+  {
+    id: "demo-6",
+    name: "Urban Stride - Everyday Comfort",
+    slug: "urban-stride",
+    image: shoeImg,
+    price_cents: 4800,
+    rating_stars: 4.4,
+    rating_count: 98,
+    tags: ["sneakers", "comfortable", "walking", "daily"],
+    seller: { store_name: "StrideCo" },
+  },
+  {
+    id: "demo-7",
+    name: "Heritage Scarf - Handwoven Silk",
+    slug: "heritage-scarf",
+    image: fashionImg,
+    price_cents: 8900,
+    rating_stars: 4.8,
+    rating_count: 45,
+    tags: ["fashion", "gift", "premium", "home", "silk"],
+    seller: { store_name: "Maison Noir" },
+  },
+  {
+    id: "demo-8",
+    name: "Radiance Serum - Vitamin C Complex",
+    slug: "radiance-serum",
+    image: neuralImg,
+    price_cents: 2800,
+    rating_stars: 4.9,
+    rating_count: 320,
+    tags: ["beauty", "serum", "skincare", "reviews", "great", "vitamin"],
+    seller: { store_name: "GlowLab" },
+  },
+];
+
+export const DEMO_QUERIES = [
+  "comfortable sneakers under $80",
+  "premium home gifts",
+  "beauty products with great reviews",
+];

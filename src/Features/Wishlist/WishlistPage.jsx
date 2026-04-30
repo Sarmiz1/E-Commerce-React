@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, Heart, Star, ShoppingCart, TrendingDown, Clock, Check, Trash2, CheckSquare } from "lucide-react";
+import { ChevronDown, Heart, Star, ShoppingCart, TrendingDown, Clock, Check, Trash2, CheckSquare, Bell, LayoutGrid, List as ListIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAllProducts } from "../../Hooks/product/useProducts";
@@ -67,14 +67,18 @@ function sortWishlistProducts(products, sortBy) {
   return sorted;
 }
 
-function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect }) {
+function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect, viewMode = "grid" }) {
+  const [notifyDrop, setNotifyDrop] = useState(false);
   const images = useMemo(() => getProductImages(product), [product]);
   const image = images[0] || product?.image;
   const rating = Number(product?.rating_stars || 0);
   const variantId = getDefaultVariantId(product);
 
-  const isLowStock = product?.id?.length % 3 === 0;
-  const hasPriceDrop = product?.id?.length % 5 === 0;
+  const isLowStock = product?.stock_quantity > 0 && product?.stock_quantity <= 10;
+  const originalPrice = product?.compare_at_price_cents || product?.original_price_cents;
+  const hasPriceDrop = originalPrice ? product?.price_cents < originalPrice : false;
+
+  const isList = viewMode === "list";
 
   return (
     <motion.article 
@@ -83,9 +87,9 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-[24px] bg-white dark:bg-slate-900 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] ${isSelected ? 'ring-2 ring-slate-900 dark:ring-white shadow-xl' : 'ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'}`}
+      className={`group relative flex overflow-hidden rounded-[24px] bg-white dark:bg-slate-900 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] ${isSelected ? 'ring-2 ring-slate-900 dark:ring-white shadow-xl' : 'ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm'} ${isList ? 'flex-row h-[220px]' : 'flex-col justify-between'}`}
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-50 dark:bg-white">
+      <div className={`relative overflow-hidden bg-slate-50 dark:bg-white flex-shrink-0 ${isList ? 'w-48 h-full' : 'aspect-[4/5] w-full'}`}>
         <button 
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSelect(product.id); }}
           className={`absolute left-4 top-4 z-30 flex h-6 w-6 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-all ${isSelected ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-900 opacity-100 scale-110' : 'bg-white/90 dark:bg-slate-800/90 border-slate-300 dark:border-slate-600 opacity-0 group-hover:opacity-100 hover:border-slate-400 dark:hover:border-slate-500'}`}
@@ -135,16 +139,16 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect 
         </Link>
       </div>
 
-      <div className="flex flex-1 flex-col justify-between p-5 sm:p-6">
-        <Link to={productDetailHref(product)} className="flex flex-col">
-          <div className="flex items-center justify-between gap-2">
+      <div className={`flex flex-1 flex-col justify-between p-5 sm:p-6 ${isList ? 'items-start text-left' : ''}`}>
+        <Link to={productDetailHref(product)} className={`flex flex-col ${isList ? 'w-full' : ''}`}>
+          <div className="flex items-center justify-between gap-2 w-full">
              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{getProductSize(product)}</span>
              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 {rating ? rating.toFixed(1) : "New"}
                 <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
              </span>
           </div>
-          <h2 className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm font-extrabold text-slate-900 dark:text-slate-100 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300">
+          <h2 className={`mt-2 ${isList ? 'text-lg' : 'line-clamp-2 min-h-[2.5rem] text-sm'} font-extrabold text-slate-900 dark:text-slate-100 transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-300`}>
             {product?.name || "Wishlist product"}
           </h2>
           <div className="mt-3 flex items-baseline gap-2">
@@ -153,19 +157,26 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect 
             </p>
             {hasPriceDrop && (
               <p className="text-xs font-bold text-slate-400 dark:text-slate-500 line-through">
-                {formatMoneyCents((product?.price_cents || 0) * 1.15)}
+                {formatMoneyCents(originalPrice)}
               </p>
             )}
           </div>
         </Link>
 
-        <div className="mt-5 w-full">
+        <div className={`mt-5 w-full flex items-center gap-3 ${isList ? 'max-w-[200px]' : ''}`}>
           <AddToCart
             productId={product.id}
             variantId={variantId}
             variant="pill"
-            className="w-full rounded-xl py-3.5 text-sm font-bold shadow-[0_4px_14px_rgb(0,0,0,0.05)] dark:shadow-none transition-all hover:shadow-[0_6px_20px_rgb(0,0,0,0.1)] dark:hover:shadow-[0_4px_14px_rgb(255,255,255,0.05)] active:scale-[0.98]"
+            className="flex-1 rounded-xl py-3.5 text-sm font-bold shadow-[0_4px_14px_rgb(0,0,0,0.05)] dark:shadow-none transition-all hover:shadow-[0_6px_20px_rgb(0,0,0,0.1)] dark:hover:shadow-[0_4px_14px_rgb(255,255,255,0.05)] active:scale-[0.98]"
           />
+          <button 
+            onClick={() => setNotifyDrop(!notifyDrop)}
+            className={`flex items-center justify-center h-12 w-12 rounded-xl border transition-all ${notifyDrop ? 'bg-amber-100 border-amber-200 text-amber-600 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400' : 'bg-transparent border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+            title="Notify on Price Drop"
+          >
+            <Bell className="h-5 w-5" fill={notifyDrop ? "currentColor" : "none"} />
+          </button>
         </div>
       </div>
     </motion.article>
@@ -293,6 +304,7 @@ function WishlistNewsletter() {
 
 export default function WishlistPage() {
   const [sortBy, setSortBy] = useState("default");
+  const [viewMode, setViewMode] = useState("grid");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -462,53 +474,15 @@ export default function WishlistPage() {
       await addItems(cartItems);
       await persistWishlistRemoval(productIdsToRemove);
 
-      trackEvents([
-        ...cartItems.map((item) => ({
-          eventType: "add_to_cart",
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-          userId: user?.id || null,
-          metadata: {
-            source: "wishlist_bulk",
-            bulk: true,
-          },
-        })),
-        ...cartItems.map((item) => ({
-          eventType: "remove_from_wishlist",
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: 1,
-          userId: user?.id || null,
-          metadata: {
-            signal: "most_loved",
-            reason: "added_to_cart",
-            source: "wishlist_bulk",
-            bulk: true,
-          },
-        })),
-        {
-          eventType: "add_to_cart_bulk",
-          quantity: cartItems.length,
-          userId: user?.id || null,
-          metadata: {
-            product_ids: productIdsToRemove,
-            variant_ids: cartItems.map((item) => item.variantId),
-            source: "wishlist_bulk",
-          },
+      trackEvent({
+        eventType: "add_to_cart_bulk_from_wishlist",
+        quantity: cartItems.length,
+        userId: user?.id || null,
+        metadata: {
+          product_ids: productIdsToRemove,
+          variant_ids: cartItems.map((item) => item.variantId),
         },
-        {
-          eventType: "remove_from_wishlist_bulk",
-          quantity: productIdsToRemove.length,
-          userId: user?.id || null,
-          metadata: {
-            signal: "most_loved",
-            reason: "added_to_cart",
-            product_ids: productIdsToRemove,
-            source: "wishlist_bulk",
-          },
-        },
-      ]);
+      });
 
       setSelectedIds(new Set());
     } catch (error) {
@@ -655,22 +629,70 @@ export default function WishlistPage() {
                         </label>
                       </div>
                       
-                      <button 
-                        onClick={() => handleBulkAddToCart(sortedProducts)} 
-                        disabled={bulkBusy}
-                        className="group inline-flex h-11 items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 px-6 text-sm font-bold text-slate-900 dark:text-white transition hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-60"
-                      >
-                         <ShoppingCart className="h-4 w-4 transition-transform group-hover:scale-110" />
-                         <span className="hidden sm:inline">{bulkBusy ? "Adding All" : "Add All to Cart"}</span>
-                      </button>
+                      <div className="flex flex-col sm:flex-row items-center gap-3">
+                        <div className="hidden sm:flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
+                          <button
+                            onClick={() => setViewMode("grid")}
+                            className={`p-1.5 rounded-md transition-all ${viewMode === "grid" ? "bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
+                          >
+                            <LayoutGrid className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setViewMode("list")}
+                            className={`p-1.5 rounded-md transition-all ${viewMode === "list" ? "bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
+                          >
+                            <ListIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => handleBulkAddToCart(sortedProducts)} 
+                          disabled={bulkBusy}
+                          className="group inline-flex h-11 items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 px-6 text-sm font-bold text-slate-900 dark:text-white transition hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-60"
+                        >
+                           <ShoppingCart className="h-4 w-4 transition-transform group-hover:scale-110" />
+                           <span className="hidden sm:inline">{bulkBusy ? "Adding All" : "Add All to Cart"}</span>
+                        </button>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
               
+              {/* Floating Magnetic Action Bar for Bulk Selection */}
+              <AnimatePresence>
+                {selectedIds.size > 0 && (
+                  <motion.div 
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 100, opacity: 0 }}
+                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6 rounded-full bg-slate-900/90 dark:bg-white/90 px-6 py-4 backdrop-blur-xl shadow-2xl border border-white/10 dark:border-slate-900/10"
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    <span className="text-sm font-bold tracking-wide text-white dark:text-slate-900">
+                      {selectedIds.size} Selected
+                    </span>
+                    <div className="h-4 w-px bg-slate-700 dark:bg-slate-300" />
+                    <button 
+                      onClick={handleBulkRemove} 
+                      disabled={bulkBusy}
+                      className="text-slate-300 hover:text-red-400 dark:text-slate-600 dark:hover:text-red-500 font-bold text-sm transition-colors"
+                    >
+                      Remove
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAddToCart(sortedProducts.filter((product) => selectedIds.has(product.id)))} 
+                      disabled={bulkBusy}
+                      className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-md transition-transform hover:scale-105 active:scale-95"
+                    >
+                      Add to Cart
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <motion.div 
                 layout
-                className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:gap-8"
+                className={`grid gap-4 sm:gap-6 xl:gap-8 ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1 lg:grid-cols-2'}`}
               >
                 <AnimatePresence mode="popLayout">
                   {visibleProducts.map((product) => (
@@ -680,6 +702,7 @@ export default function WishlistPage() {
                       isSelected={selectedIds.has(product.id)}
                       onToggleSelect={handleToggleSelect}
                       onQuickView={setQuickViewProduct}
+                      viewMode={viewMode}
                     />
                   ))}
                 </AnimatePresence>

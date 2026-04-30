@@ -20,6 +20,25 @@ import {
 
 import { ProductIntelPanel } from './ProductIntelPanel';
 
+const playHapticClick = () => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(150, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.03);
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.03);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.03);
+  } catch (e) {}
+};
+
 // ─── ThumbnailGallery — with fixed magnifier ─────────────────────────────────
 const ZOOM_FACTOR = 2.8;
 const LENS_SIZE = 150;
@@ -104,7 +123,11 @@ export function ThumbnailGallery({ product, imageRef }) {
         <div className="flex flex-col gap-2.5 pd-thumbs overflow-y-auto" style={{ maxHeight: 520 }}>
           {views.map((v, i) => (
             <motion.button key={i} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-              onClick={() => { setDirection(i > activeIndex ? 1 : -1); setActiveIndex(i); }}
+              onClick={() => { 
+                playHapticClick();
+                setDirection(i > activeIndex ? 1 : -1); 
+                setActiveIndex(i); 
+              }}
               className="w-[60px] h-[60px] rounded-xl overflow-hidden flex-shrink-0 transition-all duration-300"
               style={{
                 border: i === activeIndex ? "1px solid var(--gold)" : "1px solid var(--pd-b2)",

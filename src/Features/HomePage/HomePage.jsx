@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useAllProducts } from "../../Hooks/product/useProducts"; 
 import { STYLES } from "./Styles/styles";
@@ -6,46 +6,46 @@ import { STYLES } from "./Styles/styles";
 import MarqueeStrip from "./Components/MarqueeStrip";
 import Navbar from "../../Components/Navbar";
 
-
-
-// import Skeleton from "./Components/Sections/Skeleton";
-import CategoriesSection from "./Components/Sections/CategoriesSection";
-import TrendingSection from "./Components/Sections/TrendingSection";
-import FlashSaleSection from "./Components/Sections/FlashSaleSection";
-import BestSellersSection from "./Components/Sections/BestSellersSection";
-import StatsBanner from "./Components/Sections/StatsBanner";
-import NewArrivalsSection from "./Components/Sections/NewArrivalsSection";
-import SplitShowcase from "./Components/Sections/SplitShowcase";
-import EditorsPicks from "./Components/Sections/EditorsPicks";
-import HowItWorksSection from "./Components/Sections/HowItWorksSection";
-import PerksSection from "./Components/Sections/PerksSection";
-import TestimonialsCarousel from "./Components/Sections/TestimonialsCarousel";
-import NewsletterSection from "./Components/Sections/NewsletterSection";
-import CTABanner from "./Components/Sections/CTABanner";
-import BackToTop from "./Components/Sections/BackToTop";
-import DealOfTheDay from "./Components/Sections/DealOfTheDay";
-import ProductScrollStrip from "./Components/Sections/ProductScrollStrip";
-import BentoProductGrid from "./Components/Sections/BentoProductGrid";
-import FilterableGrid from "./Components/Sections/FilterableGrid";
-import LookbookSection from "./Components/Sections/LookbookSection";
-import TrustStrip from "./Components/Sections/TrustStrip";
-import TrendingTags from "./Components/Sections/TrendingTags";
-import HotRightNowSection from "./Components/Sections/HotRightNowSection";
-import MostLovedSection from "./Components/Sections/MostLovedSection";
-import RecommendedForYouSection from "./Components/Sections/RecommendedForYouSection";
-import BasedOnBrowsingSection from "./Components/Sections/BasedOnBrowsingSection";
-import TopSellersSection from "./Components/Sections/TopSellersSection";
-import RecentlyAddedStoresSection from "./Components/Sections/RecentlyAddedStoresSection";
-import RealPurchaseFeedbackSection from "./Components/Sections/RealPurchaseFeedbackSection";
-import ExploreSellersSection from "./Components/Sections/ExploreSellersSection";
-import ShopByBrandSection from "./Components/Sections/ShopByBrandSection";
+import LazyRender from "../../Components/Ui/LazyRender";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
-import ContinueShoppingSection from "./Components/Sections/ContinueShoppingSection";
-import EditorialCollectionsSection from "./Components/Sections/EditorialCollectionsSection";
 import GlobalCommandPalette from "../../Components/GlobalCommandPalette";
 import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 import SEO from "../../Components/SEO";
+
+// Lazy loaded below-the-fold sections
+const CategoriesSection = lazy(() => import("./Components/Sections/CategoriesSection"));
+const TrendingSection = lazy(() => import("./Components/Sections/TrendingSection"));
+const FlashSaleSection = lazy(() => import("./Components/Sections/FlashSaleSection"));
+const BestSellersSection = lazy(() => import("./Components/Sections/BestSellersSection"));
+const StatsBanner = lazy(() => import("./Components/Sections/StatsBanner"));
+const NewArrivalsSection = lazy(() => import("./Components/Sections/NewArrivalsSection"));
+const SplitShowcase = lazy(() => import("./Components/Sections/SplitShowcase"));
+const EditorsPicks = lazy(() => import("./Components/Sections/EditorsPicks"));
+const HowItWorksSection = lazy(() => import("./Components/Sections/HowItWorksSection"));
+const PerksSection = lazy(() => import("./Components/Sections/PerksSection"));
+const TestimonialsCarousel = lazy(() => import("./Components/Sections/TestimonialsCarousel"));
+const NewsletterSection = lazy(() => import("./Components/Sections/NewsletterSection"));
+const CTABanner = lazy(() => import("./Components/Sections/CTABanner"));
+const BackToTop = lazy(() => import("./Components/Sections/BackToTop"));
+const DealOfTheDay = lazy(() => import("./Components/Sections/DealOfTheDay"));
+const ProductScrollStrip = lazy(() => import("./Components/Sections/ProductScrollStrip"));
+const BentoProductGrid = lazy(() => import("./Components/Sections/BentoProductGrid"));
+const FilterableGrid = lazy(() => import("./Components/Sections/FilterableGrid"));
+const LookbookSection = lazy(() => import("./Components/Sections/LookbookSection"));
+const TrustStrip = lazy(() => import("./Components/Sections/TrustStrip"));
+const TrendingTags = lazy(() => import("./Components/Sections/TrendingTags"));
+const HotRightNowSection = lazy(() => import("./Components/Sections/HotRightNowSection"));
+const MostLovedSection = lazy(() => import("./Components/Sections/MostLovedSection"));
+const RecommendedForYouSection = lazy(() => import("./Components/Sections/RecommendedForYouSection"));
+const BasedOnBrowsingSection = lazy(() => import("./Components/Sections/BasedOnBrowsingSection"));
+const TopSellersSection = lazy(() => import("./Components/Sections/TopSellersSection"));
+const RecentlyAddedStoresSection = lazy(() => import("./Components/Sections/RecentlyAddedStoresSection"));
+const RealPurchaseFeedbackSection = lazy(() => import("./Components/Sections/RealPurchaseFeedbackSection"));
+const ExploreSellersSection = lazy(() => import("./Components/Sections/ExploreSellersSection"));
+const ShopByBrandSection = lazy(() => import("./Components/Sections/ShopByBrandSection"));
+const ContinueShoppingSection = lazy(() => import("./Components/Sections/ContinueShoppingSection"));
+const EditorialCollectionsSection = lazy(() => import("./Components/Sections/EditorialCollectionsSection"));
 import { usePersonalizedProducts } from "./Hooks/usePersonalizedProducts";
 import { HOME_GROWTH_SECTIONS } from "./homeSectionsConfig";
 
@@ -132,57 +132,208 @@ export default function HomePage() {
       <HomeHeroSection heroFeatured={heroFeatured} />
 
       {/* ── ALL SECTIONS ── */}
-      <CategoriesSection />
+      <LazyRender>
+        <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading Categories...</div>}>
+          <CategoriesSection />
+        </Suspense>
+      </LazyRender>
+
       {enabledGrowthSections.some((section) => section.id === "continue-shopping") && (
-        <ContinueShoppingSection products={continueShopping} />
+        <LazyRender>
+          <Suspense fallback={<div className="h-64" />}>
+            <ContinueShoppingSection products={continueShopping} />
+          </Suspense>
+        </LazyRender>
       )}
-      <HotRightNowSection products={hotRightNow} isLoading={isLoading} />
-      <MostLovedSection products={mostLoved} isLoading={isLoading} />
-      <TrendingSection products={trending} isLoading={isLoading} />
-      <TrendingTags />
-      <RecommendedForYouSection
-        products={recommendedForYou}
-        isLoading={isLoading}
-      />
-      <FlashSaleSection products={flashDeals} isLoading={isLoading} />
-      <DealOfTheDay product={dealOfDay} isLoading={isLoading} />
-      <BestSellersSection products={bestSellers} isLoading={isLoading} />
-      <StatsBanner />
-      <BentoProductGrid products={bentoProducts} isLoading={isLoading} />
-      <TrustStrip />
-      <NewArrivalsSection products={newArrivals} isLoading={isLoading} />
-      <SplitShowcase />
-      <ProductScrollStrip
-        products={scrollStrip}
-        isLoading={isLoading}
-        title="You Might Also Like"
-        label="Recommendations"
-      />
-      <EditorsPicks products={editorsPicks} isLoading={isLoading} />
-      <LookbookSection products={lookbook} isLoading={isLoading} />
-      <FilterableGrid products={filterGrid} isLoading={isLoading} />
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <HotRightNowSection products={hotRightNow} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <MostLovedSection products={mostLoved} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <TrendingSection products={trending} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-32" />}>
+          <TrendingTags />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <RecommendedForYouSection
+            products={recommendedForYou}
+            isLoading={isLoading}
+          />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <FlashSaleSection products={flashDeals} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-96" />}>
+          <DealOfTheDay product={dealOfDay} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <BestSellersSection products={bestSellers} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <StatsBanner />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-96" />}>
+          <BentoProductGrid products={bentoProducts} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-32" />}>
+          <TrustStrip />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <NewArrivalsSection products={newArrivals} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <SplitShowcase />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <ProductScrollStrip
+            products={scrollStrip}
+            isLoading={isLoading}
+            title="You Might Also Like"
+            label="Recommendations"
+          />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <EditorsPicks products={editorsPicks} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-96" />}>
+          <LookbookSection products={lookbook} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-96" />}>
+          <FilterableGrid products={filterGrid} isLoading={isLoading} />
+        </Suspense>
+      </LazyRender>
+
       {enabledGrowthSections.some((section) => section.id === "editorial-collections") && (
-        <EditorialCollectionsSection products={products} />
+        <LazyRender>
+          <Suspense fallback={<div className="h-64" />}>
+            <EditorialCollectionsSection products={products} />
+          </Suspense>
+        </LazyRender>
       )}
-      <HowItWorksSection />
-      <PerksSection />
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <HowItWorksSection />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <PerksSection />
+        </Suspense>
+      </LazyRender>
 
       {/* Seller & Marketplace Sections */}
-      <TopSellersSection />
-      <RecentlyAddedStoresSection />
-      <ExploreSellersSection />
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <TopSellersSection />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <RecentlyAddedStoresSection />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <ExploreSellersSection />
+        </Suspense>
+      </LazyRender>
 
       {/* Brands & Feedback */}
-      <ShopByBrandSection />
-      <RealPurchaseFeedbackSection />
-      <BasedOnBrowsingSection
-        products={basedOnBrowsing}
-        isLoading={isLoading}
-      />
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <ShopByBrandSection />
+        </Suspense>
+      </LazyRender>
 
-      <TestimonialsCarousel />
-      <NewsletterSection />
-      <CTABanner />
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <RealPurchaseFeedbackSection />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <BasedOnBrowsingSection
+            products={basedOnBrowsing}
+            isLoading={isLoading}
+          />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <TestimonialsCarousel />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <NewsletterSection />
+        </Suspense>
+      </LazyRender>
+
+      <LazyRender>
+        <Suspense fallback={<div className="h-64" />}>
+          <CTABanner />
+        </Suspense>
+      </LazyRender>
 
       {/* Product Detail Modal */}
 
