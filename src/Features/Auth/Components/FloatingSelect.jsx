@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { Store, ChevronDown, Check } from "lucide-react";
 
-export default function FloatingSelect({ label, value, onChange, options, colors, isDark }) {
+const FloatingSelect = forwardRef(({ label, value, onChange, onBlur, name, options, colors, isDark, error }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const containerRef = useRef(null);
 
-  const active = focused || value.length > 0 || isOpen;
+  const active = focused || (value !== undefined && value !== null && String(value).length > 0) || isOpen;
   const selectedOption = options.find(o => o.value === value);
 
   // Close dropdown on outside click
@@ -16,20 +16,25 @@ export default function FloatingSelect({ label, value, onChange, options, colors
       if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
         setFocused(false);
+        if (onBlur && isOpen) onBlur();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen, onBlur]);
 
   const handleSelect = (val) => {
     // Simulate native event structure for the onChange handler
-    onChange({ target: { value: val } });
+    if (onChange) onChange({ target: { name, value: val } });
     setIsOpen(false);
   };
 
   return (
-    <div ref={containerRef} style={{ position: "relative", marginBottom: 13, zIndex: isOpen ? 50 : 1 }}>
+    <div ref={(node) => {
+      containerRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    }} style={{ position: "relative", marginBottom: error ? 24 : 13, zIndex: isOpen ? 50 : 1 }}>
       {/* Floating label */}
       <label
         style={{
@@ -40,7 +45,7 @@ export default function FloatingSelect({ label, value, onChange, options, colors
           transform: active ? "translateY(0)" : "translateY(-50%)",
           fontSize: active ? 9.5 : 13.5,
           fontWeight: active ? 700 : 400,
-          color: focused || isOpen ? colors.cta.primary : colors.text.tertiary,
+          color: error ? "#ef4444" : (focused || isOpen ? colors.cta.primary : colors.text.tertiary),
           letterSpacing: active ? "0.08em" : "-0.01em",
           textTransform: active ? "uppercase" : "none",
           transition: "all 0.2s cubic-bezier(0.4,0,0.2,1)",
@@ -59,7 +64,7 @@ export default function FloatingSelect({ label, value, onChange, options, colors
           top: "50%",
           transform: "translateY(-50%)",
           zIndex: 2,
-          color: focused || isOpen ? colors.cta.primary : colors.text.tertiary,
+          color: error ? "#ef4444" : (focused || isOpen ? colors.cta.primary : colors.text.tertiary),
           transition: "color 0.2s",
         }}
       >
@@ -77,7 +82,7 @@ export default function FloatingSelect({ label, value, onChange, options, colors
           height: 56,
           borderRadius: 14,
           boxSizing: "border-box",
-          border: `1.5px solid ${focused || isOpen ? colors.cta.primary : colors.border.default}`,
+          border: `1.5px solid ${error ? "#ef4444" : (focused || isOpen ? colors.cta.primary : colors.border.default)}`,
           background: isDark
             ? "rgba(255,255,255,0.04)"
             : colors.surface.secondary,
@@ -93,7 +98,7 @@ export default function FloatingSelect({ label, value, onChange, options, colors
           alignItems: "center",
           cursor: "pointer",
           transition: "border-color 0.2s, box-shadow 0.2s",
-          boxShadow: focused || isOpen ? `0 0 0 3px ${colors.cta.primary}20` : "none",
+          boxShadow: error ? "0 0 0 3px rgba(239,68,68,0.15)" : (focused || isOpen ? `0 0 0 3px ${colors.cta.primary}20` : "none"),
         }}
       >
         {selectedOption ? selectedOption.label : ""}
@@ -176,6 +181,15 @@ export default function FloatingSelect({ label, value, onChange, options, colors
           </motion.div>
         )}
       </AnimatePresence>
+
+      {error && (
+        <div style={{ position: "absolute", bottom: -18, left: 4, fontSize: 11, color: "#ef4444", fontWeight: 600 }}>
+          {error}
+        </div>
+      )}
     </div>
   );
-}
+});
+
+FloatingSelect.displayName = 'FloatingSelect';
+export default FloatingSelect;

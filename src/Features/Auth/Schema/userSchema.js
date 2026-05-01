@@ -6,7 +6,7 @@ import { STORE_TYPES, PHONE_REGEX, USERNAME_REGEX } from '../Utils/constraints'
 // ─── PASSWORD ─────────────────────────────────────────────────────────────────
 
 const passwordField = z
-  .string()
+  .string({ required_error: 'Password is required' })
   .min(8, 'Password must be at least 8 characters')
   .max(28, 'Password must be under 28 characters')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
@@ -18,32 +18,32 @@ const passwordField = z
 
 export const addressSchema = z.object({
   street: z
-    .string()
+    .string({ required_error: 'Street address is required' })
     .trim()
     .min(5, 'Street address must be at least 5 characters')
     .max(200, 'Street address must be under 200 characters'),
 
   city: z
-    .string()
+    .string({ required_error: 'City is required' })
     .trim()
     .min(2, 'City must be at least 2 characters')
     .max(100, 'City must be under 100 characters'),
 
   state: z
-    .string()
+    .string({ required_error: 'State / Province is required' })
     .trim()
     .min(2, 'State must be at least 2 characters')
     .max(100, 'State must be under 100 characters'),
 
   country: z
-    .string()
+    .string({ required_error: 'Country is required' })
     .trim()
     .min(2, 'Country must be at least 2 characters')
     .max(100, 'Country must be under 100 characters')
     .default('Nigeria'),
 
   zip_code: z
-    .string()
+    .string({ required_error: 'Zip / Postal code is required' })
     .trim()
     .regex(/^[A-Za-z0-9\s\-]{3,10}$/, 'Enter a valid zip / postal code')
     .optional(),
@@ -58,20 +58,20 @@ const emptyAddressSchema = addressSchema.partial();
 const baseUserSchema = z
   .object({
     full_name: z
-      .string()
+      .string({ required_error: 'Full name is required' })
       .trim()
       .min(2, 'Full name must be at least 2 characters')
       .max(100, 'Full name must be under 100 characters'),
 
     username: z
-      .string()
+      .string({ required_error: 'Username is required' })
       .trim()
       .min(3, 'Username must be at least 3 characters')
       .max(20, 'Username must be under 20 characters')
       .regex(USERNAME_REGEX, 'Username can only contain letters, numbers, and underscores'),
 
     email: z
-      .string()
+      .string({ required_error: 'Email address is required' })
       .trim()
       .toLowerCase()
       .email('Please enter a valid email address')
@@ -79,7 +79,7 @@ const baseUserSchema = z
 
     password: passwordField,
 
-    confirm_password: z.string(),
+    confirm_password: z.string({ required_error: 'Please confirm your password' }),
 
     agree_to_terms: z.literal(true, {
       errorMap: () => ({ message: 'You must agree to the Terms of Service' }),
@@ -145,7 +145,7 @@ export const sellerSchema = baseUserSchema
     role: z.literal('seller'),
 
     store_name: z
-      .string()
+      .string({ required_error: 'Store name is required' })
       .trim()
       .min(2, 'Store name must be at least 2 characters')
       .max(100, 'Store name must be under 100 characters'),
@@ -155,12 +155,12 @@ export const sellerSchema = baseUserSchema
     }),
 
     phone: z
-      .string()
+      .string({ required_error: 'Phone number is required' })
       .trim()
       .regex(PHONE_REGEX, 'Enter a valid phone number (e.g. +2348012345678)'),
 
     business_description: z
-      .string()
+      .string({ required_error: 'Business description is required' })
       .trim()
       .min(10, 'Business description must be at least 10 characters')
       .max(1000, 'Business description must be under 1000 characters'),
@@ -191,6 +191,17 @@ export const userSchema = z.discriminatedUnion('role', [
   buyerSchema,
   sellerSchema,
 ]);
+
+// ─── LOGIN SCHEMA ─────────────────────────────────────────────────────────────
+
+export const loginSchema = z.object({
+  email: z
+    .string({ required_error: 'Email address is required' })
+    .trim()
+    .toLowerCase()
+    .email('Please enter a valid email address'),
+  password: z.string({ required_error: 'Password is required' }).min(1, 'Password is required'),
+});
 
 // ─── ADDRESS RESOLUTION HELPERS ───────────────────────────────────────────────
 // Call these after successful parse to get the final resolved addresses before

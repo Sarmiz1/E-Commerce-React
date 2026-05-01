@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 
-export default function FloatingInput({
+const FloatingInput = forwardRef(({
   label,
   type = "text",
   value,
   onChange,
+  onBlur,
+  name,
   icon: Icon,
   colors,
   isDark,
   autoComplete,
   suffix,
-}) {
+  error,
+}, ref) => {
   const [focused, setFocused] = useState(false);
-  const active = focused || (value && value.length > 0);
+  // We determine 'active' either by value or if it's focused. 
+  // If used with react-hook-form register, value might be undefined unless watched,
+  // but if used with Controller, value will be defined.
+  const active = focused || (value !== undefined && value !== null && String(value).length > 0);
 
   return (
-    <div style={{ position: "relative", marginBottom: 13 }}>
+    <div style={{ position: "relative", marginBottom: error ? 24 : 13 }}>
       {/* Floating label */}
       <label
         style={{
@@ -26,7 +32,7 @@ export default function FloatingInput({
           transform: active ? "translateY(0)" : "translateY(-50%)",
           fontSize: active ? 9.5 : 13.5,
           fontWeight: active ? 700 : 400,
-          color: focused ? colors.cta.primary : colors.text.tertiary,
+          color: error ? "#ef4444" : (focused ? colors.cta.primary : colors.text.tertiary),
           letterSpacing: active ? "0.08em" : "-0.01em",
           textTransform: active ? "uppercase" : "none",
           transition: "all 0.2s cubic-bezier(0.4,0,0.2,1)",
@@ -46,7 +52,7 @@ export default function FloatingInput({
             top: "50%",
             transform: "translateY(-50%)",
             zIndex: 2,
-            color: focused ? colors.cta.primary : colors.text.tertiary,
+            color: error ? "#ef4444" : (focused ? colors.cta.primary : colors.text.tertiary),
             transition: "color 0.2s",
           }}
         >
@@ -55,18 +61,23 @@ export default function FloatingInput({
       )}
 
       <input
+        ref={ref}
+        name={name}
         type={type}
         value={value}
         onChange={onChange}
         autoComplete={autoComplete}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={(e) => {
+          setFocused(false);
+          if (onBlur) onBlur(e);
+        }}
         style={{
           width: "100%",
           height: 56,
           borderRadius: 14,
           boxSizing: "border-box",
-          border: `1.5px solid ${focused ? colors.cta.primary : colors.border.default}`,
+          border: `1.5px solid ${error ? "#ef4444" : (focused ? colors.cta.primary : colors.border.default)}`,
           background: isDark
             ? "rgba(255,255,255,0.04)"
             : colors.surface.secondary,
@@ -80,7 +91,7 @@ export default function FloatingInput({
           paddingRight: suffix ? 46 : 16,
           outline: "none",
           transition: "border-color 0.2s, box-shadow 0.2s",
-          boxShadow: focused ? `0 0 0 3px ${colors.cta.primary}20` : "none",
+          boxShadow: error ? "0 0 0 3px rgba(239,68,68,0.15)" : (focused ? `0 0 0 3px ${colors.cta.primary}20` : "none"),
         }}
       />
 
@@ -97,6 +108,15 @@ export default function FloatingInput({
           {suffix}
         </div>
       )}
+
+      {error && (
+        <div style={{ position: "absolute", bottom: -18, left: 4, fontSize: 11, color: "#ef4444", fontWeight: 600 }}>
+          {error}
+        </div>
+      )}
     </div>
   );
-}
+});
+
+FloatingInput.displayName = 'FloatingInput';
+export default FloatingInput;

@@ -90,12 +90,14 @@ export default function AuthPage() {
             backdropFilter: "blur(10px)",
           }}
         >
-          {isDark ? <Sun size={17} color={colors.text.secondary} /> : <Moon size={17} color={colors.text.secondary} />}
+          {isDark ? (
+            <Sun size={17} color={colors.text.secondary} />
+          ) : (
+            <Moon size={17} color={colors.text.secondary} />
+          )}
         </button>
 
-        {showBrand && (
-          <BrandPanel isWide={isWide} />
-        )}
+        {showBrand && <BrandPanel isWide={isWide} />}
 
         <AuthForm
           colors={colors}
