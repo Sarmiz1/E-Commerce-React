@@ -90,7 +90,8 @@ export default function BrandPanel({ isWide }) {
             style={{
               display: "inline-flex",
               alignItems: "center",
-              marginTop: -15,
+              marginTop: -35,
+              marginLeft: -22,
             }}
           >
             <img
