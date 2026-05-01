@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { userSchema, loginSchema } from "../Schema/userSchema";
+import { userSchema, loginSchema, forgotSchema } from "../Schema/userSchema";
 import FloatingInput from "./FloatingInput";
 import FloatingSelect from "./FloatingSelect";
 import EyeBtn from "./EyeBtn";
@@ -117,14 +117,23 @@ export default function AuthForm({
     reset,
     formState: { errors },
   } = useForm({
-    resolver: mode === "register" ? zodResolver(userSchema) : zodResolver(loginSchema),
+    resolver: mode === "register" ? zodResolver(userSchema) : mode === "login" ? zodResolver(loginSchema) : zodResolver(forgotSchema),
     defaultValues: {
       role: "buyer",
+      email: "",
+      password: "",
+      confirm_password: "",
+      full_name: "",
+      username: "",
+      store_name: "",
+      store_type: "electronics",
+      phone: "",
+      business_description: "",
       agree_to_terms: true,
       same_as_home: false,
       same_as_store: false,
-      home_address: { country: "Nigeria" },
-      store_address: { country: "Nigeria" },
+      home_address: { street: "", city: "", state: "", zip_code: "", country: "Nigeria" },
+      store_address: { street: "", city: "", state: "", zip_code: "", country: "Nigeria" },
     },
     mode: "onTouched",
   });
@@ -141,11 +150,20 @@ export default function AuthForm({
     setShowConfirm(false);
     reset({
       role: role,
+      email: "",
+      password: "",
+      confirm_password: "",
+      full_name: "",
+      username: "",
+      store_name: "",
+      store_type: "electronics",
+      phone: "",
+      business_description: "",
       agree_to_terms: true,
       same_as_home: false,
       same_as_store: false,
-      home_address: { country: "Nigeria" },
-      store_address: { country: "Nigeria" },
+      home_address: { street: "", city: "", state: "", zip_code: "", country: "Nigeria" },
+      store_address: { street: "", city: "", state: "", zip_code: "", country: "Nigeria" }
     });
   }, [mode, role, reset]);
 
@@ -229,6 +247,7 @@ export default function AuthForm({
       }}
     >
       <motion.div
+        layout
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
@@ -284,7 +303,7 @@ export default function AuthForm({
               marginBottom: 7,
             }}
           >
-            {mode === "login" ? "Welcome back." : "Create your account."}
+            {mode === "login" ? "Welcome back." : mode === "register" ? "Create your account." : "Reset password."}
           </h2>
           <p
             style={{
@@ -296,108 +315,130 @@ export default function AuthForm({
           >
             {mode === "login"
               ? "Sign in to continue to Woosho."
-              : "Join millions of buyers and sellers."}
+              : mode === "register"
+                ? "Join millions of buyers and sellers."
+                : "Enter your email to receive a reset link."}
           </p>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            background: colors.surface.secondary,
-            borderRadius: 14,
-            padding: 5,
-            border: `1px solid ${colors.border.default}`,
-            marginBottom: 22,
-          }}
-        >
-          {[
-            ["login", "Sign In"],
-            ["register", "Register"],
-          ].map(([m, label]) => (
-            <button
-              key={m}
-              className="auth-tab"
-              onClick={() => setMode(m)}
-              style={{
-                flex: 1,
-                padding: "10px 0",
-                border: "none",
-                borderRadius: 10,
-                background: mode === m ? cta : "transparent",
-                color: mode === m ? ctaText : colors.text.tertiary,
-                fontSize: 13,
-                fontWeight: 700,
-                letterSpacing: "0.01em",
-                boxShadow: mode === m ? `0 4px 14px ${cta}44` : "none",
-                transition: "all 0.22s ease",
-              }}
+        <AnimatePresence initial={false}>
+          {mode !== "forgot" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 22 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              style={{ overflow: "hidden" }}
             >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {!(mode === "register" && role === "seller" && sellerStep > 1) &&
-          !(mode === "register" && role === "buyer" && buyerStep > 1) && (
-            <>
-              <button
-                className="google-btn"
-                style={{
-                  width: "100%",
-                  height: 52,
-                  borderRadius: 14,
-                  border: `1.5px solid ${colors.border.default}`,
-                  background: isDark ? "rgba(255,255,255,0.04)" : "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 12,
-                  cursor: "pointer",
-                  marginBottom: 18,
-                  color: colors.text.primary,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  boxShadow: isDark ? "none" : "0 2px 8px rgba(0,0,0,0.05)",
-                }}
-              >
-                <GoogleIcon /> Continue with Google
-              </button>
               <div
                 style={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  marginBottom: 18,
+                  background: colors.surface.secondary,
+                  borderRadius: 14,
+                  padding: 5,
+                  border: `1px solid ${colors.border.default}`,
                 }}
               >
-                <div
+                {[
+                  ["login", "Sign In"],
+                  ["register", "Register"],
+                ].map(([m, label]) => (
+                  <button
+                    key={m}
+                    className="auth-tab"
+                    onClick={() => setMode(m)}
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      border: "none",
+                      borderRadius: 10,
+                      background: mode === m ? cta : "transparent",
+                      color: mode === m ? ctaText : colors.text.tertiary,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      letterSpacing: "0.01em",
+                      boxShadow: mode === m ? `0 4px 14px ${cta}44` : "none",
+                      transition: "all 0.22s ease",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence initial={false}>
+          {mode !== "forgot" &&
+            !(mode === "register" && role === "seller" && sellerStep > 1) &&
+            !(mode === "register" && role === "buyer" && buyerStep > 1) && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                style={{ overflow: "hidden" }}
+              >
+                <button
+                  className="google-btn"
                   style={{
-                    flex: 1,
-                    height: 1,
-                    background: colors.border.default,
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: colors.text.tertiary,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
+                    width: "100%",
+                    height: 52,
+                    borderRadius: 14,
+                    border: `1.5px solid ${colors.border.default}`,
+                    background: isDark ? "rgba(255,255,255,0.04)" : "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 12,
+                    cursor: "pointer",
+                    marginBottom: 18,
+                    color: colors.text.primary,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    boxShadow: isDark ? "none" : "0 2px 8px rgba(0,0,0,0.05)",
                   }}
                 >
-                  or
-                </span>
+                  <GoogleIcon /> Continue with Google
+                </button>
                 <div
                   style={{
-                    flex: 1,
-                    height: 1,
-                    background: colors.border.default,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    marginBottom: 18,
                   }}
-                />
-              </div>
-            </>
-          )}
+                >
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 1,
+                      background: colors.border.default,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: colors.text.tertiary,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    or
+                  </span>
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 1,
+                      background: colors.border.default,
+                    }}
+                  />
+                </div>
+              </motion.div>
+            )}
+        </AnimatePresence>
 
         <AnimatePresence mode="wait">
           <motion.div
@@ -422,7 +463,7 @@ export default function AuthForm({
                 mode === "register" &&
                 (role === "buyer" ? buyerStep === 1 : sellerStep === 1)
                   ? -20
-                  : 0,
+                  : mode === "forgot" ? 20 : 0,
               y:
                 mode === "register" &&
                 (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
@@ -1238,7 +1279,9 @@ export default function AuthForm({
                   }}
                 >
                   <button
+                    type="button"
                     className="forgot-link"
+                    onClick={() => setMode("forgot")}
                     style={{
                       background: "none",
                       border: "none",
@@ -1252,6 +1295,23 @@ export default function AuthForm({
                   </button>
                 </div>
               </>
+            )}
+            {mode === "forgot" && (
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <FloatingInput
+                    {...field}
+                    label="Email Address"
+                    icon={Mail}
+                    autoComplete="email"
+                    colors={colors}
+                    isDark={isDark}
+                    error={errors.email?.message}
+                  />
+                )}
+              />
             )}
 
             <motion.button
@@ -1293,7 +1353,7 @@ export default function AuthForm({
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
                     <Check size={18} />{" "}
-                    {mode === "login" ? "Signed In!" : "Account Created!"}
+                    {mode === "login" ? "Signed In!" : mode === "forgot" ? "Link Sent!" : "Account Created!"}
                   </motion.span>
                 ) : loading ? (
                   <motion.span
@@ -1312,7 +1372,7 @@ export default function AuthForm({
                         animation: "auth-spin 0.72s linear infinite",
                       }}
                     />
-                    {mode === "login" ? "Signing In…" : "Creating Account…"}
+                    {mode === "login" ? "Signing In…" : mode === "forgot" ? "Sending Link…" : "Creating Account…"}
                   </motion.span>
                 ) : (
                   <motion.span
@@ -1347,7 +1407,7 @@ export default function AuthForm({
                       </>
                     ) : (
                       <>
-                        {mode === "login" ? "Sign In" : "Create Account"}{" "}
+                        {mode === "login" ? "Sign In" : mode === "forgot" ? "Send Reset Link" : "Create Account"}{" "}
                         <ArrowRight size={17} />
                       </>
                     )}
@@ -1391,25 +1451,46 @@ export default function AuthForm({
                 fontWeight: 400,
               }}
             >
-              {mode === "login"
-                ? "Don't have an account? "
-                : "Already have one? "}
-              <button
-                className="mode-link"
-                onClick={() =>
-                  setMode((m) => (m === "login" ? "register" : "login"))
-                }
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: cta,
-                  fontWeight: 800,
-                  fontSize: 13,
-                }}
-              >
-                {mode === "login" ? "Sign Up" : "Sign In"}
-              </button>
+              {mode === "forgot" ? (
+                <button
+                  type="button"
+                  className="mode-link"
+                  onClick={() => setMode("login")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: cta,
+                    fontWeight: 800,
+                    fontSize: 13,
+                  }}
+                >
+                  <ChevronLeft size={14} style={{ display: "inline", verticalAlign: "-2px" }} /> Back to Sign In
+                </button>
+              ) : (
+                <>
+                  {mode === "login"
+                    ? "Don't have an account? "
+                    : "Already have one? "}
+                  <button
+                    type="button"
+                    className="mode-link"
+                    onClick={() =>
+                      setMode((m) => (m === "login" ? "register" : "login"))
+                    }
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: cta,
+                      fontWeight: 800,
+                      fontSize: 13,
+                    }}
+                  >
+                    {mode === "login" ? "Sign Up" : "Sign In"}
+                  </button>
+                </>
+              )}
             </p>
           </motion.div>
         </AnimatePresence>

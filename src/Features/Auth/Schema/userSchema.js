@@ -203,6 +203,16 @@ export const loginSchema = z.object({
   password: z.string({ required_error: 'Password is required' }).min(1, 'Password is required'),
 });
 
+// ─── FORGOT PASSWORD SCHEMA ───────────────────────────────────────────────────
+
+export const forgotSchema = z.object({
+  email: z
+    .string({ required_error: 'Email address is required' })
+    .trim()
+    .toLowerCase()
+    .email('Please enter a valid email address'),
+});
+
 // ─── ADDRESS RESOLUTION HELPERS ───────────────────────────────────────────────
 // Call these after successful parse to get the final resolved addresses before
 // sending to your DB / API. Never store same_as_* flags in the database —
