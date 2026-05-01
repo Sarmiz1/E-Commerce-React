@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Sparkles, Store, ShoppingBag, TrendingUp, Shield } from "lucide-react";
 import StatBadge from './StatBadge';
 import heroImage from "../../../assets/marketing/mktimg2.png";
+import glassLogo from "../../../assets/logos/glass_logo.png";
 
 export default function BrandPanel({ isWide }) {
   const containerVariants = {
@@ -89,38 +90,18 @@ export default function BrandPanel({ isWide }) {
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 10,
+              marginTop: -15,
             }}
           >
-            <div
+            <img
+              src={glassLogo}
+              alt="Woosho Logo"
               style={{
-                width: 46,
-                height: 46,
-                borderRadius: 14,
-                background: "rgba(255,255,255,0.14)",
-                backdropFilter: "blur(14px)",
-                WebkitBackdropFilter: "blur(14px)",
-                border: "1px solid rgba(255,255,255,0.25)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 6px 24px rgba(0,0,0,0.35)",
+                height: 95,
+                objectFit: "contain",
+                filter: "drop-shadow(0px 4px 12px rgba(0,0,0,0.4))"
               }}
-            >
-              <Sparkles size={22} color="#fff" fill="#fff" />
-            </div>
-            <span
-              style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontSize: 22,
-                fontWeight: 400,
-                color: "#ffffff",
-                letterSpacing: "-0.025em",
-                textShadow: "0 2px 12px rgba(0,0,0,0.45)",
-              }}
-            >
-              Woosho
-            </span>
+            />
           </div>
         </motion.div>
 

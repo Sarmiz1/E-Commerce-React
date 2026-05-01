@@ -25,6 +25,7 @@ import FloatingInput from "./FloatingInput";
 import FloatingSelect from "./FloatingSelect";
 import EyeBtn from "./EyeBtn";
 import GoogleIcon from "./GoogleIcon";
+import glassLogo from "../../../assets/logos/glass_logo.png";
 
 const CATEGORIES = [
   { value: "electronics", label: "Electronics & Gadgets" },
@@ -257,37 +258,18 @@ export default function AuthForm({
           <div
             style={{
               display: "flex",
-              alignItems: "center",
               justifyContent: "center",
-              gap: 10,
               marginBottom: 32,
             }}
           >
-            <div
+            <img
+              src={glassLogo}
+              alt="Woosho Logo"
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 13,
-                background: cta,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: `0 6px 20px ${cta}44`,
+                height: 85,
+                objectFit: "contain",
               }}
-            >
-              <Sparkles size={20} color={ctaText} fill={ctaText} />
-            </div>
-            <span
-              style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontSize: 24,
-                fontWeight: 400,
-                color: colors.text.primary,
-                letterSpacing: "-0.035em",
-              }}
-            >
-              Woosho
-            </span>
+            />
           </div>
         )}
 
