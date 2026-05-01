@@ -94,13 +94,31 @@ export default function BrandPanel({ isWide }) {
               marginLeft: -22,
             }}
           >
-            <img
+            <motion.img
               src={glassLogo}
               alt="Woosho Logo"
+              whileHover={{
+                scale: 1.05,
+                rotate: [-1, 1, 0],
+                filter: "drop-shadow(0px 8px 20px rgba(255,255,255,0.12))"
+              }}
+              animate={{
+                y: [0, -5, 0],
+              }}
+              transition={{
+                y: {
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+                scale: { duration: 0.3 }
+              }}
               style={{
                 height: 95,
                 objectFit: "contain",
-                filter: "drop-shadow(0px 4px 12px rgba(0,0,0,0.4))"
+                filter: "drop-shadow(0px 4px 12px rgba(0,0,0,0.4))",
+                cursor: "pointer",
+                transformOrigin: "left center"
               }}
             />
           </div>
