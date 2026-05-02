@@ -6,7 +6,7 @@ import { STORE_TYPES, PHONE_REGEX, USERNAME_REGEX } from '../Utils/constraints'
 // ─── PASSWORD ─────────────────────────────────────────────────────────────────
 
 const passwordField = z
-  .string({ required_error: 'Password is required' })
+  .string({ message: 'Password is required' })
   .min(8, 'Password must be at least 8 characters')
   .max(28, 'Password must be under 28 characters')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
@@ -18,60 +18,58 @@ const passwordField = z
 
 export const addressSchema = z.object({
   street: z
-    .string({ required_error: 'Street address is required' })
+    .string({ message: 'Street address is required' })
     .trim()
     .min(5, 'Street address must be at least 5 characters')
     .max(200, 'Street address must be under 200 characters'),
 
   city: z
-    .string({ required_error: 'City is required' })
+    .string({ message: 'City is required' })
     .trim()
     .min(2, 'City must be at least 2 characters')
     .max(100, 'City must be under 100 characters'),
 
   state: z
-    .string({ required_error: 'State / Province is required' })
+    .string({ message: 'State / Province is required' })
     .trim()
     .min(2, 'State must be at least 2 characters')
     .max(100, 'State must be under 100 characters'),
 
   country: z
-    .string({ required_error: 'Country is required' })
+    .string({ message: 'Country is required' })
     .trim()
     .min(2, 'Country must be at least 2 characters')
     .max(100, 'Country must be under 100 characters')
     .default('Nigeria'),
 
   zip_code: z
-    .string({ required_error: 'Zip / Postal code is required' })
+    .string({ message: 'Zip / Postal code is required' })
     .trim()
-    .regex(/^[A-Za-z0-9\s\-]{3,10}$/, 'Enter a valid zip / postal code')
+    .regex(/^[A-Za-z0-9\s-]{3,10}$/, 'Enter a valid zip / postal code')
     .optional(),
 });
 
-// An address that is not yet filled in — all fields optional.
-// Used when same_as_* is true so the second address block is skipped entirely.
-const emptyAddressSchema = addressSchema.partial();
+
 
 // ─── BASE USER ────────────────────────────────────────────────────────────────
 
 const baseUserSchema = z
   .object({
     full_name: z
-      .string({ required_error: 'Full name is required' })
+      .string({ message: 'Full name is required' })
       .trim()
       .min(2, 'Full name must be at least 2 characters')
       .max(100, 'Full name must be under 100 characters'),
 
     username: z
-      .string({ required_error: 'Username is required' })
+      .string({ message: 'Username is required' })
       .trim()
       .min(3, 'Username must be at least 3 characters')
       .max(20, 'Username must be under 20 characters')
       .regex(USERNAME_REGEX, 'Username can only contain letters, numbers, and underscores'),
 
     email: z
-      .string({ required_error: 'Email address is required' })
+      .string({ message: 'Email address is required' })
       .trim()
       .toLowerCase()
       .email('Please enter a valid email address')
@@ -79,10 +77,10 @@ const baseUserSchema = z
 
     password: passwordField,
 
-    confirm_password: z.string({ required_error: 'Please confirm your password' }),
+    confirm_password: z.string({ message: 'Please confirm your password' }),
 
     agree_to_terms: z.literal(true, {
-      errorMap: () => ({ message: 'You must agree to the Terms of Service' }),
+      message: 'You must agree to the Terms of Service',
     }),
   })
   .superRefine((data, ctx) => {
@@ -94,6 +92,18 @@ const baseUserSchema = z
       });
     }
   });
+
+
+  // EMPTY ADDRESS SCHEMA FOR SELLERS WHO CHOOSE SAME AS STORE
+
+// ✅ Add this — was referenced but never defined
+const emptyAddressSchema = z.object({
+  street: z.string().optional().default(""),
+  city: z.string().optional().default(""),
+  state: z.string().optional().default(""),
+  zip_code: z.string().optional().default(""),
+  country: z.string().optional().default("Nigeria"),
+});
 
 // ─── BUYER SCHEMA ─────────────────────────────────────────────────────────────
 //
@@ -108,30 +118,7 @@ const baseUserSchema = z
 export const buyerSchema = baseUserSchema
   .extend({
     role: z.literal('buyer'),
-
     home_address: addressSchema,
-
-    same_as_home: z.boolean().default(false),
-
-    // Always present in the payload but fields only validated when same_as_home
-    // is false. Partial prevents Zod errors on an empty/omitted block.
-    shipping_address: emptyAddressSchema.default({}),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.same_as_home) {
-      // Manually run full addressSchema validation on shipping_address and
-      // re-attach any errors under the shipping_address path so the form
-      // field errors surface correctly.
-      const result = addressSchema.safeParse(data.shipping_address);
-      if (!result.success) {
-        for (const issue of result.error.issues) {
-          ctx.addIssue({
-            ...issue,
-            path: ['shipping_address', ...issue.path],
-          });
-        }
-      }
-    }
   });
 
 // ─── SELLER SCHEMA ────────────────────────────────────────────────────────────
@@ -145,22 +132,22 @@ export const sellerSchema = baseUserSchema
     role: z.literal('seller'),
 
     store_name: z
-      .string({ required_error: 'Store name is required' })
+      .string({ message: 'Store name is required' })
       .trim()
       .min(2, 'Store name must be at least 2 characters')
       .max(100, 'Store name must be under 100 characters'),
 
     store_type: z.enum(STORE_TYPES, {
-      errorMap: () => ({ message: 'Please select a valid store type' }),
+      message: 'Please select a valid store type',
     }),
 
     phone: z
-      .string({ required_error: 'Phone number is required' })
+      .string({ message: 'Phone number is required' })
       .trim()
       .regex(PHONE_REGEX, 'Enter a valid phone number (e.g. +2348012345678)'),
 
     business_description: z
-      .string({ required_error: 'Business description is required' })
+      .string({ message: 'Business description is required' })
       .trim()
       .min(10, 'Business description must be at least 10 characters')
       .max(1000, 'Business description must be under 1000 characters'),
@@ -196,18 +183,18 @@ export const userSchema = z.discriminatedUnion('role', [
 
 export const loginSchema = z.object({
   email: z
-    .string({ required_error: 'Email address is required' })
+    .string({ message: 'Email address is required' })
     .trim()
     .toLowerCase()
     .email('Please enter a valid email address'),
-  password: z.string({ required_error: 'Password is required' }).min(1, 'Password is required'),
+  password: z.string({ message: 'Password is required' }).min(1, 'Password is required'),
 });
 
 // ─── FORGOT PASSWORD SCHEMA ───────────────────────────────────────────────────
 
 export const forgotSchema = z.object({
   email: z
-    .string({ required_error: 'Email address is required' })
+    .string({ message: 'Email address is required' })
     .trim()
     .toLowerCase()
     .email('Please enter a valid email address'),
@@ -219,15 +206,12 @@ export const forgotSchema = z.object({
 // always persist the resolved address directly.
 
 /**
- * Returns the resolved { home_address, shipping_address } for a parsed buyer.
+ * Returns the resolved { home_address } for a parsed buyer.
  * @param {z.infer<typeof buyerSchema>} buyer
  */
 export function resolveBuyerAddresses(buyer) {
   return {
     home_address: buyer.home_address,
-    shipping_address: buyer.same_as_home
-      ? buyer.home_address
-      : buyer.shipping_address,
   };
 }
 

@@ -73,7 +73,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route
       element={<RootLayout />}
-      errorElement={<FallbackPage />}
+      // errorElement={<FallbackPage />}
       hydrateFallbackElement={<ProductsSkeleton />}
     >
       {/* ── Home (conditional) ── */}

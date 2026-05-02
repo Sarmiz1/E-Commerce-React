@@ -13,7 +13,7 @@ export const adminSchema = z.object({
     "finance_manager",
     "content_moderator"
   ], {
-    errorMap: () => ({ message: "Please select a valid admin role" })
+    message: "Please select a valid admin role"
   }),
   password: z.string().min(12, "Admin passwords must be at least 12 characters long for enhanced security"),
   confirm_password: z.string(),
