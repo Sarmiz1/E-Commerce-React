@@ -31,6 +31,41 @@ const CATEGORIES = [
   { value: "other", label: "Other" },
 ];
 
+// ✅ Friendly error messages for common Supabase errors
+const getFriendlyError = (message) => {
+  if (!message) return "Something went wrong. Please try again.";
+
+  if (
+    message.includes("Email already registered") ||
+    message.includes("User already registered")
+  )
+    return "An account with this email already exists. Please sign in instead.";
+
+  if (message.includes("Invalid login credentials"))
+    return "Incorrect email or password. Please try again.";
+
+  if (message.includes("Email not confirmed"))
+    return "Please verify your email before signing in.";
+
+  if (message.includes("Password should be at least"))
+    return "Password must be at least 6 characters long.";
+
+  if (message.includes("Unable to validate email address"))
+    return "Please enter a valid email address.";
+
+  if (
+    message.includes(
+      "For security purposes, you can only request this after",
+    )
+  )
+    return "Please wait a moment before requesting another reset link.";
+
+  if (message.includes("User not found"))
+    return "No account found with this email address.";
+
+  return message;
+};
+
 export default function AuthForm({
   colors,
   isDark,
@@ -106,7 +141,7 @@ export default function AuthForm({
           password: formData.password,
         });
 
-        if (error) throw new Error(error.message);
+        if (error) throw new Error(getFriendlyError(error.message));
 
         return { message: "Signed in successfully." };
       }
@@ -116,9 +151,9 @@ export default function AuthForm({
           formData.email,
         );
 
-        if (error) throw new Error(error.message);
+        if (error) throw new Error(getFriendlyError(error.message));
 
-        return { message: "Password reset link sent." };
+        return { message: "Password reset link sent. Please check your email." };
       }
 
       // ✅ Build addresses BEFORE signUp so they can be passed to the trigger
@@ -174,14 +209,21 @@ export default function AuthForm({
             username: formData.username,
             role: formData.role,
             store_type:
-              formData.role === "seller" ? formData.store_type : "independent",
+              formData.role === "seller"
+                ? formData.store_type
+                : "independent",
             addresses: addressesToInsert,
           },
         },
       });
 
-      if (authError) {
-        throw new Error(authError.message || "Unable to create account.");
+      if (authError) throw new Error(getFriendlyError(authError.message));
+
+      // ✅ Supabase fakes success when email already exists — catch it here
+      if (authData?.user?.identities?.length === 0) {
+        throw new Error(
+          "An account with this email already exists. Please sign in instead.",
+        );
       }
 
       const userId = authData?.user?.id;
@@ -201,9 +243,7 @@ export default function AuthForm({
           });
 
         if (sellerError) {
-          throw new Error(
-            sellerError.message || "Unable to create seller profile.",
-          );
+          throw new Error(getFriendlyError(sellerError.message));
         }
       }
 
@@ -211,7 +251,6 @@ export default function AuthForm({
         message:
           "Account created successfully. Please check your email to verify your account.",
       };
-
     },
 
     onMutate: () => {
@@ -221,7 +260,6 @@ export default function AuthForm({
     onError: (error) => {
       setFormError(error.message || "Something went wrong.");
     },
-    
   });
 
   const isBusy = authMutation.isPending;
@@ -275,15 +313,16 @@ export default function AuthForm({
     setFormError("");
   }, [role]);
 
+  // ✅ After success, redirect to login after 2s — mode change triggers reset above
   useEffect(() => {
-  if (!isSuccess) return;
+    if (!isSuccess) return;
 
-  const timer = setTimeout(() => {
-    setMode("login"); // ✅ redirect to login after success
-  }, 2000);
+    const timer = setTimeout(() => {
+      setMode("login");
+    }, 2000);
 
-  return () => clearTimeout(timer);
-}, [isSuccess]);
+    return () => clearTimeout(timer);
+  }, [isSuccess]);
 
   const submitForm = handleSubmit(
     async (formData) => {
@@ -462,22 +501,23 @@ export default function AuthForm({
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${mode}-${role}-${mode === "register"
+            key={`${mode}-${role}-${
+              mode === "register"
                 ? role === "buyer"
                   ? buyerStep
                   : sellerStep
                 : "login"
-              }`}
+            }`}
             initial={{
               opacity: 0,
               x:
                 mode === "register" &&
-                  (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
+                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
                   ? 20
                   : 0,
               y:
                 mode === "register" &&
-                  (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
+                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
                   ? 0
                   : 14,
             }}
@@ -486,14 +526,14 @@ export default function AuthForm({
               opacity: 0,
               x:
                 mode === "register" &&
-                  (role === "buyer" ? buyerStep === 1 : sellerStep === 1)
+                (role === "buyer" ? buyerStep === 1 : sellerStep === 1)
                   ? -20
                   : mode === "forgot"
                     ? 20
                     : 0,
               y:
                 mode === "register" &&
-                  (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
+                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
                   ? 0
                   : -10,
             }}
@@ -503,14 +543,14 @@ export default function AuthForm({
               <>
                 {((role === "seller" && sellerStep === 1) ||
                   (role === "buyer" && buyerStep === 1)) && (
-                    <RoleSelector
-                      role={role}
-                      setValue={setValue}
-                      colors={colors}
-                      isDark={isDark}
-                      cta={cta}
-                    />
-                  )}
+                  <RoleSelector
+                    role={role}
+                    setValue={setValue}
+                    colors={colors}
+                    isDark={isDark}
+                    cta={cta}
+                  />
+                )}
 
                 {role === "buyer" ? (
                   <BuyerWizard
@@ -645,8 +685,8 @@ export default function AuthForm({
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
                     {mode === "register" &&
-                      role === "buyer" &&
-                      buyerStep === 1 ? (
+                    role === "buyer" &&
+                    buyerStep === 1 ? (
                       <>
                         Continue to Address <ChevronRight size={17} />
                       </>
