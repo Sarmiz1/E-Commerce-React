@@ -1,31 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  User,
-  Mail,
-  Lock,
-  Store,
-  Phone,
-  Check,
-  ShoppingBag,
-  ArrowRight,
-  Sparkles,
-  ChevronRight,
-  ChevronLeft,
-  MapPin,
-  Building,
-  Flag,
-  Hash,
-  AlignLeft,
-} from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
+import { ArrowRight, ChevronRight, Check } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { userSchema, loginSchema, forgotSchema } from "../Schema/userSchema";
+
+// Atomic Components
 import FloatingInput from "./FloatingInput";
 import FloatingSelect from "./FloatingSelect";
 import EyeBtn from "./EyeBtn";
 import GoogleIcon from "./GoogleIcon";
 import glassLogo from "../../../assets/logos/glass_logo.png";
+import logoDark from "../../../assets/logos/logo-darkmode.png";
+import PasswordStrengthMeter from "./PasswordStrengthMeter";
+import RoleSelector from "./RoleSelector";
+import AuthTabs from "./AuthTabs";
+import SocialAuth from "./SocialAuth";
+import FormHeader from "./FormHeader";
+import LoginForm from "./LoginForm";
+import ForgotForm from "./ForgotForm";
+import BuyerWizard from "./BuyerWizard";
+import SellerWizard from "./SellerWizard";
 
 const CATEGORIES = [
   { value: "electronics", label: "Electronics & Gadgets" },
@@ -38,60 +33,6 @@ const CATEGORIES = [
   { value: "books", label: "Books & Stationery" },
   { value: "other", label: "Other" },
 ];
-
-function getPasswordStrength(pass) {
-  if (!pass) return 0;
-  let score = 0;
-  if (pass.length > 7) score++;
-  if (pass.length > 10) score++;
-  if (/[A-Z]/.test(pass)) score++;
-  if (/[0-9]/.test(pass)) score++;
-  if (/[^A-Za-z0-9]/.test(pass)) score++;
-  return Math.min(4, score);
-}
-
-function PasswordStrengthMeter({ password }) {
-  const score = getPasswordStrength(password);
-  const colors = ["#e5e7eb", "#ef4444", "#f97316", "#eab308", "#22c55e"];
-  const width = password ? (score === 0 ? 20 : (score / 4) * 100) : 0;
-  const color = password ? colors[Math.max(1, score)] : colors[0];
-
-  return (
-    <div style={{ marginTop: -5, marginBottom: 15 }}>
-      <div
-        style={{
-          display: "flex",
-          gap: 4,
-          height: 4,
-          borderRadius: 2,
-          overflow: "hidden",
-          background: "rgba(150,150,150,0.2)",
-        }}
-      >
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${width}%`, backgroundColor: color }}
-          transition={{ duration: 0.3 }}
-          style={{ height: "100%" }}
-        />
-      </div>
-      <div
-        style={{
-          fontSize: 10,
-          color: "rgba(150,150,150,0.8)",
-          marginTop: 4,
-          textAlign: "right",
-          fontWeight: 600,
-        }}
-      >
-        {password && score < 2 && "Weak"}
-        {password && score === 2 && "Fair"}
-        {password && score === 3 && "Good"}
-        {password && score === 4 && "Strong"}
-      </div>
-    </div>
-  );
-}
 
 export default function AuthForm({
   colors,
@@ -106,8 +47,6 @@ export default function AuthForm({
   const [sellerStep, setSellerStep] = useState(1);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const {
     control,
@@ -116,9 +55,14 @@ export default function AuthForm({
     trigger,
     setValue,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm({
-    resolver: mode === "register" ? zodResolver(userSchema) : mode === "login" ? zodResolver(loginSchema) : zodResolver(forgotSchema),
+    resolver:
+      mode === "register"
+        ? zodResolver(userSchema)
+        : mode === "login"
+          ? zodResolver(loginSchema)
+          : zodResolver(forgotSchema),
     defaultValues: {
       role: "buyer",
       email: "",
@@ -140,7 +84,6 @@ export default function AuthForm({
   });
 
   const role = watch("role");
-  const sameAsStore = watch("same_as_store");
   const watchPassword = watch("password");
 
   // Reset steps and form when mode changes
@@ -164,17 +107,13 @@ export default function AuthForm({
       same_as_home: false,
       same_as_store: false,
       home_address: { street: "", city: "", state: "", zip_code: "", country: "Nigeria" },
-      store_address: { street: "", city: "", state: "", zip_code: "", country: "Nigeria" }
+      store_address: { street: "", city: "", state: "", zip_code: "", country: "Nigeria" },
     });
   }, [mode, role, reset]);
 
   const onSubmit = async (data) => {
-    setLoading(true);
     console.log("Form data:", data);
     await new Promise((r) => setTimeout(r, 1700));
-    setLoading(false);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 2800);
   };
 
   const handleNextStep = async () => {
@@ -221,7 +160,6 @@ export default function AuthForm({
       else if (role === "seller" && sellerStep < 4) setSellerStep((s) => s + 1);
       else handleSubmit(onSubmit)();
     } else {
-      // Login mode
       handleSubmit(onSubmit)();
     }
   };
@@ -255,1078 +193,115 @@ export default function AuthForm({
         style={{ width: "100%", maxWidth: isMobile ? "100%" : 420 }}
       >
         {!showBrand && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginBottom: 32,
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
             <img
-              src={glassLogo}
+              src={!isDark ? logoDark : glassLogo}
               alt="Woosho Logo"
-              style={{
-                height: 85,
-                objectFit: "contain",
-              }}
+              style={{ height: 85, objectFit: "contain" }}
             />
           </div>
         )}
 
-        <div style={{ marginBottom: 26, textAlign: "center" }}>
-          <h2
-            style={{
-              fontFamily: "'DM Serif Display', Georgia, serif",
-              fontSize: isMobile ? 25 : 29,
-              fontWeight: 400,
-              lineHeight: 1.15,
-              color: colors.text.primary,
-              letterSpacing: "-0.035em",
-              marginBottom: 7,
-            }}
-          >
-            {mode === "login" ? "Welcome back." : mode === "register" ? "Create your account." : "Reset password."}
-          </h2>
-          <p
-            style={{
-              fontSize: 14,
-              color: colors.text.tertiary,
-              fontWeight: 400,
-              lineHeight: 1.55,
-            }}
-          >
-            {mode === "login"
-              ? "Sign in to continue to Woosho."
-              : mode === "register"
-                ? "Join millions of buyers and sellers."
-                : "Enter your email to receive a reset link."}
-          </p>
-        </div>
+        <FormHeader mode={mode} colors={colors} isMobile={isMobile} />
 
-        <AnimatePresence initial={false}>
-          {mode !== "forgot" && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              animate={{ opacity: 1, height: "auto", marginBottom: 22 }}
-              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              style={{ overflow: "hidden" }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  background: colors.surface.secondary,
-                  borderRadius: 14,
-                  padding: 5,
-                  border: `1px solid ${colors.border.default}`,
-                }}
-              >
-                {[
-                  ["login", "Sign In"],
-                  ["register", "Register"],
-                ].map(([m, label]) => (
-                  <button
-                    key={m}
-                    className="auth-tab"
-                    onClick={() => setMode(m)}
-                    style={{
-                      flex: 1,
-                      padding: "10px 0",
-                      border: "none",
-                      borderRadius: 10,
-                      background: mode === m ? cta : "transparent",
-                      color: mode === m ? ctaText : colors.text.tertiary,
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: "0.01em",
-                      boxShadow: mode === m ? `0 4px 14px ${cta}44` : "none",
-                      transition: "all 0.22s ease",
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <AuthTabs mode={mode} setMode={setMode} colors={colors} cta={cta} ctaText={ctaText} />
 
-        <AnimatePresence initial={false}>
-          {mode !== "forgot" &&
-            !(mode === "register" && role === "seller" && sellerStep > 1) &&
-            !(mode === "register" && role === "buyer" && buyerStep > 1) && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                style={{ overflow: "hidden" }}
-              >
-                <button
-                  className="google-btn"
-                  style={{
-                    width: "100%",
-                    height: 52,
-                    borderRadius: 14,
-                    border: `1.5px solid ${colors.border.default}`,
-                    background: isDark ? "rgba(255,255,255,0.04)" : "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 12,
-                    cursor: "pointer",
-                    marginBottom: 18,
-                    color: colors.text.primary,
-                    fontSize: 14,
-                    fontWeight: 600,
-                    boxShadow: isDark ? "none" : "0 2px 8px rgba(0,0,0,0.05)",
-                  }}
-                >
-                  <GoogleIcon /> Continue with Google
-                </button>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    marginBottom: 18,
-                  }}
-                >
-                  <div
-                    style={{
-                      flex: 1,
-                      height: 1,
-                      background: colors.border.default,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: colors.text.tertiary,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    or
-                  </span>
-                  <div
-                    style={{
-                      flex: 1,
-                      height: 1,
-                      background: colors.border.default,
-                    }}
-                  />
-                </div>
-              </motion.div>
-            )}
-        </AnimatePresence>
+        <SocialAuth mode={mode} role={role} buyerStep={buyerStep} sellerStep={sellerStep} colors={colors} isDark={isDark} />
 
         <AnimatePresence mode="wait">
           <motion.div
             key={`${mode}-${role}-${mode === "register" ? (role === "buyer" ? buyerStep : sellerStep) : "login"}`}
-            initial={{
-              opacity: 0,
-              x:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
-                  ? 20
-                  : 0,
-              y:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
-                  ? 0
-                  : 14,
-            }}
+            initial={{ opacity: 0, x: mode === "register" && (role === "buyer" ? buyerStep > 1 : sellerStep > 1) ? 20 : 0, y: mode === "register" && (role === "buyer" ? buyerStep > 1 : sellerStep > 1) ? 0 : 14 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={{
-              opacity: 0,
-              x:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep === 1 : sellerStep === 1)
-                  ? -20
-                  : mode === "forgot" ? 20 : 0,
-              y:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
-                  ? 0
-                  : -10,
-            }}
+            exit={{ opacity: 0, x: mode === "register" && (role === "buyer" ? buyerStep === 1 : sellerStep === 1) ? -20 : mode === "forgot" ? 20 : 0, y: mode === "register" && (role === "buyer" ? buyerStep > 1 : sellerStep > 1) ? 0 : -10 }}
             transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
           >
-            {mode === "register" &&
-              ((role === "seller" && sellerStep === 1) ||
-                (role === "buyer" && buyerStep === 1)) && (
-                <div style={{ marginBottom: 18 }}>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: colors.text.tertiary,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                    }}
-                  >
-                    I want to
-                  </div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    {[
-                      { val: "buyer", label: "Shop & Buy", Icon: ShoppingBag },
-                      { val: "seller", label: "Sell Products", Icon: Store },
-                    ].map(({ val, label, Icon }) => (
-                      <div
-                        key={val}
-                        className="role-card"
-                        onClick={() => setValue("role", val)}
-                        style={{
-                          flex: 1,
-                          padding: "13px 12px",
-                          borderRadius: 14,
-                          border: `1.5px solid ${role === val ? cta : colors.border.default}`,
-                          background:
-                            role === val
-                              ? isDark
-                                ? `${cta}1a`
-                                : `${cta}0e`
-                              : isDark
-                                ? "rgba(255,255,255,0.03)"
-                                : colors.surface.secondary,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 9,
-                          boxShadow:
-                            role === val ? `0 0 0 3px ${cta}1e` : "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Icon
-                          size={17}
-                          color={role === val ? cta : colors.text.tertiary}
-                        />
-                        <span
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: role === val ? cta : colors.text.secondary,
-                          }}
-                        >
-                          {label}
-                        </span>
-                        {role === val && (
-                          <Check
-                            size={12}
-                            color={cta}
-                            style={{ marginLeft: "auto" }}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            {mode === "register" && role === "buyer" && buyerStep === 1 && (
+            {mode === "register" && (
               <>
-                <Controller
-                  name="full_name"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Full Name"
-                      icon={User}
-                      autoComplete="name"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.full_name?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="username"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Username"
-                      icon={User}
-                      autoComplete="username"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.username?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Email Address"
-                      icon={Mail}
-                      autoComplete="email"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.email?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="password"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Password"
-                      type={showPass ? "text" : "password"}
-                      icon={Lock}
-                      autoComplete="new-password"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.password?.message}
-                      suffix={
-                        <EyeBtn
-                          show={showPass}
-                          toggle={() => setShowPass((s) => !s)}
-                          colors={colors}
-                        />
-                      }
-                    />
-                  )}
-                />
-                <Controller
-                  name="confirm_password"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Confirm Password"
-                      type={showConfirm ? "text" : "password"}
-                      icon={Lock}
-                      autoComplete="new-password"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.confirm_password?.message}
-                      suffix={
-                        <EyeBtn
-                          show={showConfirm}
-                          toggle={() => setShowConfirm((s) => !s)}
-                          colors={colors}
-                        />
-                      }
-                    />
-                  )}
-                />
-                <PasswordStrengthMeter password={watchPassword} />
-              </>
-            )}
-
-            {mode === "register" && role === "buyer" && buyerStep === 2 && (
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 16,
-                  }}
-                >
-                  <button
-                    onClick={() => setBuyerStep(1)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      color: colors.text.tertiary,
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <ChevronLeft size={16} /> Back
-                  </button>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: cta,
-                    }}
-                  >
-                    Step 2 of 2
-                  </span>
-                </div>
-                <Controller
-                  name="home_address.street"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Street Address"
-                      icon={MapPin}
-                      autoComplete="street-address"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.street?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.city"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="City"
-                      icon={Building}
-                      autoComplete="address-level2"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.city?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.state"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="State / Province"
-                      icon={MapPin}
-                      autoComplete="address-level1"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.state?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.country"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Country"
-                      icon={Flag}
-                      autoComplete="country-name"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.country?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.zip_code"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Zip / Postal Code"
-                      icon={Hash}
-                      autoComplete="postal-code"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.zip_code?.message}
-                    />
-                  )}
-                />
-              </>
-            )}
-
-            {mode === "register" && role === "seller" && sellerStep === 1 && (
-              <>
-                <Controller
-                  name="full_name"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Your Full Name"
-                      icon={User}
-                      autoComplete="name"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.full_name?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="username"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Username"
-                      icon={User}
-                      autoComplete="username"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.username?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Business Email"
-                      icon={Mail}
-                      autoComplete="email"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.email?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="password"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Password"
-                      type={showPass ? "text" : "password"}
-                      icon={Lock}
-                      autoComplete="new-password"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.password?.message}
-                      suffix={
-                        <EyeBtn
-                          show={showPass}
-                          toggle={() => setShowPass((s) => !s)}
-                          colors={colors}
-                        />
-                      }
-                    />
-                  )}
-                />
-                <Controller
-                  name="confirm_password"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Confirm Password"
-                      type={showConfirm ? "text" : "password"}
-                      icon={Lock}
-                      autoComplete="new-password"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.confirm_password?.message}
-                      suffix={
-                        <EyeBtn
-                          show={showConfirm}
-                          toggle={() => setShowConfirm((s) => !s)}
-                          colors={colors}
-                        />
-                      }
-                    />
-                  )}
-                />
-                <PasswordStrengthMeter password={watchPassword} />
-              </>
-            )}
-
-            {mode === "register" && role === "seller" && sellerStep === 2 && (
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 16,
-                  }}
-                >
-                  <button
-                    onClick={() => setSellerStep(1)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      color: colors.text.tertiary,
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <ChevronLeft size={16} /> Back
-                  </button>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: cta,
-                    }}
-                  >
-                    Step 2 of 4
-                  </span>
-                </div>
-                <Controller
-                  name="store_name"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Store / Business Name"
-                      icon={Store}
-                      autoComplete="organization"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.store_name?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="store_type"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingSelect
-                      {...field}
-                      label="Business Category"
-                      options={CATEGORIES}
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.store_type?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Phone Number (WhatsApp)"
-                      icon={Phone}
-                      type="tel"
-                      autoComplete="tel"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.phone?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="business_description"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Business Description"
-                      icon={AlignLeft}
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.business_description?.message}
-                    />
-                  )}
-                />
-              </>
-            )}
-
-            {mode === "register" && role === "seller" && sellerStep === 3 && (
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 16,
-                  }}
-                >
-                  <button
-                    onClick={() => setSellerStep(2)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      color: colors.text.tertiary,
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <ChevronLeft size={16} /> Back
-                  </button>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: cta,
-                    }}
-                  >
-                    Step 3 of 4
-                  </span>
-                </div>
-                <Controller
-                  name="home_address.street"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Home Street Address"
-                      icon={MapPin}
-                      autoComplete="street-address"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.street?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.city"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="City"
-                      icon={Building}
-                      autoComplete="address-level2"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.city?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.state"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="State / Province"
-                      icon={MapPin}
-                      autoComplete="address-level1"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.state?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.country"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Country"
-                      icon={Flag}
-                      autoComplete="country-name"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.country?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="home_address.zip_code"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Zip / Postal Code"
-                      icon={Hash}
-                      autoComplete="postal-code"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.home_address?.zip_code?.message}
-                    />
-                  )}
-                />
-              </>
-            )}
-
-            {mode === "register" && role === "seller" && sellerStep === 4 && (
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: 16,
-                  }}
-                >
-                  <button
-                    onClick={() => setSellerStep(3)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      color: colors.text.tertiary,
-                      fontSize: 13,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <ChevronLeft size={16} /> Back
-                  </button>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: cta,
-                    }}
-                  >
-                    Step 4 of 4
-                  </span>
-                </div>
-
-                <button
-                  onClick={() =>
-                    setValue("same_as_store", !sameAsStore, {
-                      shouldValidate: true,
-                    })
-                  }
-                  style={{
-                    width: "100%",
-                    marginBottom: 16,
-                    padding: "12px",
-                    borderRadius: 14,
-                    background: sameAsStore
-                      ? isDark
-                        ? `${cta}1a`
-                        : `${cta}0e`
-                      : "transparent",
-                    border: `1.5px solid ${sameAsStore ? cta : colors.border.default}`,
-                    color: sameAsStore ? cta : colors.text.primary,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: 13,
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 4,
-                      border: `1.5px solid ${sameAsStore ? cta : colors.border.default}`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: sameAsStore ? cta : "transparent",
-                    }}
-                  >
-                    {sameAsStore && <Check size={12} color="#fff" />}
-                  </div>
-                  Use my Home Address for Store Address
-                </button>
-
-                {!sameAsStore && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                  >
-                    <Controller
-                      name="store_address.street"
-                      control={control}
-                      render={({ field }) => (
-                        <FloatingInput
-                          {...field}
-                          label="Store Street Address"
-                          icon={MapPin}
-                          autoComplete="street-address"
-                          colors={colors}
-                          isDark={isDark}
-                          error={errors.store_address?.street?.message}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="store_address.city"
-                      control={control}
-                      render={({ field }) => (
-                        <FloatingInput
-                          {...field}
-                          label="City"
-                          icon={Building}
-                          autoComplete="address-level2"
-                          colors={colors}
-                          isDark={isDark}
-                          error={errors.store_address?.city?.message}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="store_address.state"
-                      control={control}
-                      render={({ field }) => (
-                        <FloatingInput
-                          {...field}
-                          label="State / Province"
-                          icon={MapPin}
-                          autoComplete="address-level1"
-                          colors={colors}
-                          isDark={isDark}
-                          error={errors.store_address?.state?.message}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="store_address.country"
-                      control={control}
-                      render={({ field }) => (
-                        <FloatingInput
-                          {...field}
-                          label="Country"
-                          icon={Flag}
-                          autoComplete="country-name"
-                          colors={colors}
-                          isDark={isDark}
-                          error={errors.store_address?.country?.message}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="store_address.zip_code"
-                      control={control}
-                      render={({ field }) => (
-                        <FloatingInput
-                          {...field}
-                          label="Zip / Postal Code"
-                          icon={Hash}
-                          autoComplete="postal-code"
-                          colors={colors}
-                          isDark={isDark}
-                          error={errors.store_address?.zip_code?.message}
-                        />
-                      )}
-                    />
-                  </motion.div>
+                {(role === "seller" && sellerStep === 1 || role === "buyer" && buyerStep === 1) && (
+                  <RoleSelector role={role} setValue={setValue} colors={colors} isDark={isDark} cta={cta} />
+                )}
+                {role === "buyer" ? (
+                  <BuyerWizard
+                    buyerStep={buyerStep}
+                    setBuyerStep={setBuyerStep}
+                    control={control}
+                    errors={errors}
+                    showPass={showPass}
+                    setShowPass={setShowPass}
+                    showConfirm={showConfirm}
+                    setShowConfirm={setShowConfirm}
+                    watchPassword={watchPassword}
+                    colors={colors}
+                    isDark={isDark}
+                    cta={cta}
+                  />
+                ) : (
+                  <SellerWizard
+                    sellerStep={sellerStep}
+                    setSellerStep={setSellerStep}
+                    control={control}
+                    errors={errors}
+                    showPass={showPass}
+                    setShowPass={setShowPass}
+                    showConfirm={showConfirm}
+                    setShowConfirm={setShowConfirm}
+                    watchPassword={watchPassword}
+                    colors={colors}
+                    isDark={isDark}
+                    cta={cta}
+                    CATEGORIES={CATEGORIES}
+                  />
                 )}
               </>
             )}
 
             {mode === "login" && (
-              <>
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Email Address"
-                      icon={Mail}
-                      autoComplete="email"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.email?.message}
-                    />
-                  )}
-                />
-                <Controller
-                  name="password"
-                  control={control}
-                  render={({ field }) => (
-                    <FloatingInput
-                      {...field}
-                      label="Password"
-                      type={showPass ? "text" : "password"}
-                      icon={Lock}
-                      autoComplete="current-password"
-                      colors={colors}
-                      isDark={isDark}
-                      error={errors.password?.message}
-                      suffix={
-                        <EyeBtn
-                          show={showPass}
-                          toggle={() => setShowPass((s) => !s)}
-                          colors={colors}
-                        />
-                      }
-                    />
-                  )}
-                />
-                <div
-                  style={{
-                    textAlign: "right",
-                    marginTop: -2,
-                    marginBottom: 18,
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="forgot-link"
-                    onClick={() => setMode("forgot")}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: cta,
-                    }}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-              </>
-            )}
-            {mode === "forgot" && (
-              <Controller
-                name="email"
+              <LoginForm
                 control={control}
-                render={({ field }) => (
-                  <FloatingInput
-                    {...field}
-                    label="Email Address"
-                    icon={Mail}
-                    autoComplete="email"
-                    colors={colors}
-                    isDark={isDark}
-                    error={errors.email?.message}
-                  />
-                )}
+                errors={errors}
+                showPass={showPass}
+                setShowPass={setShowPass}
+                colors={colors}
+                isDark={isDark}
+                setMode={setMode}
+                cta={cta}
               />
+            )}
+
+            {mode === "forgot" && (
+              <ForgotForm control={control} errors={errors} colors={colors} isDark={isDark} />
             )}
 
             <motion.button
               type="button"
               className="auth-cta"
               onClick={handleNextStep}
-              disabled={loading}
+              disabled={isSubmitting}
               whileTap={{ scale: 0.975 }}
               style={{
                 width: "100%",
                 height: 54,
                 borderRadius: 14,
                 border: "none",
-                background: success ? "#16a34a" : cta,
-                color: success ? "#fff" : ctaText,
+                background: isSubmitSuccessful ? "#16a34a" : cta,
+                color: isSubmitSuccessful ? "#fff" : ctaText,
                 fontSize: 15,
                 fontWeight: 800,
                 letterSpacing: "-0.01em",
-                cursor: loading ? "wait" : "pointer",
+                cursor: isSubmitting ? "wait" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 10,
-                boxShadow: success
-                  ? "0 8px 24px rgba(22,163,74,0.38)"
-                  : `0 8px 24px ${cta}44`,
+                boxShadow: isSubmitSuccessful ? "0 8px 24px rgba(22,163,74,0.38)" : `0 8px 24px ${cta}44`,
                 marginTop: mode === "login" ? 0 : 8,
                 marginBottom: 18,
                 transition: "background 0.28s ease, box-shadow 0.28s ease",
               }}
             >
               <AnimatePresence mode="wait">
-                {success ? (
+                {isSubmitSuccessful ? (
                   <motion.span
                     key="ok"
                     initial={{ scale: 0, opacity: 0 }}
@@ -1337,7 +312,7 @@ export default function AuthForm({
                     <Check size={18} />{" "}
                     {mode === "login" ? "Signed In!" : mode === "forgot" ? "Link Sent!" : "Account Created!"}
                   </motion.span>
-                ) : loading ? (
+                ) : isSubmitting ? (
                   <motion.span
                     key="loading"
                     initial={{ opacity: 0 }}
@@ -1363,27 +338,19 @@ export default function AuthForm({
                     animate={{ opacity: 1 }}
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
-                    {mode === "register" &&
-                    role === "buyer" &&
-                    buyerStep === 1 ? (
+                    {mode === "register" && role === "buyer" && buyerStep === 1 ? (
                       <>
                         Continue to Address <ChevronRight size={17} />
                       </>
-                    ) : mode === "register" &&
-                      role === "seller" &&
-                      sellerStep === 1 ? (
+                    ) : mode === "register" && role === "seller" && sellerStep === 1 ? (
                       <>
                         Continue to Store Details <ChevronRight size={17} />
                       </>
-                    ) : mode === "register" &&
-                      role === "seller" &&
-                      sellerStep === 2 ? (
+                    ) : mode === "register" && role === "seller" && sellerStep === 2 ? (
                       <>
                         Continue to Home Address <ChevronRight size={17} />
                       </>
-                    ) : mode === "register" &&
-                      role === "seller" &&
-                      sellerStep === 3 ? (
+                    ) : mode === "register" && role === "seller" && sellerStep === 3 ? (
                       <>
                         Continue to Store Address <ChevronRight size={17} />
                       </>
@@ -1410,29 +377,12 @@ export default function AuthForm({
                 }}
               >
                 By registering you agree to Woosho's{" "}
-                <span
-                  style={{ color: cta, fontWeight: 700, cursor: "pointer" }}
-                >
-                  Terms of Service
-                </span>{" "}
-                and{" "}
-                <span
-                  style={{ color: cta, fontWeight: 700, cursor: "pointer" }}
-                >
-                  Privacy Policy
-                </span>
-                .
+                <span style={{ color: cta, fontWeight: 700, cursor: "pointer" }}>Terms of Service</span> and{" "}
+                <span style={{ color: cta, fontWeight: 700, cursor: "pointer" }}>Privacy Policy</span>.
               </p>
             )}
 
-            <p
-              style={{
-                textAlign: "center",
-                fontSize: 13,
-                color: colors.text.tertiary,
-                fontWeight: 400,
-              }}
-            >
+            <p style={{ textAlign: "center", fontSize: 13, color: colors.text.tertiary, fontWeight: 400 }}>
               {mode === "forgot" ? (
                 <button
                   type="button"
@@ -1451,15 +401,11 @@ export default function AuthForm({
                 </button>
               ) : (
                 <>
-                  {mode === "login"
-                    ? "Don't have an account? "
-                    : "Already have one? "}
+                  {mode === "login" ? "Don't have an account? " : "Already have one? "}
                   <button
                     type="button"
                     className="mode-link"
-                    onClick={() =>
-                      setMode((m) => (m === "login" ? "register" : "login"))
-                    }
+                    onClick={() => setMode((m) => (m === "login" ? "register" : "login"))}
                     style={{
                       background: "none",
                       border: "none",
