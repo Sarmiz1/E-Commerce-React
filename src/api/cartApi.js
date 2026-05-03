@@ -375,14 +375,14 @@ export const CartAPI = {
       variant_id,
       product_id,
 
-      product_variants (
+      product_variants!cart_items_variant_id_fkey (
         id,
         color,
         size,
         price_cents,
         stock_quantity,
 
-        products (
+        products!product_variants_product_id_fkey (
           id,
           name,
           slug,
@@ -497,7 +497,7 @@ export const CartAPI = {
         .from("product_variants")
         .select(`
           id, color, size, price_cents, stock_quantity,
-          products ( id, name, slug, image, price_cents, rating_stars, rating_count )
+          products!product_variants_product_id_fkey ( id, name, slug, image, price_cents, rating_stars, rating_count )
         `)
         .in("id", variantIds);
       if (error) throw error;

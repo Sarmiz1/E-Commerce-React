@@ -5,6 +5,11 @@ import { useAuth } from "../auth/AuthContext";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
 import { queryClient } from "../../queries/queryClient";
+import { useToastStore } from "../../store/useToastStore";
+
+// Grab addToast outside React so it works in mutation callbacks
+const toast = (msg, type = "success") =>
+  useToastStore.getState().addToast(msg, type);
 
 const CartStateContext = createContext(null);
 const CartActionsContext = createContext(null);
@@ -208,6 +213,7 @@ export function CartProvider({ children }) {
       return { cartQueryKey, previousCart, previousGuestCart };
     },
     onError: (_error, _itemRef, context) => {
+      toast("Couldn't remove item. Please try again.", "error");
       if (context?.cartQueryKey) {
         queryClient.setQueryData(
           context.cartQueryKey,
@@ -220,6 +226,7 @@ export function CartProvider({ children }) {
       }
     },
     onSuccess: (data) => {
+      toast("Item removed from cart.", "success");
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
         return;
@@ -283,6 +290,7 @@ export function CartProvider({ children }) {
       return { cartQueryKey, previousCart, previousGuestCart };
     },
     onError: (_error, _variables, context) => {
+      toast("Couldn't update quantity. Please try again.", "error");
       if (context?.cartQueryKey) {
         queryClient.setQueryData(
           context.cartQueryKey,
@@ -327,6 +335,7 @@ export function CartProvider({ children }) {
       return { cartQueryKey, previousCart, previousGuestCart };
     },
     onError: (_error, _variables, context) => {
+      toast("Couldn't clear cart. Please try again.", "error");
       if (context?.cartQueryKey) {
         queryClient.setQueryData(
           context.cartQueryKey,
@@ -339,6 +348,7 @@ export function CartProvider({ children }) {
       }
     },
     onSuccess: (data) => {
+      toast("Cart cleared.", "info");
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
         return;
@@ -380,6 +390,7 @@ export function CartProvider({ children }) {
       return CartAPI.loadGuestCart(updatedGuestCart);
     },
     onSuccess: (data) => {
+      toast("Added to cart! 🛒", "success");
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
         return;
@@ -447,6 +458,7 @@ export function CartProvider({ children }) {
       return { cartQueryKey, previousCart, previousGuestCart };
     },
     onError: (_error, _items, context) => {
+      toast("Couldn't add items. Please try again.", "error");
       if (context?.cartQueryKey) {
         queryClient.setQueryData(
           context.cartQueryKey,
@@ -459,6 +471,7 @@ export function CartProvider({ children }) {
       }
     },
     onSuccess: (data, _items, context) => {
+      toast("Items added to cart! 🛒", "success");
       queryClient.setQueryData(context?.cartQueryKey || ["cart", user?.id], data);
     },
   });

@@ -6,6 +6,10 @@ import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
 import { trackEvent } from "../../api/track_events";
 import { WishlistAPI } from "../../api/wishlistApi";
+import { useToastStore } from "../../store/useToastStore";
+
+const toast = (msg, type = "success") =>
+  useToastStore.getState().addToast(msg, type);
 
 const wishlistKey = (userId) => ["wishlist", userId || "guest"];
 
@@ -73,19 +77,32 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
         return normalizedCart;
       }
 
-      // ═══════════════════════════
       // 🔐 AUTH FLOW (SERVER)
       // ═══════════════════════════
-      if (!cartId) {
-        throw new Error("Cart not loaded yet. Please try again.");
+      let activeCartId = cartId;
+
+      if (!activeCartId && user?.id) {
+        const cachedCart = queryClient.getQueryData(["cart", user.id]);
+        activeCartId = cachedCart?.cartId;
       }
 
+      if (!activeCartId && user?.id) {
+        const loaded = await CartAPI.load(user.id);
+        activeCartId = loaded?.cartId;
+      }
+
+      if (!activeCartId) {
+        throw new Error("Cart not loaded yet. Please try again in a moment.");
+      }
+
+
       const result = await CartAPI.add({
-        cartId,
+        cartId: activeCartId,
         productId: finalProductId,
         variantId: finalVariantId,
         quantity: finalQuantity,
       });
+
 
       return result;
     },
@@ -151,6 +168,12 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
         }
         console.warn("Failed to remove product from wishlist after adding to cart", wishlistError);
       }
+    },
+    onError: (error) => {
+      const msg = error?.message?.includes("Cart not loaded")
+        ? "Cart is loading — please try again in a moment."
+        : "Couldn't add to cart. Please try again.";
+      toast(msg, "error");
     },
   });
 

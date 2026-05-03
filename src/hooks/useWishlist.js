@@ -3,6 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../Context/auth/AuthContext";
 import { WishlistAPI } from "../api/wishlistApi";
 import { trackEvent } from "../api/track_events";
+import { useToastStore } from "../store/useToastStore";
+
+const toast = (msg, type = "success") =>
+  useToastStore.getState().addToast(msg, type);
 
 const wishlistKey = (userId) => ["wishlist", userId || "guest"];
 
@@ -79,12 +83,17 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
       return { previousProductIds };
     },
     onError: (_error, _variables, context) => {
+      toast("Couldn't update wishlist. Please try again.", "error");
       if (context?.previousProductIds) {
         queryClient.setQueryData(queryKey, context.previousProductIds);
       }
     },
     onSuccess: (nextProductIds, variables) => {
       queryClient.setQueryData(queryKey, nextProductIds || []);
+      toast(
+        variables?.nextLiked ? "Added to wishlist! ♥️" : "Removed from wishlist.",
+        "success"
+      );
 
       if (productId) {
         trackEvent({

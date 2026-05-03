@@ -5,6 +5,10 @@ import { useCartState } from "../../Context/cart/CartContext";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
 import { trackEvent } from "../../api/track_events";
+import { useToastStore } from "../../store/useToastStore";
+
+const toast = (msg, type = "success") =>
+  useToastStore.getState().addToast(msg, type);
 
 /**
  * useDeleteFromCart
@@ -106,24 +110,34 @@ export function useDeleteFromCart(productId, { variantId } = {}) {
       // ═══════════════════════════
       // 🔐 AUTH FLOW (SERVER)
       // ═══════════════════════════
-      // When the user is authenticated we delegate to the API. The
-      // presence of a cartId is required; if it is missing the UI
-      // should prompt the user to refresh or load their cart first.
-      if (!cartId) {
-        throw new Error("Cart not loaded yet. Please try again.");
+      let activeCartId = cartId;
+
+      if (!activeCartId && user?.id) {
+        const cachedCart = queryClient.getQueryData(["cart", user.id]);
+        activeCartId = cachedCart?.cartId;
       }
 
-      // The CartAPI is expected to implement a `.remove` method that
-      // accepts an object with `cartId`, `productId` and `variantId`
-      // properties and removes the matching item(s) from the cart.
-      // If your API uses a different method name, adjust this call
-      // accordingly. It should return the updated cart or an array of
-      // removed items.
-      const result = await CartAPI.remove({
-        cartId,
-        productId: finalProductId,
-        variantId: finalVariantId,
-      });
+      if (!activeCartId && user?.id) {
+        const loaded = await CartAPI.load(user.id);
+        activeCartId = loaded?.cartId;
+      }
+
+      if (!activeCartId) {
+        throw new Error("Cart not loaded yet. Please try again in a moment.");
+      }
+
+      const cachedCart = queryClient.getQueryData(["cart", user.id]);
+      const cartItems = cachedCart?.items || [];
+      const itemToDelete = cartItems.find(i => 
+        (finalVariantId && i.variant_id === finalVariantId) || 
+        (!finalVariantId && i.product_id === finalProductId)
+      );
+
+      if (!itemToDelete) {
+        throw new Error("Item not found in cart.");
+      }
+
+      const result = await CartAPI.remove(itemToDelete.id);
       return result;
     },
 
@@ -136,6 +150,7 @@ export function useDeleteFromCart(productId, { variantId } = {}) {
     onSuccess: (_data, variables = {}) => {
       const finalProductId = variables.overrideProductId ?? productId;
       const finalVariantId = variables.overrideOpts?.variantId ?? variantId;
+      toast("Item removed from cart.", "success");
       trackEvent({
         eventType: "remove_from_cart",
         productId: finalProductId,
@@ -143,15 +158,20 @@ export function useDeleteFromCart(productId, { variantId } = {}) {
         userId: user?.id || null,
       });
 
-      // Briefly show success state to allow UI feedback (e.g. toast).
       setSuccess(true);
       setTimeout(() => setSuccess(false), 1500);
 
-      // Refetch from server only when authenticated so we pull the
-      // latest cart contents from Supabase or your backend.
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
       }
+    },
+    onError: (error) => {
+      const msg = error?.message?.includes("not found")
+        ? "This item is no longer in your cart."
+        : error?.message?.includes("Cart not loaded")
+        ? "Cart is loading — please try again in a moment."
+        : "Couldn't remove item. Please try again.";
+      toast(msg, "error");
     },
   });
 
