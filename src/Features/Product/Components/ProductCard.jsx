@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
-import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../store/useThemeStore";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { IconCart } from "../../../Components/Icons/IconCart"; 
 import { IconStar } from "../../../Components/Icons/IconStar"; 

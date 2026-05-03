@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../../store/useThemeStore";
 
 const NEW_STORES = [
   { id: 10, name: "Aesthetics By Jane", category: "Handmade", tag: "Hot Pick" },

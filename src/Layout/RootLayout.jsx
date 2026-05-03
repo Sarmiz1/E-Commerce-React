@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigation } from "react-router-dom";
 import { CartAnimationProvider } from "../Context/cart/CartAnimationContext"; 
 import AiFloatingWidget from "../Features/AiAssistant/AiFloatingWidget";
 import WooshoAI from "../Features/AiAssistant/WooshoAI";
-import { useAuth } from "../Context/auth/AuthContext";
+import { useAuth } from "../store/useAuthStore";
 import { trackEvent } from "../api/track_events";
 import {
   ProductsSkeleton,

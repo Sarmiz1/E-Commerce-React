@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import { Link, useLoaderData, useNavigation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
-import { useTheme } from "../../Context/theme/ThemeContext";
+import { useTheme } from "../../store/useThemeStore";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import ProductCard from "../Product/Components/ProductCard";
 import ProductDetailModal from "../../Components/Ui/ProductDetailModal";

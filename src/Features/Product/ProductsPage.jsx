@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../Context/theme/ThemeContext";
+import { useTheme } from "../../store/useThemeStore";
 import { IconSpinner } from "../../Components/Icons/IconSpinner";
 // Components
 import LiveTicker from "./Components/LiveTicker";

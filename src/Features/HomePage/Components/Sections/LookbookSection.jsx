@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../../store/useThemeStore";
 import ProductCard from "../../../../Components/Ui/ProductCard";
 
 export default function LookbookSection({ products, isLoading }) {

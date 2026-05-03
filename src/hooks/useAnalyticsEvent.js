@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useAuth } from "../Context/auth/AuthContext";
+import { useAuth } from "../store/useAuthStore";
 import { trackEvent } from "../api/track_events";
 
 export function useAnalyticsEvent() {

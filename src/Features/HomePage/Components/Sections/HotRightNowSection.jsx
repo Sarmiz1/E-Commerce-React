@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { motion, useScroll } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ProductCard from "../../../../Components/Ui/ProductCard";
-import { useTheme } from "../../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../../store/useThemeStore";
 import SectionLabel from "../SectionLabel";
 
 export default function HotRightNowSection({ products, isLoading }) {

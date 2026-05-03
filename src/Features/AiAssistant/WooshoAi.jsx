@@ -1,7 +1,7 @@
 import React from "react";
 import { Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../Context/theme/ThemeContext";
+import { useTheme } from "../../store/useThemeStore";
 import { useWooshoChat } from "./hooks/useWooshoChat";
 
 import { TypingWave } from "./components/TypingWave";

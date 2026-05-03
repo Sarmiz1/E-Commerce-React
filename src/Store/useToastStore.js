@@ -10,21 +10,37 @@
  *   addToast("Saved!", "success");   // types: "success" | "error" | "info"
  */
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
-export const useToastStore = create((set) => ({
-  toasts: [],
+export const useToastStore = create(
+  devtools(
+    immer((set) => ({
+      toasts: [],
 
-  addToast: (msg, type = "success") => {
-    const id = Date.now() + Math.random();
-    set((state) => ({ toasts: [...state.toasts, { id, msg, type }] }));
-    setTimeout(() => {
-      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-    }, 4000);
-  },
+      addToast: (msg, type = "success") => {
+        const id = Date.now() + Math.random();
+        set((state) => {
+          state.toasts.push({ id, msg, type });
+        });
+        setTimeout(() => {
+          set((state) => {
+            state.toasts = state.toasts.filter((t) => t.id !== id);
+          });
+        }, 4000);
+      },
 
-  removeToast: (id) =>
-    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
-}));
+      removeToast: (id) =>
+        set((state) => {
+          state.toasts = state.toasts.filter((t) => t.id !== id);
+        }),
+    })),
+    { name: "ToastStore" }
+  )
+);
+
+import { useShallow } from "zustand/react/shallow";
 
 /** Convenience alias — keeps old useToast() call sites working */
-export const useToast = () => useToastStore((s) => ({ addToast: s.addToast }));
+export const useToast = () =>
+  useToastStore(useShallow((s) => ({ addToast: s.addToast })));

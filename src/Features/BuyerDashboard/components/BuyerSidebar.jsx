@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../../../Context/theme/ThemeContext';
+import { useTheme } from "../../../store/useThemeStore";
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
 

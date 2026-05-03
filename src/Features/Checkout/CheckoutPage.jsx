@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 
 import { OrderAPI } from "../../api/orderApi";
-import { useAuth } from "../../Context/auth/AuthContext";
+import { useAuth } from "../../store/useAuthStore";
 import { useCartActions, useCartState } from "../../Context/cart/CartContext";
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import { CartReviewStep } from "./Components/CartReviewStep";

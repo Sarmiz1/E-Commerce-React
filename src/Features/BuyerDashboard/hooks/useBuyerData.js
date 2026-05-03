@@ -12,7 +12,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { useToast } from '../../../Context/toast/ToastContext';
+import { useToast } from "../../../store/useToastStore";
 import {
   BUYER_PROFILE, BUYER_STATS, ORDER_STATUS_SNAPSHOT,
   BUYER_ORDERS, WISHLIST, RECOMMENDATIONS,

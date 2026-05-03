@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../../Context/auth/AuthContext";
+import { useAuth } from "../../store/useAuthStore";
 import { DashboardSkeleton } from "../../Components/Fallback";
 
 export const RoleRoute = ({ allowedRoles = [] }) => {

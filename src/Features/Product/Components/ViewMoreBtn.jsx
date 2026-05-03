@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../store/useThemeStore";
 
 export default function ViewMoreBtn({ sentinelRef, loading, allLoaded, count }) {
   const { colors, isDark } = useTheme();

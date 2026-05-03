@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../../Context/auth/AuthContext";
+import { useAuth } from "../../store/useAuthStore";
 import { supabase } from "../../lib/supabaseClient";
 import { DashboardSkeleton } from "../../Components/Fallback";
 

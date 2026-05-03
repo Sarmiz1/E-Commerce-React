@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../../store/useThemeStore";
 import { BRANDS } from "../../Data/brands";
 
 export default function ShopByBrandSection() {

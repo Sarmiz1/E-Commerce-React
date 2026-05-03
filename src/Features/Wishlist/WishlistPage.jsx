@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { useWishlist } from "../../Hooks/useWishlist";
 import { useCartActions } from "../../Context/cart/CartContext";
-import { useAuth } from "../../Context/auth/AuthContext";
+import { useAuth } from "../../store/useAuthStore";
 import { WishlistAPI } from "../../api/wishlistApi";
 import { trackEvent, trackEvents } from "../../api/track_events";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";

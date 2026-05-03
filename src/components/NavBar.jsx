@@ -6,7 +6,7 @@ import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useRegisterCartIcon } from "../Context/cart/CartAnimationContext";
 import { useCartState } from "../Context/cart/CartContext";
-import { useTheme } from "../Context/theme/ThemeContext";
+import { useTheme } from "../store/useThemeStore";
 import { formatMoneyCents } from "../Utils/formatMoneyCents";
 import { Logo } from "./Ui/Logo";
 import { DesktopNav } from "./NavbarComponents/DesktopNav";

@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../store/useThemeStore";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import { IconClose } from "../../../Components/Icons/IconClose";
 

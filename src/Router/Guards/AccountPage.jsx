@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../Context/auth/AuthContext";
+import { useAuth } from "../../store/useAuthStore";
 import { DashboardSkeleton } from "../../Components/Fallback";
 
 // React.lazy expects the promise to resolve to an object with a "default" property

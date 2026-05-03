@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../store/useThemeStore";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 

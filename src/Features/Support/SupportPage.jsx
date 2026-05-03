@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useTheme } from "../../Context/theme/ThemeContext";
+import { useTheme } from "../../store/useThemeStore";
 import { Link } from "react-router-dom";
 import {
   Search,

@@ -1,4 +1,4 @@
-import { useAuth } from "../../Context/auth/AuthContext";
+import { useAuth } from "../../store/useAuthStore";
 import DefaultLayout from "../../Layout/DefaultLayout";
 import MarkettingLayout from "../../Layout/MarkettingLayout";
 import { HomeSkeleton } from "../../Components/Fallback";

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '../../../Context/theme/ThemeContext';
+import { useTheme } from "../../../store/useThemeStore";
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 

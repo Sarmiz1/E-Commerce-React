@@ -1,4 +1,4 @@
-import { useAuth } from "../../Context/auth/AuthContext";
+import { useAuth } from "../../store/useAuthStore";
 import HomePage from "../../Features/HomePage/HomePage";
 import ModernLanding from "../../Features/Marketting/ModernLanding/ModernLanding";
 import { HomeSkeleton } from "../../Components/Fallback";

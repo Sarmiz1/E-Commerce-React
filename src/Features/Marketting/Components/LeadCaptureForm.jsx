@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "../../../lib/supabaseClient";
 import { trackEvent } from "../../../api/track_events";
 import { useExperiment } from "../../../Hooks/useExperiment";
-import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../store/useThemeStore";
 import { getLeadCaptureExperiments } from "../Data/leadCaptureExperiments";
 
 const LEAD_STORE_KEY = "woosho.marketing.leads";

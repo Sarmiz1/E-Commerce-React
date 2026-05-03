@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../../../Context/theme/ThemeContext';
+import { useTheme } from "../../../store/useThemeStore";
 import { Icon } from './DashIcon';
 
 function Toggle({ value, onChange }) {

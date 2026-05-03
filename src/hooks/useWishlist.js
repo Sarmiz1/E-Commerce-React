@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "../Context/auth/AuthContext";
+import { useAuth } from "../store/useAuthStore";
 import { WishlistAPI } from "../api/wishlistApi";
 import { trackEvent } from "../api/track_events";
 import { useToastStore } from "../store/useToastStore";

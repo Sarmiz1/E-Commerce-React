@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../store/useThemeStore";
 import { ACTIVITY_TEMPLATES } from "../Utils/constants";
 
 export default function LiveTicker({ products }) {

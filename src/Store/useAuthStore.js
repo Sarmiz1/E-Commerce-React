@@ -9,16 +9,22 @@
  *   const { user, session, loading } = useAuthStore();
  */
 import { create } from "zustand";
+import { persist, devtools } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import { supabase } from "../lib/supabaseClient";
 import { useToastStore } from "./useToastStore";
 
 const toast = (msg, type = "success") =>
   useToastStore.getState().addToast(msg, type);
 
-export const useAuthStore = create((set) => ({
-  user: null,
-  session: null,
-  loading: true,
+export const useAuthStore = create(
+  devtools(
+    persist(
+      immer((set) => ({
+        user: null,
+        session: null,
+        loading: true,
+        isLoading: true, // Alias for backward compatibility
 
   // ─── Actions ──────────────────────────────────────────────────────────────
   signIn: async (email, password) => {
@@ -69,12 +75,30 @@ export const useAuthStore = create((set) => ({
     return { data, error };
   },
 
-  // Internal – called by initAuth to sync session updates
-  _setSession: (session) =>
-    set({ session, user: session?.user ?? null, loading: false }),
+      // Internal – called by initAuth to sync session updates
+      _setSession: (session) =>
+        set((state) => {
+          state.session = session;
+          state.user = session?.user ?? null;
+          state.loading = false;
+          state.isLoading = false;
+        }),
 
-  _setLoading: (loading) => set({ loading }),
-}));
+      _setLoading: (loading) =>
+        set((state) => {
+          state.loading = loading;
+          state.isLoading = loading;
+        }),
+    })),
+    {
+      name: "woosho-auth",
+      // Only persist user and session for instant UI feedback.
+      // Don't persist `loading` so the app knows it still needs to verify with Supabase.
+      partialize: (state) => ({ user: state.user, session: state.session }),
+    }
+  ),
+  { name: "AuthStore" }
+));
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 let _unsubscribe = null;
@@ -98,5 +122,20 @@ export function initAuth() {
   return _unsubscribe;
 }
 
-/** Convenience alias — keeps the old `useAuth` call sites working */
-export const useAuth = useAuthStore;
+import { useShallow } from "zustand/react/shallow";
+
+/** Custom hook that safely enforces shallow selector performance for destructured imports */
+export const useAuth = () => {
+  return useAuthStore(
+    useShallow((state) => ({
+      user: state.user,
+      session: state.session,
+      loading: state.loading,
+      isLoading: state.isLoading,
+      signIn: state.signIn,
+      signUp: state.signUp,
+      signOut: state.signOut,
+      loginGuest: state.loginGuest,
+    }))
+  );
+};

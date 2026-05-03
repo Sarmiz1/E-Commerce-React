@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import { useTheme } from "../../Context/theme/ThemeContext";
+import { useTheme } from "../../store/useThemeStore";
 import { formatMoneyCents } from "../../Utils/formatMoneyCents";
 import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/Utils/constants";
 import { IconStar } from "../Icons/IconStar";

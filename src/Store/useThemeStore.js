@@ -10,7 +10,8 @@
  *   const { isDark, toggle, colors } = useThemeStore();
  */
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, devtools } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 // ─── Full Woosho Palette ──────────────────────────────────────────────────────
 const PALETTE = {
@@ -142,31 +143,43 @@ function applyThemeToDom(isDark) {
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 export const useThemeStore = create(
-  persist(
-    (set, get) => ({
-      isDark: window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false,
+  devtools(
+    persist(
+      immer((set, get) => ({
+        isDark: window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false,
 
-      get colors() {
-        return get().isDark ? PALETTE.dark : PALETTE.light;
-      },
+        PALETTE,
 
-      PALETTE,
+        toggle: () => {
+          const next = !get().isDark;
+          applyThemeToDom(next);
+          set((state) => {
+            state.isDark = next;
+          });
+        },
 
-      toggle: () => {
-        const next = !get().isDark;
-        applyThemeToDom(next);
-        set({ isDark: next });
-      },
-
-      // Initialise DOM on first render
-      init: () => applyThemeToDom(get().isDark),
-    }),
+        // Initialise DOM on first render
+        init: () => applyThemeToDom(get().isDark),
+      })),
     {
       name: "woosho-theme",
       partialize: (state) => ({ isDark: state.isDark }),
     }
-  )
-);
+  ),
+  { name: "ThemeStore" }
+));
 
-/** Convenience alias — keeps old useTheme() call sites working */
-export const useTheme = useThemeStore;
+import { useShallow } from "zustand/react/shallow";
+
+/** Custom hook that derives colors safely and enforces shallow selector performance */
+export const useTheme = () => {
+  return useThemeStore(
+    useShallow((state) => ({
+      isDark: state.isDark,
+      colors: state.isDark ? state.PALETTE.dark : state.PALETTE.light,
+      toggle: state.toggle,
+      init: state.init,
+      PALETTE: state.PALETTE,
+    }))
+  );
+};

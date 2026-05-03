@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, MessageSquare, Send, Plus } from 'lucide-react';
-import { useTheme } from '../../Context/theme/ThemeContext';
+import { useTheme } from "../../store/useThemeStore";
 
 export default function AiFloatingWidget() {
   const [isOpen, setIsOpen] = useState(false);

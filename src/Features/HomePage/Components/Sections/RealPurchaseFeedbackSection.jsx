@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../../store/useThemeStore";
 
 const FEEDBACK = [
   { id: 1, user: "Sarah M.", item: "Silk Evening Gown", rating: 5, text: "Absolutely stunning quality. The fit is perfect and the seller shipped it the very next day. 10/10 recommend!", date: "2 days ago" },

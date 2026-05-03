@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../../../Context/theme/ThemeContext';
+import { useTheme } from "../../../store/useThemeStore";
 import { Icon } from './DashIcon';
 
 function SettingsField({ label, defaultValue, type = 'text', placeholder }) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAllProducts } from "../Hooks/product/useProducts"; 
-import { useTheme } from "../Context/theme/ThemeContext"; 
+import { useTheme } from "../store/useThemeStore"; 
 import { formatMoneyCents } from "../Utils/formatMoneyCents";
 
 export default function GlobalCommandPalette() {

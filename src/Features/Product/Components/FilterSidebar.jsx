@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../../Context/theme/ThemeContext";
+import { useTheme } from "../../../store/useThemeStore";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
 import { SORT_OPTIONS, CATEGORIES } from "../Utils/constants";

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../../../Context/theme/ThemeContext';
+import { useTheme } from "../../../store/useThemeStore";
 import { BIcon } from './BuyerIcon';
 import { ProductResult } from './ProductResult';
 import { useBuyerAIChat } from '../hooks/useBuyerAIChat';
