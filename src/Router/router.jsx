@@ -15,7 +15,7 @@ import DefaultLayout from "../Layout/DefaultLayout";
 import MarkettingLayout from "../Layout/MarkettingLayout";
 import ProductsLayout from "../Layout/ProductsLayout";
 import TradeLayout from "../Layout/TradeLayout";
-import Navbar from "../Components/Navbar";
+
 
 // ─── Core Pages ───────────────────────────────────────────────────────────────
 import HomePage from "../Features/HomePage/HomePage";
@@ -287,68 +287,38 @@ const router = createBrowserRouter(
         <Route element={<TradeLayout />}>
           <Route
             path="checkout"
-            element={
-              <>
-                <Navbar />
-                <CheckoutPage />
-              </>
-            }
+            element={<CheckoutPage />}
             hydrateFallbackElement={<CartSkeleton />}
           />
 
           <Route
             path="orders"
-            element={
-              <>
-                <Navbar />
-                <OrdersPage />
-              </>
-            }
+            element={<OrdersPage />}
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<OrdersSkeleton />}
           />
           <Route
             path="tracking"
-            element={
-              <>
-                <Navbar />
-                <TrackingPage />
-              </>
-            }
+            element={<TrackingPage />}
             loader={fetchOrdersLoader}
             hydrateFallbackElement={<TrackingSkeleton />}
           />
           <Route
             path="/wishlist"
-            element={
-              <>
-                <Navbar />
-                <WishlistPage />
-              </>
-            }
+            element={<WishlistPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="cart"
-            element={
-              <>
-                <Navbar />
-                <CartPage />
-              </>
-            }
+            element={<CartPage />}
             hydrateFallbackElement={<CartSkeleton />}
           />
 
           {/* ── Products  Layout── */}
           <Route
             path="products"
-            element={
-              <>
-                <Navbar />
-                <ProductsLayout />
-              </>
-            }
+            element={<ProductsLayout />}
           >
             <Route
               index
@@ -367,144 +337,79 @@ const router = createBrowserRouter(
           {/* ── Collections (all use fetchProductsLoader) ── */}
           <Route
             path="new-arrivals"
-            element={
-              <>
-                <Navbar />
-                <NewArrivalsPage />
-              </>
-            }
+            element={<NewArrivalsPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="hot-deals"
-            element={
-              <>
-                <Navbar />
-                <HotDealsPage />
-              </>
-            }
+            element={<HotDealsPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="trending"
-            element={
-              <>
-                <Navbar />
-                <TrendingNowPage />
-              </>
-            }
+            element={<TrendingNowPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="high-fashion"
-            element={
-              <>
-                <Navbar />
-                <HighFashionPage />
-              </>
-            }
+            element={<HighFashionPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="sneakers"
-            element={
-              <>
-                <Navbar />
-                <SneakersPage />
-              </>
-            }
+            element={<SneakersPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="electronics"
-            element={
-              <>
-                <Navbar />
-                <ElectronicsPage />
-              </>
-            }
+            element={<ElectronicsPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="beauty-care"
-            element={
-              <>
-                <Navbar />
-                <BeautyCarePage />
-              </>
-            }
+            element={<BeautyCarePage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="flash-sales"
-            element={
-              <>
-                <Navbar />
-                <FlashSalesPage />
-              </>
-            }
+            element={<FlashSalesPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="members-only"
-            element={
-              <>
-                <Navbar />
-                <MembersOnlyPage />
-              </>
-            }
+            element={<MembersOnlyPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="categories"
-            element={
-              <>
-                <Navbar />
-                <CategoriesPage />
-              </>
-            }
+            element={<CategoriesPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="black-friday"
-            element={
-              <>
-                <Navbar />
-                <BlackFridayPage />
-              </>
-            }
+            element={<BlackFridayPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="fashion"
-            element={
-              <>
-                <Navbar />
-                <FashionPage />
-              </>
-            }
+            element={<FashionPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
           <Route
             path="kids-toys"
-            element={
-              <>
-                <Navbar />
-                <KidsToysPage />
-              </>
-            }
+            element={<KidsToysPage />}
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
