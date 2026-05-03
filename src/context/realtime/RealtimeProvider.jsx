@@ -1,6 +1,6 @@
 // FIXED IMPORT
 import { createContext, useContext, useEffect } from "react";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../../lib/supabaseClient";
 import { initRealtime } from "../../lib/realtime";
 import { queryClient } from "../../queries/queryClient";
 

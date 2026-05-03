@@ -1,5 +1,5 @@
 // src/api/productsApi.js
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { createResourceApi } from "./createResourceApi";
 
 // 🔥 Ultimate select string with explicit relationship hints

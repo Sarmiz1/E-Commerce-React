@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 const GUEST_WISHLIST_KEY = "guest_wishlist";
 const WISHLIST_TABLE = "wishlists";

@@ -1,5 +1,5 @@
 // src/api/orderApi.js
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { handleResponse } from "./apiClients";
 
 export const OrderAPI = {

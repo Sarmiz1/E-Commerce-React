@@ -35,13 +35,19 @@ export default function AuthForm({
   ctaText,
   isMobile,
   showBrand,
+  initialMode = "login",
 }) {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState(initialMode);
   const [buyerStep, setBuyerStep] = useState(1);
   const [sellerStep, setSellerStep] = useState(1);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // Keep mode in sync if the user navigates between /login and /signup
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   const {
     control,

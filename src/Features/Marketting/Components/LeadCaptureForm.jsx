@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "../../../lib/supabaseClient";
 import { trackEvent } from "../../../api/track_events";
 import { useExperiment } from "../../../Hooks/useExperiment";
 import { useTheme } from "../../../Context/theme/ThemeContext";

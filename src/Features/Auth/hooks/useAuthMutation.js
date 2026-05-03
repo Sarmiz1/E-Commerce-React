@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "../../../lib/supabaseClient";
 
 export const getFriendlyError = (message) => {
   if (!message) return "Something went wrong. Please try again.";

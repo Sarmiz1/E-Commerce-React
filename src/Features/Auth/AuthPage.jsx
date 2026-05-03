@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "../../Context/theme/ThemeContext";
+import { useLocation } from "react-router-dom";
 
 import BrandPanel from "./Components/BrandPanel";
 import AuthForm from "./AuthFormComponent/AuthForm";
@@ -36,11 +37,16 @@ function useWindowSize() {
 export default function AuthPage() {
   const { colors, isDark, toggle } = useTheme();
   const { width } = useWindowSize();
+  const location = useLocation();
 
   // Layout breakpoints — purely reactive, no flicker
   const showBrand = width >= 900;
   const isWide = width >= 1100;
   const isMobile = width < 540;
+
+  // Derive initial mode from route
+  const isSignup = location.pathname.includes("signup");
+  const initialMode = isSignup ? "register" : "login";
 
   // ── Theme toggle ───────────────────────────────────────────
   const handleToggle = () => {
@@ -106,6 +112,7 @@ export default function AuthPage() {
           ctaText={ctaText}
           isMobile={isMobile}
           showBrand={showBrand}
+          initialMode={initialMode}
         />
       </div>
     </>

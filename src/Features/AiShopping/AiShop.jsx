@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabaseClient';
 import { 
   Sparkles, ChevronDown, HelpCircle, ShoppingCart, 
   X, CheckCircle2, Plus, Mic, Send, Heart, MoreVertical, 
   RotateCcw, Monitor, Shirt, Home, Diamond, Truck, Copy, Scale,
   Cpu, Zap, Grip, ArrowDownCircle, ChevronRight, Loader2
 } from 'lucide-react';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY;
 

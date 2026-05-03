@@ -1,5 +1,5 @@
 // src/api/cartApi.js
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { getAnalyticsSessionId, getStoredAnalyticsEvents } from "./track_events";
 import { WishlistAPI } from "./wishlistApi";
 

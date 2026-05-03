@@ -1,5 +1,5 @@
 import { OrderAPI } from "../api/orderApi"; 
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 export const fetchOrdersLoader = async () => {
   try {

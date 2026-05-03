@@ -1,5 +1,5 @@
 // src/api/storeApi.js
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 export const StoreAPI = {
   getMyStore: async (userId) => {

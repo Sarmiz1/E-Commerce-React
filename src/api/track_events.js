@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 const EVENT_STORE_KEY = "woosho.analytics.events";
 const SESSION_KEY = "woosho.analytics.sessionId";
