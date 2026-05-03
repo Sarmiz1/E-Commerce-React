@@ -1,7 +1,7 @@
 import React from "react";
 import { Controller } from "react-hook-form";
 import { Mail } from "lucide-react";
-import FloatingInput from "./FloatingInput";
+import FloatingInput from "../Components/FloatingInput";
 
 const ForgotForm = ({ control, errors, colors, isDark }) => {
   return (

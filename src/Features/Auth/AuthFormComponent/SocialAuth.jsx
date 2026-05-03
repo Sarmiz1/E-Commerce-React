@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import GoogleIcon from "./GoogleIcon";
+import GoogleIcon from "../Components/GoogleIcon";
 
 const SocialAuth = ({ mode, role, buyerStep, sellerStep, colors, isDark }) => {
   return (

@@ -4,7 +4,7 @@ import { Sun, Moon } from "lucide-react";
 import { useTheme } from "../../Context/theme/ThemeContext";
 
 import BrandPanel from "./Components/BrandPanel";
-import AuthForm from "./Components/AuthForm";
+import AuthForm from "./AuthFormComponent/AuthForm";
 import AuthStyles from "./Components/AuthStyles";
 
 // ─── Reactive window-size hook (no flicker on resize) ────────────────────────

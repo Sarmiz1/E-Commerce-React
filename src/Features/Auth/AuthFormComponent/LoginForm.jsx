@@ -1,8 +1,8 @@
 import React from "react";
 import { Controller } from "react-hook-form";
 import { Mail, Lock } from "lucide-react";
-import FloatingInput from "./FloatingInput";
-import EyeBtn from "./EyeBtn";
+import FloatingInput from "../Components/FloatingInput";
+import EyeBtn from "../Components/EyeBtn";
 
 const LoginForm = ({ control, errors, showPass, setShowPass, colors, isDark, setMode, cta }) => {
   return (

@@ -3,9 +3,9 @@ import { Controller } from "react-hook-form";
 import { 
   User, Mail, Lock, ChevronLeft, Store, Phone, AlignLeft, MapPin, Building, Flag, Hash 
 } from "lucide-react";
-import FloatingInput from "./FloatingInput";
-import FloatingSelect from "./FloatingSelect";
-import EyeBtn from "./EyeBtn";
+import FloatingInput from "../Components/FloatingInput";
+import FloatingSelect from "../Components/FloatingSelect";
+import EyeBtn from "../Components/EyeBtn";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 
 const SellerWizard = ({
