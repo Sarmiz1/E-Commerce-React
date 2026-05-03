@@ -316,7 +316,7 @@ export default function ProductsPage() {
                     isCompared={compareList.some(
                       (c) => c.id === item.product.id,
                     )}
-                    canAdd={compareList.length < 4}
+                    canAdd={compareList.length < 2}
                   />
                 ),
               )}

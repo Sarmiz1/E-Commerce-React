@@ -27,7 +27,7 @@ export default function ProductComparisonBar({
             className="text-[10px] sm:text-xs font-bold shrink-0"
             style={{ color: colors.text.secondary }}
           >
-            {compareList.length}/4
+            {compareList.length}/2
             <span className="hidden sm:inline"> selected</span>
           </span>
           <div className="flex items-center gap-2">

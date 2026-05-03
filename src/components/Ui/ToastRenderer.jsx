@@ -16,7 +16,17 @@ export function ToastRenderer() {
   const isDark      = useThemeStore((s) => s.isDark);
 
   return (
-    <div className="fixed bottom-6 right-6 z-[99999] flex flex-col gap-3 pointer-events-none">
+    <div
+      className="fixed z-[99999] flex flex-col gap-3 pointer-events-none"
+      style={{
+        bottom: "max(1rem, env(safe-area-inset-bottom))",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "calc(100% - 2rem)",
+        maxWidth: 400,
+        alignItems: "center",
+      }}
+    >
       <AnimatePresence>
         {toasts.map((t) => {
           const isErr  = t.type === "error";

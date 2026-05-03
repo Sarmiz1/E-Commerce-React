@@ -8,7 +8,7 @@ export function useCompare() {
     setCompareList((prev) => {
       const exists = prev.find((p) => p.id === product.id);
       if (exists) return prev.filter((p) => p.id !== product.id);
-      if (prev.length >= 4) return prev;
+      if (prev.length >= 2) return prev;
       return [...prev, product];
     });
   }, []);

@@ -591,20 +591,26 @@ export const CartAPI = {
   // ➕ ADD TO CART
   // =========================
   add: async ({ cartId, productId, variantId, quantity = 1 }) => {
-    // If we only have product_id, we should try to fetch the default variant_id first 
-    // to satisfy the cart_items (cart_id, variant_id) unique constraint.
+    if (!cartId) throw new Error("No active cart ID provided to CartAPI.add");
+    
+    // Ensure we have a variant_id. If missing, fetch the first available variant for the product.
     let finalVariantId = variantId;
     
     if (!finalVariantId && productId) {
-      const { data: variants } = await supabase
+      const { data: variants, error: vError } = await supabase
         .from("product_variants")
         .select("id")
         .eq("product_id", productId)
         .limit(1);
       
+      if (vError) console.error("Error fetching default variant:", vError);
       if (variants && variants.length > 0) {
         finalVariantId = variants[0].id;
       }
+    }
+
+    if (!finalVariantId) {
+      throw new Error(`Could not add to cart: No variant found for product ${productId}`);
     }
 
     const { data, error } = await supabase
@@ -614,7 +620,7 @@ export const CartAPI = {
           cart_id: cartId,
           product_id: productId,
           variant_id: finalVariantId,
-          quantity,
+          quantity: Math.max(quantity, 1),
         },
         {
           onConflict: "cart_id, variant_id",
@@ -622,7 +628,10 @@ export const CartAPI = {
       )
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error("CartAPI.add error:", error);
+      throw error;
+    }
     return data;
   },
 
