@@ -45,19 +45,20 @@ export function CartProvider({ children }) {
   const store = useCartStore;
 
   // ─── 1. TanStack Query — fetch cart & hydrate Zustand ─────────────────────
-  const { isLoading, isFetching, error, status } = useQuery({
+  const { data, isLoading, isFetching, error, status } = useQuery({
     queryKey: ["cart", user?.id],
     queryFn: async () => {
-      const data = user?.id
+      return user?.id
         ? await CartAPI.load(user.id)
         : await CartAPI.loadGuestCart(CartEngine.getGuestCart());
-
-      // Hydrate Zustand with fresh server data
-      store.getState().hydrate(data);
-      return data;
     },
     enabled: true,
   });
+
+  // Sync server data into Zustand
+  useEffect(() => {
+    if (data) store.getState().hydrate(data);
+  }, [data, store]);
 
   // Sync loading/fetching flags into Zustand
   useEffect(() => { store.getState().setLoading(isLoading); }, [isLoading, store]);
@@ -71,6 +72,7 @@ export function CartProvider({ children }) {
   // ── ADD ITEM ──────────────────────────────────────────────────────────────
   const addItemMutation = useMutation({
     onMutate: async ({ productId, variantId, quantity = 1, product, variant }) => {
+      await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       // 1. Zustand optimistic update (instant UI)
       const snapshot = store.getState().addItemOptimistic({
         productId, variantId, quantity, product, variant,
@@ -136,6 +138,7 @@ export function CartProvider({ children }) {
   // ── REMOVE ITEM ───────────────────────────────────────────────────────────
   const removeItemMutation = useMutation({
     onMutate: async (itemRef) => {
+      await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       const snapshot = store.getState().removeItemOptimistic(itemRef);
       const guestSnapshot = !user?.id ? CartEngine.getGuestCart() : null;
       return { snapshot, guestSnapshot };
@@ -186,6 +189,7 @@ export function CartProvider({ children }) {
   // ── UPDATE QUANTITY ───────────────────────────────────────────────────────
   const updateQuantityMutation = useMutation({
     onMutate: async ({ itemId, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       const safeQty = Math.max(Number(quantity) || 1, 1);
       const snapshot = store.getState().updateQuantityOptimistic(itemId, safeQty);
       const guestSnapshot = !user?.id ? CartEngine.getGuestCart() : null;
@@ -241,6 +245,7 @@ export function CartProvider({ children }) {
   // ── CLEAR CART ────────────────────────────────────────────────────────────
   const clearCartMutation = useMutation({
     onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       const snapshot = store.getState().clearCartOptimistic();
       const guestSnapshot = !user?.id ? CartEngine.getGuestCart() : null;
       return { snapshot, guestSnapshot };
@@ -272,6 +277,7 @@ export function CartProvider({ children }) {
   // ── ADD ITEMS (BULK) ──────────────────────────────────────────────────────
   const addItemsMutation = useMutation({
     onMutate: async (items = []) => {
+      await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       const additions = (Array.isArray(items) ? items : [items])
         .map(normalizeCartAddition)
         .filter(Boolean);

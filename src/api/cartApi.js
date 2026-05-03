@@ -345,25 +345,28 @@ export const CartAPI = {
   // 🧺 LOAD CART (FULL PRODUCT + IMAGE FIX)
   // =========================
   load: async (userId) => {
-    // 1. get/create cart
-    let { data: cart, error: cartError } = await supabase
+    // 1. get/create cart safely (handling multiple active carts gracefully)
+    let { data: carts, error: cartError } = await supabase
       .from("carts")
       .select("id")
       .eq("user_id", userId)
       .eq("status", "active")
-      .single();
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-    if (cartError && cartError.code !== "PGRST116") throw cartError;
+    if (cartError) throw cartError;
+
+    let cart = carts?.[0];
 
     if (!cart) {
-      const { data: newCart, error: createError } = await supabase
+      const { data: newCarts, error: createError } = await supabase
         .from("carts")
         .insert({ user_id: userId, status: "active" })
         .select("id")
-        .single();
+        .limit(1);
 
       if (createError) throw createError;
-      cart = newCart;
+      cart = newCarts?.[0];
     }
 
     // 2. Fetch cart items with full product + variant data
@@ -613,20 +616,14 @@ export const CartAPI = {
       throw new Error(`Could not add to cart: No variant found for product ${productId}`);
     }
 
-    const { data, error } = await supabase
-      .from("cart_items")
-      .upsert(
-        {
-          cart_id: cartId,
-          product_id: productId,
-          variant_id: finalVariantId,
-          quantity: Math.max(quantity, 1),
-        },
-        {
-          onConflict: "cart_id, variant_id",
-        }
-      )
-      .select();
+    const { data, error } = await supabase.rpc("add_cart_items_bulk", {
+      p_cart_id: cartId,
+      p_items: [{
+        product_id: productId,
+        variant_id: finalVariantId,
+        quantity: Math.max(quantity, 1),
+      }],
+    });
 
     if (error) {
       console.error("CartAPI.add error:", error);

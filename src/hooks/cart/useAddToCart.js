@@ -40,6 +40,7 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
   const mutation = useMutation({
     // ── 1 & 2. Zustand optimistic update + toast (before server call) ──
     onMutate: async ({ overrideProductId, overrideOpts } = {}) => {
+      await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       const finalProductId = overrideProductId ?? productId;
       const finalVariantId = overrideOpts?.variantId ?? variantId;
       const finalQuantity = Math.max(Number(overrideOpts?.quantity ?? quantity) || 1, 1);
@@ -114,15 +115,20 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
         throw new Error("Cart not loaded yet. Please try again in a moment.");
       }
 
-      await CartAPI.add({
+      console.log("Adding to cart:", { activeCartId, finalProductId, finalVariantId, finalQuantity });
+      
+      const addRes = await CartAPI.add({
         cartId: activeCartId,
         productId: finalProductId,
         variantId: finalVariantId,
         quantity: finalQuantity,
       });
+      console.log("CartAPI.add returned:", addRes);
 
       // Return full cart for hydration
-      return CartAPI.load(user.id);
+      const loaded = await CartAPI.load(user.id);
+      console.log("CartAPI.load returned:", loaded);
+      return loaded;
     },
 
     // ── 4. On success: hydrate Zustand with server data ──

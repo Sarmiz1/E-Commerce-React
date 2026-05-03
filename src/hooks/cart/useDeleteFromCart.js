@@ -32,6 +32,7 @@ export function useDeleteFromCart(productId, { variantId } = {}) {
   const mutation = useMutation({
     // ── Zustand optimistic removal ──
     onMutate: async ({ overrideProductId, overrideOpts } = {}) => {
+      await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       const finalProductId = overrideProductId ?? productId;
       const finalVariantId = overrideOpts?.variantId ?? variantId;
 
