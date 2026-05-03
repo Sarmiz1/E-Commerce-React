@@ -42,6 +42,8 @@ export default function ProductDetail() {
   const trackEvent = useAnalyticsEvent();
   const [quantity, setQuantity] = useState(1);
 
+  const imageRef = useRef(null)
+
   const { data: product, isFetchingProduct } = useProductBySlug(productSlug, {
     enabled: !!productSlug,
   });
