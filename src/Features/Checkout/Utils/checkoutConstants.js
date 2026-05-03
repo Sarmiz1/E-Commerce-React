@@ -28,6 +28,10 @@ export const EMPTY_ERRORS = () => ({
   city: "",
   zip: "",
   country: "",
+  billingAddress: "",
+  billingCity: "",
+  billingZip: "",
+  billingCountry: "",
   cardNumber: "",
   expiry: "",
   cvv: "",
@@ -42,6 +46,11 @@ export const EMPTY_FORM = () => ({
   city: "",
   zip: "",
   country: "Nigeria",
+  billingSameAsShipping: true,
+  billingAddress: "",
+  billingCity: "",
+  billingZip: "",
+  billingCountry: "Nigeria",
   cardNumber: "",
   expiry: "",
   cvv: "",
@@ -63,7 +72,7 @@ export const COUNTRY_OPTIONS = [
   "UAE",
 ];
 
-export const CHECKOUT_STEPS = ["Cart", "Details", "Done"];
+export const CHECKOUT_STEPS = ["Checkout", "Order Complete"];
 
 export const TRUST_BADGES = [
   {

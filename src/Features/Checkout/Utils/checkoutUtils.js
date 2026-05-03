@@ -68,37 +68,63 @@ export function calculateCheckoutTotals(cart = [], selectedShipping = "standard"
   };
 }
 
-export function validateCheckoutForm(form) {
-  const errors = EMPTY_ERRORS();
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const expiryPattern = /^(0[1-9]|1[0-2])\/\d{2}$/;
-  const rawCard = String(form.cardNumber || "").replace(/\s/g, "");
+import { z } from "zod";
 
-  if (!form.name.trim()) errors.name = "Full name is required";
-  if (!emailPattern.test(form.email)) errors.email = "Valid email address required";
-  if (!form.phone.trim() || form.phone.length < 7) errors.phone = "Valid phone number required";
-  if (!form.address.trim()) errors.address = "Street address is required";
-  if (!form.city.trim()) errors.city = "City is required";
-  if (!form.zip.trim()) errors.zip = "ZIP / postal code required";
-  if (!form.cardName.trim()) errors.cardName = "Cardholder name required";
-  if (rawCard.length < 13 || rawCard.length > 16) errors.cardNumber = "Enter a valid 13-16 digit card number";
-
-  if (!expiryPattern.test(form.expiry)) {
-    errors.expiry = "Enter expiry as MM/YY";
-  } else {
-    const [month, year] = form.expiry.split("/").map(Number);
+export const checkoutSchema = z.object({
+  name: z.string().min(2, "Full name is required"),
+  email: z.string().email("Valid email address required"),
+  phone: z.string().min(7, "Valid phone number required"),
+  address: z.string().min(5, "Street address is required"),
+  city: z.string().min(2, "City is required"),
+  zip: z.string().min(3, "ZIP / postal code required"),
+  country: z.string().min(2, "Country is required"),
+  billingSameAsShipping: z.boolean().default(true),
+  billingAddress: z.string().optional(),
+  billingCity: z.string().optional(),
+  billingZip: z.string().optional(),
+  billingCountry: z.string().optional(),
+  cardName: z.string().min(2, "Cardholder name required"),
+  cardNumber: z.string().transform(v => v.replace(/\s/g, "")).pipe(z.string().min(13, "Invalid card").max(16, "Invalid card")),
+  expiry: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Format MM/YY").refine((val) => {
+    if (!val.includes("/")) return false;
+    const [month, year] = val.split("/").map(Number);
     const now = new Date();
     const cardYear = 2000 + year;
     const cardMonth = month - 1;
-
-    if (cardYear < now.getFullYear() || (cardYear === now.getFullYear() && cardMonth < now.getMonth())) {
-      errors.expiry = "Card has expired";
+    return cardYear > now.getFullYear() || (cardYear === now.getFullYear() && cardMonth >= now.getMonth());
+  }, "Card has expired"),
+  cvv: z.string().min(3, "CVV must be 3-4 digits").max(4, "CVV must be 3-4 digits"),
+}).superRefine((data, ctx) => {
+  if (!data.billingSameAsShipping) {
+    if (!data.billingAddress || data.billingAddress.length < 5) {
+      ctx.addIssue({ path: ["billingAddress"], message: "Billing address is required", code: z.ZodIssueCode.custom });
+    }
+    if (!data.billingCity || data.billingCity.length < 2) {
+      ctx.addIssue({ path: ["billingCity"], message: "Billing city is required", code: z.ZodIssueCode.custom });
+    }
+    if (!data.billingZip || data.billingZip.length < 3) {
+      ctx.addIssue({ path: ["billingZip"], message: "Billing ZIP required", code: z.ZodIssueCode.custom });
+    }
+    if (!data.billingCountry || data.billingCountry.length < 2) {
+      ctx.addIssue({ path: ["billingCountry"], message: "Billing country required", code: z.ZodIssueCode.custom });
     }
   }
+});
 
-  if (form.cvv.length < 3) errors.cvv = "CVV must be 3-4 digits";
-
-  return errors;
+export function validateCheckoutForm(form) {
+  try {
+    checkoutSchema.parse(form);
+    return EMPTY_ERRORS();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errors = EMPTY_ERRORS();
+      error.errors.forEach((err) => {
+        if (err.path[0]) errors[err.path[0]] = err.message;
+      });
+      return errors;
+    }
+    return EMPTY_ERRORS();
+  }
 }
 
 export function hasFormErrors(errors) {
