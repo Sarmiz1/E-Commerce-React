@@ -9,16 +9,30 @@ export const buyerApi = {
   getDashboard: async (userId) => {
     let res = await supabase.rpc('get_buyer_dashboard', { buyer_id: userId });
     
-    // Auto-heal: If the user doesn't have a profile yet, create one!
+    // Auto-heal: If the user doesn't have a dashboard profile yet, create one!
     if (res.data && !res.data.profile) {
-      const { data: { user } } = await supabase.auth.getUser();
-      const emailName = user?.email ? user.email.split('@')[0] : 'Buyer';
-      const capitalized = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      // 1. Try to get name from master profiles table first
+      const { data: masterProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', userId)
+        .single();
+
+      let finalName = masterProfile?.full_name;
+
+      // 2. Fallback to email handle if no master profile name
+      if (!finalName) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const emailName = user?.email ? user.email.split('@')[0] : 'Buyer';
+        // Clean up handle (remove numbers, capitalize)
+        finalName = emailName.replace(/[0-9]/g, ' ').trim().split(' ')[0];
+        finalName = finalName.charAt(0).toUpperCase() + finalName.slice(1);
+      }
       
-      // Insert default profile
+      // Insert default dashboard profile
       await supabase.from('buyer_profiles').upsert({
         user_id: userId,
-        full_name: capitalized,
+        full_name: finalName || 'Buyer',
         reward_points: 2840
       });
       
@@ -44,9 +58,9 @@ export const buyerApi = {
   removeFromWishlist: (id) =>
     supabase.from('wishlist').delete().eq('id', id),
 
-  submitReview: (userId, orderId, productId, rating, comment) =>
-    supabase.from('reviews').upsert([
-      { user_id: userId, order_id: orderId, product_id: productId, rating, comment },
+  submitReview: (userId, orderId, productId, rating, reviewText) =>
+    supabase.from('product_reviews').upsert([
+      { user_id: userId, order_id: orderId, product_id: productId, rating, review_text: reviewText },
     ]),
 
   markAllNotifsRead: (userId) =>
@@ -56,16 +70,18 @@ export const buyerApi = {
       .eq('user_id', userId),
 
   addAddress: (userId, addr) =>
-    supabase.from('buyer_addresses').insert([{
+    supabase.from('addresses').insert([{
       user_id: userId,
-      label: addr.label,
       full_name: addr.name,
       line1: addr.line1,
       line2: addr.line2 || null,
+      city: addr.city || 'Lagos',
+      state: addr.state || 'Lagos',
+      postal_code: addr.postalCode || '100001',
       phone: addr.phone,
-      is_default: addr.isDefault || false,
+      is_default_shipping: addr.isDefault || false,
     }]),
 
   deleteAddress: (id) =>
-    supabase.from('buyer_addresses').delete().eq('id', id),
+    supabase.from('addresses').delete().eq('id', id),
 };

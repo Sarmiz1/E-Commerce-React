@@ -30,7 +30,7 @@ DECLARE
     v_shipping INTEGER := 499; -- Default shipping $4.99
     v_total INTEGER := 0;
     v_free_ship_threshold INTEGER := 5000; -- $50
-    v_promo RECORD;
+    v_promo public.promo_codes%ROWTYPE;
     v_promo_found BOOLEAN := false;
 BEGIN
     -- Calculate subtotal by joining cart_items with product_variants

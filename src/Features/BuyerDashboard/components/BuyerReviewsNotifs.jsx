@@ -21,7 +21,7 @@ export function BuyerReviews() {
     const result = await submitReview(id, review?.product || '', ratings[id], drafts[id]);
     if (result?.success !== false) {
       setLocalReviews(prev => (prev ?? liveReviews ?? []).map(r =>
-        r.id === id ? { ...r, submitted: true, rating: ratings[id], comment: drafts[id] } : r
+        r.id === id ? { ...r, submitted: true, rating: ratings[id], review_text: drafts[id] } : r
       ));
     }
     setSubmitted(s => ({ ...s, [id]: 'done' }));
@@ -69,7 +69,7 @@ export function BuyerReviews() {
               </div>
 
               {isDone ? (
-                <p className="text-sm leading-relaxed" style={{ color: colors.text.secondary }}>{r.comment}</p>
+                <p className="text-sm leading-relaxed" style={{ color: colors.text.secondary }}>{r.review_text}</p>
               ) : (
                 <>
                   <textarea rows={3} placeholder="Share your experience with this product…"
