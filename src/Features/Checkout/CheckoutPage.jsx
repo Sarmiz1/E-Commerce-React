@@ -4,7 +4,11 @@ import gsap from "gsap";
 
 import { OrderAPI } from "../../api/orderApi";
 import { useAuth } from "../../store/useAuthStore";
-import { useCartState } from "../../Context/cart/CartContext";
+import { useCartState, useCartActions } from "../../Context/cart/CartContext";
+import { useToastStore } from "../../Store/useToastStore";
+
+const toast = (msg, type = "success") =>
+  useToastStore.getState().addToast(msg, type);
 import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 
 import { CheckoutHero } from "./Components/CheckoutHero";
@@ -15,11 +19,8 @@ import { SubmitErrorAlert } from "./Components/SubmitErrorAlert";
 import { SuccessScreen } from "./Components/SuccessScreen";
 import { TrustBar } from "./Components/TrustBar";
 import { CO_STYLES, EMPTY_ERRORS, EMPTY_FORM } from "./Utils/checkoutConstants";
-import {
-  calculateCheckoutTotals,
-  hasFormErrors,
-  validateCheckoutForm,
-} from "./Utils/checkoutUtils";
+import { calculateCheckoutTotals } from "./Utils/checkoutUtils";
+import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
 
 import { useBuyerDashboardStore } from "../../Store/useBuyerDashboardStore";
 
@@ -33,6 +34,7 @@ export default function CheckoutPage() {
     loading: cartLoading,
     cartId,
   } = useCartState();
+  const { clearCart } = useCartActions();
   const buyerDetails = useBuyerDashboardStore();
 
   useShowErrorBoundary(cartError);
@@ -132,6 +134,8 @@ export default function CheckoutPage() {
         );
         setOrderTotal(totals.total);
         setStep(1);
+        clearCart();
+        toast("Order placed successfully!", "success");
       } catch (error) {
         setSubmitError(
           error?.message || "Failed to place order. Please try again.",
@@ -144,7 +148,7 @@ export default function CheckoutPage() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-50">
+    <div className="min-h-screen overflow-x-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <style>{CO_STYLES}</style>
 
       <CheckoutHero heroRef={heroRef} step={step} itemCount={cart.length} />

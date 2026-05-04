@@ -4,7 +4,7 @@ import { Icon } from "./CheckoutIcons";
 export function Field({ label, error, required, children }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-gray-500">
+      <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 dark:text-gray-500">
         {label}
         {required && <span className="ml-0.5 text-red-400">*</span>}
       </label>

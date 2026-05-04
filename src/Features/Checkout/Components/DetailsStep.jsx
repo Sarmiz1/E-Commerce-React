@@ -27,7 +27,7 @@ export function DetailsStep({
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <div className="mb-6 flex items-center gap-3">
-            <motion.button type="button" whileHover={{ x: -3 }} onClick={onBack} className="flex items-center gap-1.5 text-sm font-semibold text-gray-400 transition-colors hover:text-indigo-600">
+            <motion.button type="button" whileHover={{ x: -3 }} onClick={onBack} className="flex items-center gap-1.5 text-sm font-semibold text-gray-400 dark:text-gray-500 transition-colors hover:text-indigo-600">
               <Icon.Back className="h-4 w-4" />
               Back to Bag
             </motion.button>

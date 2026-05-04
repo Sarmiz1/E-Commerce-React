@@ -48,7 +48,7 @@ export function CouponInput({ onApply, appliedCoupon }) {
           }}
           onKeyDown={(event) => event.key === "Enter" && handleApply()}
           placeholder="Coupon code"
-          className="co-input flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 font-mono text-sm tracking-widest"
+          className="co-input flex-1 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-2.5 font-mono text-sm tracking-widest"
         />
         <motion.button
           type="button"

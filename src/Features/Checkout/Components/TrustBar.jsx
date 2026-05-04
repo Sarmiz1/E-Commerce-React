@@ -13,12 +13,12 @@ export function TrustBar({ visible }) {
         const TrustIcon = TRUST_ICONS[index] || Icon.Shield;
 
         return (
-          <div key={badge.title} className="rounded-2xl border border-gray-100 bg-white p-5 text-center transition-all duration-200 hover:border-indigo-100 hover:shadow-sm">
+          <div key={badge.title} className="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-white/5 p-5 text-center transition-all duration-200 hover:border-indigo-100 hover:shadow-sm">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
               <TrustIcon className="h-5 w-5" />
             </div>
-            <p className="mb-1 text-sm font-bold text-gray-900">{badge.title}</p>
-            <p className="text-[11px] leading-relaxed text-gray-400">{badge.sub}</p>
+            <p className="mb-1 text-sm font-bold text-gray-900 dark:text-gray-100">{badge.title}</p>
+            <p className="text-[11px] leading-relaxed text-gray-400 dark:text-gray-500">{badge.sub}</p>
           </div>
         );
       })}

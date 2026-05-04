@@ -10,8 +10,8 @@ export function EmptyCart() {
       <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-indigo-50 text-indigo-600">
         <Icon.Bag className="h-10 w-10" />
       </div>
-      <h2 className="mb-4 text-3xl font-black text-gray-900">Your bag is empty</h2>
-      <p className="mb-8 leading-relaxed text-gray-400">Looks like you have not added anything yet. Start browsing our products.</p>
+      <h2 className="mb-4 text-3xl font-black text-gray-900 dark:text-gray-100">Your bag is empty</h2>
+      <p className="mb-8 leading-relaxed text-gray-400 dark:text-gray-500">Looks like you have not added anything yet. Start browsing our products.</p>
       <motion.button
         type="button"
         whileHover={{ scale: 1.04 }}

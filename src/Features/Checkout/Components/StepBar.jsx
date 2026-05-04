@@ -20,12 +20,12 @@ export function StepBar({ step }) {
                     ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-indigo-500/30"
                     : current
                       ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-indigo-500/30 ring-2 ring-indigo-200"
-                      : "bg-gray-100 text-gray-400"
+                      : "bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-gray-500"
                 }`}
               >
                 {done ? <Icon.Check className="h-3.5 w-3.5" /> : index + 1}
               </motion.div>
-              <span className={`whitespace-nowrap text-[10px] font-bold transition-colors duration-200 ${current || done ? "text-indigo-700" : "text-gray-400"}`}>
+              <span className={`whitespace-nowrap text-[10px] font-bold transition-colors duration-200 ${current || done ? "text-indigo-700" : "text-gray-400 dark:text-gray-500"}`}>
                 {label}
               </span>
             </div>

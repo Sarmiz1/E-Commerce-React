@@ -7,14 +7,14 @@ import { Field } from "./Field";
 import { Icon } from "./CheckoutIcons";
 
 const INPUT_BASE =
-  "w-full co-input rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400";
+  "w-full co-input rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400";
 
 function DeliveryFields({ form, errors, onChange }) {
   return (
     <div>
       <div className="mb-5 flex items-center gap-2">
         <Icon.Truck className="h-5 w-5 text-indigo-500" />
-        <h3 className="text-base font-black text-gray-900">
+        <h3 className="text-base font-black text-gray-900 dark:text-gray-100">
           Delivery Information
         </h3>
       </div>
@@ -107,11 +107,11 @@ function PaymentFields({ form, errors, onChange }) {
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon.Lock className="h-5 w-5 text-indigo-500" />
-          <h3 className="text-base font-black text-gray-900">
+          <h3 className="text-base font-black text-gray-900 dark:text-gray-100">
             Payment Details
           </h3>
         </div>
-        <span className="flex items-center gap-1 text-[10px] text-gray-400">
+        <span className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500">
           <Icon.Lock className="h-3 w-3" /> 256-bit SSL
         </span>
       </div>
@@ -123,7 +123,7 @@ function PaymentFields({ form, errors, onChange }) {
             className={`whitespace-nowrap rounded-lg border px-2 py-1 text-[9px] font-black transition-all duration-200 sm:px-2.5 sm:py-1.5 ${
               cardType === type
                 ? "border-indigo-600 bg-indigo-600 text-white"
-                : "border-gray-200 bg-gray-50 text-gray-400"
+                : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-400 dark:text-gray-500"
             }`}
           >
             {type.toUpperCase()}
@@ -181,15 +181,15 @@ function PaymentFields({ form, errors, onChange }) {
         </Field>
       </div>
 
-      <div className="mb-5 border-t border-gray-100 pt-6">
+      <div className="mb-5 border-t border-gray-100 dark:border-white/10 pt-6">
         <div className="mb-4 flex items-center gap-2">
           <Icon.MapPin className="h-5 w-5 text-indigo-500" />
-          <h3 className="text-base font-black text-gray-900">
+          <h3 className="text-base font-black text-gray-900 dark:text-gray-100">
             Billing Address
           </h3>
         </div>
 
-        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 transition-all hover:border-indigo-100 hover:bg-indigo-50/50">
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-white/5 p-4 transition-all hover:border-indigo-100 hover:bg-indigo-50/50">
           <input
             type="checkbox"
             checked={form.billingSameAsShipping}
@@ -198,7 +198,7 @@ function PaymentFields({ form, errors, onChange }) {
             }
             className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
           />
-          <span className="text-sm font-semibold text-gray-700">
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
             Same as shipping address
           </span>
         </label>
@@ -212,7 +212,7 @@ function PaymentFields({ form, errors, onChange }) {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-2xl bg-gray-50/50 p-5 border border-gray-100">
+              <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-2xl bg-gray-50/50 dark:bg-white/5 p-5 border border-gray-100 dark:border-white/10">
                 <div className="sm:col-span-2">
                   <Field
                     label="Street Address"
@@ -306,7 +306,7 @@ export function CheckoutForm({ form, errors, onChange, onSubmit, loading }) {
         )}
       </motion.button>
 
-      <p className="text-center text-xs text-gray-400">
+      <p className="text-center text-xs text-gray-400 dark:text-gray-500">
         By placing your order you agree to our{" "}
         <Link to="/terms" className="text-indigo-500 hover:underline">
           Terms

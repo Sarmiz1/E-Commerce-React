@@ -34,7 +34,7 @@ export function CartReviewStep({
         <div className="grid gap-6 lg:grid-cols-5">
           <div className="space-y-5 lg:col-span-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-black text-gray-900">Your Bag</h2>
+              <h2 className="text-xl font-black text-gray-900 dark:text-gray-100">Your Bag</h2>
               <Link to="/products" className="text-sm font-bold text-indigo-600 hover:underline">
                 + Add more
               </Link>
@@ -57,13 +57,13 @@ export function CartReviewStep({
               })}
             </AnimatePresence>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-gray-100 dark:border-white/10 bg-white dark:bg-white/5 p-5 shadow-sm">
               <div className="mb-4 flex items-center gap-2">
                 <Icon.Tag className="h-4 w-4 text-indigo-500" />
-                <h3 className="text-sm font-black text-gray-900">Coupon / Promo Code</h3>
+                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100">Coupon / Promo Code</h3>
               </div>
               <CouponInput onApply={onCoupon} appliedCoupon={coupon} />
-              <p className="mt-2 text-[10px] text-gray-400">Try: SAVE10 · WELCOME20 · FLAT5 · FREESHIP</p>
+              <p className="mt-2 text-[10px] text-gray-400 dark:text-gray-500">Try: SAVE10 · WELCOME20 · FLAT5 · FREESHIP</p>
             </div>
 
             <motion.button
