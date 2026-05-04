@@ -90,6 +90,10 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
     },
     onSuccess: (nextProductIds, variables) => {
       queryClient.setQueryData(queryKey, nextProductIds || []);
+      
+      // Sync with Buyer Dashboard
+      queryClient.invalidateQueries({ queryKey: ["buyer", "dashboard", user?.id] });
+      
       toast(
         variables?.nextLiked ? "Added to wishlist! ♥️" : "Removed from wishlist.",
         "success"

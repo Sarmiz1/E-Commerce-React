@@ -131,10 +131,14 @@ function RecCard({ item, index }) {
       className="rounded-2xl overflow-hidden shadow-sm flex flex-col"
       style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
       {/* Product visual */}
-      <div className="h-32 flex items-center justify-center relative" style={{ background: `hsl(${hue}, 45%, ${isDark ? '15%' : '96%'})` }}>
-        <span className="text-5xl select-none">
-          {item.category === 'Footwear' ? '👟' : item.category === 'Tech' ? '🎧' : '👕'}
-        </span>
+      <div className="h-32 flex items-center justify-center relative overflow-hidden" style={{ background: `hsl(${hue}, 45%, ${isDark ? '15%' : '96%'})` }}>
+        {(item.products?.image || item.image) ? (
+          <img src={item.products?.image || item.image} alt={item.name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-5xl select-none">
+            {item.category === 'Footwear' ? '👟' : item.category === 'Tech' ? '🎧' : '👕'}
+          </span>
+        )}
         {item.budgetFit && (
           <span className="absolute top-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full"
             style={{ background: 'rgba(5,150,105,0.12)', color: '#059669' }}>✓ Budget fit</span>

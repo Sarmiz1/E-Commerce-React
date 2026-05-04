@@ -87,13 +87,17 @@ export default function BuyerWishlist() {
                 className="rounded-2xl overflow-hidden shadow-sm flex flex-col"
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
                 {/* Visual */}
-                <div className="h-40 flex items-center justify-center relative"
+                <div className="h-40 flex items-center justify-center relative overflow-hidden"
                   style={{ background: `hsl(${hue}, 40%, ${isDark ? '14%' : '96%'})` }}>
-                  <span className="text-6xl select-none">
-                    {itemName.toLowerCase().includes('shoe') || itemName.toLowerCase().includes('oxford') ? '👟'
-                      : itemName.toLowerCase().includes('watch') ? '⌚'
-                      : '👕'}
-                  </span>
+                  {(item.products?.image || item.image) ? (
+                    <img src={item.products?.image || item.image} alt={itemName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-6xl select-none">
+                      {itemName.toLowerCase().includes('shoe') || itemName.toLowerCase().includes('oxford') ? '👟'
+                        : itemName.toLowerCase().includes('watch') ? '⌚'
+                        : '👕'}
+                    </span>
+                  )}
                   {savedPct > 0 && (
                     <span className="absolute top-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full"
                       style={{ background: '#059669', color: '#fff' }}>-{savedPct}%</span>
