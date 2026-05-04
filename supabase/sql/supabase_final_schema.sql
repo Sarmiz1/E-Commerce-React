@@ -165,6 +165,7 @@ CREATE TABLE IF NOT EXISTS orders (
   subtotal_cents INTEGER DEFAULT 0,
   discount_cents INTEGER DEFAULT 0,
   shipping_cents INTEGER DEFAULT 0,
+  tax_cents INTEGER DEFAULT 0,
   total_cents INTEGER DEFAULT 0,
   shipping_address_id UUID REFERENCES addresses(id),
   billing_address_id UUID REFERENCES addresses(id),
@@ -363,16 +364,19 @@ FOR EACH ROW EXECUTE FUNCTION recompute_product_rating();
 CREATE OR REPLACE FUNCTION checkout_cart(
   p_cart_id UUID,
   p_user_id UUID,
-  p_coupon_code TEXT DEFAULT NULL
+  p_coupon_code TEXT DEFAULT NULL,
+  p_shipping_cents INTEGER DEFAULT 0
 )
 RETURNS UUID
 LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
 DECLARE
   v_order_id UUID;
   v_total INTEGER := 0;
   v_discount INTEGER := 0;
-  v_shipping INTEGER := 0;
+  v_tax INTEGER := 0;
+  v_tax_rate NUMERIC := 0.085;
 
   v_coupon RECORD;
   item RECORD;
@@ -471,11 +475,15 @@ BEGIN
     END IF;
   END IF;
 
+  -- 6. Calculate Tax
+  v_tax := ((v_total - v_discount + p_shipping_cents) * v_tax_rate)::INTEGER;
+
   UPDATE orders
   SET subtotal_cents = v_total,
       discount_cents = v_discount,
-      shipping_cents = v_shipping,
-      total_cents = (v_total - v_discount + v_shipping)
+      shipping_cents = p_shipping_cents,
+      tax_cents = v_tax,
+      total_cents = (v_total - v_discount + p_shipping_cents + v_tax)
   WHERE id = v_order_id;
 
   UPDATE carts SET status = 'checked_out' WHERE id = p_cart_id;

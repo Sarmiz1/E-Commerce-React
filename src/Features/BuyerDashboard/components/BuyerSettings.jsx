@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "../../../store/useThemeStore";
 import { useBuyer } from "../context/BuyerContext";
 import { BIcon } from "./BuyerIcon";
-import { useBuyerDashboardStore } from "../../../Store/useBuyerDashboardStore";
+
 
 function Field({ label, defaultValue, type = "text", placeholder }) {
   const { colors, isDark } = useTheme();
@@ -102,7 +102,7 @@ export default function BuyerSettings() {
   const [saved, setSaved] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
-  const buyerName = useBuyerDashboardStore((state) => state.name);
+  const buyerName = profile?.full_name || profile?.name || "";
 
   const save = async () => {
     setSaving(true);
@@ -125,7 +125,7 @@ export default function BuyerSettings() {
         className="flex items-center gap-4"
       >
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-3xl shadow-lg">
-          S
+          {(buyerName.charAt(0) || "B").toUpperCase()}
         </div>
         <div>
           <button

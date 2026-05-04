@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  useLoaderData,
   useNavigate,
-  useNavigation,
   useRevalidator,
 } from "react-router-dom";
 import { OrderAPI } from "../../../api/orderApi";
 import { useCartActions } from "../../../Context/cart/CartContext";
 import { filterAndSortOrders, getReorderCartItems } from "../Utils/ordersUtils";
+import { useOrders } from "../../../Hooks/order/useOrders";
 
 export default function useOrdersPageController() {
   const navigate = useNavigate();
-  const navigation = useNavigation();
   const revalidator = useRevalidator();
-  const ordersData = useLoaderData();
+  const { data: ordersData, isLoading } = useOrders();
   const { addItems } = useCartActions();
   const closeTimerRef = useRef(null);
 
@@ -21,7 +19,6 @@ export default function useOrdersPageController() {
     () => (Array.isArray(ordersData) ? ordersData : []),
     [ordersData],
   );
-  const isLoading = navigation.state === "loading";
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

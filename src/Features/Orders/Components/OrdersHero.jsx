@@ -57,7 +57,7 @@ export default function OrdersHero({ isLoading, ordersCount, onShop }) {
             whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(255,255,255,0.2)" }}
             whileTap={{ scale: 0.97 }}
             onClick={onShop}
-            className="flex-shrink-0 flex items-center gap-2 bg-white/15 border border-white/25 text-white font-bold px-6 py-3 rounded-2xl backdrop-blur-sm hover:bg-white/25 transition text-sm self-start sm:self-auto"
+            className="flex-shrink-0 flex items-center gap-2 bg-white dark:bg-[#0D1421]/15 border border-white dark:border-[#0D1421]/25 text-white font-bold px-6 py-3 rounded-2xl backdrop-blur-sm hover:bg-white dark:bg-[#0D1421]/25 transition text-sm self-start sm:self-auto"
           >
             <Icons.Bag c="w-4 h-4" />
             Continue Shopping

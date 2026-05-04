@@ -57,15 +57,15 @@ export default function TrackingTimeline({ order }) {
                   step.done
                     ? "bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white shadow-md shadow-indigo-500/30"
                     : index === lastDone + 1
-                      ? "bg-white border-indigo-400 text-indigo-500 shadow-sm"
-                      : "bg-gray-100 border-gray-200 text-gray-300"
+                      ? "bg-white dark:bg-[#0D1421] border-indigo-400 text-indigo-500 shadow-sm"
+                      : "bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white dark:border-[#0D1421]/10 text-gray-300"
                 }`}
               >
                 {step.done ? <Icons.Check c="w-4 h-4" /> : index + 1}
               </div>
 
               <div className="flex-1 pt-1">
-                <p className={`text-sm font-bold leading-tight ${step.done ? "text-gray-900" : "text-gray-400"}`}>
+                <p className={`text-sm font-bold leading-tight ${step.done ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>
                   {step.label}
                 </p>
                 <p className={`text-xs mt-0.5 ${step.done ? "text-indigo-500 font-semibold" : "text-gray-400"}`}>

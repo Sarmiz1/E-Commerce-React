@@ -61,6 +61,7 @@ export default function BuyerOrders() {
             </motion.div>
           ) : filtered.map((order, i) => {
             const isExpanded = expanded === order.id;
+            const productName = order.product || order.order_items?.[0]?.products?.name || 'Unknown Product';
             return (
               <motion.div key={order.id} layout
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -74,14 +75,14 @@ export default function BuyerOrders() {
                   {/* Product emoji */}
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
                     style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6' }}>
-                    {order.product.toLowerCase().includes('sneaker') || order.product.toLowerCase().includes('shoe') ? '👟'
-                      : order.product.toLowerCase().includes('earbu') || order.product.toLowerCase().includes('watch') ? '🎧'
+                    {productName.toLowerCase().includes('sneaker') || productName.toLowerCase().includes('shoe') ? '👟'
+                      : productName.toLowerCase().includes('earbu') || productName.toLowerCase().includes('watch') ? '🎧'
                       : '👕'}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{order.product}</p>
+                      <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{productName}</p>
                       <OrderStatusBadge status={order.status} />
                     </div>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">

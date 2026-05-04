@@ -35,12 +35,12 @@ export default function CancelModal({ onConfirm, onDismiss, isLoading }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.88, y: 24 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[91] bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 w-[min(400px,90vw)] text-center"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[91] bg-white dark:bg-[#0D1421] rounded-3xl shadow-2xl border border-gray-100 dark:border-white dark:border-[#0D1421]/10 p-8 w-[min(400px,90vw)] text-center"
       >
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-5 text-red-500">
           <Icons.Alert c="w-8 h-8" />
         </div>
-        <h3 className="text-xl font-black text-gray-900 mb-2">Cancel this order?</h3>
+        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Cancel this order?</h3>
         <p className="text-gray-400 text-sm mb-8 leading-relaxed">
           This action cannot be undone. The order will be cancelled and the refund process will begin.
         </p>
@@ -48,7 +48,7 @@ export default function CancelModal({ onConfirm, onDismiss, isLoading }) {
           <button
             type="button"
             onClick={onDismiss}
-            className="flex-1 border border-gray-200 text-gray-600 font-bold py-3.5 rounded-2xl hover:bg-gray-50 transition text-sm"
+            className="flex-1 border border-gray-200 dark:border-white dark:border-[#0D1421]/10 text-gray-600 dark:text-gray-300 font-bold py-3.5 rounded-2xl hover:bg-gray-50 dark:bg-[#060B14] transition text-sm"
           >
             Keep Order
           </button>

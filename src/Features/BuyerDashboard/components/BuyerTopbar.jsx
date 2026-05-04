@@ -7,7 +7,7 @@ import { fmtFull } from '../utils/fmt';
 
 export default function BuyerTopbar() {
   const { colors, isDark, toggle } = useTheme();
-  const { page, setPage, setSidebarOpen, notifs, unreadCount, cart, cartTotal, removeFromCart } = useBuyer();
+  const { page, setPage, setSidebarOpen, notifs, unreadCount, cart, cartTotal, removeFromCart, profile } = useBuyer();
   const [notifOpen, setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [cartOpen, setCartOpen]     = useState(false);
@@ -193,11 +193,10 @@ export default function BuyerTopbar() {
           </AnimatePresence>
         </div>
 
-        {/* Profile */}
         <div className="relative">
           <button onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }}
             className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-sm">
-            S
+            {(profile?.full_name?.charAt(0) || profile?.name?.charAt(0) || 'B').toUpperCase()}
           </button>
           <AnimatePresence>
             {profileOpen && (
@@ -208,8 +207,8 @@ export default function BuyerTopbar() {
                 className="absolute right-0 top-12 w-52 rounded-2xl overflow-hidden shadow-2xl z-50"
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
                 <div className="px-4 py-3" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
-                  <p className="font-bold text-sm" style={{ color: colors.text.primary }}>Samuel Okafor</p>
-                  <p className="text-xs" style={{ color: colors.text.tertiary }}>samuel@email.com</p>
+                  <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{profile?.full_name || profile?.name || 'Buyer'}</p>
+                  <p className="text-xs" style={{ color: colors.text.tertiary }}>{profile?.email || 'buyer@example.com'}</p>
                 </div>
                 {[
                   ['user',    'My Account',   'settings'],

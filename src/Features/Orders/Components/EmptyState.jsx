@@ -33,7 +33,7 @@ export default function EmptyState({ statusFilter, search, onReset, onShop }) {
       >
         <EmptyIcon c="w-11 h-11" />
       </motion.div>
-      <h3 className="text-2xl font-black text-gray-900 mb-3">{cfg.title}</h3>
+      <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">{cfg.title}</h3>
       <p className="text-gray-400 max-w-sm leading-relaxed text-sm mb-8">{cfg.sub}</p>
       <div className="flex flex-col sm:flex-row gap-3">
         {search || statusFilter !== "all" ? (
@@ -42,7 +42,7 @@ export default function EmptyState({ statusFilter, search, onReset, onShop }) {
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
             onClick={onReset}
-            className="px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition text-sm"
+            className="px-6 py-3 border border-gray-200 dark:border-white dark:border-[#0D1421]/10 text-gray-600 dark:text-gray-300 font-bold rounded-2xl hover:bg-gray-50 dark:bg-[#060B14] transition text-sm"
           >
             Clear Filters
           </motion.button>

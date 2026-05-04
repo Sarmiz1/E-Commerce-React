@@ -31,7 +31,7 @@ export default function OrdersPromo({ onShop }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
           onClick={onShop}
-          className="bg-white text-indigo-700 font-black px-10 py-4 rounded-2xl text-sm shadow-2xl hover:shadow-white/20 transition"
+          className="bg-white dark:bg-[#0D1421] text-indigo-700 font-black px-10 py-4 rounded-2xl text-sm shadow-2xl hover:shadow-white/20 transition"
         >
           Browse All Products
         </motion.button>

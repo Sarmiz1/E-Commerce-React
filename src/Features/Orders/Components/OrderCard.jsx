@@ -31,7 +31,7 @@ export default function OrderCard({ order, index, onOpen }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
       whileHover={{ y: -4, boxShadow: "0 20px 50px rgba(79,70,229,0.12)" }}
-      className="bg-white rounded-3xl border border-gray-100 shadow-md overflow-hidden group cursor-pointer transition-shadow duration-300"
+      className="bg-white dark:bg-[#0D1421] rounded-3xl border border-gray-100 dark:border-white dark:border-[#0D1421]/10 shadow-md overflow-hidden group cursor-pointer transition-shadow duration-300"
       onClick={() => onOpen(order)}
     >
       <div className={`h-1 bg-gradient-to-r ${cfg.cardStripe}`} />
@@ -42,7 +42,7 @@ export default function OrderCard({ order, index, onOpen }) {
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
               Order Number
             </p>
-            <p className="font-black text-gray-900 text-sm truncate">
+            <p className="font-black text-gray-900 dark:text-white text-sm truncate">
               #{getOrderShortId(order)}
             </p>
           </div>
@@ -61,7 +61,7 @@ export default function OrderCard({ order, index, onOpen }) {
                 return (
                   <div
                     key={item.id || `${name}-${itemIndex}`}
-                    className="w-10 h-10 rounded-xl border-2 border-white overflow-hidden bg-gray-100 shadow-sm flex-shrink-0"
+                    className="w-10 h-10 rounded-xl border-2 border-white dark:border-[#0D1421] overflow-hidden bg-gray-100 dark:bg-white/5 shadow-sm flex-shrink-0"
                   >
                     {image ? (
                       <img src={image} alt={name} className="w-full h-full object-cover" />
@@ -74,8 +74,8 @@ export default function OrderCard({ order, index, onOpen }) {
                 );
               })}
               {items.length > 4 ? (
-                <div className="w-10 h-10 rounded-xl border-2 border-white bg-gray-100 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <span className="text-gray-500 text-[10px] font-black">+{items.length - 4}</span>
+                <div className="w-10 h-10 rounded-xl border-2 border-white dark:border-[#0D1421] bg-gray-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <span className="text-gray-500 dark:text-gray-400 text-[10px] font-black">+{items.length - 4}</span>
                 </div>
               ) : null}
             </div>
@@ -85,22 +85,22 @@ export default function OrderCard({ order, index, onOpen }) {
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white dark:border-[#0D1421]/10">
           <div>
             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Ordered</p>
-            <p className="text-sm font-bold text-gray-700">
+            <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
               {formatOrderDate(getOrderCreatedAt(order))}
             </p>
           </div>
           <div className="text-right">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
-            <p className="text-lg font-black text-gray-900">
+            <p className="text-lg font-black text-gray-900 dark:text-white">
               {formatMoneyCents(getOrderTotalCents(order))}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-white dark:border-[#0D1421]/10">
           <p className="text-xs text-indigo-500 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
             View details <Icons.Chev c="w-3.5 h-3.5" />
           </p>

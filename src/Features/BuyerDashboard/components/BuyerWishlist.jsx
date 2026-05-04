@@ -76,7 +76,8 @@ export default function BuyerWishlist() {
           {wishlist.map((item, i) => {
             const tag = AI_TAG_COLORS[item.tag] || {};
             const savedPct = item.originalPrice > item.price ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
-            const hue = item.name.charCodeAt(0) * 7 % 360;
+            const itemName = item.name || item.products?.name || 'Unknown Product';
+            const hue = itemName.charCodeAt(0) * 7 % 360;
 
             return (
               <motion.div key={item.id} layout
@@ -89,8 +90,8 @@ export default function BuyerWishlist() {
                 <div className="h-40 flex items-center justify-center relative"
                   style={{ background: `hsl(${hue}, 40%, ${isDark ? '14%' : '96%'})` }}>
                   <span className="text-6xl select-none">
-                    {item.name.toLowerCase().includes('shoe') || item.name.toLowerCase().includes('oxford') || item.name.toLowerCase().includes('oxford') ? '👟'
-                      : item.name.toLowerCase().includes('watch') ? '⌚'
+                    {itemName.toLowerCase().includes('shoe') || itemName.toLowerCase().includes('oxford') ? '👟'
+                      : itemName.toLowerCase().includes('watch') ? '⌚'
                       : '👕'}
                   </span>
                   {savedPct > 0 && (
@@ -113,7 +114,7 @@ export default function BuyerWishlist() {
                     ✦ {item.tag}
                   </span>
 
-                  <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{item.name}</p>
+                  <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{itemName}</p>
 
                   {/* AI note */}
                   <p className="text-[11px] leading-relaxed" style={{ color: colors.text.tertiary }}>{item.aiNote}</p>

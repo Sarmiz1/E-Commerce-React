@@ -5,7 +5,7 @@ import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
 
 // ─── Sidebar content (extracted to avoid remount on parent re-render) ─────────
-function SidebarContent({ collapsed, setCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread }) {
+function SidebarContent({ collapsed, setCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread, profile, stats }) {
   return (
     <div className="flex flex-col h-full" style={{
       background: isDark ? colors.surface.secondary : '#FAFBFF',
@@ -122,18 +122,17 @@ function SidebarContent({ collapsed, setCollapsed, setSidebarOpen, page, setPage
         })}
       </nav>
 
-      {/* ── User profile pill ── */}
       <div className="p-3" style={{ borderTop: `1px solid ${colors.border.subtle}` }}>
         <div className="flex items-center gap-3 px-2 py-2.5 rounded-xl"
           style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(102,126,234,0.04)' }}>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs flex-shrink-0">S</div>
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs flex-shrink-0">{(profile?.full_name?.charAt(0) || profile?.name?.charAt(0) || 'B').toUpperCase()}</div>
           <AnimatePresence>
             {!collapsed && (
               <motion.div key="profile-text"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate" style={{ color: colors.text.primary }}>Samuel Okafor</p>
-                <p className="text-[10px] truncate" style={{ color: colors.text.tertiary }}>2,840 reward pts ⭐</p>
+                <p className="text-sm font-bold truncate" style={{ color: colors.text.primary }}>{profile?.full_name || profile?.name || 'Buyer'}</p>
+                <p className="text-[10px] truncate" style={{ color: colors.text.tertiary }}>{(stats?.rewardPoints || 0).toLocaleString()} reward pts ⭐</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -146,11 +145,11 @@ function SidebarContent({ collapsed, setCollapsed, setSidebarOpen, page, setPage
 // ─── Sidebar shell ────────────────────────────────────────────────────────────
 export default function BuyerSidebar() {
   const { colors, isDark } = useTheme();
-  const { page, setPage, collapsed, setCollapsed, sidebarOpen, setSidebarOpen, unreadCount } = useBuyer();
+  const { page, setPage, collapsed, setCollapsed, sidebarOpen, setSidebarOpen, unreadCount, profile, stats } = useBuyer();
   const unread = unreadCount ?? 0;
   const w = collapsed ? 68 : 236;
 
-  const sharedProps = { collapsed, setCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread };
+  const sharedProps = { collapsed, setCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread, profile, stats };
 
   return (
     <>

@@ -17,7 +17,7 @@ export function BuyerAddresses() {
   const saveNew = async () => {
     if (!newAddr.line1) return;
     setSaved(true);
-    const newItem = { id: Date.now(), ...newAddr, name: profile?.name || 'Samuel Okafor', isDefault: !addresses.length };
+    const newItem = { id: Date.now(), ...newAddr, name: profile?.full_name || profile?.name || 'Buyer', isDefault: !addresses.length };
     setLocalAddresses(a => [...(a ?? liveAddresses ?? []), newItem]);
     await addAddress({ ...newAddr, name: newItem.name, isDefault: newItem.isDefault });
     setAdding(false);

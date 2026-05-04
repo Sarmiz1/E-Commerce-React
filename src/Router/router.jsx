@@ -283,7 +283,7 @@ const router = createBrowserRouter(
             />
 
             <Route
-              path="tracking"
+              path="track-order"
               element={<TrackingPage />}
               loader={fetchOrdersLoader}
               hydrateFallbackElement={<TrackingSkeleton />}

@@ -1,16 +1,16 @@
 /**
- * useBuyerData — live Supabase hook for the Buyer Dashboard
+ * @deprecated
+ * useBuyerData.js is no longer used.
  *
- * Tables used:
- *  - orders         (id, customer_email, product_name, amount, status, created_at, address, payment_method)
- *  - wishlist       (id, user_email, product_id, product_name, price, original_price, in_stock, image_url)
- *  - buyer_reviews  (id, user_email, order_id, product_name, rating, comment, submitted, created_at)
- *  - notifications  (id, user_email, type, title, sub, time, unread, created_at)
+ * Migration complete:
+ *   - UI state  → src/Features/BuyerDashboard/store/useBuyerUIStore.js  (Zustand)
+ *   - API layer → src/Features/BuyerDashboard/api/buyerApi.js            (pure Supabase)
+ *   - Queries   → src/Features/BuyerDashboard/hooks/useBuyerQueries.js   (TanStack Query)
+ *   - Context   → src/Features/BuyerDashboard/context/BuyerContext.jsx   (thin bridge)
  *
- * Falls back to mock data when Supabase is not configured.
- * For a fully auth'd app, replace DEMO_USER_EMAIL with the logged-in user's email.
+ * This file is kept as a reference only. Do not import from it.
  */
-import { useState, useEffect, useCallback } from 'react';
+
 import { supabase } from '../../../lib/supabaseClient';
 import { useToast } from "../../../store/useToastStore";
 import {

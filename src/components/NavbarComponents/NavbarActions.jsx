@@ -1,5 +1,6 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { useWishlist } from "../../Hooks/useWishlist";
+import { useAuth } from "../../store/useAuthStore";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { CartPreview } from "./CartPreview";
 import {
@@ -128,7 +129,7 @@ export function NavbarActions({
         >
           <UserIcon />
         </button>
-        <Tooltip show={accountTip} label="My Account" />
+        <AccountDropdown show={accountTip} onNavigate={onNavigate} onClose={() => onSetAccountTip(false)} />
       </div>
 
       <div
@@ -281,3 +282,112 @@ function Tooltip({ show, label }) {
     </AnimatePresence>
   );
 }
+
+function AccountDropdown({ show, onNavigate, onClose }) {
+  const { user, signOut } = useAuth();
+
+  const initials = user?.email
+    ? user.email.slice(0, 2).toUpperCase()
+    : null;
+
+  const handleLogout = async (e) => {
+    e.stopPropagation();
+    onClose();
+    await signOut();
+  };
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <Motion.div
+          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 8, scale: 0.96 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          style={{ transformOrigin: "top right" }}
+          className="absolute top-full right-0 pt-3 z-50 w-56"
+        >
+          <div className="rounded-2xl overflow-hidden bg-white dark:bg-[#0D1421] shadow-[0_16px_48px_rgba(0,0,0,0.16)] border border-black/8 dark:border-white/10">
+            {user ? (
+              <>
+                {/* User info header */}
+                <div className="px-4 py-3.5 border-b border-gray-100 dark:border-white/10 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-black flex-shrink-0">
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Signed in as</p>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{user.email}</p>
+                  </div>
+                </div>
+
+                {/* Nav links */}
+                <div className="py-1">
+                  {[
+                    { label: "My Account", path: "/account" },
+                    { label: "My Orders", path: "/orders" },
+                    { label: "Wishlist", path: "/wishlist" },
+                  ].map((item) => (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={() => { onNavigate(item.path); onClose(); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Logout */}
+                <div className="border-t border-gray-100 dark:border-white/10 py-1">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-colors font-semibold flex items-center gap-2"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                    </svg>
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Guest state */}
+                <div className="px-4 py-4 text-center border-b border-gray-100 dark:border-white/10">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center mx-auto mb-3">
+                    <UserIcon className="text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-0.5">Welcome to WooSho</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Sign in to access your account</p>
+                </div>
+
+                <div className="p-3 flex flex-col gap-2">
+                  <Motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => { onNavigate("/login"); onClose(); }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold py-2.5 rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-shadow"
+                  >
+                    Sign In
+                  </Motion.button>
+                  <button
+                    type="button"
+                    onClick={() => { onNavigate("/signup"); onClose(); }}
+                    className="w-full text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 py-2 transition-colors"
+                  >
+                    Create Account →
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </Motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+

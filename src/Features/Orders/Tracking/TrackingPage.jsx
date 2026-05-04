@@ -23,7 +23,10 @@ import {
   useState, useEffect, useRef, useCallback, useMemo,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useSearchParams, useNavigation, useLoaderData } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { OrderAPI } from "../../../api/orderApi";
+import { useOrders } from "../../../Hooks/order/useOrders";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 
 // ─── Font injection + global animation keyframes ──────────────────────────────
@@ -33,6 +36,33 @@ const FONTS_AND_KEYFRAMES = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   .pd-root {
+    --amber:   #D97706;
+    --amber-d: #B45309;
+    --amber-l: #F59E0B;
+    --cyan:    #0284C7;
+    --cyan-d:  #0369A1;
+    --bg:      #F8FAFC;
+    --bg-1:    #FFFFFF;
+    --bg-2:    #F1F5F9;
+    --bg-3:    #E2E8F0;
+    --text:    #0F172A;
+    --text-2:  #334155;
+    --text-3:  #64748B;
+    --border:  rgba(0,0,0,0.08);
+    --border-2:rgba(0,0,0,0.12);
+    --border-3:rgba(0,0,0,0.20);
+    --font-d:  'Bricolage Grotesque', sans-serif;
+    --font-b:  'DM Sans', sans-serif;
+    --font-m:  'JetBrains Mono', monospace;
+
+    font-family: var(--font-b);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .dark .pd-root {
     --amber:   #F5A623;
     --amber-d: #C47E0A;
     --amber-l: #FFC85C;
@@ -48,15 +78,6 @@ const FONTS_AND_KEYFRAMES = `
     --border:  rgba(255,255,255,0.06);
     --border-2:rgba(255,255,255,0.10);
     --border-3:rgba(255,255,255,0.16);
-    --font-d:  'Bricolage Grotesque', sans-serif;
-    --font-b:  'DM Sans', sans-serif;
-    --font-m:  'JetBrains Mono', monospace;
-
-    font-family: var(--font-b);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
   }
 
   @keyframes pd-pulse {
@@ -805,12 +826,9 @@ function HowItWorks() {
 export default function TrackingPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const navigation = useNavigation();
-  const ordersLoading = navigation.state === "loading";
-
-  // ── Orders from loader ────────────────────────────────────────────────────
-  const ordersData = useLoaderData();
-  const orders = useMemo(() => ordersData || [], [ordersData]);
+  // ── Orders from Supabase via TanStack Query ───────────────────────────────
+  const { data: recentOrdersData, isLoading: ordersLoading } = useOrders();
+  const orders = useMemo(() => recentOrdersData || [], [recentOrdersData]);
 
   // ── Search state ──────────────────────────────────────────────────────────
   const initialId = params.get("id") || sessionStorage.getItem("tr-last-id") || "";
@@ -820,15 +838,25 @@ export default function TrackingPage() {
   const [updatedAt, setUpdatedAt] = useState(null);
   const inputRef = useRef(null);
 
-  // ── Derive tracked order ──────────────────────────────────────────────────
+  // ── Fetch specific order by ID via TanStack Query ─────────────────────────
+  const { data: fetchedOrder, isLoading: isQueryLoading } = useQuery({
+    queryKey: ["order", trackedId],
+    queryFn: () => OrderAPI.getOrder(trackedId),
+    enabled: !!trackedId,
+    retry: false,
+    staleTime: 30000,
+  });
+
+  // ── Derive tracked order (fetched > fuzzy from list) ──────────────────────
   const trackedOrder = useMemo(() => {
+    if (fetchedOrder?.id) return fetchedOrder;
     if (!trackedId || !orders.length) return null;
     const q = trackedId.toLowerCase();
     return orders.find((o) =>
       o.id?.toLowerCase().includes(q) ||
       (o.order_items || []).some((i) => i.products?.name?.toLowerCase().includes(q))
     ) ?? null;
-  }, [trackedId, orders]);
+  }, [fetchedOrder, trackedId, orders]);
 
   // ── Auto-poll ─────────────────────────────────────────────────────────────
   useAutoPoll(trackedOrder?.status, () => setUpdatedAt(new Date().toISOString()));
@@ -851,7 +879,7 @@ export default function TrackingPage() {
     setTimeout(() => inputRef.current?.focus(), 80);
   }, []);
 
-  const notFound = trackedId && !isSearching && !trackedOrder;
+  const notFound = trackedId && !isSearching && !isQueryLoading && !trackedOrder;
 
   return (
     <div className="pd-root">
@@ -861,7 +889,7 @@ export default function TrackingPage() {
           HERO SECTION
       ════════════════════════════════════════════════════════ */}
       <div style={{
-        background: "linear-gradient(180deg, #080D1C 0%, var(--bg) 100%)",
+        background: "linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%)",
         borderBottom: "1px solid var(--border)",
         position: "relative", overflow: "hidden",
       }}>
@@ -931,9 +959,9 @@ export default function TrackingPage() {
                   </button>
                 )}
               </div>
-              <button className="pd-btn-primary" onClick={() => doSearch()} disabled={!inputVal.trim() || isSearching}>
-                {isSearching ? <Spinner size={14} /> : <Ic.Search style={{ width: 14, height: 14 }} />}
-                <span>{isSearching ? "Scanning…" : "Track"}</span>
+              <button className="pd-btn-primary" onClick={() => doSearch()} disabled={!inputVal.trim() || isSearching || isQueryLoading}>
+                {(isSearching || isQueryLoading) ? <Spinner size={14} /> : <Ic.Search style={{ width: 14, height: 14 }} />}
+                <span>{(isSearching || isQueryLoading) ? "Scanning…" : "Track"}</span>
               </button>
             </div>
 
@@ -970,7 +998,7 @@ export default function TrackingPage() {
           SCANNING STATE
       ════════════════════════════════════════════════════════ */}
       <AnimatePresence>
-        {isSearching && (
+        {(isSearching || isQueryLoading) && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <ScanningState />
           </motion.div>
@@ -981,7 +1009,7 @@ export default function TrackingPage() {
           NOT FOUND
       ════════════════════════════════════════════════════════ */}
       <AnimatePresence>
-        {notFound && !isSearching && (
+        {notFound && !(isSearching || isQueryLoading) && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <NotFound trackedId={trackedId} onClear={doClear} />
           </motion.div>
@@ -992,7 +1020,7 @@ export default function TrackingPage() {
           TRACKING RESULT
       ════════════════════════════════════════════════════════ */}
       <AnimatePresence>
-        {trackedOrder && !isSearching && (
+        {trackedOrder && !(isSearching || isQueryLoading) && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
             <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 20px 64px" }}>
 
@@ -1158,7 +1186,7 @@ export default function TrackingPage() {
       {/* ════════════════════════════════════════════════════════
           EMPTY STATE — How it Works
       ════════════════════════════════════════════════════════ */}
-      {!trackedOrder && !isSearching && <HowItWorks />}
+      {!trackedOrder && !(isSearching || isQueryLoading) && <HowItWorks />}
 
       {/* ── Footer divider ── */}
       <div style={{ borderTop: "1px solid var(--border)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>

@@ -47,7 +47,7 @@ export default function StatsBar({ orders }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.08, duration: 0.55, ease: [0.32, 0.72, 0, 1] }}
           whileHover={{ y: -4, scale: 1.02 }}
-          className={`relative bg-white rounded-3xl p-5 shadow-lg ${stat.shadow} border border-gray-100 overflow-hidden group`}
+          className={`relative bg-white dark:bg-[#0D1421] rounded-3xl p-5 shadow-lg ${stat.shadow} border border-gray-100 dark:border-white dark:border-[#0D1421]/10 overflow-hidden group`}
         >
           <div
             className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}

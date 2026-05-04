@@ -40,11 +40,13 @@ export function OrderStatusBadge({ status }) {
 }
 
 // ─── Order Timeline ──────────────────────────────────────────────────────────
-export function OrderTimeline({ steps, currentStep }) {
+export function OrderTimeline({ steps = [], currentStep }) {
   const STEP_LABELS = {
     ordered: 'Order Placed', confirmed: 'Confirmed', dispatched: 'Dispatched',
     in_transit: 'In Transit', delivered: 'Delivered', cancelled: 'Cancelled',
   };
+  if (!steps.length) return null;
+
   return (
     <div className="flex items-center gap-0">
       {steps.map((step, i) => {
@@ -168,7 +170,7 @@ function RecCard({ item, index }) {
 // ─── Overview ─────────────────────────────────────────────────────────────────
 export default function BuyerOverview() {
   const { colors, isDark } = useTheme();
-  const { setPage, stats, snapshot, orders, recommendations, insights } = useBuyer();
+  const { profile, setPage, stats, snapshot, orders, recommendations, insights } = useBuyer();
   const activeOrders = (orders || []).filter(o => o.status === 'shipped' || o.status === 'pending');
 
   return (
@@ -188,7 +190,7 @@ export default function BuyerOverview() {
                 className="w-2 h-2 rounded-full bg-green-400" />
               <span className="text-[11px] font-bold text-white/70">AI Assistant Active</span>
             </div>
-            <h2 className="text-2xl font-black text-white">{getGreeting()}, Samuel 👋</h2>
+            <h2 className="text-2xl font-black text-white">{getGreeting()}, {profile?.full_name?.split(' ')[0] || profile?.name?.split(' ')[0] || 'Buyer'} 👋</h2>
             <p className="text-white/70 text-sm mt-1">Ready to shop smarter today?</p>
           </div>
 
@@ -227,7 +229,7 @@ export default function BuyerOverview() {
               delivered: { icon: 'check',    color: '#059669', label: 'Delivered' },
               cancelled: { icon: 'x',        color: '#ef4444', label: 'Cancelled' },
             };
-            const m = META[status];
+            const m = META[status] || { icon: 'package', color: '#9ca3af', label: status };
             return (
               <motion.button key={status} onClick={() => setPage('orders')}
                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}

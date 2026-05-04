@@ -128,16 +128,19 @@ EXECUTE FUNCTION trg_safe_reservation_insert();
 CREATE OR REPLACE FUNCTION checkout_cart(
   p_cart_id UUID,
   p_user_id UUID,
-  p_coupon_code TEXT DEFAULT NULL
+  p_coupon_code TEXT DEFAULT NULL,
+  p_shipping_cents INTEGER DEFAULT 0
 )
 RETURNS UUID
 LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
 DECLARE
   v_order_id UUID;
   v_total INTEGER := 0;
   v_discount INTEGER := 0;
-  v_shipping INTEGER := 0;
+  v_tax INTEGER := 0;
+  v_tax_rate NUMERIC := 0.085;
 
   v_coupon RECORD;
   item RECORD;
@@ -236,12 +239,16 @@ BEGIN
     END IF;
   END IF;
 
-  -- 6. Finalize Order Totals
+  -- 6. Calculate Tax
+  v_tax := ((v_total - v_discount + p_shipping_cents) * v_tax_rate)::INTEGER;
+
+  -- 7. Finalize Order Totals
   UPDATE orders
   SET subtotal_cents = v_total,
       discount_cents = v_discount,
-      shipping_cents = v_shipping,
-      total_cents = (v_total - v_discount + v_shipping)
+      shipping_cents = p_shipping_cents,
+      tax_cents = v_tax,
+      total_cents = (v_total - v_discount + p_shipping_cents + v_tax)
   WHERE id = v_order_id;
 
   -- Lock the Cart so the user can't keep adding items to it while on the Stripe page.

@@ -14,6 +14,7 @@ import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
 import { CheckoutHero } from "./Components/CheckoutHero";
 import { CheckoutLoading } from "./Components/CheckoutLoading";
 import { DetailsStep } from "./Components/DetailsStep";
+import { EmptyCart } from "./Components/EmptyCart";
 import { StepBar } from "./Components/StepBar";
 import { SubmitErrorAlert } from "./Components/SubmitErrorAlert";
 import { SuccessScreen } from "./Components/SuccessScreen";
@@ -22,7 +23,7 @@ import { CO_STYLES, EMPTY_ERRORS, EMPTY_FORM } from "./Utils/checkoutConstants";
 import { calculateCheckoutTotals } from "./Utils/checkoutUtils";
 import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
 
-import { useBuyerDashboardStore } from "../../Store/useBuyerDashboardStore";
+
 
 const DEMO_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
 
@@ -35,7 +36,7 @@ export default function CheckoutPage() {
     cartId,
   } = useCartState();
   const { clearCart } = useCartActions();
-  const buyerDetails = useBuyerDashboardStore();
+
 
   useShowErrorBoundary(cartError);
 
@@ -49,16 +50,12 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState(() => {
     const baseForm = EMPTY_FORM();
-    if (user || buyerDetails.name) {
+    if (user) {
       return {
         ...baseForm,
-        name: buyerDetails.name || "",
-        email: user?.email || buyerDetails.email || "",
-        phone: buyerDetails.phone || "",
-        address: buyerDetails.defaultAddress?.line1 || "",
-        city: buyerDetails.defaultAddress?.city || "",
-        zip: buyerDetails.defaultAddress?.zip || "",
-        country: buyerDetails.defaultAddress?.country || "Nigeria",
+        name: user.user_metadata?.full_name || user.user_metadata?.name || "",
+        email: user.email || "",
+        phone: user.user_metadata?.phone || "",
       };
     }
     return baseForm;
@@ -125,6 +122,7 @@ export default function CheckoutPage() {
           cartId,
           userId: user?.id || DEMO_USER_ID,
           couponCode: coupon?.code || null,
+          shippingCents: totals.shipping,
         });
 
         setOrderNumber(
@@ -154,7 +152,7 @@ export default function CheckoutPage() {
       <CheckoutHero heroRef={heroRef} step={step} itemCount={cart.length} />
 
       <div className="mx-auto max-w-6xl px-3 py-8 pb-28 sm:px-6 lg:pb-10">
-        <StepBar step={step} />
+        {cart.length > 0 && step < 1 && <StepBar step={step} />}
 
         {cartLoading && step < 1 && <CheckoutLoading />}
 
@@ -162,7 +160,9 @@ export default function CheckoutPage() {
           <SubmitErrorAlert message={submitError} />
         </AnimatePresence>
 
-        {!cartLoading && (
+        {!cartLoading && cart.length === 0 && step === 0 && <EmptyCart />}
+
+        {!cartLoading && cart.length > 0 && (
           <AnimatePresence mode="wait">
             {step === 0 && (
               <DetailsStep
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
           </AnimatePresence>
         )}
 
-        <TrustBar visible={step < 1} />
+        {cart.length > 0 && <TrustBar visible={step < 1} />}
       </div>
     </div>
   );

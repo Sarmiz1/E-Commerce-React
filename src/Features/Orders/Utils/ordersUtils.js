@@ -60,9 +60,11 @@ export const getOrderStats = (orders = []) => ({
   totalOrders: orders.length,
   totalSpentCents: orders.reduce((sum, order) => sum + getOrderTotalCents(order), 0),
   delivered: orders.filter((order) => order?.status === "delivered").length,
-  inProgress: orders.filter((order) =>
-    ["processing", "shipped"].includes(order?.status),
-  ).length,
+  inProgress: orders.filter((order) => {
+    const knownStatuses = ["processing", "shipped", "delivered", "cancelled"];
+    const normalizedStatus = knownStatuses.includes(order?.status) ? order?.status : "processing";
+    return ["processing", "shipped"].includes(normalizedStatus);
+  }).length,
 });
 
 export const filterAndSortOrders = (
@@ -73,7 +75,11 @@ export const filterAndSortOrders = (
 
   return [...orders]
     .filter((order) => {
-      if (statusFilter !== "all" && order?.status !== statusFilter) return false;
+      if (statusFilter !== "all") {
+        const knownStatuses = ["processing", "shipped", "delivered", "cancelled"];
+        const normalizedStatus = knownStatuses.includes(order?.status) ? order?.status : "processing";
+        if (normalizedStatus !== statusFilter) return false;
+      }
 
       if (!query) return true;
 

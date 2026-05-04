@@ -6,12 +6,13 @@ export const OrderAPI = {
 
   // Executes the highly-secure PostgreSQL RPC Function we built
   // This bypasses standard INSERTS to natively run the transactional lock and calculations inside the DB.
-  createOrder: ({ cartId, userId, couponCode = null }) => 
+  createOrder: ({ cartId, userId, couponCode = null, shippingCents = 0 }) => 
     handleResponse(
       supabase.rpc("checkout_cart", {
         p_cart_id: cartId,
         p_user_id: userId,
-        p_coupon_code: couponCode
+        p_coupon_code: couponCode,
+        p_shipping_cents: shippingCents
       })
     ),
 
@@ -32,7 +33,6 @@ export const OrderAPI = {
         .single()
     ),
 
-  // Generates user's order history
   getOrders: (userId) => 
     handleResponse(
       supabase
@@ -41,7 +41,8 @@ export const OrderAPI = {
           *,
           order_items (
             *,
-            products (*)
+            products (*),
+            product_variants (*)
           )
         `)
         .eq("user_id", userId)

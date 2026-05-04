@@ -15,7 +15,7 @@ export default function OrderDrawerItems({ order }) {
   if (!items.length) {
     return (
       <div className="text-center py-12 text-gray-400">
-        <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+        <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-3">
           <Icons.Package c="w-7 h-7" />
         </div>
         <p className="text-sm font-semibold">No item details available</p>
@@ -42,9 +42,9 @@ export default function OrderDrawerItems({ order }) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.06 }}
-            className="flex gap-4 bg-gray-50 rounded-2xl p-4 border border-gray-100 group hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200"
+            className="flex gap-4 bg-gray-50 dark:bg-[#060B14] rounded-2xl p-4 border border-gray-100 dark:border-white dark:border-[#0D1421]/10 group hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200"
           >
-            <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-white border border-gray-100">
+            <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-white dark:bg-[#0D1421] border border-gray-100 dark:border-white dark:border-[#0D1421]/10">
               {image ? (
                 <img
                   src={image}
@@ -62,14 +62,14 @@ export default function OrderDrawerItems({ order }) {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-900 text-sm line-clamp-2 leading-snug">
+              <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2 leading-snug">
                 {name}
               </p>
               <p className="text-gray-400 text-xs mt-0.5">
                 Qty: {getOrderItemQuantity(item)}
               </p>
             </div>
-            <p className="font-black text-gray-900 text-sm flex-shrink-0">
+            <p className="font-black text-gray-900 dark:text-white text-sm flex-shrink-0">
               {formatMoneyCents(getOrderItemTotalCents(item))}
             </p>
           </motion.div>

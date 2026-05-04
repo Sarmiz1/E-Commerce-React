@@ -41,7 +41,7 @@ export default function OrdersPage() {
   const hasResults = displayOrders.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
       <style>{OR_STYLES}</style>
 
       <OrdersHero isLoading={isLoading} ordersCount={orders.length} onShop={goToProducts} />
