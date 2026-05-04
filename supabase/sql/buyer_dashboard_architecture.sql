@@ -110,12 +110,22 @@ ALTER TABLE wallet_ledger ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_credits_ledger ENABLE ROW LEVEL SECURITY;
 
 -- Basic Policies (Owner only)
+DROP POLICY IF EXISTS "Users can view own profile" ON buyer_profiles;
 CREATE POLICY "Users can view own profile" ON buyer_profiles FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own profile" ON buyer_profiles;
 CREATE POLICY "Users can update own profile" ON buyer_profiles FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view own wallet" ON wallet_ledger;
 CREATE POLICY "Users can view own wallet" ON wallet_ledger FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view own credits" ON ai_credits_ledger;
 CREATE POLICY "Users can view own credits" ON ai_credits_ledger FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view own wishlist" ON wishlist;
 CREATE POLICY "Users can view own wishlist" ON wishlist FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view own notifs" ON notifications;
 CREATE POLICY "Users can view own notifs" ON notifications FOR SELECT USING (auth.uid() = user_id);
 
 
@@ -135,9 +145,18 @@ DECLARE
 BEGIN
   SELECT json_build_object(
     
-    -- Profile
+    -- Profile (Merged with master profiles table)
     'profile', (
-      SELECT row_to_json(p) FROM buyer_profiles p WHERE p.user_id = buyer_id
+      SELECT json_build_object(
+        'user_id', buyer_id,
+        'full_name', COALESCE(p.full_name, pr.full_name, 'Buyer'),
+        'avatar_url', COALESCE(p.avatar_url, pr.avatar_url),
+        'reward_points', COALESCE(pr.reward_points, 0),
+        'created_at', COALESCE(p.created_at, pr.created_at)
+      )
+      FROM profiles p
+      LEFT JOIN buyer_profiles pr ON pr.user_id = p.id
+      WHERE p.id = buyer_id
     ),
     
     -- Wallet computed on the fly
