@@ -96,7 +96,7 @@ function FloatingAI() {
 // ─── Inner shell ──────────────────────────────────────────────────────────────
 function BuyerDashboardInner() {
   const { colors } = useTheme();
-  const { page } = useBuyer();
+  const { page, sidebarOpen, setSidebarOpen } = useBuyer();
   const renderPage = PAGES[page] ?? PAGES.overview;
 
   return (
@@ -119,6 +119,35 @@ function BuyerDashboardInner() {
           </AnimatePresence>
         </main>
       </div>
+
+      {/* ── Mobile Sidebar (Moved here for better z-index isolation) ── */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            key="mobile-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.aside
+            key="mobile-sidebar"
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-y-0 left-0 z-[210] w-[280px] lg:hidden overflow-hidden shadow-2xl bg-white"
+          >
+            <BuyerSidebar mobileMode={true} />
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
       {/* Floating AI assistant button */}
       <AnimatePresence>

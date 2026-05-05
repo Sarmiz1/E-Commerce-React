@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../store/useThemeStore";
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
+import { useAuth } from '../../../store/useAuthStore';
+import { useLogout } from '../../../Hooks/auth/useLogout';
 import { BIcon } from './BuyerIcon';
 import { fmtFull } from '../utils/fmt';
 
 export default function BuyerTopbar() {
   const { colors, isDark, toggle } = useTheme();
   const { page, setPage, setSidebarOpen, notifs, unreadCount, cart, cartTotal, removeFromCart, profile } = useBuyer();
+  const logout = useLogout();
   const [notifOpen, setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [cartOpen, setCartOpen]     = useState(false);
@@ -22,8 +25,12 @@ export default function BuyerTopbar() {
     brand: '#8b5cf6', delivered: '#059669',
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
-    <header className="flex items-center gap-4 h-16 px-4 lg:px-8 flex-shrink-0 sticky top-0 z-30"
+    <header className="flex items-center gap-4 h-16 px-4 lg:px-8 flex-shrink-0 sticky top-0 z-50"
       style={{
         background: isDark ? `${colors.surface.primary}f0` : 'rgba(255,255,255,0.9)',
         borderBottom: `1px solid ${colors.border.subtle}`,
@@ -218,9 +225,9 @@ export default function BuyerTopbar() {
                   ['user',    'My Account',   'settings'],
                   ['package', 'My Orders',    'orders'],
                   ['heart',   'Wishlist',     'wishlist'],
-                  ['log-out', 'Logout',       null],
+                  ['log-out', 'Logout',       'logout'],
                 ].map(([ic, lbl, nav]) => (
-                  <button key={lbl} onClick={() => nav && setPage(nav)}
+                  <button key={lbl} onClick={() => nav === 'logout' ? handleLogout() : (nav && setPage(nav))}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:opacity-70 transition-opacity"
                     style={{ color: lbl === 'Logout' ? '#ef4444' : colors.text.secondary }}>
                     <BIcon name={ic} size={15} /> {lbl}

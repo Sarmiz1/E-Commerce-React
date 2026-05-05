@@ -1,6 +1,7 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { useWishlist } from "../../Hooks/useWishlist";
 import { useAuth } from "../../store/useAuthStore";
+import { useLogout } from "../../Hooks/auth/useLogout";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { CartPreview } from "./CartPreview";
 import {
@@ -284,7 +285,8 @@ function Tooltip({ show, label }) {
 }
 
 function AccountDropdown({ show, onNavigate, onClose }) {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const logout = useLogout();
 
   const initials = user?.email
     ? user.email.slice(0, 2).toUpperCase()
@@ -293,7 +295,7 @@ function AccountDropdown({ show, onNavigate, onClose }) {
   const handleLogout = async (e) => {
     e.stopPropagation();
     onClose();
-    await signOut();
+    await logout();
   };
 
   return (

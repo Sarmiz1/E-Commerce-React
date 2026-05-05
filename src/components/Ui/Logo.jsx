@@ -59,7 +59,7 @@ export const Logo = ({
       {/* Icon Display Logic */}
       {(variant === "navbar" || variant === "icon") && (
         <div className={`items-center ${variant === "navbar" ? "flex md:hidden" : "flex"}`}>
-          <WooshoAppIcon explicitDark={explicitDark} />
+          <WooshoAppIcon explicitDark={explicitDark} size={size} />
         </div>
       )}
 
