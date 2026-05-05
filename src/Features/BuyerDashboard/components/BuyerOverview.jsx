@@ -194,7 +194,7 @@ export default function BuyerOverview() {
                 className="w-2 h-2 rounded-full bg-green-400" />
               <span className="text-[11px] font-bold text-white/70">AI Assistant Active</span>
             </div>
-            <h2 className="text-2xl font-black text-white">{getGreeting()}, {profile?.full_name?.split(' ')[0] || profile?.name?.split(' ')[0] || 'Buyer'} 👋</h2>
+            <h2 className="text-2xl font-black text-white">{getGreeting()}, {profile?.firstName} 👋</h2>
             <p className="text-white/70 text-sm mt-1">Ready to shop smarter today?</p>
           </div>
 

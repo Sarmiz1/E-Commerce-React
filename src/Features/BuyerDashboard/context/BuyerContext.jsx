@@ -22,6 +22,7 @@ import {
   useDeleteAddress,
 } from '../hooks/useBuyerQueries';
 import { useCart } from '../../../Context/cart/CartContext';
+import { useAuth } from '../../../Context/auth/AuthContext';
 import { useWishlist } from '../../../Hooks/useWishlist';
 import { useAllProducts } from '../../../Hooks/product/useProducts';
 import { useMemo } from 'react';
@@ -45,6 +46,7 @@ export const BUYER_NAV = [
 
 export function BuyerProvider({ children }) {
   const { addToast } = useToast();
+  const { user } = useAuth();
 
   // ── UI state from Zustand ────────────────────────────────────────────────────
   const {
@@ -104,7 +106,17 @@ export function BuyerProvider({ children }) {
       .sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
   }, [allProducts, productIds]);
   
-  const profile = data.profile || {};
+  const rawName = user?.user_metadata?.full_name || data.profile?.full_name || user?.user_metadata?.name || 'Buyer';
+  // Strip numbers and pick first word for the greeting
+  const firstName = rawName.split(' ')[0].replace(/[0-9]/g, '') || 'Buyer';
+
+  const profile = {
+    ...data.profile,
+    full_name: rawName,
+    firstName: firstName,
+    email: user?.email || data.profile?.email,
+    phone: user?.phone || data.profile?.phone
+  };
   const wallet = data.wallet || { balance: 0, totalFunded: 0, totalWithdrawn: 0, totalSpent: 0, transactions: [] };
   const aiCredits = data.ai_credits || { balance: 0, totalPurchased: 0, totalUsed: 0, history: [] };
 

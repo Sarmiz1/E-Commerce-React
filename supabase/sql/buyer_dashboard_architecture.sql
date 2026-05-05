@@ -9,8 +9,10 @@ CREATE TABLE IF NOT EXISTS buyer_profiles (
   phone TEXT,
   avatar_url TEXT,
   reward_points INTEGER DEFAULT 0,
+  tier TEXT DEFAULT 'Silver',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
+ALTER TABLE buyer_profiles ADD COLUMN IF NOT EXISTS tier TEXT DEFAULT 'Silver';
 
 -- Wallet Ledger (Append-only for strict financial integrity)
 CREATE TABLE IF NOT EXISTS wallet_ledger (
@@ -149,11 +151,11 @@ BEGIN
     'profile', (
       SELECT json_build_object(
         'full_name', COALESCE(bp.full_name, p.full_name),
-        'reward_points', bp.reward_points,
-        'tier', bp.tier,
-        'member_since', bp.created_at,
+        'reward_points', COALESCE(bp.reward_points, 0),
+        'tier', COALESCE(bp.tier, 'Silver'),
+        'member_since', COALESCE(bp.created_at, p.created_at),
         'email', u.email,
-        'phone', u.phone
+        'phone', COALESCE(bp.phone, u.phone)
       )
       FROM profiles p
       LEFT JOIN buyer_profiles bp ON bp.user_id = p.id
@@ -198,6 +200,11 @@ BEGIN
           'status', o.status,
           'total_cents', o.total_cents,
           'created_at', o.created_at,
+          'address', COALESCE(
+            o.shipping_address::text,
+            (SELECT a.line1 || ', ' || a.city FROM addresses a WHERE a.id = o.shipping_address_id),
+            'No address provided'
+          ),
           'order_items', (
             SELECT json_agg(json_build_object('id', oi.id, 'quantity', oi.quantity, 'products', p))
             FROM order_items oi
