@@ -105,10 +105,14 @@ export function BuyerAddresses() {
               </div>
             </div>
             <div className="space-y-0.5 pl-10">
-              <p className="text-sm" style={{ color: colors.text.primary }}>{addr.name}</p>
+              <p className="text-sm font-bold" style={{ color: colors.text.primary }}>{addr.name}</p>
               <p className="text-sm" style={{ color: colors.text.secondary }}>{addr.line1}</p>
-              <p className="text-sm" style={{ color: colors.text.secondary }}>{addr.line2}</p>
-              <p className="text-sm" style={{ color: colors.text.tertiary }}>{addr.phone}</p>
+              {addr.line2 && <p className="text-sm" style={{ color: colors.text.secondary }}>{addr.line2}</p>}
+              <p className="text-sm" style={{ color: colors.text.secondary }}>
+                {addr.city}{addr.state ? `, ${addr.state}` : ''} {addr.postal_code}
+              </p>
+              <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>{addr.country}</p>
+              <p className="text-sm mt-1" style={{ color: colors.text.tertiary }}>{addr.phone}</p>
             </div>
           </motion.div>
         ))}

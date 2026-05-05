@@ -75,9 +75,7 @@ export default function BuyerOrders() {
                   {/* Product emoji */}
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
                     style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6' }}>
-                    {productName.toLowerCase().includes('sneaker') || productName.toLowerCase().includes('shoe') ? '👟'
-                      : productName.toLowerCase().includes('earbu') || productName.toLowerCase().includes('watch') ? '🎧'
-                      : '👕'}
+                    📦
                   </div>
 
                   <div className="flex-1 min-w-0">

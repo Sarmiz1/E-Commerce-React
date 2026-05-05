@@ -64,7 +64,11 @@ export function BuyerProvider({ children }) {
   const { data: dbData, isLoading } = useBuyerDashboard();
   
   const data = dbData || {};
-  const orders = data.orders || [];
+  const orders = (data.orders || []).map(o => ({
+    ...o,
+    amount: o.total_cents || 0,
+    date: new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }));
   const reviews = data.reviews || [];
   const notifs = data.notifications || [];
   const addresses = data.addresses || [];

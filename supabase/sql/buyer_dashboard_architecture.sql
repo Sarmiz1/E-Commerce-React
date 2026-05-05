@@ -148,14 +148,16 @@ BEGIN
     -- Profile (Merged with master profiles table)
     'profile', (
       SELECT json_build_object(
-        'user_id', buyer_id,
-        'full_name', COALESCE(p.full_name, pr.full_name, 'Buyer'),
-        'avatar_url', COALESCE(p.avatar_url, pr.avatar_url),
-        'reward_points', COALESCE(pr.reward_points, 0),
-        'created_at', COALESCE(p.created_at, pr.created_at)
+        'full_name', COALESCE(bp.full_name, p.full_name),
+        'reward_points', bp.reward_points,
+        'tier', bp.tier,
+        'member_since', bp.created_at,
+        'email', u.email,
+        'phone', u.phone
       )
       FROM profiles p
-      LEFT JOIN buyer_profiles pr ON pr.user_id = p.id
+      LEFT JOIN buyer_profiles bp ON bp.user_id = p.id
+      JOIN auth.users u ON u.id = p.id
       WHERE p.id = buyer_id
     ),
     
