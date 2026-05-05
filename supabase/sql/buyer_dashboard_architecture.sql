@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS payment_methods (
 );
 
 -- Wishlist Table
-CREATE TABLE IF NOT EXISTS wishlist (
+CREATE TABLE IF NOT EXISTS wishlists (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id) ON DELETE CASCADE,
@@ -98,7 +98,7 @@ GRANT ALL ON TABLE ai_credits_ledger TO authenticated;
 GRANT ALL ON TABLE buyer_insights TO authenticated;
 GRANT ALL ON TABLE buyer_recommendations TO authenticated;
 GRANT ALL ON TABLE payment_methods TO authenticated;
-GRANT ALL ON TABLE wishlist TO authenticated;
+GRANT ALL ON TABLE wishlists TO authenticated;
 GRANT ALL ON TABLE notifications TO authenticated;
 
 -- Ensure service role has access too
@@ -122,8 +122,8 @@ CREATE POLICY "Users can view own wallet" ON wallet_ledger FOR SELECT USING (aut
 DROP POLICY IF EXISTS "Users can view own credits" ON ai_credits_ledger;
 CREATE POLICY "Users can view own credits" ON ai_credits_ledger FOR SELECT USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can view own wishlist" ON wishlist;
-CREATE POLICY "Users can view own wishlist" ON wishlist FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can view own wishlist" ON wishlists;
+CREATE POLICY "Users can view own wishlist" ON wishlists FOR SELECT USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Users can view own notifs" ON notifications;
 CREATE POLICY "Users can view own notifs" ON notifications FOR SELECT USING (auth.uid() = user_id);
@@ -205,16 +205,6 @@ BEGIN
         ) ORDER BY o.created_at DESC
       ), '[]'::json)
       FROM orders o WHERE o.user_id = buyer_id
-    ),
-    
-    -- Wishlist & nested products
-    'wishlist', (
-      SELECT COALESCE(json_agg(
-        json_build_object('id', w.id, 'products', p)
-      ), '[]'::json)
-      FROM wishlist w
-      JOIN products p ON p.id = w.product_id
-      WHERE w.user_id = buyer_id
     ),
     
     -- Reviews

@@ -46,6 +46,7 @@ export function useRemoveFromWishlist() {
     mutationFn: (id) => buyerApi.removeFromWishlist(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: ["wishlist", user?.id || "guest"] });
       addToast('Removed from wishlist', 'info');
     },
     onError: (err) => addToast(err.message || 'Failed to remove item', 'error'),
@@ -60,6 +61,7 @@ export function useAddToWishlist() {
     mutationFn: (productId) => buyerApi.addToWishlist(user.id, productId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: ["wishlist", user?.id || "guest"] });
       addToast('Added to wishlist!');
     },
     onError: (err) => addToast(err.message || 'Failed to add to wishlist', 'error'),

@@ -22,6 +22,9 @@ import {
   useDeleteAddress,
 } from '../hooks/useBuyerQueries';
 import { useCart } from '../../../Context/cart/CartContext';
+import { useWishlist } from '../../../Hooks/useWishlist';
+import { useAllProducts } from '../../../Hooks/product/useProducts';
+import { useMemo } from 'react';
 
 const BuyerCtx = createContext(null);
 
@@ -60,16 +63,42 @@ export function BuyerProvider({ children }) {
   // ── Server data from TanStack Query (BFF Pattern) ───────────────────────────
   const { data: dbData, isLoading } = useBuyerDashboard();
   
-  // Safe default extraction
   const data = dbData || {};
   const orders = data.orders || [];
-  const wishlist = data.wishlist || [];
   const reviews = data.reviews || [];
   const notifs = data.notifications || [];
   const addresses = data.addresses || [];
   const payments = data.payment_methods || [];
   const insights = data.insights || [];
-  const recommendations = data.recommendations || [];
+  const recommendations = (data.recommendations || []).map(r => ({
+    ...r,
+    ...r.products,
+    price: r.products?.price_cents || 0,
+    image: r.products?.image || r.image
+  }));
+
+  // ── Global Wishlist Sync ───────────────────────────────────────────────────
+  const { productIds, wishlistCount } = useWishlist();
+  const { data: allProducts = [] } = useAllProducts();
+
+  const liveWishlist = useMemo(() => {
+    const positionById = new Map(productIds.map((id, index) => [id, index]));
+    return allProducts
+      .filter(p => positionById.has(p.id))
+      .map(p => ({
+        id: p.id,
+        products: p, // Compatibility
+        ...p,
+        price: p.price_cents || 0,
+        originalPrice: p.sale_price_cents || p.price_cents || 0,
+        image: p.image,
+        tag: p.ai_tags?.[0] || 'Price Drop',
+        aiNote: p.ai_summary || 'Top rated pick based on your style.',
+        inStock: (p.stock_quantity || 0) > 0,
+        stock: p.stock_quantity || 0
+      }))
+      .sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
+  }, [allProducts, productIds]);
   
   const profile = data.profile || {};
   const wallet = data.wallet || { balance: 0, totalFunded: 0, totalWithdrawn: 0, totalSpent: 0, transactions: [] };
@@ -88,8 +117,8 @@ export function BuyerProvider({ children }) {
 
   const stats = {
     totalOrders: orders.length,
-    wishlistItems: wishlist.length,
-    totalSpentCents,
+    wishlistItems: wishlistCount,
+    totalSpent: totalSpentCents,
     rewardPoints: profile.reward_points || 0,
     savedAmount: totals.discount || 0,
   };
@@ -136,7 +165,7 @@ export function BuyerProvider({ children }) {
     
     // Server data mapping
     profile,
-    orders, wishlist, reviews, notifs, addresses,
+    orders, wishlist: liveWishlist, reviews, notifs, addresses,
     stats, snapshot, unreadCount,
     
     // Mutations
@@ -161,7 +190,10 @@ export function BuyerProvider({ children }) {
     buyCredits,
     
     // Cart
-    cart: activeCart, cartTotal, removeFromCart, updateCartQty,
+    cart: (activeCart || []).map(i => ({ ...i, price: i.price || 0 })), 
+    cartTotal: cartTotal || 0,
+    removeFromCart, 
+    updateCartQty,
     
     // Misc dynamic data
     recommendations,

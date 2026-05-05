@@ -53,10 +53,10 @@ export const buyerApi = {
 
   // ─── Mutations ─────────────────────────────────────────────────────────────
   addToWishlist: (userId, productId) =>
-    supabase.from('wishlist').insert([{ user_id: userId, product_id: productId }]),
+    supabase.from('wishlists').insert([{ user_id: userId, product_id: productId }]),
 
-  removeFromWishlist: (id) =>
-    supabase.from('wishlist').delete().eq('id', id),
+  removeFromWishlist: (productId) =>
+    supabase.from('wishlists').delete().eq('product_id', productId),
 
   submitReview: (userId, orderId, productId, rating, reviewText) =>
     supabase.from('product_reviews').upsert([
