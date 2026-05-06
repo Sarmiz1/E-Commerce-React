@@ -1,27 +1,40 @@
 // ─── Shared Supabase client ─────────────────────────────────────────────────
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "";
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL ?? "").trim();
+const supabaseKey = (
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  import.meta.env.VITE_SUPABASE_ANON_KEY ??
+  ""
+).trim();
 
-// Warn clearly in dev if env vars are missing
-if (import.meta.env.DEV && (!supabaseUrl || !supabaseKey)) {
-  console.warn(
-    "[Supabase] VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY is missing. " +
-      "Check your .env file."
-  );
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
+export const supabaseConfigError =
+  "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY.";
+
+if (!isSupabaseConfigured) {
+  const message = `[Supabase] ${supabaseConfigError}`;
+  if (import.meta.env.DEV) {
+    console.warn(`${message} Check your local .env file.`);
+  } else {
+    console.error(`${message} Check the deployment environment variables.`);
+  }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
+export const supabase = createClient(
+  isSupabaseConfigured ? supabaseUrl : "https://placeholder.supabase.co",
+  isSupabaseConfigured ? supabaseKey : "missing-supabase-public-key",
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+    // NOTE: Do NOT add a custom fetch with AbortController here.
+    // it interferes with Supabase's internal auth token refresh flow
+    // and causes "DOMException: The operation was aborted" errors.
   },
-  // NOTE: Do NOT add a custom fetch with AbortController here —
-  // it interferes with Supabase's internal auth token refresh flow
-  // and causes "DOMException: The operation was aborted" errors.
-});
+);
 
 // ------------------------------------------------------------------
 // RLS HELPER (safe to include in client file, won't execute on its own)

@@ -1,6 +1,6 @@
 // FIXED IMPORT
 import { createContext, useContext, useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { isSupabaseConfigured, supabase } from "../../lib/supabaseClient";
 import { initRealtime } from "../../lib/realtime";
 import { queryClient } from "../../queries/queryClient";
 
@@ -10,12 +10,12 @@ export const useRealtime = () => useContext(RealtimeContext);
 
 export const RealtimeProvider = ({ user, children }) => {
   useEffect(() => {
-    if (!user?.id) return;
+    if (!isSupabaseConfigured || !user?.id) return;
 
     const channel = initRealtime(queryClient, user.id);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [user?.id]);
 

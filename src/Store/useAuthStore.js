@@ -11,11 +11,20 @@
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { supabase } from "../lib/supabaseClient";
+import {
+  isSupabaseConfigured,
+  supabase,
+  supabaseConfigError,
+} from "../lib/supabaseClient";
 import { useToastStore } from "./useToastStore";
 
 const toast = (msg, type = "success") =>
   useToastStore.getState().addToast(msg, type);
+
+const unavailableAuthResult = () => ({
+  data: null,
+  error: new Error(supabaseConfigError),
+});
 
 export const useAuthStore = create(
   devtools(
@@ -28,6 +37,11 @@ export const useAuthStore = create(
 
   // ─── Actions ──────────────────────────────────────────────────────────────
   signIn: async (email, password) => {
+    if (!isSupabaseConfigured) {
+      toast(supabaseConfigError, "error");
+      return unavailableAuthResult();
+    }
+
     const result = await supabase.auth.signInWithPassword({ email, password });
     if (result.error) {
       toast(result.error.message || "Sign-in failed. Please try again.", "error");
@@ -38,6 +52,11 @@ export const useAuthStore = create(
   },
 
   signUp: async (email, password) => {
+    if (!isSupabaseConfigured) {
+      toast(supabaseConfigError, "error");
+      return unavailableAuthResult();
+    }
+
     const result = await supabase.auth.signUp({ email, password });
     if (result.error) {
       toast(result.error.message || "Sign-up failed. Please try again.", "error");
@@ -48,6 +67,10 @@ export const useAuthStore = create(
   },
 
   signOut: async () => {
+    if (!isSupabaseConfigured) {
+      return { data: null, error: null };
+    }
+
     const result = await supabase.auth.signOut();
     if (result.error) {
       toast("Sign-out failed. Please try again.", "error");
@@ -58,6 +81,11 @@ export const useAuthStore = create(
   },
 
   loginGuest: async () => {
+    if (!isSupabaseConfigured) {
+      toast(supabaseConfigError, "error");
+      return unavailableAuthResult();
+    }
+
     const guestEmail = "guest_tester@WooSho.local";
     const guestPass  = "supa_strong_password_123!";
     let { data, error } = await supabase.auth.signInWithPassword({
@@ -104,12 +132,20 @@ export const useAuthStore = create(
 let _unsubscribe = null;
 
 export function initAuth() {
-  if (_unsubscribe) return;
+  if (_unsubscribe) return _unsubscribe;
 
   const { _setSession } = useAuthStore.getState();
 
+  if (!isSupabaseConfigured) {
+    _setSession(null);
+    _unsubscribe = () => {};
+    return _unsubscribe;
+  }
+
   supabase.auth.getSession().then(({ data: { session } }) => {
     _setSession(session);
+  }).catch(() => {
+    _setSession(null);
   });
 
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
