@@ -7,8 +7,8 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiCheckCircle, FiAlertCircle, FiInfo, FiX } from "react-icons/fi";
-import { useToastStore } from "../../store/useToastStore";
-import { useThemeStore } from "../../store/useThemeStore";
+import { useToastStore } from "../../Store/useToastStore";
+import { useThemeStore } from "../../Store/useThemeStore";
 
 export function ToastRenderer() {
   const toasts      = useToastStore((s) => s.toasts);

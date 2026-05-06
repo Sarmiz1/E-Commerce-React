@@ -11,7 +11,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { useToast } from "../../../store/useToastStore";
+import { useToast } from "../../../Store/useToastStore";
 import {
   SELLER_STATS, RECENT_ORDERS, PRODUCTS,
   CUSTOMERS, REVIEWS, TRANSACTIONS, REVENUE_CHART, ANALYTICS,

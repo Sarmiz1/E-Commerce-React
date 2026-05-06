@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { Link } from 'react-router-dom';
-import { IconSpinner } from '../../../../Components/Icons/IconSpinner';
-import ProductCard from '../../../../Components/Ui/ProductCard';
-import { ErrorMessage } from '../../../../Components/ErrorMessage';
+import { IconSpinner } from '../../../../components/Icons/IconSpinner';
+import ProductCard from '../../../../components/Ui/ProductCard';
+import { ErrorMessage } from '../../../../components/ErrorMessage';
 import { 
   BagIcon, HeartIcon, ShareIcon, ChevronLeft, ChevronRight, 
   CheckIcon, SpinnerIcon, ShieldIcon, TruckIcon, RefreshIcon, 

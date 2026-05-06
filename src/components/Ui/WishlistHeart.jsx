@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useWishlist } from "../../Hooks/useWishlist";
+import { useWishlist } from "../../hooks/useWishlist";
 
 const WishlistHeart = ({ 
   productId,

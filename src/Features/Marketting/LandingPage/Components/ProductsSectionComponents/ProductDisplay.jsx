@@ -1,5 +1,5 @@
 import { memo } from "react";
-import ProductCard from "../../../../../Components/Ui/ProductCard";
+import ProductCard from "../../../../../components/Ui/ProductCard";
 
 const ProductDisplay = memo(({ item }) => {
 

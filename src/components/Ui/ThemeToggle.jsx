@@ -1,5 +1,5 @@
 // ─── Theme toggle button (drop-in component) ──────────────────────────────────
-import { useTheme } from "../../store/useThemeStore";
+import { useTheme } from "../../Store/useThemeStore";
 export function ThemeToggle({ className = "" }) {
   const { isDark, toggle, colors } = useTheme();
   return (

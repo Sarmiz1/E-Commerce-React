@@ -1,8 +1,8 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../../store/useThemeStore";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
+import { useTheme } from "../../../Store/useThemeStore";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import PremiumDropdown from "../../../components/Ui/PremiumDropdown";
 import { SORT_OPTIONS, CATEGORIES } from "../Utils/constants";
 
 const CAT_ICONS = {

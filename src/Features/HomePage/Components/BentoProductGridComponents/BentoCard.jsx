@@ -1,9 +1,9 @@
 // Bento Card
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
-import AddToCart from "../../../../Components/Ui/AddToCart";
-import WishlistHeart from "../../../../Components/Ui/WishlistHeart";
-import QuickView from "../../../../Components/Ui/QuickView";
+import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import AddToCart from "../../../../components/Ui/AddToCart";
+import WishlistHeart from "../../../../components/Ui/WishlistHeart";
+import QuickView from "../../../../components/Ui/QuickView";
 
 export const BentoCard = ({ product, className = '' }) => {
     if (!product) return <div className={`${className} bg-gray-100 rounded-3xl`} />;

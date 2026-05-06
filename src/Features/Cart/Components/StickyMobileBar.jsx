@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 import { Ic, Spinner } from "./CartConstants";
 
 export function StickyMobileBar({ total, itemCount, onCheckout, isCheckingOut = false, checkoutError = "" }) {

@@ -1,5 +1,5 @@
 import React from "react";
-import { useTheme } from "../../../store/useThemeStore";
+import { useTheme } from "../../../Store/useThemeStore";
 import HeroLinksThumbnails from "./UI/HeroLinksThumbnails";
 import { CATEGORIES } from "../Utils/categories";
 import { FILTERED_LINKS } from "../Utils/filteredLInk";

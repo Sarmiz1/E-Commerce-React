@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, Sparkles } from "lucide-react";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { rankProductsBySemanticQuery } from "../../../Utils/semanticProductSearch";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { rankProductsBySemanticQuery } from "../../../utils/semanticProductSearch";
 import { trackEvent } from "../../../api/track_events";
-import { useTheme } from "../../../store/useThemeStore";
+import { useTheme } from "../../../Store/useThemeStore";
 import { DEMO_PRODUCTS, DEMO_QUERIES } from "../Data/interactiveProductDemoData";
 
 export default function InteractiveProductDemo({ dark }) {

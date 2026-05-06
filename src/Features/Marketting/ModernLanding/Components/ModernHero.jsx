@@ -3,7 +3,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MousePointer2, ArrowRight, Sparkles } from 'lucide-react';
 import MagneticButton from '../../Components/MagneticButton';
-import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
+import { formatMoneyCurrency } from '../../../../utils/FormatMoneyCents';
 import heroImg from '../../../../assets/marketing/hero-blur.png';
 import { DEFAULT_HERO_VARIANT, HERO_VARIANTS } from '../Data/heroContent';
 

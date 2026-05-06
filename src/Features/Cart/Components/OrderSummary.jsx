@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 import { Ic, Spinner } from "./CartConstants";
 
 function PromoInput({ promo, onApply, onRemove }) {

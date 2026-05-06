@@ -16,8 +16,8 @@ import {
   ShoppingBag,
   Unlink,
 } from "lucide-react";
-import ModernNavbar from "../../Components/ModernNavbar";
-import { useTheme } from "../../store/useThemeStore";
+import ModernNavbar from "../../components/ModernNavbar";
+import { useTheme } from "../../Store/useThemeStore";
 // Reusing generic lucide icons for missing ones
 import { Package, Search } from "lucide-react";
 

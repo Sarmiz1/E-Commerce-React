@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../../../../store/useThemeStore";
+import { useTheme } from "../../../../Store/useThemeStore";
 
 export default function ExploreSellersSection() {
   const { isDark } = useTheme();

@@ -14,7 +14,7 @@ import {
   UserPlus,
   FileText,
 } from "lucide-react";
-import ModernNavbar from "../../Components/ModernNavbar";
+import ModernNavbar from "../../components/ModernNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 

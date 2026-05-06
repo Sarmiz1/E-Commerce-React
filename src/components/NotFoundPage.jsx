@@ -1,7 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useTheme } from "../store/useThemeStore";
+import { useTheme } from "../Store/useThemeStore";
 
 
 const particles = Array.from({ length: 22 }, (_, i) => ({

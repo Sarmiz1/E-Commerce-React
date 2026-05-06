@@ -3,13 +3,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 
 import { OrderAPI } from "../../api/orderApi";
-import { useAuth } from "../../store/useAuthStore";
-import { useCartState, useCartActions } from "../../Context/cart/CartContext";
+import { useAuth } from "../../Store/useAuthStore";
+import { useCartState, useCartActions } from "../../context/cart/CartContext";
 import { useToastStore } from "../../Store/useToastStore";
 
 const toast = (msg, type = "success") =>
   useToastStore.getState().addToast(msg, type);
-import useShowErrorBoundary from "../../Hooks/useShowErrorBoundary";
+import useShowErrorBoundary from "../../hooks/useShowErrorBoundary";
 
 import { CheckoutHero } from "./Components/CheckoutHero";
 import { CheckoutLoading } from "./Components/CheckoutLoading";

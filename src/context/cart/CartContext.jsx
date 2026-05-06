@@ -1,16 +1,16 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "../../store/useAuthStore";
+import { useAuth } from "../../Store/useAuthStore";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
 import { queryClient } from "../../queries/queryClient";
-import { useToastStore } from "../../store/useToastStore";
+import { useToastStore } from "../../Store/useToastStore";
 import {
   useCartStore,
   selectCartCount,
   getItemKey,
-} from "../../store/useCartStore";
+} from "../../Store/useCartStore";
 
 const toast = (msg, type = "success") =>
   useToastStore.getState().addToast(msg, type);

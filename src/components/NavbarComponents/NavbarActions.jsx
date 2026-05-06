@@ -1,7 +1,7 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import { useWishlist } from "../../Hooks/useWishlist";
-import { useAuth } from "../../store/useAuthStore";
-import { useLogout } from "../../Hooks/auth/useLogout";
+import { useWishlist } from "../../hooks/useWishlist";
+import { useAuth } from "../../Store/useAuthStore";
+import { useLogout } from "../../hooks/auth/useLogout";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { CartPreview } from "./CartPreview";
 import {

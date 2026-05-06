@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "../store/useAuthStore";
+import { useAuth } from "../Store/useAuthStore";
 import { WishlistAPI } from "../api/wishlistApi";
 import { trackEvent } from "../api/track_events";
-import { useToastStore } from "../store/useToastStore";
+import { useToastStore } from "../Store/useToastStore";
 
 const toast = (msg, type = "success") =>
   useToastStore.getState().addToast(msg, type);

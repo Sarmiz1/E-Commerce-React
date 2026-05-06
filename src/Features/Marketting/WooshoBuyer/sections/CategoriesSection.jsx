@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Package } from 'lucide-react';
 import WS_IMG from '../../../../assets/marketing/mktimg3.png';
 import { useNavigate } from 'react-router-dom';
-import { formatLink } from '../../../../Utils/formatLink'
+import { formatLink } from '../../../../utils/formatLink'
 import { BUYER_CATEGORIES, BUYER_DELIVERY_PROMISE } from '../Data/sectionsData.jsx';
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)

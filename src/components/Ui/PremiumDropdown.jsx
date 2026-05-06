@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../store/useThemeStore";
+import { useTheme } from "../../Store/useThemeStore";
 
 export default function PremiumDropdown({ value, options, onChange, label, className = "" }) {
   const { colors, isDark } = useTheme();

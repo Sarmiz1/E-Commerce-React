@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useTheme } from "../../store/useThemeStore";
+import { useTheme } from "../../Store/useThemeStore";
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
 import DashSidebar from './components/DashSidebar';
 import DashTopbar from './components/DashTopbar';

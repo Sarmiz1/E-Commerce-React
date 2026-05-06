@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useAuth } from '../../store/useAuthStore';
+import { useAuth } from '../../Store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 
 /**

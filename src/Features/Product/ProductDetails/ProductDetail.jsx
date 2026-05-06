@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import {
   useProductBySlug,
   useProductRecommendations,
-} from "../../../Hooks/product/useProducts";
+} from "../../../hooks/product/useProducts";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import { useProductDetail } from "./Hooks/useProductDetail";
 import { DETAIL_STYLES } from "./Styles/DetailStyles";
@@ -17,12 +17,12 @@ import { StickyATCBar } from "./Components/StickyATCBar";
 import ProductQAndA from "./Components/ProductQAndA";
 import DetailPurchaseIntel from "./Components/DetailPurchaseIntel";
 import { ProductNotFound } from "./Components/ProductNotFound";
-import { getStoreInfo } from "../../../Utils/getStoreInfo";
-import { useProductInventory } from "../../../Hooks/useProductInventory";
+import { getStoreInfo } from "../../../utils/getStoreInfo";
+import { useProductInventory } from "../../../hooks/useProductInventory";
 import { hasPriceAlert } from "./Utils/productHelpers";
 import { useRecentlyViewed } from "../Hooks/useRecentlyViewed";
-import { useAnalyticsEvent } from "../../../Hooks/useAnalyticsEvent";
-import { getProductImages } from "../../../Utils/getProductImages";
+import { useAnalyticsEvent } from "../../../hooks/useAnalyticsEvent";
+import { getProductImages } from "../../../utils/getProductImages";
 
 // Atomic Details Components
 import DetailBreadcrumb from "./Components/DetailBreadcrumb";
@@ -32,7 +32,7 @@ import DetailInventory from "./Components/DetailInventory";
 import DetailSecondaryActions from "./Components/DetailSecondaryActions";
 import DetailReassurance from "./Components/DetailReassurance";
 import ProductSEO from "./Components/ProductSEO";
-import { ProductDetailSkeleton } from "../../../Components/Fallback";
+import { ProductDetailSkeleton } from "../../../components/Fallback";
 
 
 

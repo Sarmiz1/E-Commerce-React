@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../store/useAuthStore";
-import { DashboardSkeleton } from "../../Components/Fallback";
+import { useAuth } from "../../Store/useAuthStore";
+import { DashboardSkeleton } from "../../components/Fallback";
 
 // React.lazy expects the promise to resolve to an object with a "default" property
 const BuyerDashboard = lazy(() => import("../../Features/BuyerDashboard/BuyerDashboard"));

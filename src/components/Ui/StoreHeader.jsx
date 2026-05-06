@@ -1,4 +1,4 @@
-import { formatStoreName } from "../../Utils/formatStoreName";
+import { formatStoreName } from "../../utils/formatStoreName";
 import { useNavigate, Link } from "react-router-dom";
 import { UserBadges } from "./UserBadges";
 

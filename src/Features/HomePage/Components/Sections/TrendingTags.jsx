@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom"
-import { formatLink } from "../../../../Utils/formatLink";
+import { formatLink } from "../../../../utils/formatLink";
 export default function TrendingTags() {
   const navigate = useNavigate();
 

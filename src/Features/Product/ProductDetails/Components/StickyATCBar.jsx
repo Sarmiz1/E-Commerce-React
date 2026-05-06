@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
-import { formatMoneyCents } from '../../../../Utils/formatMoneyCents';
+import { formatMoneyCents } from '../../../../utils/FormatMoneyCents';
 import {
   BagIcon,
   CheckIcon,
   CloseIcon,
   SpinnerIcon,
 } from './Icons';
-import { useAddToCart } from '../../../../Hooks/cart/useAddToCart';
+import { useAddToCart } from '../../../../hooks/cart/useAddToCart';
 
 const clampQuantity = (value) => Math.min(20, Math.max(1, Number(value) || 1));
 

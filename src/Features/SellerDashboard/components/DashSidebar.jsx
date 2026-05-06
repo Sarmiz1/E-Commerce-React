@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from "../../../store/useThemeStore";
+import { useTheme } from "../../../Store/useThemeStore";
 import { useDashboard, NAV_ITEMS } from '../context/DashboardContext';
 import { Icon } from './DashIcon';
 

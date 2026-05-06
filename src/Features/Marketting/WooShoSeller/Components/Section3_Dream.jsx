@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
+import { formatMoneyCurrency } from '../../../../utils/FormatMoneyCents';
 import { SELLER_DREAM_BENEFITS, SELLER_DREAM_NOTIFICATIONS } from '../Data/sectionsData.jsx';
 
 // FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx

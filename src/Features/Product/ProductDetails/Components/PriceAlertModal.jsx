@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { formatMoneyCents } from '../../../../Utils/formatMoneyCents';
+import { formatMoneyCents } from '../../../../utils/FormatMoneyCents';
 import { savePriceAlert } from '../Utils/productHelpers';
 import { 
   BellIcon, CloseIcon, SpinnerIcon,

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { formatMoneyCurrency } from '../../../../Utils/formatMoneyCents';
+import { formatMoneyCurrency } from '../../../../utils/FormatMoneyCents';
 import { BUYER_RESULT_PLACEHOLDERS, BUYER_SOLUTION_PROMPT, BUYER_SOLUTION_STEPS } from '../Data/sectionsData.jsx';
 
 // FIX: removed duplicate gsap.registerPlugin(ScrollTrigger)

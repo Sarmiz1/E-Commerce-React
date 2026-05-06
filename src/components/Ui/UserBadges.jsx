@@ -20,7 +20,7 @@
 //proSeller can be used to identify users who are professional sellers or have achieved a certain level of sales success on the platform. It can indicate that a user is experienced, reliable, and has a track record of successful transactions. The diamond icon represents value and prestige, making it an appropriate symbol for this badge type.
 
 
-import { BADGE_CONFIG } from "../../Utils/badgeConfig";
+import { BADGE_CONFIG } from "../../utils/badgeConfig";
 /* ─── INJECTED STYLES ───────────────────────────────────────────────────────── */
 
 const BADGE_CSS = `

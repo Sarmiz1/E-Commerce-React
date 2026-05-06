@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 import { STATUS_CONFIG } from "../Utils/ordersConstants";
 import {
   formatOrderDate,

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useTheme } from "../../store/useThemeStore";
+import { useTheme } from "../../Store/useThemeStore";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
-import ModernNavbar from "../../Components/ModernNavbar";
+import ModernNavbar from "../../components/ModernNavbar";
 
 const CATEGORIES = [
   {

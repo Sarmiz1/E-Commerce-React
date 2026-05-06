@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
 import gsap from 'gsap';
-import { ErrorMessage } from '../../../../Components/ErrorMessage';
+import { ErrorMessage } from '../../../../components/ErrorMessage';
 import {
   BagIcon, CheckIcon, SpinnerIcon,
 } from './Icons';
 import { useMagnetic } from '../Hooks/useMagnetic';
-import { useAddToCart } from '../../../../Hooks/cart/useAddToCart';
+import { useAddToCart } from '../../../../hooks/cart/useAddToCart';
 
 const clampQuantity = (value) => Math.min(20, Math.max(1, Number(value) || 1));
 

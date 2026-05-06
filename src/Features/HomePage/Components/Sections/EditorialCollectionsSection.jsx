@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { useTheme } from "../../../../store/useThemeStore";
+import { useTheme } from "../../../../Store/useThemeStore";
 import { EDITORIAL_COLLECTIONS } from "../../homeSectionsConfig";
 
 export default function EditorialCollectionsSection({ products }) {

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import ProductCard from "../../../../Components/Ui/ProductCard";
+import ProductCard from "../../../../components/Ui/ProductCard";
 import Skeleton from "./Skeleton";
 import { useNavigate } from "react-router-dom";
 

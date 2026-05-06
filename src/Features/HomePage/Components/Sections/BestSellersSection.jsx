@@ -3,21 +3,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
 import { CATEGORIES } from "../../Data/categories";
 import { BRANDS } from "../../Data/brands";
 import { PERKS } from "../../Data/perks";
 import { TESTIMONIALS } from "../../Data/testimonials";
 import { HOW_IT_WORKS } from "../../Data/how-it-works";
 import SectionLabel from "../SectionLabel";
-import Stars from "../../../../Components/Stars";
+import Stars from "../../../../components/Stars";
 import ParticleField from "../ParticleField";
 import FloatingOrbs from "../FloatingOrbs";
-import ProductCard from "../../../../Components/Ui/ProductCard";
+import ProductCard from "../../../../components/Ui/ProductCard";
 import { BentoCard } from "../BentoProductGridComponents/BentoCard";
-import AddToCart from "../../../../Components/Ui/AddToCart";
-import WishlistHeart from "../../../../Components/Ui/WishlistHeart";
-import QuickView from "../../../../Components/Ui/QuickView";
+import AddToCart from "../../../../components/Ui/AddToCart";
+import WishlistHeart from "../../../../components/Ui/WishlistHeart";
+import QuickView from "../../../../components/Ui/QuickView";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 

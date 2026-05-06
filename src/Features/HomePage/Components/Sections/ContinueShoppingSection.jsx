@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock3, ArrowRight } from "lucide-react";
-import ProductCard from "../../../../Components/Ui/ProductCard";
-import { useTheme } from "../../../../store/useThemeStore";
+import ProductCard from "../../../../components/Ui/ProductCard";
+import { useTheme } from "../../../../Store/useThemeStore";
 
 export default function ContinueShoppingSection({ products }) {
   const { colors, isDark } = useTheme();

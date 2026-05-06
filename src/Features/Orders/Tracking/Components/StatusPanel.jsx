@@ -3,7 +3,7 @@ import React from 'react';
 import { Ic } from './TrackingIcons';
 import { computeETA, statusColor, statusPct, STATUS_CFG } from '../Utils/trackingUtils';
 import { StatusOrb, StatBlock, LiveClock } from './TrackingAtoms';
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
 
 export function StatusPanel({ order, updatedAt, onRefresh }) {
   const status = order?.status;

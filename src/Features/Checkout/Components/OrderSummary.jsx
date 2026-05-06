@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 import { TAX_RATE } from "../Utils/checkoutConstants";
 import {
   calculateCheckoutTotals,

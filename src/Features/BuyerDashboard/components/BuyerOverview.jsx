@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate, AnimatePresence } from 'framer-motion';
-import { useTheme } from "../../../store/useThemeStore";
+import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer } from '../context/BuyerContext';
 import { fmtFull, fmtNaira, getGreeting } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';

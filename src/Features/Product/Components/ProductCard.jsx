@@ -1,16 +1,16 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
-import { useTheme } from "../../../store/useThemeStore";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { IconCart } from "../../../Components/Icons/IconCart"; 
-import { IconStar } from "../../../Components/Icons/IconStar"; 
-import { getProductImages } from "../../../Utils/getProductImages"; 
-import WishlistHeart from "../../../Components/Ui/WishlistHeart";
-import CompareButton from "../../../Components/Ui/CompareButton";
-import QuickView from "../../../Components/Ui/QuickView";
-import { useAddToCart } from "../../../Hooks/cart/useAddToCart";
-import { prefetchProductOnHover } from "../../../Utils/prefetchProductOnHover";
+import { useTheme } from "../../../Store/useThemeStore";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { IconCart } from "../../../components/Icons/IconCart"; 
+import { IconStar } from "../../../components/Icons/IconStar"; 
+import { getProductImages } from "../../../utils/getProductImages"; 
+import WishlistHeart from "../../../components/Ui/WishlistHeart";
+import CompareButton from "../../../components/Ui/CompareButton";
+import QuickView from "../../../components/Ui/QuickView";
+import { useAddToCart } from "../../../hooks/cart/useAddToCart";
+import { prefetchProductOnHover } from "../../../utils/prefetchProductOnHover";
 import { getAnalyticsSessionId, trackEvent } from "../../../api/track_events";
 
 const checkDate = (product) => Date.now() - new Date(product?.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;

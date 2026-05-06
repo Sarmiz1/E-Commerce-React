@@ -1,7 +1,7 @@
 import React, { useRef, lazy } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SEO from "../../../Components/SEO";
+import SEO from "../../../components/SEO";
 import MarketingNavbar from "../Components/MarketingNavbar";
 import LazyMarketingSection from "../Components/LazyMarketingSection";
 

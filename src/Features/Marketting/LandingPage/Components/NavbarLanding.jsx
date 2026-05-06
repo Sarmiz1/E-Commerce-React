@@ -5,7 +5,7 @@ import MobileView from "./NavbarLandingComponents/MobileView";
 import MarqueeStrip from "./MarqueeStrip";
 import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCartState } from "../../../../Context/cart/CartContext";
+import { useCartState } from "../../../../context/cart/CartContext";
 
 
 

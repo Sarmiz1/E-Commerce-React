@@ -2,7 +2,7 @@ import { AnimatePresence, motion as Motion } from "framer-motion";
 import { BagIcon } from "../Icons/BagIcon";
 import { CheckIcon } from "../Icons/CheckIcon";
 import { IconSpinner } from "../Icons/IconSpinner";
-import { useAddToCart } from "../../Hooks/cart/useAddToCart";
+import { useAddToCart } from "../../hooks/cart/useAddToCart";
 
 export default function AddToCart({
   productId,

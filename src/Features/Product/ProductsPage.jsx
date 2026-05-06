@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
-import { useAllProducts } from "../../Hooks/product/useProducts";
+import { useAllProducts } from "../../hooks/product/useProducts";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../store/useThemeStore";
-import { IconSpinner } from "../../Components/Icons/IconSpinner";
+import { useTheme } from "../../Store/useThemeStore";
+import { IconSpinner } from "../../components/Icons/IconSpinner";
 // Components
 import LiveTicker from "./Components/LiveTicker";
 import ProductCard from "./Components/ProductCard";
 import FilterSidebar, { ActiveFilterChips } from "./Components/FilterSidebar";
-import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
+import ProductDetailModal from "../../components/Ui/ProductDetailModal";
 
 // Atomic Components
 import ProductsBreadcrumb from "./Components/ProductsBreadcrumb";
@@ -32,9 +32,9 @@ import CompareModal from "./Components/CompareModal";
 import StickyResultsBar from "./Components/StickyResultsBar";
 import RecentlyViewedStrip from "./Components/RecentlyViewedStrip";
 import { useProductsPageLogic } from "./Hooks/useProductsPageLogic";
-import { useAnalyticsEvent } from "../../Hooks/useAnalyticsEvent";
-import SEO from "../../Components/SEO";
-import { getProductImages } from "../../Utils/getProductImages";
+import { useAnalyticsEvent } from "../../hooks/useAnalyticsEvent";
+import SEO from "../../components/SEO";
+import { getProductImages } from "../../utils/getProductImages";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT

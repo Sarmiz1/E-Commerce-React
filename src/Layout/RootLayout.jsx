@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { Outlet, useLocation, useNavigation } from "react-router-dom";
-import { CartAnimationProvider } from "../Context/cart/CartAnimationContext"; 
+import { CartAnimationProvider } from "../context/cart/CartAnimationContext"; 
 import AiFloatingWidget from "../Features/AiAssistant/AiFloatingWidget";
-import WooshoAI from "../Features/AiAssistant/WooshoAI";
-import { useAuth } from "../store/useAuthStore";
+import WooshoAI from "../Features/AiAssistant/WooshoAi";
+import { useAuth } from "../Store/useAuthStore";
 import { trackEvent } from "../api/track_events";
 import {
   ProductsSkeleton,
@@ -11,7 +11,7 @@ import {
   OrdersSkeleton,
   TrackingSkeleton,
   CartSkeleton,
-} from "../Components/Fallback";
+} from "../components/Fallback";
 
 
 

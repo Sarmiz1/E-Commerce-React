@@ -43,14 +43,14 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion as Motion } from "framer-motion";
-import { formatMoneyCents } from "../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../utils/FormatMoneyCents";
 import Stars from "../Stars";
-import { useTrackProductClick } from "../../Hooks/useTrackProductClick";
+import { useTrackProductClick } from "../../hooks/useTrackProductClick";
 import AddToCart from "./AddToCart";
 import { IconCart } from "../Icons/IconCart";
 import WishlistHeart from "./WishlistHeart";
 import QuickView from "./QuickView";
-import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
+import { prefetchProductOnHover } from "../../utils/prefetchProductOnHover";
 import { getAnalyticsSessionId, trackEvent } from "../../api/track_events";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────

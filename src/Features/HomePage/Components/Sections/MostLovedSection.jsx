@@ -1,8 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import ProductCard from "../../../../Components/Ui/ProductCard";
-import { useTheme } from "../../../../store/useThemeStore";
+import ProductCard from "../../../../components/Ui/ProductCard";
+import { useTheme } from "../../../../Store/useThemeStore";
 
 export default function MostLovedSection({ products, isLoading }) {
   const { isDark, colors } = useTheme();

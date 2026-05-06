@@ -14,8 +14,8 @@
  *   </QueryWrapper>
  */
 import { useEffect } from "react";
-import { initAuth } from "../../store/useAuthStore";
-import { useThemeStore } from "../../store/useThemeStore";
+import { initAuth } from "../../Store/useAuthStore";
+import { useThemeStore } from "../../Store/useThemeStore";
 
 export function AuthBootstrap({ children }) {
   const themeInit = useThemeStore((s) => s.init);

@@ -9,12 +9,12 @@ import { PERKS } from "../../Data/perks";
 import { TESTIMONIALS } from "../../Data/testimonials";
 import { HOW_IT_WORKS } from "../../Data/how-it-works";
 import SectionLabel from "../SectionLabel";
-import Stars from "../../../../Components/Stars";
+import Stars from "../../../../components/Stars";
 import ParticleField from "../ParticleField";
 import FloatingOrbs from "../FloatingOrbs";
-import ProductCard from "../../../../Components/Ui/ProductCard";
+import ProductCard from "../../../../components/Ui/ProductCard";
 import { BentoCard } from "../BentoProductGridComponents/BentoCard";
-import AddToCart from "../../../../Components/Ui/AddToCart";
+import AddToCart from "../../../../components/Ui/AddToCart";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 

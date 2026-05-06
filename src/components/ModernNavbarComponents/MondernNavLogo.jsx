@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Logo } from "../../Components/Ui/Logo";
+import { Logo } from "../Ui/Logo";
 export default function MondernNavLogo({ pageView, isScrolled }) {
 
   return (

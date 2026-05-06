@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { CartAPI } from "../../../api/cartApi";
-import { useCartActions, useCartState } from "../../../Context/cart/CartContext";
-import useShowErrorBoundary from "../../../Hooks/useShowErrorBoundary";
+import { useCartActions, useCartState } from "../../../context/cart/CartContext";
+import useShowErrorBoundary from "../../../hooks/useShowErrorBoundary";
 import {
   CART_TOTALS_FALLBACK,
   createCartAdditionFromItem,

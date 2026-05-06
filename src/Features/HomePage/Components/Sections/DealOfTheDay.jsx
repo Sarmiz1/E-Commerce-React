@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
-import Stars from "../../../../Components/Stars";
+import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import Stars from "../../../../components/Stars";
 import FloatingOrbs from "../FloatingOrbs";
 import { useNavigate } from "react-router";
 

@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import ParticleField from "../ParticleField";
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
-import Stars from "../../../../Components/Stars";
-import { useTimeContext } from "../../../../Hooks/useTimeContext";
+import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import Stars from "../../../../components/Stars";
+import { useTimeContext } from "../../../../hooks/useTimeContext";
 
 export default function HomeHeroSection({ heroFeatured }) {
   const heroTitleRef = useRef(null);

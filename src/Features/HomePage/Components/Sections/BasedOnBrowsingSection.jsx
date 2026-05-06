@@ -1,8 +1,8 @@
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import ProductCard from "../../../../Components/Ui/ProductCard";
-import { useTheme } from "../../../../store/useThemeStore";
+import ProductCard from "../../../../components/Ui/ProductCard";
+import { useTheme } from "../../../../Store/useThemeStore";
 
 export default function BasedOnBrowsingSection({ products, isLoading }) {
   const { isDark, colors } = useTheme();

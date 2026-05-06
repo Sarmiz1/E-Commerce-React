@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { Sun, Moon } from "lucide-react";
-import { useTheme } from "../../store/useThemeStore";
+import { useTheme } from "../../Store/useThemeStore";
 import { useLocation } from "react-router-dom";
 
 import BrandPanel from "./Components/BrandPanel";

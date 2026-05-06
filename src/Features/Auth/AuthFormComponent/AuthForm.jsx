@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, Check } from "lucide-react";
-import { useAuthForm } from "../Hooks/useAuthForm";
-import { useAuthMutation } from "../Hooks/useAuthMutation";
+import { useAuthForm } from "../hooks/useAuthForm";
+import { useAuthMutation } from "../hooks/useAuthMutation";
 // Components
 import RoleSelector from "./RoleSelector";
 import AuthTabs from "./AuthTabs";

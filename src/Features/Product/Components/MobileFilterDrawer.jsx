@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IconClose } from "../../../Components/Icons/IconClose";
+import { IconClose } from "../../../components/Icons/IconClose";
 import FilterSidebar from "./FilterSidebar";
 
 export default function MobileFilterDrawer({ 

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ButtonPrimary } from "../../../Components/Ui/ButtonPrimary";
+import { ButtonPrimary } from "../../../components/Ui/ButtonPrimary";
 import { Link, useNavigate } from "react-router-dom";
-import { formatDate } from "../../../Utils/formatDate";
-import { useAddToCart } from "../../../Hooks/cart/useAddToCart";
-import { ErrorMessage } from "../../../Components/ErrorMessage";
+import { formatDate } from "../../../utils/formatDate";
+import { useAddToCart } from "../../../hooks/cart/useAddToCart";
+import { ErrorMessage } from "../../../components/ErrorMessage";
 
 function OrderProductDetails({ orderedProduct }) {
   const navigateToCheckOut = useNavigate();

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 import { CONFIRMATION_STEPS } from "../Utils/checkoutConstants";
 import {
   getCartItemImage,

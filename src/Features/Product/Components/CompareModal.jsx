@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../store/useThemeStore";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import { IconClose } from "../../../Components/Icons/IconClose";
+import { useTheme } from "../../../Store/useThemeStore";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { IconClose } from "../../../components/Icons/IconClose";
 
 export default function CompareModal({ items, onClose, onRemove }) {
   const navigate = useNavigate();

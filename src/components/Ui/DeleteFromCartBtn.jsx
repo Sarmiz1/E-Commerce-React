@@ -1,6 +1,6 @@
 import { motion as Motion } from "framer-motion";
 import { TrashIcon } from "../Icons/TrashIcon";
-import { useCartActions } from "../../Context/cart/CartContext";
+import { useCartActions } from "../../context/cart/CartContext";
 
 
 export const DeleteFromCartBtn = ({ itemId }) => {

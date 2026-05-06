@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../../store/useAuthStore";
+import { useAuth } from "../../Store/useAuthStore";
 
 export const GuestRoute = () => {
   const { user, isLoading } = useAuth();

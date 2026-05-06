@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTheme } from "../../../../store/useThemeStore";
+import { useTheme } from "../../../../Store/useThemeStore";
 import {
   getDominantColor,
   injectDynamicTheme,
-} from "../../../../Utils/dynamicTheme";
+} from "../../../../utils/dynamicTheme";
 import {
   getSeedReviews,
   hasPriceAlert,
   loadReviews,
   saveReviews,
 } from "../Utils/productHelpers";
-import { useWishlist } from "../../../../Hooks/useWishlist";
+import { useWishlist } from "../../../../hooks/useWishlist";
 
 export function useProductDetail(product) {
   const productId = product?.id;

@@ -14,8 +14,8 @@ import {
   DollarSign,
   ShoppingCart,
 } from "lucide-react";
-import { useTheme } from "../../store/useThemeStore";
-import ModernNavbar from "../../Components/ModernNavbar";
+import { useTheme } from "../../Store/useThemeStore";
+import ModernNavbar from "../../components/ModernNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 

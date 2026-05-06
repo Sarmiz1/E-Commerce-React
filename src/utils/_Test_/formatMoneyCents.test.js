@@ -1,5 +1,5 @@
 import { it, expect, describe } from "vitest";
-import { formatMoneyCents } from "../formatMoneyCents";
+import { formatMoneyCents } from "../FormatMoneyCents";
 
 describe('formatMoneyCents', () => {
   it('formats 1999 cents as $19.99', () => {

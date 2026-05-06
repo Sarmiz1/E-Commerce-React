@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { rankProductsBySemanticQuery } from "../../../Utils/semanticProductSearch";
+import { rankProductsBySemanticQuery } from "../../../utils/semanticProductSearch";
 
 export function useProductsFilter(allProducts) {
   const [searchParams, setSearchParams] = useSearchParams();

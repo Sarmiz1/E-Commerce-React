@@ -4,7 +4,7 @@
  * Existing imports of `useAuth` / `AuthProvider` continue to work.
  */
 import { useEffect } from "react";
-import { initAuth, useAuthStore } from "../../store/useAuthStore";
+import { initAuth, useAuthStore } from "../../Store/useAuthStore";
 import { RealtimeProvider } from "../realtime/RealtimeProvider";
 
 /** Keep the old AuthProvider import working — now it just bootstraps the store */

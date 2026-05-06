@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "../../../lib/supabaseClient";
 import { trackEvent } from "../../../api/track_events";
-import { useExperiment } from "../../../Hooks/useExperiment";
-import { useTheme } from "../../../store/useThemeStore";
+import { useExperiment } from "../../../hooks/useExperiment";
+import { useTheme } from "../../../Store/useThemeStore";
 import { getLeadCaptureExperiments } from "../Data/leadCaptureExperiments";
 
 const LEAD_STORE_KEY = "woosho.marketing.leads";

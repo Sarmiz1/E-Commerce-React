@@ -41,8 +41,8 @@ import FashionPage from "../Features/Collections/pages/FashionPage";
 import KidsToysPage from "../Features/Collections/pages/KidsToysPage";
 
 // Error / Fallback
-import NotFoundPage from "../Components/NotFoundPage";
-import FallbackPage from "../Components/FallbackPage";
+import NotFoundPage from "../components/NotFoundPage";
+import FallbackPage from "../components/FallbackPage";
 
 // Skeleton Fallbacks
 import {
@@ -56,7 +56,7 @@ import {
   GenericPageSkeleton,
   DashboardSkeleton,
   HomeSkeleton,
-} from "../Components/Fallback";
+} from "../components/Fallback";
 
 // Route Guards
 import { GuestRoute } from "./Guards/GuestRoute";

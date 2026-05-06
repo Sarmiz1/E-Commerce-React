@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo, useRef } from "react";
-import { useRegisterCartIcon } from "../../../../../Context/cart/CartAnimationContext";
+import { useRegisterCartIcon } from "../../../../../context/cart/CartAnimationContext";
 
 
 const DesktopView = ({

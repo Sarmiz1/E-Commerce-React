@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
+import ProductDetailModal from "../../components/Ui/ProductDetailModal";
 import { CT_STYLES, Ic } from "./Components/CartConstants";
 import { CartRow } from "./Components/CartRow";
 import { OrderSummary } from "./Components/OrderSummary";

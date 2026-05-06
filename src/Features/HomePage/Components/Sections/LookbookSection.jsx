@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../../../store/useThemeStore";
-import ProductCard from "../../../../Components/Ui/ProductCard";
+import { useTheme } from "../../../../Store/useThemeStore";
+import ProductCard from "../../../../components/Ui/ProductCard";
 
 export default function LookbookSection({ products, isLoading }) {
   const { isDark } = useTheme();

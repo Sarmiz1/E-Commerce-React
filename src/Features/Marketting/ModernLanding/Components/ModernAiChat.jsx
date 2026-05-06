@@ -11,7 +11,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatMoneyCurrency } from "../../../../Utils/formatMoneyCents";
+import { formatMoneyCurrency } from "../../../../utils/FormatMoneyCents";
 import shoeImg from "../../../../assets/marketing/shoe-stealth.png";
 import { AI_CHAT_CTA, AI_CHAT_DEMO, AI_CHAT_FEATURES } from "../Data/aiChatContent";
 

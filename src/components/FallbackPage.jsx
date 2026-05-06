@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useTheme } from "../store/useThemeStore";
+import { useTheme } from "../Store/useThemeStore";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');

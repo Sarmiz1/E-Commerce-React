@@ -10,7 +10,7 @@
  * all existing child components.
  */
 import { createContext, useContext, useCallback } from 'react';
-import { useToast } from '../../../store/useToastStore';
+import { useToast } from '../../../Store/useToastStore';
 import { useBuyerUIStore } from '../store/useBuyerUIStore';
 import {
   useBuyerDashboard,
@@ -21,10 +21,10 @@ import {
   useAddAddress,
   useDeleteAddress,
 } from '../hooks/useBuyerQueries';
-import { useCart } from '../../../Context/cart/CartContext';
-import { useAuth } from '../../../Context/auth/AuthContext';
-import { useWishlist } from '../../../Hooks/useWishlist';
-import { useAllProducts } from '../../../Hooks/product/useProducts';
+import { useCart } from '../../../context/cart/CartContext';
+import { useAuth } from '../../../context/auth/AuthContext';
+import { useWishlist } from '../../../hooks/useWishlist';
+import { useAllProducts } from '../../../hooks/product/useProducts';
 import { useMemo } from 'react';
 
 const BuyerCtx = createContext(null);

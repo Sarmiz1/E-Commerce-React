@@ -1,7 +1,7 @@
 import React from "react";
 import { StarRating } from "./StarRating";
-import { StoreHeader } from "../../../../Components/Ui/StoreHeader";
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
+import { StoreHeader } from "../../../../components/Ui/StoreHeader";
+import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
 
 export default function DetailMainInfo({ 
   product, 

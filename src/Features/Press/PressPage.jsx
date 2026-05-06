@@ -14,7 +14,7 @@ import {
   Target,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import ModernNavbar from "../../Components/ModernNavbar";
+import ModernNavbar from "../../components/ModernNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 

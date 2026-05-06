@@ -3,14 +3,14 @@ import { AnimatePresence } from "framer-motion";
 import { STYLES } from "./Styles/styles";
 
 import MarqueeStrip from "./Components/MarqueeStrip";
-import Navbar from "../../Components/Navbar";
+import Navbar from "../../components/NavBar";
 
-import LazyRender from "../../Components/Ui/LazyRender";
+import LazyRender from "../../components/Ui/LazyRender";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
 import HomeHeroSection from "./Components/Sections/HomeHeroSection";
-import GlobalCommandPalette from "../../Components/GlobalCommandPalette";
-import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
-import SEO from "../../Components/SEO";
+import GlobalCommandPalette from "../../components/GlobalCommandPalette";
+import ProductDetailModal from "../../components/Ui/ProductDetailModal";
+import SEO from "../../components/SEO";
 
 // Lazy loaded below-the-fold sections
 const CategoriesSection = lazy(() => import("./Components/Sections/CategoriesSection"));

@@ -2,7 +2,7 @@ import React, { lazy } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroSection from "./sections/HeroSection";
-import SEO from "../../../Components/SEO";
+import SEO from "../../../components/SEO";
 import MarketingNavbar from "../Components/MarketingNavbar";
 import LazyMarketingSection from "../Components/LazyMarketingSection";
 import WS_IMG from '../../../assets/marketing/mktimg3.png';

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../../../store/useThemeStore";
+import { useTheme } from "../../../Store/useThemeStore";
 import { useDashboard } from "../context/DashboardContext";
 import { SAMPLE_LEADS, STAGE_CONFIG, buildSystemPrompt, buildFallbackInsights } from "./salesData";
 import { fetchAIResponse, fetchInsights } from "./aiEngine";

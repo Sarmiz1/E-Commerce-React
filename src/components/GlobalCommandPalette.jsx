@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAllProducts } from "../Hooks/product/useProducts"; 
-import { useTheme } from "../store/useThemeStore"; 
-import { formatMoneyCents } from "../Utils/formatMoneyCents";
+import { useAllProducts } from "../hooks/product/useProducts"; 
+import { useTheme } from "../Store/useThemeStore"; 
+import { formatMoneyCents } from "../utils/FormatMoneyCents";
 
 export default function GlobalCommandPalette() {
   const [isOpen, setIsOpen] = useState(false);

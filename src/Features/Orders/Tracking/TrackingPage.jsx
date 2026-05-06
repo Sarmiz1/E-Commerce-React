@@ -26,8 +26,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { OrderAPI } from "../../../api/orderApi";
-import { useOrders } from "../../../Hooks/order/useOrders";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { useOrders } from "../../../hooks/order/useOrders";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 
 // ─── Font injection + global animation keyframes ──────────────────────────────
 const FONTS_AND_KEYFRAMES = `

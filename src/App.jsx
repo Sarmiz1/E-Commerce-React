@@ -1,12 +1,12 @@
 import "./App.css";
 import { RouterProvider } from "react-router-dom";
-import { CartProvider } from "./Context/cart/CartContext";
-import { AuthProvider } from "./Context/auth/AuthContext";
-import { ThemeProvider } from "./Context/theme/ThemeContext";
-import { ToastProvider } from "./Context/toast/ToastContext";
+import { CartProvider } from "./Context/cart/CartContext"
+import { AuthProvider } from "./context/auth/AuthContext";
+import { ThemeProvider } from "./context/theme/ThemeContext";
+import { ToastProvider } from "./context/toast/ToastContext";
 import { IconContext } from "react-icons";
 import router from "./Router/router";
-import QueryWrapper from "./Context/QueryClient/QueryWrapper";
+import QueryWrapper from "./context/QueryClient/QueryWrapper";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export default function App() {

@@ -7,21 +7,21 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import { useTheme } from "../../store/useThemeStore";
-import { formatMoneyCents } from "../../Utils/formatMoneyCents";
+import { useTheme } from "../../Store/useThemeStore";
+import { formatMoneyCents } from "../../utils/FormatMoneyCents";
 import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/Utils/constants";
 import { IconStar } from "../Icons/IconStar";
 import { IconPlus } from "../Icons/IconPlus";
 import { IconClose } from "../Icons/IconClose";
 import { IconSpinner } from "../Icons/IconSpinner";
 import { IconHeart } from "../Icons/IconHeart";
-import { getProductImages } from "../../Utils/getProductImages";
+import { getProductImages } from "../../utils/getProductImages";
 import WishlistHeart from "./WishlistHeart";
-import { useAddToCart } from "../../Hooks/cart/useAddToCart";
-import { useProductInventory } from "../../Hooks/useProductInventory";
-import { getStoreInfo } from "../../Utils/getStoreInfo";
+import { useAddToCart } from "../../hooks/cart/useAddToCart";
+import { useProductInventory } from "../../hooks/useProductInventory";
+import { getStoreInfo } from "../../utils/getStoreInfo";
 import { StoreHeader } from "./StoreHeader";
-import { prefetchProductOnHover } from "../../Utils/prefetchProductOnHover";
+import { prefetchProductOnHover } from "../../utils/prefetchProductOnHover";
 
 const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
   const {

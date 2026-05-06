@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useTheme } from "../../../store/useThemeStore";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
-import WishlistHeart from "../../../Components/Ui/WishlistHeart";
+import { useTheme } from "../../../Store/useThemeStore";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import WishlistHeart from "../../../components/Ui/WishlistHeart";
 
 export default function InlineAd({ product, type }) {
   const { isDark, colors } = useTheme();

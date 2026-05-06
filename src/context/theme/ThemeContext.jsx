@@ -4,7 +4,7 @@
  * Existing imports of `useTheme` / `ThemeProvider` continue to work.
  */
 import { useEffect } from "react";
-import { useThemeStore } from "../../store/useThemeStore";
+import { useThemeStore } from "../../Store/useThemeStore";
 
 /** Keep ThemeProvider import working — now just applies DOM side-effects */
 export function ThemeProvider({ children }) {

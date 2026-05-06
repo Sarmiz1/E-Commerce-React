@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CATEGORIES } from "../../Data/categories";
 import SectionLabel from "../SectionLabel";
-import { getCategoryImageUrl } from "../../../../Utils/getCategoryImageUrl";
+import { getCategoryImageUrl } from "../../../../utils/getCategoryImageUrl";
 import { useNavigate } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);

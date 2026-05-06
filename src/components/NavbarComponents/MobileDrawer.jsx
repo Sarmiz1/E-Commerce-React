@@ -1,5 +1,5 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import { useWishlist } from "../../Hooks/useWishlist";
+import { useWishlist } from "../../hooks/useWishlist";
 import { Logo } from "../Ui/Logo";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { ArrowRight, BagIcon, CloseIcon, HeartIcon, UserIcon } from "./Icons";

@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import ShareButton from "../../../../Components/Ui/ShareButton";
+import ShareButton from "../../../../components/Ui/ShareButton";
 import { ChevronLeft, HeartIcon } from "./Icons";
 
 export default function DetailActionsRow({ 

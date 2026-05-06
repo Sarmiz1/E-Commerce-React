@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-// import { Logo } from "../../../Components/Ui/Logo";
+// import { Logo } from "../../../components/Ui/Logo";
 
 const Wordmark = forwardRef(function Wordmark({ dotRef, taglineRef }, wordRef) {
   return (

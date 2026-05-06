@@ -4,9 +4,9 @@ import {
   useRevalidator,
 } from "react-router-dom";
 import { OrderAPI } from "../../../api/orderApi";
-import { useCartActions } from "../../../Context/cart/CartContext";
+import { useCartActions } from "../../../context/cart/CartContext";
 import { filterAndSortOrders, getReorderCartItems } from "../Utils/ordersUtils";
-import { useOrders } from "../../../Hooks/order/useOrders";
+import { useOrders } from "../../../hooks/order/useOrders";
 
 export default function useOrdersPageController() {
   const navigate = useNavigate();

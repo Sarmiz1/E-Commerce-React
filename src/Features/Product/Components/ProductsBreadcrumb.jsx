@@ -2,8 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, Sparkles } from "lucide-react";
-import { IconFilter } from "../../../Components/Icons/IconFilter";
-import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
+import { IconFilter } from "../../../components/Icons/IconFilter";
+import PremiumDropdown from "../../../components/Ui/PremiumDropdown";
 import { SORT_OPTIONS } from "../Utils/constants";
 import { trackEvent } from "../../../api/track_events";
 

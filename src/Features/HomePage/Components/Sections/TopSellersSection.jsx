@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../../../../store/useThemeStore";
+import { useTheme } from "../../../../Store/useThemeStore";
 
 const TOP_SELLERS = [
   { id: 1, name: "Obsidian Maison", type: "Luxury Apparel", rating: 4.9, sales: "10k+", image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=800" },

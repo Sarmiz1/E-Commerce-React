@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 import { Ic, FREE_SHIP_THRESHOLD } from "./CartConstants";
 
 export function FreeShippingBar({ subtotal, discount }) {

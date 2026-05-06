@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { Sparkles } from "lucide-react";
 import { Socials, LEGAL } from "./footerConstants";
-import { Logo } from "../../../Components/Ui/Logo";
+import { Logo } from "../../../components/Ui/Logo";
 
 const BottomBar = forwardRef(function BottomBar({ socialsRef }, ref) {
   return (

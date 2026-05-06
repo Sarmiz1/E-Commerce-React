@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
-import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
 import { Ic, Spinner } from "./CartConstants";
 import { getCartItemLineTotalCents, getCartItemUnitPriceCents } from "../Utils/cartItemUtils";
 

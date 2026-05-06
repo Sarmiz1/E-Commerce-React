@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { formatMoneyCents } from "../../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
 import { Ic, Spinner } from './TrackingIcons';
 import { computeETA, statusColor, statusPct, MILESTONES, MILESTONE_IDX } from '../Utils/trackingUtils';
 import { StatusOrb } from './TrackingAtoms';

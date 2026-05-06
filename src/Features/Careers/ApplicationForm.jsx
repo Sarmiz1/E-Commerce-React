@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, Link } from "react-router-dom";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import ModernNavbar from "../../Components/ModernNavbar";
+import ModernNavbar from "../../components/ModernNavbar";
 
 export default function ApplicationForm() {
   const [searchParams] = useSearchParams();

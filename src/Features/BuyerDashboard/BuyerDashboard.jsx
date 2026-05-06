@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
-import { useTheme } from "../../store/useThemeStore";
+import { useTheme } from "../../Store/useThemeStore";
 import { BuyerProvider, useBuyer } from './context/BuyerContext';
 import BuyerSidebar from './components/BuyerSidebar';
 import BuyerTopbar from './components/BuyerTopbar';

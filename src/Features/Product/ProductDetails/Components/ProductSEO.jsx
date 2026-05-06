@@ -1,7 +1,7 @@
 import React from "react";
-import SEO from "../../../../Components/SEO";
-import { getStoreInfo } from "../../../../Utils/getStoreInfo";
-import { getProductImages } from "../../../../Utils/getProductImages";
+import SEO from "../../../../components/SEO";
+import { getStoreInfo } from "../../../../utils/getStoreInfo";
+import { getProductImages } from "../../../../utils/getProductImages";
 
 const MAX_META_DESCRIPTION_LENGTH = 155;
 

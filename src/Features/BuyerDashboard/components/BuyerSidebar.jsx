@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from "../../../store/useThemeStore";
+import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
-import { Logo } from '../../../Components/Ui/Logo';
+import { Logo } from '../../../components/Ui/Logo';
 
 // ─── Sidebar content (extracted to avoid remount on parent re-render) ─────────
 function SidebarContent({ mobileMode, collapsed, toggleCollapsed, setSidebarOpen, toggleSidebar, page, setPage, colors, isDark, unread, profile, stats }) {

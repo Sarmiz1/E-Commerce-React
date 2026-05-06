@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, animate } from 'framer-motion';
-import { useTheme } from "../../../store/useThemeStore";
+import { useTheme } from "../../../Store/useThemeStore";
 import { useDashboard } from '../context/DashboardContext';
 import { fmt, fmtFull } from '../utils/format';
 import { Icon } from './DashIcon';

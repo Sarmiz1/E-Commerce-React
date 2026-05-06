@@ -1,4 +1,4 @@
-import ProductCard from "../../../Components/Ui/ProductCard";
+import ProductCard from "../../../components/Ui/ProductCard";
 
 export function RecommendedRow({ products = [], isRefreshing = false }) {
   const visibleProducts = products.filter(Boolean).slice(0, 5);
