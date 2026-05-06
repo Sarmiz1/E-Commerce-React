@@ -30,7 +30,7 @@ import {
   useContext,
   useRef,
   useEffect,
-  useCallback,
+  useMemo,
 } from "react";
 
 // ── Context stores a mutable ref container so updates never cause re-renders ──
@@ -43,9 +43,17 @@ export function CartAnimationProvider({ children }) {
   // This ref-of-refs pattern means the context value never changes identity,
   // so no consumer ever re-renders due to this context.
   const cartIconRefHolder = useRef(null); // cartIconRefHolder.current = the actual ref
+  const value = useMemo(() => ({
+    register(ref) {
+      cartIconRefHolder.current = ref;
+    },
+    getCurrent() {
+      return cartIconRefHolder.current;
+    },
+  }), []);
 
   return (
-    <CartAnimationContext.Provider value={cartIconRefHolder}>
+    <CartAnimationContext.Provider value={value}>
       {children}
     </CartAnimationContext.Provider>
   );
@@ -58,13 +66,13 @@ export function CartAnimationProvider({ children }) {
  * @param {React.RefObject<HTMLElement>} ref  A ref attached to the cart icon button.
  */
 export function useRegisterCartIcon(ref) {
-  const holder = useContext(CartAnimationContext);
+  const context = useContext(CartAnimationContext);
 
   useEffect(() => {
-    if (holder && ref) {
-      holder.current = ref; // store the ref object, not the DOM node
-    }
-  }, [holder, ref]);
+    if (!context || !ref) return;
+    context.register(ref); // store the ref object, not the DOM node
+    return () => context.register(null);
+  }, [context, ref]);
 }
 
 // ── useCartIconRef ─────────────────────────────────────────────────────────────
@@ -76,7 +84,7 @@ export function useRegisterCartIcon(ref) {
  */
 
 export function useCartIconRef() {
-  const holder = useContext(CartAnimationContext);
+  const context = useContext(CartAnimationContext);
   // holder.current is the ref object set by Navbar (e.g. { current: <button> })
-  return holder?.current ?? null;
+  return context?.getCurrent() ?? null;
 }

@@ -11,6 +11,12 @@ import { useCompare } from "../Product/Hooks/useCompare";
 // ─── Utility ──────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
 
+function seededNumber(seed, offset = 0) {
+  const source = `${seed}:${offset}`;
+  const hash = [...source].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return (Math.sin(hash) + 1) / 2;
+}
+
 function filterProducts(products, config) {
   if (!products?.length) return [];
   let filtered = [...products];
@@ -69,12 +75,12 @@ function Particles({ accent }) {
   const particles = useMemo(() =>
     Array.from({ length: 18 }, (_, i) => ({
       id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 1,
-      duration: Math.random() * 6 + 4,
-      delay: Math.random() * 3,
-    })), []);
+      x: seededNumber(accent, i) * 100,
+      y: seededNumber(accent, i + 20) * 100,
+      size: seededNumber(accent, i + 40) * 4 + 1,
+      duration: seededNumber(accent, i + 60) * 6 + 4,
+      delay: seededNumber(accent, i + 80) * 3,
+    })), [accent]);
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -185,7 +191,7 @@ export default function CollectionPage({ config }) {
   const { isDark, colors } = useTheme();
   const navigate = useNavigate();
   const navigation = useNavigation();
-  const allProducts = useLoaderData() || [];
+  const allProducts = useLoaderData();
   const isLoading = navigation.state === "loading";
 
   const [sort, setSort] = useState("default");

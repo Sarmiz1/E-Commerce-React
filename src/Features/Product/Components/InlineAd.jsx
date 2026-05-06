@@ -1,25 +1,14 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../store/useThemeStore";
 import { formatMoneyCents } from "../../../Utils/formatMoneyCents";
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 
-export default function InlineAd({ product, type, allProducts }) {
+export default function InlineAd({ product, type }) {
   const { isDark, colors } = useTheme();
-  if (!product) return null;
 
-  const adImages = useMemo(() => {
-    const base = [product.image].filter(Boolean);
-    if (allProducts?.length) {
-      const extras = allProducts
-        .filter((p) => p.id !== product.id && p.image)
-        .slice(0, 4)
-        .map((p) => p.image);
-      return [...base, ...extras].slice(0, 5);
-    }
-    return base;
-  }, [product, allProducts]);
+  if (!product) return null;
 
   if (type === "featured") {
     return (

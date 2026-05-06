@@ -1,20 +1,20 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Ic, UNDO_DURATION } from "./CartConstants";
 
 export function UndoToast({ item, onUndo, onExpire }) {
   const [progress, setProgress] = useState(100);
-  const start = useRef(Date.now());
+  const [start] = useState(() => Date.now());
 
   useEffect(() => {
     const id = setInterval(() => {
-      const elapsed = Date.now() - start.current;
+      const elapsed = Date.now() - start;
       const pct = Math.max(0, 100 - (elapsed / UNDO_DURATION) * 100);
       setProgress(pct);
       if (pct === 0) { clearInterval(id); onExpire(); }
     }, 40);
     return () => clearInterval(id);
-  }, [onExpire]);
+  }, [onExpire, start]);
 
   return (
     <motion.div

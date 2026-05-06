@@ -765,6 +765,32 @@ function TopBar({mod, user, onLogout, addToast}) {
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function CategoryMetricCard({cat}) {
+  const [h,h$] = useHover();
+  return (
+    <div {...h$} style={{background:C.card,
+      border:`1px solid ${h?C.borderHov:C.border}`,borderRadius:13,padding:'1.375rem',
+      cursor:'default',
+      transform:h?'translateY(-4px)':'none',
+      boxShadow:h?`0 12px 40px #00000099, 0 0 20px ${C.blue}14`:`0 2px 8px #00000033`,
+      transition:'all .22s cubic-bezier(.4,0,.2,1)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+        <span style={{fontSize:13,fontWeight:700,color:C.txt}}>{cat.name}</span>
+        <span style={{fontSize:11,color:C.green,display:'flex',alignItems:'center',gap:2,fontWeight:700}}>
+          <TrendingUp size={11}/> +{cat.growth}%
+        </span>
+      </div>
+      <div style={{fontSize:22,fontWeight:800,color:C.txt,marginBottom:12,
+        fontFamily:"'JetBrains Mono',monospace"}}>NGN {cat.rev}k</div>
+      <div style={{height:4,background:C.border,borderRadius:4}}>
+        <div style={{height:'100%',width:`${(cat.rev/1240)*100}%`,
+          background:`linear-gradient(90deg,${C.blue},${C.cyan})`,borderRadius:4,transition:'width .6s ease'}}/>
+      </div>
+      <div style={{fontSize:10,color:C.txt3,marginTop:8}}>{cat.share}% of GMV</div>
+    </div>
+  );
+}
+
 function Dashboard({addToast}) {
   return (
     <div style={{display:'flex',flexDirection:'column',gap:16}}>
@@ -844,31 +870,7 @@ function Dashboard({addToast}) {
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(185px,1fr))',gap:13}}>
-        {catData.map(cat => {
-          const [h,h$] = useHover();
-          return (
-            <div {...h$} key={cat.name} style={{background:C.card,
-              border:`1px solid ${h?C.borderHov:C.border}`,borderRadius:13,padding:'1.375rem',
-              cursor:'default',
-              transform:h?'translateY(-4px)':'none',
-              boxShadow:h?`0 12px 40px #00000099, 0 0 20px ${C.blue}14`:`0 2px 8px #00000033`,
-              transition:'all .22s cubic-bezier(.4,0,.2,1)'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <span style={{fontSize:13,fontWeight:700,color:C.txt}}>{cat.name}</span>
-                <span style={{fontSize:11,color:C.green,display:'flex',alignItems:'center',gap:2,fontWeight:700}}>
-                  <TrendingUp size={11}/> +{cat.growth}%
-                </span>
-              </div>
-              <div style={{fontSize:22,fontWeight:800,color:C.txt,marginBottom:12,
-                fontFamily:"'JetBrains Mono',monospace"}}>₦{cat.rev}k</div>
-              <div style={{height:4,background:C.border,borderRadius:4}}>
-                <div style={{height:'100%',width:`${(cat.rev/1240)*100}%`,
-                  background:`linear-gradient(90deg,${C.blue},${C.cyan})`,borderRadius:4,transition:'width .6s ease'}}/>
-              </div>
-              <div style={{fontSize:10,color:C.txt3,marginTop:8}}>{cat.share}% of GMV</div>
-            </div>
-          );
-        })}
+        {catData.map(cat => <CategoryMetricCard key={cat.name} cat={cat} />)}
       </div>
     </div>
   );
@@ -1731,4 +1733,3 @@ export default function AdminModernDashboard() {
     </>
   );
 }
-

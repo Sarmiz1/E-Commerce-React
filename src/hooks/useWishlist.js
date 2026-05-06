@@ -53,7 +53,11 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
     ? productIds.includes(productId)
     : Boolean(initialLiked);
 
-  const mutation = useMutation({
+  const {
+    mutate,
+    isPending,
+    error: mutationError,
+  } = useMutation({
     mutationFn: async ({ nextLiked }) => {
       if (!productId) return productIds;
 
@@ -115,9 +119,9 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
   const setWishlisted = useCallback(
     (nextLiked) => {
       if (!productId) return;
-      mutation.mutate({ nextLiked: Boolean(nextLiked) });
+      mutate({ nextLiked: Boolean(nextLiked) });
     },
-    [mutation, productId],
+    [mutate, productId],
   );
 
   const toggleWishlist = useCallback(() => {
@@ -131,7 +135,7 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
     setWishlisted,
     toggleWishlist,
     isLoading,
-    isPending: mutation.isPending,
-    error: mutation.error || queryError,
+    isPending,
+    error: mutationError || queryError,
   };
 }

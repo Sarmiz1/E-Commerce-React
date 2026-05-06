@@ -19,7 +19,13 @@ const playHapticClick = () => {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.03);
-  } catch (e) {}
+  } catch {}
+};
+
+const getStableFitPercentage = (sizeSystem = "", productType = "") => {
+  const seed = `${sizeSystem}:${productType}`;
+  const hash = [...seed].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return 65 + (hash % 30);
 };
 
 export default function DetailInventory({ 
@@ -45,8 +51,10 @@ export default function DetailInventory({
     setSelectedSize(s);
   };
 
-  // Fake random fit data based on sizeSystem to show it's dynamic
-  const fitPercentage = useMemo(() => Math.floor(Math.random() * 30) + 65, [sizeSystem]);
+  const fitPercentage = useMemo(
+    () => getStableFitPercentage(sizeSystem, productType),
+    [sizeSystem, productType]
+  );
 
   return (
     <div className="space-y-6">

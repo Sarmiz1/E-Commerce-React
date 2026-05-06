@@ -36,7 +36,7 @@ const playHapticClick = () => {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.03);
-  } catch (e) {}
+  } catch {}
 };
 
 // ─── ThumbnailGallery — with fixed magnifier ─────────────────────────────────
@@ -52,6 +52,7 @@ export function ThumbnailGallery({ product, imageRef }) {
   // Track container actual dimensions so zoom calc is always accurate
   const mainImageRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ w: 500, h: 500 });
+  const [renderedAt] = useState(() => Date.now());
 
   useEffect(() => {
     const el = mainImageRef.current;
@@ -161,7 +162,7 @@ export function ThumbnailGallery({ product, imageRef }) {
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-1.5 z-10">
-              {product?.created_at && (Date.now() - new Date(product.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000 && (
+              {product?.created_at && (renderedAt - new Date(product.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000 && (
                 <span className="pd-chip px-3 py-1.5 rounded-full text-white" style={{ background: "rgba(10,10,11,0.7)", backdropFilter: "blur(8px)", border: "1px solid var(--gold)", color: "var(--gold-light)" }}>Nouveau</span>
               )}
               {product.price_cents < 2000 && (

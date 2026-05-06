@@ -52,6 +52,7 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [transactionId, setTransactionId] = useState('');
   const inputRef = useRef(null);
   const passRef = useRef(null);
 
@@ -61,6 +62,7 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
       setStep(1); setAmount(''); setPassword('');
       setShowPassword(false); setProcessing(false);
       setSuccess(false); setError('');
+      setTransactionId('');
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [open]);
@@ -110,11 +112,13 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
     // Mock password check (in production this would be server-side)
     if (password !== 'seller123' && password.length >= 6) {
       // Accept any password >= 6 chars for demo
+      setTransactionId(`TXN-${Date.now().toString(36).toUpperCase()}`);
       setStep(3);
       setSuccess(true);
       setProcessing(false);
       if (onWithdraw) onWithdraw(parsedAmount, fees.totalFee, fees.netAmount);
     } else if (password === 'seller123') {
+      setTransactionId(`TXN-${Date.now().toString(36).toUpperCase()}`);
       setStep(3);
       setSuccess(true);
       setProcessing(false);
@@ -404,7 +408,7 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
                       style={{ background: isDark ? colors.surface.tertiary : '#F9FAFB', border: `1px solid ${colors.border.subtle}` }}>
                       <div className="flex justify-between text-xs">
                         <span style={{ color: colors.text.tertiary }}>Transaction ID</span>
-                        <span className="font-mono font-bold" style={{ color: colors.cta.primary }}>TXN-{c}</span>
+                        <span className="font-mono font-bold" style={{ color: colors.cta.primary }}>{transactionId}</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span style={{ color: colors.text.tertiary }}>Amount</span>

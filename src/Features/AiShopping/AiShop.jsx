@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { 
@@ -9,6 +9,12 @@ import {
 } from 'lucide-react';
 
 const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY;
+
+const getFallbackRatingCount = (productId) => {
+  const seed = String(productId || 'product');
+  const hash = [...seed].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return 50 + (hash % 400);
+};
 
 export default function AiShop() {
   const [messages, setMessages] = useState([
@@ -33,6 +39,28 @@ export default function AiShop() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const fetchProducts = useCallback(async (params) => {
+    let query = supabase.from('products').select('*').limit(6);
+    
+    if (params.keywords && params.keywords.length > 0) {
+       query = query.ilike('name', `%${params.keywords[0]}%`);
+    }
+    if (params.maxPrice) {
+       query = query.lte('price_cents', params.maxPrice);
+    }
+    if (params.category) {
+       query = query.ilike('name', `%${params.category}%`);
+    }
+    
+    const { data, error } = await query;
+    if (data) {
+       setProducts(data);
+       setSearchStatus(`Searched ${data.length * 15}+ products`);
+    } else {
+       console.error("DB Error:", error);
+    }
+  }, []);
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -44,30 +72,7 @@ export default function AiShop() {
       fetchProducts({});
     };
     checkAuth();
-  }, []);
-
-  const fetchProducts = async (params) => {
-    let query = supabase.from('products').select('*').limit(6);
-    
-    if (params.keywords && params.keywords.length > 0) {
-       query = query.ilike('name', `%${params.keywords[0]}%`);
-    }
-    if (params.maxPrice) {
-       query = query.lte('price_cents', params.maxPrice);
-    }
-    if (params.category) {
-       // simple ilike category matching via keywords if needed
-       query = query.ilike('name', `%${params.category}%`);
-    }
-    
-    const { data, error } = await query;
-    if (data) {
-       setProducts(data);
-       setSearchStatus(`Searched ${data.length * 15}+ products`);
-    } else {
-       console.error("DB Error:", error);
-    }
-  };
+  }, [fetchProducts]);
 
   const processAI = async (userText) => {
     setLoading(true);
@@ -516,7 +521,7 @@ export default function AiShop() {
                     </div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <span className="text-[#FBBF24] text-[15px]">★</span>
-                      <span className="text-[13px] font-semibold text-gray-700">{p.rating_stars || '4.8'} <span className="text-gray-400 font-medium">({p.rating_count || Math.floor(Math.random()*400+50)})</span></span>
+                      <span className="text-[13px] font-semibold text-gray-700">{p.rating_stars || '4.8'} <span className="text-gray-400 font-medium">({p.rating_count || getFallbackRatingCount(p.id)})</span></span>
                     </div>
                     <div className="text-[#0DA56E] text-[13px] font-semibold mb-5">In stock</div>
                     
