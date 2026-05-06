@@ -1,6 +1,6 @@
 import "./App.css";
 import { RouterProvider } from "react-router-dom";
-import { CartProvider } from "./Context/cart/CartContext"
+import { CartProvider } from "./context/cart/CartContext"
 import { AuthProvider } from "./context/auth/AuthContext";
 import { ThemeProvider } from "./context/theme/ThemeContext";
 import { ToastProvider } from "./context/toast/ToastContext";
