@@ -1,9 +1,11 @@
 // src/lib/realtime.js
 // FIXED IMPORT
-import { supabase } from "../lib/supabaseClient";
+import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
 import { queryClient } from "../queries/queryClient"; 
 
 export const initRealtime = (userId) => {
+  if (!isSupabaseConfigured) return null;
+
   return supabase
     .channel("marketplace-live")
 
