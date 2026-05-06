@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient";
+import { isSupabaseConfigured, supabase } from "./supabaseClient";
 
 /**
  * initRealtime
@@ -6,7 +6,7 @@ import { supabase } from "./supabaseClient";
  * - invalidates TanStack cache
  */
 export const initRealtime = (queryClient, userId) => {
-  if (!queryClient) return;
+  if (!isSupabaseConfigured || !queryClient) return null;
 
   const channel = supabase.channel("marketplace-realtime");
 
