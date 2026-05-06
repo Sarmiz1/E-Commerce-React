@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabaseClient";
+import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
 
 const EVENT_STORE_KEY = "woosho.analytics.events";
 const SESSION_KEY = "woosho.analytics.sessionId";
@@ -157,7 +157,7 @@ function toStoredEvent(event) {
 }
 
 async function sendTrackedEvents(events) {
-  if (!events.length) return;
+  if (!isSupabaseConfigured || !events.length) return;
 
   try {
     const { error } = await supabase.functions.invoke("track-event", {

@@ -10,7 +10,7 @@
  * Falls back to mock data if Supabase isn't configured or tables don't exist yet.
  */
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { isSupabaseConfigured, supabase } from '../../../lib/supabaseClient';
 import { useToast } from "../../../Store/useToastStore";
 import {
   SELLER_STATS, RECENT_ORDERS, PRODUCTS,
@@ -18,7 +18,8 @@ import {
 } from '../data/mockData';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
-const isMock = !import.meta.env.VITE_SUPABASE_URL ||
+const isMock = !isSupabaseConfigured ||
+  !import.meta.env.VITE_SUPABASE_URL ||
   import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
 
 function buildStats(orders = [], products = [], wallet = []) {

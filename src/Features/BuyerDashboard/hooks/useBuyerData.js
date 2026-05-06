@@ -12,7 +12,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { isSupabaseConfigured, supabase } from '../../../lib/supabaseClient';
 import { useToast } from "../../../Store/useToastStore";
 import {
   BUYER_PROFILE, BUYER_STATS, ORDER_STATUS_SNAPSHOT,
@@ -22,7 +22,8 @@ import {
   REORDER_SUGGESTIONS, WALLET_DATA, AI_CREDITS_DATA, CART_ITEMS,
 } from '../data/buyerData';
 
-const isMock = !import.meta.env.VITE_SUPABASE_URL ||
+const isMock = !isSupabaseConfigured ||
+  !import.meta.env.VITE_SUPABASE_URL ||
   import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
 
 // In a real auth flow this comes from the session user

@@ -70,8 +70,11 @@ Every file contains detailed comments explaining the flow of logic, making it ex
 Create a `.env` file in the root directory and add your Supabase credentials:
 ```env
 VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_or_anon_key
 ```
+
+`VITE_SUPABASE_ANON_KEY` is also supported for older Supabase projects. On Vercel,
+add these same variables in Project Settings -> Environment Variables, then redeploy.
 
 ### Running the Application
 To start the development server with Fast Refresh:

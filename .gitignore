@@ -28,8 +28,8 @@ temp_build/
 *.sw?
 .env
 .env.*
+!.env.example
 
 # cursor files
 .cursor/
-
 
