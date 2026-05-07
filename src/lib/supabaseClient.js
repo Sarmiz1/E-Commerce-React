@@ -12,6 +12,14 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
 export const supabaseConfigError =
   "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY.";
 
+const disabledSupabaseFetch = () =>
+  Promise.resolve(
+    new Response(JSON.stringify({ message: supabaseConfigError }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+
 if (!isSupabaseConfigured) {
   const message = `[Supabase] ${supabaseConfigError}`;
   if (import.meta.env.DEV) {
@@ -30,6 +38,13 @@ export const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: true,
     },
+    ...(isSupabaseConfigured
+      ? {}
+      : {
+          global: {
+            fetch: disabledSupabaseFetch,
+          },
+        }),
     // NOTE: Do NOT add a custom fetch with AbortController here.
     // it interferes with Supabase's internal auth token refresh flow
     // and causes "DOMException: The operation was aborted" errors.

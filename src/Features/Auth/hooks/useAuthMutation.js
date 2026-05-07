@@ -1,5 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "../../../lib/supabaseClient";
+import {
+  isSupabaseConfigured,
+  supabase,
+  supabaseConfigError,
+} from "../../../lib/supabaseClient";
 
 export const getFriendlyError = (message) => {
   if (!message) return "Something went wrong. Please try again.";
@@ -38,6 +42,10 @@ export const getFriendlyError = (message) => {
 export const useAuthMutation = (mode, setFormError) => {
   return useMutation({
     mutationFn: async (formData) => {
+      if (!isSupabaseConfigured) {
+        throw new Error(supabaseConfigError);
+      }
+
       if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
