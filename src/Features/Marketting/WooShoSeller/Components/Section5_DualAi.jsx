@@ -107,7 +107,7 @@ export default function Section5_DualAi() {
 
         {/* RIGHT PANE: Seller AI Engine */}
         <div className={`flex-1 rounded-3xl overflow-hidden shadow-2xl flex flex-col border transition-all duration-700 ${phase === 5 ? 'bg-green-900/20 border-green-500/40' : 'bg-neutral-900 border-neutral-800'}`}>
-          <div className="bg-black border-b border-neutral-800 p-4 font-bold text-gray-200 flex items-center gap-3 relative">
+          <div className="bg-black border-b border-neutral-800 p-4 font-bold text-gray-200 flex  flex-col lg:flex-row items-center gap-3 relative">
             <Bot size={20} className="text-indigo-400" /> SELLER AI ENGINE
             <AnimatePresence>
               {phase === 5 && (

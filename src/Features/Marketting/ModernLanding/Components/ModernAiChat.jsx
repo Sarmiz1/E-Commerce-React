@@ -92,7 +92,7 @@ const ModernAiChat = memo(function ModernAiChat() {
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true, margin: "-50px" }}
-          className="order-1 lg:order-2 flex justify-center"
+          className="order-1 lg:order-2 flex justify-center w-[21rem] lg:w-full"
         >
           <div className="w-full max-w-[400px] h-[750px] bg-white dark:bg-black rounded-[48px] border-[10px] border-gray-100 dark:border-[#1F1F23] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col relative">
             {/* Header */}
@@ -206,7 +206,7 @@ const ModernAiChat = memo(function ModernAiChat() {
                   className="bg-transparent border-none focus:outline-none flex-1 text-sm text-gray-900 dark:text-white pointer-events-none"
                   readOnly
                 />
-                <button className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg">
+                <button className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg -ml-4 lg:-ml-0">
                   <Send size={18} fill="white" />
                 </button>
               </div>

@@ -36,7 +36,7 @@ const BottomBar = forwardRef(function BottomBar({ socialsRef }, ref) {
         {/* Dot separator */}
         <span className="hidden md:block w-1 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
 
-        <span className="text-xs text-gray-400 dark:text-gray-500">
+        <span className="text-xs text-gray-400 dark:text-gray-500 ml-3">
           © {new Date().getFullYear()} Woosho Inc. All rights reserved.
         </span>
       </div>

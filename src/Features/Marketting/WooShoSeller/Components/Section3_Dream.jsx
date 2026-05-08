@@ -154,12 +154,13 @@ export default function Section3_Dream() {
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            position: 'absolute', top: 20, right: -50,
+            position: 'absolute', top: 20,
             background: '#10b981', borderRadius: 14,
             padding: '8px 14px', fontSize: 12, fontWeight: 800,
             color: '#fff', whiteSpace: 'nowrap',
             boxShadow: '0 8px 24px rgba(16,185,129,0.4)',
           }}
+          className='-right-6 lg:-right-12'
         >
           +{formatMoneyCurrency(2450000)} 💰
         </motion.div>
@@ -168,12 +169,13 @@ export default function Section3_Dream() {
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           style={{
-            position: 'absolute', bottom: 40, left: -60,
+            position: 'absolute', bottom: 40,
             background: '#6366f1', borderRadius: 14,
             padding: '8px 14px', fontSize: 12, fontWeight: 800,
             color: '#fff', whiteSpace: 'nowrap',
             boxShadow: '0 8px 24px rgba(99,102,241,0.4)',
           }}
+          className='-left-5 lg:-left-[60px]'
         >
           AI replied ⚡
         </motion.div>
