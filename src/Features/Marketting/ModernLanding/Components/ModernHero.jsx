@@ -78,7 +78,7 @@ const ModernHero = memo(function ModernHero() {
                   damping: 14,
                   stiffness: 100
                 }}
-                className={`mr-4 mb-2 inline-block origin-bottom ${
+                className={`mr-4 mb-2 pb-4 inline-block origin-bottom ${
                   index > 1 
                     ? 'text-blue-600 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500 drop-shadow-sm' 
                     : ''
