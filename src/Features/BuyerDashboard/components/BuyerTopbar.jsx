@@ -30,14 +30,14 @@ export default function BuyerTopbar() {
   };
 
   return (
-    <header className="flex items-center gap-4 h-16 px-4 lg:px-8 flex-shrink-0 sticky top-0 z-50"
+    <header className="flex items-center gap-2 sm:gap-4 h-16 px-2 sm:px-4 lg:px-8 flex-shrink-0 sticky top-0 z-50"
       style={{
         background: isDark ? `${colors.surface.primary}f0` : 'rgba(255,255,255,0.9)',
         borderBottom: `1px solid ${colors.border.subtle}`,
         backdropFilter: 'blur(16px)',
       }}>
       {/* Mobile burger */}
-      <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg" style={{ color: colors.text.secondary }}>
+      <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-1.5 sm:p-2 rounded-lg" style={{ color: colors.text.secondary }}>
         <BIcon name="menu" size={20} />
       </button>
 
@@ -45,23 +45,23 @@ export default function BuyerTopbar() {
       <p className="font-bold text-base hidden sm:block" style={{ color: colors.text.primary }}>{pageLabel}</p>
 
       {/* Search */}
-      <div className="flex-1 max-w-sm mx-4 flex items-center gap-2 px-4 py-2 rounded-2xl"
+      <div className="flex-1 min-w-[80px] max-w-sm mx-1 sm:mx-4 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-2xl"
         style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', border: `1px solid ${colors.border.subtle}` }}>
-        <BIcon name="search" size={15} style={{ color: colors.text.tertiary }} />
+        <BIcon name="search" size={15} style={{ color: colors.text.tertiary, flexShrink: 0 }} />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search products, orders..."
-          className="bg-transparent outline-none text-sm flex-1"
+          placeholder="Search..."
+          className="bg-transparent outline-none text-xs sm:text-sm flex-1 min-w-0"
           style={{ color: colors.text.primary }}
         />
       </div>
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-1 sm:gap-2 ml-auto">
         {/* Cart with hover dropdown */}
         <div className="relative"
           onMouseEnter={() => setCartOpen(true)}
           onMouseLeave={() => setCartOpen(false)}
         >
-          <button className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+          <button className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center"
             style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
             <BIcon name="cart" size={17} />
             {cart.length > 0 && (
@@ -156,7 +156,7 @@ export default function BuyerTopbar() {
         </div>
 
         {/* Theme */}
-        <button onClick={toggle} className="w-9 h-9 rounded-xl flex items-center justify-center"
+        <button onClick={toggle} className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
           <BIcon name={isDark ? 'sun' : 'moon'} size={16} />
         </button>
@@ -164,7 +164,7 @@ export default function BuyerTopbar() {
         {/* Notifications */}
         <div className="relative">
           <button onClick={() => { setNotifOpen(o => !o); setProfileOpen(false); }}
-            className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+            className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center"
             style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
             <BIcon name="bell" size={17} />
             {unread > 0 && (
@@ -206,7 +206,7 @@ export default function BuyerTopbar() {
 
         <div className="relative">
           <button onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }}
-            className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-sm">
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs sm:text-sm">
             {(profile?.full_name?.charAt(0) || profile?.name?.charAt(0) || 'B').toUpperCase()}
           </button>
           <AnimatePresence>
