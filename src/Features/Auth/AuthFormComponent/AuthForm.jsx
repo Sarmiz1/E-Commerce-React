@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, Check } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthForm } from "../hooks/useAuthForm";
 import { useAuthMutation } from "../hooks/useAuthMutation";
 // Components
@@ -43,6 +44,8 @@ export default function AuthForm({
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formError, setFormError] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Keep mode in sync if the user navigates between /login and /signup
   useEffect(() => {
@@ -116,16 +119,24 @@ export default function AuthForm({
     setFormError("");
   }, [role]);
 
-  // ✅ After success, redirect to login after 2s — mode change triggers reset above
+  // ✅ Swift navigation upon success
   useEffect(() => {
     if (!isSuccess) return;
 
+    if (mode === "login") {
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, { replace: true });
+      return;
+    }
+
+    // For register/forgot, wait a short moment for them to see the success message
     const timer = setTimeout(() => {
+      navigate("/login", { replace: true });
       setMode("login");
-    }, 2000);
+    }, 1200);
 
     return () => clearTimeout(timer);
-  }, [isSuccess]);
+  }, [isSuccess, mode, navigate, location.state]);
 
   const submitForm = handleSubmit(
     async (formData) => {

@@ -154,7 +154,10 @@ export function initAuth() {
     }
   );
 
-  _unsubscribe = () => subscription.unsubscribe();
+  _unsubscribe = () => {
+    subscription.unsubscribe();
+    _unsubscribe = null;
+  };
   return _unsubscribe;
 }
 
