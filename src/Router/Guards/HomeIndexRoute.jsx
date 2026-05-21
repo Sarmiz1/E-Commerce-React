@@ -1,7 +1,9 @@
+import { lazy, Suspense } from "react";
 import { useAuth } from "../../Store/useAuthStore";
-import HomePage from "../../Features/HomePage/HomePage";
-import ModernLanding from "../../Features/Marketting/ModernLanding/ModernLanding";
 import { HomeSkeleton } from "../../components/Fallback";
+
+const HomePage = lazy(() => import("../../Features/HomePage/HomePage"));
+const ModernLanding = lazy(() => import("../../Features/Marketting/ModernLanding/ModernLanding"));
 
 export const HomeIndexRoute = () => {
   const { user, isLoading } = useAuth();
@@ -10,5 +12,9 @@ export const HomeIndexRoute = () => {
     return <HomeSkeleton />;
   }
 
-  return user ? <HomePage /> : <ModernLanding />;
+  return (
+    <Suspense fallback={<HomeSkeleton />}>
+      {user ? <HomePage /> : <ModernLanding />}
+    </Suspense>
+  );
 };

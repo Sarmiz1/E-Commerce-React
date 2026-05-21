@@ -85,7 +85,7 @@ const ModernHero = memo(function ModernHero() {
                 }`}
               >
                 {word}
-                {index === 1 && <div className="w-full h-0 md:h-4" />} {/* Line break */}
+                {index === 1 && <div className="w-full h-0 md:h-5" />} {/* Line break */}
               </motion.span>
             ))}
           </div>

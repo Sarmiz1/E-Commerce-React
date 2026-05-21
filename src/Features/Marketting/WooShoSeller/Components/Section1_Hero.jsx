@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatMoneyCurrency } from "../../../../utils/FormatMoneyCents";
-import { SELLER_FORECAST_BARS, SELLER_HERO_NOTIFICATIONS } from "../Data/heroData";
+import {
+  SELLER_FORECAST_BARS,
+  SELLER_HERO_NOTIFICATIONS,
+} from "../Data/heroData";
 
 export default function Section1_Hero() {
   const navigate = useNavigate();
@@ -123,7 +126,7 @@ export default function Section1_Hero() {
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-2 font-medium">
                   <DollarSign size={16} /> Total Revenue
                 </div>
-                <div className="text-3xl font-bold text-white tracking-tight">
+                <div className="text-sm sm:text-base md:text-lg lg:text-3xl font-bold text-white tracking-tight">
                   {formatMoneyCurrency(revenue * 100)}
                 </div>
                 <div className="text-xs text-green-400 mt-2 font-bold flex items-center gap-1">
@@ -134,7 +137,7 @@ export default function Section1_Hero() {
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-2 font-medium">
                   <Activity size={16} /> Active Buyers
                 </div>
-                <div className="text-3xl font-bold text-white tracking-tight">
+                <div className="text-sm sm:text-base md:text-lg lg:text-3xl font-bold text-white tracking-tight">
                   1,284
                 </div>
                 <div className="mt-2 h-2 w-full bg-white/10 rounded-full overflow-hidden">
