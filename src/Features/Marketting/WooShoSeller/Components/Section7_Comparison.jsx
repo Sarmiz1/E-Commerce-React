@@ -13,9 +13,9 @@ export default function Section7_Comparison() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         '.comp-row',
-        { x: -20, opacity: 0 },
+        { opacity: 0 },
         {
-          x: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power2.out',
+          opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power2.out',
           scrollTrigger: { trigger: sectionRef.current, start: 'top 65%' },
         }
       );
@@ -84,7 +84,7 @@ export default function Section7_Comparison() {
           borderRadius: 24, padding: '32px',
           background: 'rgba(16,185,129,0.04)',
           border: '1px solid rgba(16,185,129,0.2)',
-          boxShadow: '0 0 60px rgba(16,185,129,0.05)',
+          boxShadow: '0 10px 30px rgba(16,185,129,0.06)',
         }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
