@@ -59,7 +59,7 @@ function PulseTicker() {
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="fixed bottom-6 left-6 z-[99999] pointer-events-none"
         >
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-[320px]">
+          <div className="bg-[#1a1a2e]/95 border border-white/20 p-4 rounded-2xl shadow-2xl flex items-center gap-3 max-w-[320px]">
             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xs font-bold">WS</span>
             </div>

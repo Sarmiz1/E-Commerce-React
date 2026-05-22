@@ -1,4 +1,5 @@
-import React, { lazy } from "react";
+import React, { lazy, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import SEO from "../../../components/SEO.jsx";
 import ModernHero from "./Components/ModernHero";
 import MarketingNavbar from "../Components/MarketingNavbar.jsx";
@@ -26,6 +27,18 @@ const ExitIntentPopup = lazy(() => import("../Components/ExitIntentPopup"));
 
 
 export default function ModernLanding() {
+  const { hash } = useLocation();
+
+  // Scroll to the hash target on mount / hash change
+  useEffect(() => {
+    if (!hash) return;
+    // Small delay to let the DOM settle (IDs are on LazyMarketingSection wrappers, always present)
+    const timer = setTimeout(() => {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [hash]);
   return (
     <>
       <MarketingNavbar
@@ -47,71 +60,51 @@ export default function ModernLanding() {
           <ModernHero />
         </div>
 
-        <LazyMarketingSection>
-          <div id="pain-points">
-            <ModernPainPoints />
+        <LazyMarketingSection id="pain-points">
+          <ModernPainPoints />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="platform">
+          <ModernPlatform />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="ai-chat">
+          <ModernAiChat />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="interactive-demo">
+          <InteractiveProductDemo />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="gallery">
+          <ModernGallery />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="categories">
+          <ModernCategories />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="why-woosho">
+          <ModernWhy />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="stats">
+          <AnimatedStats />
+        </LazyMarketingSection>
+
+        <LazyMarketingSection id="lead-capture" className="bg-white px-6 py-20 dark:bg-[#0E0E10]">
+          <div className="mx-auto max-w-3xl">
+            <LeadCaptureForm
+              audience={LEAD_CAPTURE_CONTENT.audience}
+              title={LEAD_CAPTURE_CONTENT.title}
+              description={LEAD_CAPTURE_CONTENT.description}
+              cta={LEAD_CAPTURE_CONTENT.cta}
+            />
           </div>
         </LazyMarketingSection>
 
-        <LazyMarketingSection>
-          <div id="platform">
-            <ModernPlatform />
-          </div>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <div id="ai-chat">
-            <ModernAiChat />
-          </div>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <div id="interactive-demo">
-            <InteractiveProductDemo />
-          </div>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <div id="gallery">
-            <ModernGallery />
-          </div>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <div id="categories">
-            <ModernCategories />
-          </div>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <div id="why-woosho">
-            <ModernWhy />
-          </div>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <div id="stats">
-            <AnimatedStats />
-          </div>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <section id="lead-capture" className="bg-white px-6 py-20 dark:bg-[#0E0E10]">
-            <div className="mx-auto max-w-3xl">
-              <LeadCaptureForm
-                audience={LEAD_CAPTURE_CONTENT.audience}
-                title={LEAD_CAPTURE_CONTENT.title}
-                description={LEAD_CAPTURE_CONTENT.description}
-                cta={LEAD_CAPTURE_CONTENT.cta}
-              />
-            </div>
-          </section>
-        </LazyMarketingSection>
-
-        <LazyMarketingSection>
-          <div id="cta">
-            <ModernCTA />
-          </div>
+        <LazyMarketingSection id="cta">
+          <ModernCTA />
         </LazyMarketingSection>
 
       </main>

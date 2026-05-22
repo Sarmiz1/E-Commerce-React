@@ -33,7 +33,7 @@ const ModernCategories = memo(function ModernCategories() {
   const navigate = useNavigate();
 
   return (
-    <section id="categories" className="py-32 bg-white dark:bg-[#0E0E10] transition-colors relative overflow-hidden">
+    <section className="py-32 bg-white dark:bg-[#0E0E10] transition-colors relative overflow-hidden">
       
       {/* INFINITE MARQUEE BACKGROUND */}
       <div className="absolute top-10 left-0 w-full z-0 opacity-50 dark:opacity-30 pointer-events-none">

@@ -137,7 +137,7 @@ export default function SectionB_Delivery() {
               <motion.div
                 key={title}
                 variants={item}
-                className="flex flex-col lg:flex-row items-start gap-3 p-4 rounded-2xl bg-white/[0.05] border border-white/[0.08] backdrop-blur-sm hover:bg-white/[0.08] transition-colors"
+                className="flex flex-col lg:flex-row items-start gap-3 p-4 rounded-2xl bg-white/[0.07] border border-white/[0.08] hover:bg-white/[0.10] transition-colors"
               >
                 <div className="shrink-0 w-9 h-9 rounded-xl bg-violet-500/20 flex items-center justify-center text-violet-400">
                   <span className="h-2.5 w-2.5 rounded-full bg-violet-400 shadow-[0_0_14px_rgba(167,139,250,0.8)]" />

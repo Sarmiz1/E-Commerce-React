@@ -213,7 +213,7 @@ export default function SectionA_Community() {
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.5, type: "spring", stiffness: 200 }}
               viewport={{ once: true }}
-              className="absolute top-5 left-5 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-3"
+              className="absolute top-5 left-5 bg-black/85 border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-3"
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
                 <svg className="w-4 h-4 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -232,7 +232,7 @@ export default function SectionA_Community() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.9, duration: 0.5, type: "spring", stiffness: 180 }}
               viewport={{ once: true }}
-              className="absolute bottom-5 right-5 bg-black/70 backdrop-blur-md border border-violet-500/30 rounded-2xl px-4 py-3"
+              className="absolute bottom-5 right-5 bg-black/85 border border-violet-500/30 rounded-2xl px-4 py-3"
             >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-violet-500 flex items-center justify-center shrink-0">

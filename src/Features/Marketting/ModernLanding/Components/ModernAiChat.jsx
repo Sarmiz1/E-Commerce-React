@@ -213,7 +213,7 @@ const ModernAiChat = memo(function ModernAiChat() {
             </div>
 
             {/* Bottom Nav Mockup */}
-            <div className="px-8 py-6 flex justify-between items-center bg-gray-50/50 dark:bg-black/50 backdrop-blur-md border-t border-gray-100 dark:border-white/5">
+            <div className="px-8 py-6 flex justify-between items-center bg-gray-50/80 dark:bg-black/80 border-t border-gray-100 dark:border-white/5">
               <button className="text-gray-400">
                 <Search size={22} />
               </button>

@@ -85,7 +85,7 @@ export default function Section2_PainClock() {
 
       {/* Right: The Tax Clock Widget */}
       <div className="flex-1 w-full max-w-sm pain-card">
-        <div className="bg-neutral-900/50 backdrop-blur-3xl border border-neutral-800 rounded-3xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-[0_0_100px_rgba(255,0,0,0.05)]">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-[0_0_100px_rgba(255,0,0,0.05)]">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600/0 via-red-600 to-red-600/0 opacity-50" />
 
           <p className="text-gray-400 font-medium mb-4 uppercase tracking-widest text-xs">

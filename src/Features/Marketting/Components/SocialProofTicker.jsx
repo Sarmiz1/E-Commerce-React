@@ -40,7 +40,7 @@ const SocialProofTicker = memo(function SocialProofTicker() {
           exit={{ opacity: 0, y: 40, scale: 0.9 }}
           className="fixed bottom-6 left-6 z-50 max-w-xs"
         >
-          <div className="bg-white dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-2xl shadow-black/10 dark:shadow-black/40 backdrop-blur-xl flex items-center gap-3">
+          <div className="bg-white dark:bg-[#1A1A1E] border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-2xl shadow-black/10 dark:shadow-black/40 flex items-center gap-3">
             {/* Avatar dot */}
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg shadow-blue-500/30">
               {current.name.charAt(0)}

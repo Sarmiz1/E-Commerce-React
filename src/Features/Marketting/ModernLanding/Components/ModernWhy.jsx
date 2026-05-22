@@ -25,7 +25,6 @@ const ModernWhy = memo(function ModernWhy() {
       `}</style>
 
       <section
-        id="why-woosho"
         className="relative py-28 bg-gray-50 dark:bg-[#131315] overflow-hidden transition-colors duration-500"
       >
         {/* Ambient background orbs */}

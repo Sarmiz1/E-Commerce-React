@@ -108,7 +108,7 @@ export default function SectionC_SellerWin() {
                 damping: 14,
               }}
               viewport={{ once: true }}
-              className="absolute top-6 right-6 bg-black/75 backdrop-blur-xl border border-violet-500/30 rounded-2xl px-5 py-4 shadow-xl"
+              className="absolute top-6 right-6 bg-black/90 border border-violet-500/30 rounded-2xl px-5 py-4 shadow-xl"
             >
               <div className="flex items-center gap-3">
                 <motion.div
@@ -139,7 +139,7 @@ export default function SectionC_SellerWin() {
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ delay: 1.0, duration: 0.5, type: "spring", stiffness: 180 }}
               viewport={{ once: true }}
-              className="absolute bottom-6 left-6 bg-black/75 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3"
+              className="absolute bottom-6 left-6 bg-black/90 border border-white/10 rounded-2xl px-5 py-3"
             >
               <p className="text-[10px] text-white/40 uppercase tracking-widest">This month</p>
               <p className="text-2xl font-black text-white mt-1">{formatMoneyCurrency(28400000)}</p>

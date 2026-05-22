@@ -65,7 +65,7 @@ const ModernHero = memo(function ModernHero() {
         
         {/* TEXT CONTENT */}
         <div className="text-left relative z-20">
-          <div className="flex flex-wrap text-6xl md:text-8xl font-extrabold tracking-tight leading-[0.9] text-gray-900 dark:text-white mb-8 select-none">
+          <div className="flex flex-wrap text-6xl md:text-8xl font-extrabold tracking-tight leading-[1.05] text-gray-900 dark:text-white mb-8 select-none">
             {hero.titleWords.map((word, index) => (
               <motion.span
                 key={`${ref}-${index}`}
