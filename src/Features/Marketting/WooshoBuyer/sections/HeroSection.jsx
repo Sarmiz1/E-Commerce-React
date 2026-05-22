@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ShoppingBag, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatMoneyCurrency } from '../../../../utils/FormatMoneyCents';
 import MagneticButton from '../../Components/MagneticButton';
 import { BUYER_HERO_COPY, BUYER_HERO_PRODUCTS } from '../Data/heroData';
+
+/* ── CSS-only mount animation (no GPU layer per element) ── */
+const fadeUpStyle = (delayMs = 0) => ({
+  animation: `heroFadeUp 0.8s cubic-bezier(0.16,1,0.3,1) ${delayMs}ms both`,
+});
+
+const fadeInRightStyle = (delayMs = 0) => ({
+  animation: `heroFadeInRight 1s cubic-bezier(0.16,1,0.3,1) ${delayMs}ms both`,
+});
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -40,14 +49,24 @@ const HeroSection = () => {
 
   return (
     <section className="w-full min-h-screen flex items-center justify-center pt-24 pb-12 px-6 md:px-12 bg-white dark:bg-[#0E0E10] overflow-hidden">
+      {/* Keyframes injected once — pure CSS, no GPU layers */}
+      <style>{`
+        @keyframes heroFadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes heroFadeInRight {
+          from { opacity: 0; transform: translateX(40px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
+
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         
         {/* Left: Stark Minimalist Text */}
         <div className="flex flex-col items-start space-y-8 z-10">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          <h1 
+            style={fadeUpStyle(0)}
             className="text-6xl md:text-8xl font-black text-neutral-900 dark:text-white leading-[0.95] tracking-tighter"
           >
             {heroCopy.lines.map((line) => (
@@ -56,21 +75,17 @@ const HeroSection = () => {
               </React.Fragment>
             ))}
             <span className="text-neutral-400 dark:text-neutral-500">{heroCopy.highlight}</span>
-          </motion.h1>
+          </h1>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          <p 
+            style={fadeUpStyle(100)}
             className="text-xl md:text-2xl text-neutral-600 dark:text-neutral-400 max-w-md leading-snug font-medium"
           >
             Describe your exact style. Our neural engine finds it instantly. No scrolling required.
-          </motion.p>
+          </p>
           
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          <div 
+            style={fadeUpStyle(200)}
             className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-4"
           >
             <MagneticButton
@@ -86,15 +101,13 @@ const HeroSection = () => {
             >
               Browse Catalog
             </MagneticButton>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Right: Live Interactive Terminal (No glow/bulb effects, brutalist & clean) */}
-        <motion.div 
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full h-[550px] bg-neutral-50 dark:bg-[#111113] rounded-[32px] p-6 border border-neutral-200 dark:border-white/10 flex flex-col shadow-2xl"
+        {/* Right: Live Interactive Terminal */}
+        <div 
+          style={fadeInRightStyle(300)}
+          className="relative w-full h-[550px] bg-neutral-50 dark:bg-[#111113] rounded-[32px] p-6 border border-neutral-200 dark:border-white/10 flex flex-col shadow-xl md:shadow-2xl"
         >
           {/* Top Bar */}
           <div className="flex items-center justify-between mb-8 pb-4 border-b border-neutral-200 dark:border-white/10">
@@ -121,11 +134,10 @@ const HeroSection = () => {
               ) : filteredResults.length > 0 ? (
                 filteredResults.map((item, index) => (
                   <motion.div
-                    layout
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25, delay: index * 0.05 }}
                     key={item.id}
                     className="flex items-center gap-4 bg-white dark:bg-[#1A1A1E] p-3 rounded-2xl border border-neutral-100 dark:border-white/5"
                   >
@@ -167,7 +179,7 @@ const HeroSection = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
       </div>
     </section>
