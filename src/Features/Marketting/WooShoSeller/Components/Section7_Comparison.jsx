@@ -1,26 +1,27 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { X, Check } from 'lucide-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SELLER_OLD_WAY, SELLER_WOOSHO_WAY } from '../Data/sectionsData.jsx';
-
-// FIX: removed gsap.registerPlugin(ScrollTrigger) — registered once in SellerLanding.jsx
 
 export default function Section7_Comparison() {
   const sectionRef = useRef(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.comp-row',
-        { opacity: 0 },
-        {
-          opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power2.out',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 65%' },
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
         }
-      );
-    }, sectionRef);
-    return () => ctx.revert();
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -65,12 +66,14 @@ export default function Section7_Comparison() {
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {SELLER_OLD_WAY.map((item) => (
-              <div key={item} className="comp-row" style={{
+            {SELLER_OLD_WAY.map((item, i) => (
+              <div key={item} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '12px 14px', borderRadius: 12,
                 background: 'rgba(239,68,68,0.06)',
                 border: '1px solid rgba(239,68,68,0.1)',
+                opacity: visible ? 1 : 0,
+                transition: `opacity 0.45s ease ${i * 0.07}s`,
               }}>
                 <X size={14} color="#ef4444" style={{ flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'line-through' }}>{item}</span>
@@ -99,12 +102,14 @@ export default function Section7_Comparison() {
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {SELLER_WOOSHO_WAY.map((item) => (
-              <div key={item} className="comp-row" style={{
+            {SELLER_WOOSHO_WAY.map((item, i) => (
+              <div key={item} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '12px 14px', borderRadius: 12,
                 background: 'rgba(16,185,129,0.06)',
                 border: '1px solid rgba(16,185,129,0.12)',
+                opacity: visible ? 1 : 0,
+                transition: `opacity 0.45s ease ${(SELLER_OLD_WAY.length + i) * 0.07}s`,
               }}>
                 <div style={{ width: 20, height: 20, borderRadius: 6, background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Check size={11} color="#fff" />
