@@ -138,26 +138,32 @@ const FinalCtaSection = () => {
             {/* Buttons */}
             <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 mb-12">
               <MagneticButton
-                className="flex items-center justify-center gap-2.5 text-white px-9 py-4.5 rounded-full font-semibold text-base transition-all duration-200"
+                className="flex items-center justify-center gap-2.5 text-white px-10 rounded-full font-bold text-base tracking-wide cursor-pointer"
                 style={{
-                  background: 'linear-gradient(135deg,#2563eb,#0891b2)',
-                  boxShadow: '0 6px 28px rgba(37,99,235,0.42)',
-                  paddingTop: 17, paddingBottom: 17,
+                  background: 'linear-gradient(135deg, #2563eb 0%, #0891b2 100%)',
+                  boxShadow: '0 8px 32px rgba(37,99,235,0.45), inset 0 1px 0 rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(96,165,250,0.3)',
+                  paddingTop: 18, paddingBottom: 18,
+                  letterSpacing: '0.02em',
                 }}
                 onClick={() => navigate('/products')}
               >
                 Try WooSho Now
-                <ArrowRight size={17} />
+                <ArrowRight size={17} strokeWidth={2.5} />
               </MagneticButton>
               <MagneticButton
-                className="flex items-center justify-center text-white px-9 rounded-full font-semibold text-base transition-all duration-200 hover:bg-white/10"
+                className="flex items-center justify-center gap-2 text-white px-10 rounded-full font-bold text-base tracking-wide cursor-pointer"
                 style={{
-                  border: '1px solid rgba(255,255,255,0.16)',
-                  paddingTop: 17, paddingBottom: 17,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1.5px solid rgba(255,255,255,0.22)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
+                  paddingTop: 18, paddingBottom: 18,
+                  letterSpacing: '0.02em',
                 }}
                 onClick={() => navigate('/auth')}
               >
                 Create Free Account
+                <ArrowRight size={15} strokeWidth={2} style={{ opacity: 0.6 }} />
               </MagneticButton>
             </div>
 
