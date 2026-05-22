@@ -165,6 +165,14 @@ export function ThumbnailGallery({ product, imageRef }) {
             -webkit-backdrop-filter: none !important;
             background: rgba(10, 10, 11, 0.92) !important;
           }
+          /* Hardware isolation fix: flatten 3D transform compositor and isolate the section from global mix-blend-mode/grain overlay glitch */
+          .pd-fade-in, .gallery-container, .trust-badges-grid, .pd-img-wrap {
+            isolation: isolate !important;
+            transform: translateZ(0) !important;
+            -webkit-transform: translateZ(0) !important;
+            backface-visibility: hidden !important;
+            -webkit-backface-visibility: hidden !important;
+          }
         }
       `}</style>
       <div className="flex gap-4 gallery-container">
