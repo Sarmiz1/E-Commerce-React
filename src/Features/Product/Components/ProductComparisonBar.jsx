@@ -15,7 +15,7 @@ export default function ProductComparisonBar({
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
-          className="fixed bottom-0 sm:bottom-6 left-0 sm:left-1/2 sm:-translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-fit px-3 sm:px-5 py-4 sm:py-3 rounded-t-3xl sm:rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-2xl border-t sm:border backdrop-blur-xl"
+          className="fixed bottom-0 sm:bottom-6 left-0 sm:left-1/2 sm:-translate-x-1/2 z-[1100] flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-fit px-3 sm:px-5 py-4 sm:py-3 rounded-t-3xl sm:rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-2xl border-t sm:border md:backdrop-blur-xl"
           style={{
             background: isDark
               ? "rgba(30,30,34,0.95)"

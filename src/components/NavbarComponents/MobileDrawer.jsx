@@ -6,7 +6,7 @@ import { ArrowRight, BagIcon, CloseIcon, HeartIcon, UserIcon } from "./Icons";
 
 const accountLinks = [
   { icon: <UserIcon className="w-4 h-4" />, label: "My Account", href: "/account" },
-  { icon: <HeartIcon className="w-4 h-4" />, label: "Wishlist", href: "/product/wishlist" },
+  { icon: <HeartIcon className="w-4 h-4" />, label: "Wishlist", href: "/wishlist" },
   { icon: <BagIcon className="w-4 h-4" />, label: "My Orders", href: "/tracking" },
 ];
 

@@ -668,7 +668,7 @@ export default function WishlistPage() {
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
-                    className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between sm:justify-center w-[92%] sm:w-auto max-w-sm sm:max-w-none gap-3 sm:gap-6 rounded-[24px] sm:rounded-full bg-slate-900/95 dark:bg-white/95 px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-xl shadow-2xl border border-white/10 dark:border-slate-900/10"
+                    className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between sm:justify-center w-[92%] sm:w-auto max-w-sm sm:max-w-none gap-3 sm:gap-6 rounded-[24px] sm:rounded-full bg-slate-900/95 dark:bg-white/95 px-4 sm:px-6 py-3 sm:py-4 md:backdrop-blur-xl shadow-2xl border border-white/10 dark:border-slate-900/10"
                     style={{ transformStyle: 'preserve-3d' }}
                   >
                     <span className="hidden sm:block text-sm font-bold tracking-wide text-white dark:text-slate-900">
