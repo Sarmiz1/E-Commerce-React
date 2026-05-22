@@ -96,7 +96,7 @@ export default function MarketingNavbar({
   return (
     <header className="fixed inset-x-0 top-0 z-[9000] px-4 py-3 md:px-6">
       <nav
-        className={`mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-2xl border px-4 py-3 shadow-sm backdrop-blur-xl transition ${
+        className={`mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-2xl border px-4 py-3 shadow-sm md:backdrop-blur-xl transition ${
           isSellerHeroSurface
             ? "border-white/10 bg-black/35 text-white"
             : "border-black/5 bg-white/90 text-slate-950 dark:border-white/10 dark:bg-[#0E0E10]/90 dark:text-white"
@@ -150,7 +150,7 @@ export default function MarketingNavbar({
       </nav>
 
       {mobileOpen && (
-        <div className="mx-auto mt-2 max-w-7xl rounded-2xl border border-black/5 bg-white/95 p-4 shadow-xl backdrop-blur-xl md:hidden dark:border-white/10 dark:bg-[#0E0E10]/95">
+        <div className="mx-auto mt-2 max-w-7xl rounded-2xl border border-black/5 bg-white/95 p-4 shadow-xl md:hidden dark:border-white/10 dark:bg-[#0E0E10]/95">
           <div className="grid gap-2">
             {navLinks.map((link) => renderLink(link, mobileLinkClass))}
             <button

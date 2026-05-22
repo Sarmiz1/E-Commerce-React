@@ -29,10 +29,9 @@ export function StickyATCBar({ product, productId, variantId, quantity = 1, visi
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="fixed bottom-0 left-0 right-0 z-[60]"
+          className="fixed bottom-0 left-0 right-0 z-[60] md:backdrop-blur-[20px] md:backdrop-saturate-[1.8]"
           style={{
             background: "var(--pd-overlay)",
-            backdropFilter: "blur(20px) saturate(1.8)",
             borderTop: "1px solid var(--pd-b5)",
             paddingBottom: "env(safe-area-inset-bottom,0px)",
           }}
