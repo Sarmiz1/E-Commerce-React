@@ -37,7 +37,26 @@ export default function DetailPurchaseIntel({
   ];
 
   return (
-    <div className="pd-r space-y-3 rounded-2xl border border-white/5 bg-white/[0.025] p-4">
+    <div className="pd-r space-y-3 rounded-2xl border border-white/5 bg-white/[0.025] p-4 intel-container">
+      <style>{`
+        @media (max-width: 768px) {
+          .intel-container {
+            padding: 0.75rem !important;
+          }
+          .intel-grid {
+            gap: 0.5rem !important;
+          }
+          .intel-item {
+            padding: 0.5rem 0.75rem !important;
+          }
+          .intel-label {
+            font-size: 8px !important;
+          }
+          .intel-value {
+            font-size: 11px !important;
+          }
+        }
+      `}</style>
       <div className="flex items-center justify-between gap-3">
         <p className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: "var(--mist)" }}>
           Purchase intel
@@ -53,16 +72,16 @@ export default function DetailPurchaseIntel({
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 intel-grid">
         {items.map((item) => (
-          <div key={item.label} className="rounded-xl border border-white/5 bg-black/10 p-3">
+          <div key={item.label} className="rounded-xl border border-white/5 bg-black/10 p-3 intel-item">
             <div className="mb-1 flex items-center gap-2" style={{ color: "var(--gold)" }}>
               {item.icon}
-              <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: "var(--mist)" }}>
+              <span className="text-[9px] font-black uppercase tracking-wider intel-label" style={{ color: "var(--mist)" }}>
                 {item.label}
               </span>
             </div>
-            <p className="text-sm font-semibold" style={{ color: "var(--platinum)" }}>
+            <p className="text-sm font-semibold intel-value" style={{ color: "var(--platinum)" }}>
               {item.value}
             </p>
           </div>

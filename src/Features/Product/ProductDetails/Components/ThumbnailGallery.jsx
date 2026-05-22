@@ -94,6 +94,7 @@ export function ThumbnailGallery({ product, imageRef }) {
   };
 
   const handleMouseMove = useCallback((e) => {
+    if (typeof window !== "undefined" && window.innerWidth <= 768) return;
     if (!mainImageRef.current) return;
     const rect = mainImageRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -119,9 +120,56 @@ export function ThumbnailGallery({ product, imageRef }) {
 
   return (
     <div ref={imageRef} className="pd-fade-in">
-      <div className="flex gap-4">
+      <style>{`
+        @media (max-width: 768px) {
+          .gallery-container {
+            flex-direction: column-reverse !important;
+            gap: 0.75rem !important;
+          }
+          .thumbs-strip {
+            flex-direction: row !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            max-height: none !important;
+            width: 100% !important;
+            padding-bottom: 0.5rem;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+          }
+          .thumbs-strip::-webkit-scrollbar {
+            height: 4px;
+          }
+          .thumbs-strip::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 2px;
+          }
+          .thumb-button {
+            width: 50px !important;
+            height: 50px !important;
+          }
+          .trust-badges-grid {
+            gap: 0.5rem !important;
+          }
+          .trust-badge-item {
+            padding: 0.5rem 0.25rem !important;
+          }
+          .trust-badge-title {
+            font-size: 9px !important;
+          }
+          .trust-badge-sub {
+            font-size: 8px !important;
+          }
+          /* GPU composition fix: avoid backdrop-filter in animated layers on mobile */
+          .pd-chip {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: rgba(10, 10, 11, 0.92) !important;
+          }
+        }
+      `}</style>
+      <div className="flex gap-4 gallery-container">
         {/* Thumb strip */}
-        <div className="flex flex-col gap-2.5 pd-thumbs overflow-y-auto" style={{ maxHeight: 520 }}>
+        <div className="flex flex-col gap-2.5 pd-thumbs overflow-y-auto thumbs-strip" style={{ maxHeight: 520 }}>
           {views.map((v, i) => (
             <motion.button key={i} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
               onClick={() => { 
@@ -129,7 +177,7 @@ export function ThumbnailGallery({ product, imageRef }) {
                 setDirection(i > activeIndex ? 1 : -1); 
                 setActiveIndex(i); 
               }}
-              className="w-[60px] h-[60px] rounded-xl overflow-hidden flex-shrink-0 transition-all duration-300"
+              className="w-[60px] h-[60px] thumb-button rounded-xl overflow-hidden flex-shrink-0 transition-all duration-300"
               style={{
                 border: i === activeIndex ? "1px solid var(--gold)" : "1px solid var(--pd-b2)",
                 opacity: i === activeIndex ? 1 : 0.5,
@@ -231,17 +279,17 @@ export function ThumbnailGallery({ product, imageRef }) {
           </div>
 
           {/* Trust badges */}
-          <div className="mt-5 grid grid-cols-3 gap-3">
+          <div className="mt-5 grid grid-cols-3 gap-3 trust-badges-grid">
             {[
               { icon: <TruckIcon className="w-3.5 h-3.5" />, label: "Free Delivery", sub: "Orders $50+" },
               { icon: <RefreshIcon className="w-3.5 h-3.5" />, label: "30-Day Return", sub: "Effortless" },
               { icon: <ShieldIcon className="w-3.5 h-3.5" />, label: "Secure Pay", sub: "256-bit SSL" },
             ].map(b => (
-              <div key={b.label} className="rounded-xl p-3 text-center flex flex-col items-center gap-1.5"
+              <div key={b.label} className="rounded-xl p-3 text-center flex flex-col items-center gap-1.5 trust-badge-item"
                 style={{ background: "var(--pd-s4)", border: "1px solid var(--pd-b2)" }}>
                 <span style={{ color: "var(--gold)" }}>{b.icon}</span>
-                <p className="font-medium text-[11px]" style={{ color: "var(--platinum)", fontFamily: "Jost,sans-serif" }}>{b.label}</p>
-                <p className="text-[10px]" style={{ color: "var(--mist)", fontFamily: "Jost,sans-serif" }}>{b.sub}</p>
+                <p className="font-medium text-[11px] trust-badge-title" style={{ color: "var(--platinum)", fontFamily: "Jost,sans-serif" }}>{b.label}</p>
+                <p className="text-[10px] trust-badge-sub" style={{ color: "var(--mist)", fontFamily: "Jost,sans-serif" }}>{b.sub}</p>
               </div>
             ))}
           </div>

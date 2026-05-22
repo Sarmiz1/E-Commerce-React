@@ -177,7 +177,7 @@ export default function ProductDetail() {
               <div
                 className="lg:sticky lg:top-[88px] max-h-[calc(100vh-100px)] overflow-y-auto space-y-5 pd-thumbs pr-2 pb-8"
               >
-                {/* Top action row */}
+                {/* Top action row */} 
                 <DetailActionsRow 
                   product={product}
                   wishlisted={wishlisted}
@@ -267,6 +267,7 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
 
       {/* ── PREDICTIVE PAIRINGS ──────────────────────────────────────── */}
       <PredictivePairings
