@@ -134,15 +134,6 @@ export default function ProductDetail() {
       data-theme={isDark ? "dark" : "light"}
       style={{ background: "var(--pd-page)", color: "var(--cream)" }}
     >
-      {/* Mobile-only GPU fix: disable backdrop-filter & isolate compositor */}
-      <style>{`
-        @media (max-width: 768px) {
-          .pd-root { isolation: isolate; contain: layout style paint; }
-          .pd-root *,
-          .pd-root *::before,
-          .pd-root *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-        }
-      `}</style>
       <ProductSEO product={product} reviews={reviews} />
       <style>{DETAIL_STYLES}</style>
 
