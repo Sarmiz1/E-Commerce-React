@@ -1,3 +1,60 @@
+// src/Features/Orders/Tracking/Components/TrackingStyles.jsx
+// ─── Complete CSS string injected via <style> in the root ─────────────────────
+
+export const TRACKING_STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .pd-root {
+    --amber:   #D97706;
+    --amber-d: #B45309;
+    --amber-l: #F59E0B;
+    --cyan:    #0284C7;
+    --cyan-d:  #0369A1;
+    --bg:      #F8FAFC;
+    --bg-1:    #FFFFFF;
+    --bg-2:    #F1F5F9;
+    --bg-3:    #E2E8F0;
+    --text:    #0F172A;
+    --text-2:  #334155;
+    --text-3:  #64748B;
+    --border:  rgba(0,0,0,0.08);
+    --border-2:rgba(0,0,0,0.12);
+    --border-3:rgba(0,0,0,0.20);
+    --font-d:  'Bricolage Grotesque', sans-serif;
+    --font-b:  'DM Sans', sans-serif;
+    --font-m:  'JetBrains Mono', monospace;
+
+    font-family: var(--font-b);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .dark .pd-root {
+    --amber:   #F5A623;
+    --amber-d: #C47E0A;
+    --amber-l: #FFC85C;
+    --cyan:    #00C2FF;
+    --cyan-d:  #0098CC;
+    --bg:      #060B14;
+    --bg-1:    #0D1421;
+    --bg-2:    #111B2E;
+    --bg-3:    #18243A;
+    --text:    #E8E4DA;
+    --text-2:  #9CA3AF;
+    --text-3:  #4B5563;
+    --border:  rgba(255,255,255,0.06);
+    --border-2:rgba(255,255,255,0.10);
+    --border-3:rgba(255,255,255,0.16);
+  }
+
+  @keyframes pd-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.85); }
+  }
   @keyframes pd-orbit {
     to { transform: rotate(360deg); }
   }
@@ -27,6 +84,39 @@
   }
   @keyframes pd-spin {
     to { transform: rotate(360deg); }
+  }
+  @keyframes pd-heartbeat {
+    0%   { transform: scaleX(0); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0.6; }
+  }
+  @keyframes pd-count {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .pd-animate-up {
+    animation: pd-slide-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .pd-input-wrap input {
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid var(--border-2);
+    border-radius: 12px;
+    padding: 14px 16px 14px 48px;
+    font-size: 15px;
+    font-family: var(--font-m);
+    font-weight: 500;
+    color: var(--text);
+    outline: none;
+    letter-spacing: 0.02em;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .pd-input-wrap input::placeholder {
+    font-family: var(--font-b);
+    font-weight: 300;
+    letter-spacing: 0;
     color: var(--text-3);
     font-size: 14px;
   }
@@ -52,7 +142,7 @@
     transition: background 0.15s, transform 0.1s;
     white-space: nowrap;
   }
-  .pd-btn-primary:hover { background: var(--amber-l); }
+  .pd-btn-primary:hover  { background: var(--amber-l); }
   .pd-btn-primary:active { transform: scale(0.97); }
   .pd-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
@@ -116,9 +206,27 @@
   .pd-textarea::placeholder { color: var(--text-3); }
   .pd-textarea:focus { border-color: rgba(245,166,35,0.4); }
 
+  /* ── Responsive breakpoints ── */
   @media (max-width: 900px) {
     .pd-result-grid { grid-template-columns: 1fr !important; }
-    .pd-hero-title  { font-size: clamp(52px, 12vw, 96px) !important; }
+    .pd-hero-title  { font-size: clamp(40px, 11vw, 96px) !important; }
     .pd-steps-row   { flex-direction: column !important; }
+    .pd-inner-2col  { grid-template-columns: 1fr !important; }
+  }
+
+  @media (max-width: 600px) {
+    .pd-hero-title  { font-size: clamp(36px, 10vw, 72px) !important; }
+    .pd-hero-pad    { padding: 48px 16px 40px !important; }
+    .pd-result-pad  { padding: 20px 12px 48px !important; }
+    .pd-topbar      { flex-direction: column !important; align-items: flex-start !important; }
+    .pd-topbar-btns { width: 100% !important; justify-content: flex-start !important; flex-wrap: wrap !important; }
+    .pd-search-row  { flex-wrap: wrap !important; }
+    .pd-search-row .pd-btn-primary { width: 100% !important; justify-content: center !important; }
+    .pd-inner-2col  { grid-template-columns: 1fr !important; }
+    .pd-card-pad    { padding: 16px !important; }
+  }
+
+  @media (max-width: 400px) {
+    .pd-hero-title  { font-size: clamp(30px, 9vw, 56px) !important; }
   }
 `;
