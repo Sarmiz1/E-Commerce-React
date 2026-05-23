@@ -531,7 +531,7 @@ export const CartAPI = {
       const quantity = Math.max(Number(item.quantity) || 1, 1);
       
       return {
-        id: `guest_${item.variant_id || item.product_id}`, // UI requires an id
+        id: `guest_${item.variant_id || item.product_id}_${Math.random().toString(36).substr(2, 9)}`, // Guarantee UI uniqueness
         quantity,
         variant_id: item.variant_id,
         product_id: item.product_id,

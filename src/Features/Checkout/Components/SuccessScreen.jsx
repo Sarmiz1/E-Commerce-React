@@ -129,8 +129,8 @@ export function SuccessScreen({ orderNumber, cart, total }) {
           Items Ordered
         </p>
         <div className="space-y-2">
-          {cart.slice(0, 4).map((item) => (
-            <OrderedItem key={getCartItemKey(item)} item={item} />
+          {cart.slice(0, 4).map((item, index) => (
+            <OrderedItem key={`${getCartItemKey(item)}-${index}`} item={item} />
           ))}
           {cart.length > 4 && (
             <p className="pl-12 text-xs text-gray-400 dark:text-gray-500">

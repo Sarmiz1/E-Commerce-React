@@ -237,8 +237,25 @@ const FONTS_AND_KEYFRAMES = `
 
   @media (max-width: 900px) {
     .pd-result-grid { grid-template-columns: 1fr !important; }
-    .pd-hero-title  { font-size: clamp(52px, 12vw, 96px) !important; }
+    .pd-hero-title  { font-size: clamp(40px, 11vw, 96px) !important; }
     .pd-steps-row   { flex-direction: column !important; }
+    .pd-inner-2col  { grid-template-columns: 1fr !important; }
+  }
+
+  @media (max-width: 600px) {
+    .pd-hero-title  { font-size: clamp(36px, 10vw, 72px) !important; }
+    .pd-hero-pad    { padding: 48px 16px 40px !important; }
+    .pd-result-pad  { padding: 20px 12px 48px !important; }
+    .pd-topbar      { flex-direction: column !important; align-items: flex-start !important; }
+    .pd-topbar-btns { width: 100% !important; justify-content: flex-start !important; flex-wrap: wrap !important; }
+    .pd-search-row  { flex-wrap: wrap !important; }
+    .pd-search-row .pd-btn-primary { width: 100% !important; justify-content: center !important; }
+    .pd-inner-2col  { grid-template-columns: 1fr !important; }
+    .pd-card-pad    { padding: 16px !important; }
+  }
+
+  @media (max-width: 400px) {
+    .pd-hero-title  { font-size: clamp(30px, 9vw, 56px) !important; }
   }
 `;
 
@@ -333,7 +350,7 @@ function Ticker({ order }) {
       borderBottom: "1px solid var(--border)",
       padding: "10px 0",
       overflow: "hidden",
-      background: "rgba(0,0,0,0.25)",
+      background: "var(--bg-2)",
       flexShrink: 0,
     }}>
       <div style={{ display: "flex", whiteSpace: "nowrap", animation: "pd-ticker 28s linear infinite" }}>
@@ -899,15 +916,15 @@ export default function TrackingPage() {
           backgroundImage: "linear-gradient(var(--text) 1px, transparent 1px), linear-gradient(90deg, var(--text) 1px, transparent 1px)",
           backgroundSize: "48px 48px", pointerEvents: "none",
         }} />
-        {/* Amber glow */}
+        {/* Amber glow — clipped inside the hero, no overflow bleed */}
         <div style={{
-          position: "absolute", top: "-30%", right: "-10%",
-          width: 500, height: 500, borderRadius: "50%",
+          position: "absolute", top: "-20%", right: "-5%",
+          width: "min(500px, 80vw)", height: "min(500px, 80vw)", borderRadius: "50%",
           background: "radial-gradient(circle, rgba(245,166,35,0.06) 0%, transparent 70%)",
           pointerEvents: "none",
         }} />
 
-        <div style={{ maxWidth: 700, margin: "0 auto", padding: "72px 24px 56px", position: "relative", zIndex: 1 }}>
+        <div className="pd-hero-pad" style={{ maxWidth: 700, margin: "0 auto", padding: "72px 24px 56px", position: "relative", zIndex: 1 }}>
           {/* Eyebrow */}
           <div className="pd-animate-up" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 20 }}>
             <div style={{ height: 1, width: 32, background: "var(--amber)", opacity: 0.5 }} />
@@ -938,7 +955,7 @@ export default function TrackingPage() {
 
           {/* Search bar */}
           <div className="pd-animate-up" style={{ animationDelay: "0.2s" }}>
-            <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+            <div className="pd-search-row" style={{ display: "flex", gap: 10, marginBottom: 16 }}>
               <div className="pd-input-wrap" style={{ flex: 1, position: "relative" }}>
                 <Ic.Search style={{ width: 16, height: 16, position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-3)", pointerEvents: "none" }} />
                 <input
@@ -1022,10 +1039,11 @@ export default function TrackingPage() {
       <AnimatePresence>
         {trackedOrder && !(isSearching || isQueryLoading) && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 20px 64px" }}>
+            <div className="pd-result-pad" style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 20px 64px" }}>
 
               {/* ── Top bar: ID + controls ── */}
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="pd-topbar"
                 style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 28 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                   <div>
@@ -1036,7 +1054,7 @@ export default function TrackingPage() {
                   </div>
                   <CopyBadge text={trackedOrder.order_number || trackedOrder.id} />
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="pd-topbar-btns" style={{ display: "flex", gap: 8 }}>
                   <button className="pd-btn-ghost" onClick={() => setUpdatedAt(new Date().toISOString())}>
                     <Ic.Refresh style={{ width: 12, height: 12 }} /> Refresh
                   </button>
@@ -1093,10 +1111,10 @@ export default function TrackingPage() {
                   </motion.div>
 
                   {/* ── Items + Delivery Address in 2-col ── */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div className="pd-inner-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
 
                     {/* Items */}
-                    <motion.div className="pd-card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                    <motion.div className="pd-card pd-card-pad" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                       style={{ padding: "22px 22px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1111,7 +1129,7 @@ export default function TrackingPage() {
                     </motion.div>
 
                     {/* Delivery address + CTAs */}
-                    <motion.div className="pd-card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+                    <motion.div className="pd-card pd-card-pad" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
                       style={{ padding: "22px 22px", display: "flex", flexDirection: "column", gap: 20 }}>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
