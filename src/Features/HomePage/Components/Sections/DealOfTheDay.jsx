@@ -47,17 +47,20 @@ export default function DealOfTheDay({ product, isLoading }) {
   if (!product) return null;
 
   return (
-    <section ref={ref} className="py-20 max-w-7xl mx-auto px-6">
+    <section ref={ref} className="py-20 max-w-7xl mx-auto px-2 sm:px-4 md:px-6">
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-8 md:p-14 shadow-2xl">
         {/* Subtle dot pattern */}
         <div className="absolute inset-0 opacity-[0.04]"
-          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+          style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', 
+          backgroundSize: '24px 24px' }}
+        />
         <FloatingOrbs dark />
         <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
           {/* Left — info */}
           <div className="text-white">
             <div className="hp-dotd flex items-center gap-3 mb-6">
-              <span className="bg-red-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest animate-pulse">🔥 Deal of the Day</span>
+              <span className="bg-red-500 text-white text-[8px] md:text-[10px] font-black px-3 py-1.5 rounded-full uppercase 
+              tracking-widest animate-pulse">🔥 Deal of the Day</span>
               <span className="text-gray-400 text-xs">Ends in:</span>
               <div className="flex gap-1.5">
                 {[{ v: time.h, l: 'h' }, { v: time.m, l: 'm' }, { v: time.s, l: 's' }].map((t) => (
