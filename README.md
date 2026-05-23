@@ -28,6 +28,11 @@ Welcome to the **Woosho E-Commerce Platform**, a cutting-edge, high-performance,
 - **React Context API**: Heavy utilization of Context (`AuthContext`, `ThemeContext`, `ToastContext`, `BuyerContext`) to ensure state is synchronized globally without prop drilling.
 - **Custom Hooks**: Business logic is decoupled from UI components using custom hooks (e.g., `useBuyerData`, `useSellerData`, `useWooshoChat`), resulting in clean, readable, and highly maintainable components.
 
+### 6. **Recent Updates & Refactors**
+- **Tracking Page Modularization**: The monolithic tracking page has been completely destructured into atomic micro-components (`TrackingHero`, `TrackingResult`, `StatusPanel`, `TrackingAtoms`, `TrackingMolecules`) with its logic fully extracted into custom hooks (`useTrackingSearch`, `useOrderTracking`).
+- **Data Integrity & Rendering Fixes**: Resolved critical issues with duplicate React keys in checkout and cart data by strengthening unique ID generation algorithms and fallback rendering indexes.
+- **Mobile Responsive Layouts**: Comprehensive CSS overhauls for complex grid layouts (like the tracking result panels) ensuring seamless fluidity across mobile and tablet devices.
+
 ## 🛠 Tech Stack
 
 - **Frontend Framework**: React 19 + Vite
