@@ -99,7 +99,7 @@ export const filterAndSortOrders = (
 };
 
 export const canCancelOrder = (order) =>
-  !["cancelled", "delivered"].includes(order?.status);
+  !["cancelled", "delivered", "shipped"].includes(order?.status);
 
 export const getReorderCartItems = (order) =>
   getOrderItems(order)

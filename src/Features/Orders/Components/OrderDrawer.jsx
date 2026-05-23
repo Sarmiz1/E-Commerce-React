@@ -58,7 +58,7 @@ export default function OrderDrawer({
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 30, mass: 0.8 }}
-        className="fixed top-0 right-0 bottom-0 z-[81] or-scroll overflow-y-auto flex flex-col bg-white dark:bg-[#060B14]"
+        className="fixed top-0 right-0 bottom-0 z-[81] or-scroll overflow-y-auto flex flex-col bg-white dark:bg-[#060B14] "
         style={{
           width: "min(520px, 100vw)",
           backdropFilter: "blur(24px)",
@@ -66,7 +66,7 @@ export default function OrderDrawer({
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
-        <div className="sticky top-0 z-10 bg-white dark:bg-[#0D1421] px-6 py-5 border-b border-gray-100 dark:border-white/10 flex items-start justify-between gap-4">
+        <div className="sticky top-0 z-10 bg-white dark:bg-[#0D1421] pt-28 px-6 py-5 border-b border-gray-100 dark:border-white/10 flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
               Order Details

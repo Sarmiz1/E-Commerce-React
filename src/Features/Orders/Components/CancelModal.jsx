@@ -20,12 +20,12 @@ export default function CancelModal({ onConfirm, onDismiss, isLoading }) {
   }, []);
 
   return (
-    <>
+    <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-0">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onDismiss}
       />
 
@@ -35,7 +35,7 @@ export default function CancelModal({ onConfirm, onDismiss, isLoading }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.88, y: 24 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[91] bg-white dark:bg-[#0D1421] rounded-3xl shadow-2xl border border-gray-100 dark:border-white dark:border-[#0D1421]/10 p-8 w-[min(400px,90vw)] text-center"
+        className="relative z-[91] bg-white dark:bg-[#0D1421] rounded-3xl shadow-2xl border border-gray-100 dark:border-white dark:border-[#0D1421]/10 p-8 w-full sm:w-[400px] max-w-full text-center mx-auto"
       >
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-5 text-red-500">
           <Icons.Alert c="w-8 h-8" />
@@ -64,6 +64,6 @@ export default function CancelModal({ onConfirm, onDismiss, isLoading }) {
           </motion.button>
         </div>
       </motion.div>
-    </>
+    </div>
   );
 }

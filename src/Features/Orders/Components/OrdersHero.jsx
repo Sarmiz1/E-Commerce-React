@@ -27,7 +27,7 @@ export default function OrdersHero({ isLoading, ordersCount, onShop }) {
   }, []);
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 text-white py-14 md:py-20 px-6">
+    <div className="relative overflow-hidden bg-gradient-to-br pt-32 from-blue-600 via-indigo-700 to-violet-800 text-white py-14 md:py-22 px-6">
       <FloatingOrbs />
       <div
         className="absolute inset-0 opacity-[0.06]"
