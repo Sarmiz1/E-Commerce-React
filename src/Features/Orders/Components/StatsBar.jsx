@@ -58,7 +58,7 @@ export default function StatsBar({ orders }) {
             >
               {stat.icon}
             </div>
-            <p className="text-2xl lg:text-3xl font-black text-slate-800 dark:text-white mt-1">
+            <p className={`text-2xl lg:text-3xl font-black mt-1 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent [-webkit-background-clip:text] [-webkit-text-fill-color:transparent] inline-block`}>
               {stat.prefix}
               <AnimatedCounter end={stat.value} decimals={stat.decimals || 0} />
             </p>
