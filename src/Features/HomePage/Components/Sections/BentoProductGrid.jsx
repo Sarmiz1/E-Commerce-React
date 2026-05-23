@@ -55,7 +55,7 @@ export default function BentoProductGrid({ products, isLoading }) {
         </div>
         <motion.button whileHover={{ x: 4 }} className="text-indigo-600 font-bold text-sm hidden md:flex items-center gap-1">View All <span>→</span></motion.button>
       </div>
-      <div className="grid grid-cols-3 md:grid-cols-4 gap-4" style={{ gridTemplateRows: '240px 240px' }}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:grid-rows-[240px_240px] auto-rows-[220px]">
 
         {products?.slice(0, 5).map((product, index) => (
           <BentoCard

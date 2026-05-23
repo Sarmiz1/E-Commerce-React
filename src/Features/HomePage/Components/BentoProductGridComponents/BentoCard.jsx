@@ -34,7 +34,7 @@ export const BentoCard = ({ product, className = '' }) => {
           <p className="font-bold text-sm line-clamp-1 mb-1">{product.name}</p>
           <div className="flex items-center justify-between">
             <p className="font-black text-lg">{formatMoneyCents(product.price_cents)}</p>
-            <AddToCart productId={product.id} variant="ghost" />
+            <AddToCart productId={product.id} variant="ghost" className="[&_span:not(:first-child)]:hidden md:[&_span:not(:first-child)]:block" />
           </div>
         </div>
       </motion.div>

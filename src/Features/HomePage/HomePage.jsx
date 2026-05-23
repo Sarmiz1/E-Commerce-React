@@ -47,6 +47,36 @@ const ContinueShoppingSection = lazy(() => import("./Components/Sections/Continu
 const EditorialCollectionsSection = lazy(() => import("./Components/Sections/EditorialCollectionsSection"));
 import { useHomeCurations } from "./Hooks/useHomeCurations";
 import { HOME_GROWTH_SECTIONS } from "./homeSectionsConfig";
+import Skeleton from "./Components/Sections/Skeleton";
+
+// Fallback Components
+const FallbackGrid = () => (
+  <div className="max-w-7xl mx-auto px-6 py-20">
+    <div className="h-8 bg-gray-200 rounded w-48 mb-8 animate-pulse" />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+      <Skeleton count={4} />
+    </div>
+  </div>
+);
+
+const FallbackBento = () => (
+  <div className="py-20 max-w-7xl mx-auto px-6">
+    <div className="h-8 bg-gray-200 rounded w-48 mb-8 animate-pulse" />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-[480px]">
+      <div className="col-span-2 row-span-2 bg-gray-100 rounded-3xl animate-pulse" />
+      <div className="bg-gray-100 rounded-3xl animate-pulse" />
+      <div className="bg-gray-100 rounded-3xl animate-pulse" />
+      <div className="bg-gray-100 rounded-3xl animate-pulse" />
+      <div className="bg-gray-100 rounded-3xl animate-pulse" />
+    </div>
+  </div>
+);
+
+const FallbackSmall = () => (
+  <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="h-32 bg-gray-100 rounded-3xl animate-pulse" />
+  </div>
+);
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -178,45 +208,45 @@ export default function HomePage() {
 
       {/* ── ALL SECTIONS ── */}
       <LazyRender>
-        <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading Categories...</div>}>
+        <Suspense fallback={<FallbackGrid />}>
           <CategoriesSection curations={curationCards} />
         </Suspense>
       </LazyRender>
 
       {enabledGrowthSections.some((section) => section.id === "continue-shopping") && (
         <LazyRender>
-          <Suspense fallback={<div className="h-64" />}>
+          <Suspense fallback={<FallbackGrid />}>
             <ContinueShoppingSection products={continueShopping} />
           </Suspense>
         </LazyRender>
       )}
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <HotRightNowSection products={hotRightNow} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <MostLovedSection products={mostLoved} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <TrendingSection products={trending} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-32" />}>
+        <Suspense fallback={<FallbackSmall />}>
           <TrendingTags />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <RecommendedForYouSection
             products={recommendedForYou}
             isLoading={isLoading}
@@ -225,55 +255,55 @@ export default function HomePage() {
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <FlashSaleSection products={flashDeals} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-96" />}>
+        <Suspense fallback={<FallbackBento />}>
           <DealOfTheDay product={dealOfDay} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <BestSellersSection products={bestSellers} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <StatsBanner />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-96" />}>
+        <Suspense fallback={<FallbackBento />}>
           <BentoProductGrid products={bentoProducts} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-32" />}>
+        <Suspense fallback={<FallbackSmall />}>
           <TrustStrip />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <NewArrivalsSection products={newArrivals} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <SplitShowcase />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <ProductScrollStrip
             products={scrollStrip}
             isLoading={isLoading}
@@ -284,77 +314,77 @@ export default function HomePage() {
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <EditorsPicks products={editorsPicks} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-96" />}>
+        <Suspense fallback={<FallbackBento />}>
           <LookbookSection products={lookbook} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-96" />}>
+        <Suspense fallback={<FallbackBento />}>
           <FilterableGrid products={filterGrid} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
 
       {enabledGrowthSections.some((section) => section.id === "editorial-collections") && (
         <LazyRender>
-          <Suspense fallback={<div className="h-64" />}>
+          <Suspense fallback={<FallbackGrid />}>
             <EditorialCollectionsSection products={editorialProducts} />
           </Suspense>
         </LazyRender>
       )}
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <HowItWorksSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <PerksSection />
         </Suspense>
       </LazyRender>
 
       {/* Seller & Marketplace Sections */}
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <TopSellersSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <RecentlyAddedStoresSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <ExploreSellersSection />
         </Suspense>
       </LazyRender>
 
       {/* Brands & Feedback */}
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <ShopByBrandSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <RealPurchaseFeedbackSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <BasedOnBrowsingSection
             products={basedOnBrowsing}
             isLoading={isLoading}
@@ -363,19 +393,19 @@ export default function HomePage() {
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <TestimonialsCarousel />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <NewsletterSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<div className="h-64" />}>
+        <Suspense fallback={<FallbackGrid />}>
           <CTABanner />
         </Suspense>
       </LazyRender>

@@ -33,7 +33,13 @@ export default function BackToTop() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const scrollToTop = () => gsap.to(window, { duration: 1, scrollTo: { y: 0 }, ease: 'power2.inOut' });
+  const scrollToTop = () => {
+    if (window.innerWidth < 768) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      gsap.to(window, { duration: 1, scrollTo: { y: 0 }, ease: 'power2.inOut' });
+    }
+  };
   const r = 24, circ = 2 * Math.PI * r;
 
   return (
