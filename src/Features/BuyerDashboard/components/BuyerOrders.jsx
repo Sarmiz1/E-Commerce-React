@@ -84,7 +84,7 @@ export default function BuyerOrders() {
                       <OrderStatusBadge status={order.status} />
                     </div>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
-                      <span className="text-xs font-mono" style={{ color: colors.text.tertiary }}>{order.id}</span>
+                      <span className="text-xs font-mono" style={{ color: colors.text.tertiary }}>{order.order_number || order.id}</span>
                       <span className="text-xs" style={{ color: colors.text.tertiary }}>{order.date}</span>
                       <span className="text-sm font-black" style={{ color: colors.text.primary }}>{fmtFull(order.amount)}</span>
                     </div>

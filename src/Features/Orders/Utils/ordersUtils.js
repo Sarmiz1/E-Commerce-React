@@ -17,7 +17,7 @@ export const getOrderTotalCents = (order) =>
   Number(order?.total_cents ?? order?.totals?.total ?? order?.total ?? 0) || 0;
 
 export const getOrderShortId = (order, length = 14) =>
-  order?.id ? String(order.id).slice(0, length) : "N/A";
+  order?.order_number ? String(order.order_number).slice(0, length) : order?.id ? String(order.id).slice(0, length) : "N/A";
 
 export const formatOrderDate = (date) =>
   new Date(date || Date.now()).toLocaleDateString("en-GB", {

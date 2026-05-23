@@ -155,8 +155,11 @@ CREATE TABLE IF NOT EXISTS cart_items (
 -- ==============================================================================
 -- 4. ORDERS & FINANCES
 -- ==============================================================================
+CREATE SEQUENCE IF NOT EXISTS order_number_seq START 1;
+
 CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_number TEXT UNIQUE,
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   cart_id UUID REFERENCES carts(id),
   status TEXT DEFAULT 'pending',
@@ -367,12 +370,13 @@ CREATE OR REPLACE FUNCTION checkout_cart(
   p_coupon_code TEXT DEFAULT NULL,
   p_shipping_cents INTEGER DEFAULT 0
 )
-RETURNS UUID
+RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
   v_order_id UUID;
+  v_order_number TEXT;
   v_total INTEGER := 0;
   v_discount INTEGER := 0;
   v_tax INTEGER := 0;
@@ -392,9 +396,12 @@ BEGIN
     RAISE EXCEPTION 'Invalid cart';
   END IF;
 
+  -- generate a creative unique order number: ORD-YYMMDD-HH24MISS-XXX
+  v_order_number := 'ORD-' || TO_CHAR(NOW(), 'YYMMDD-HH24MISS') || '-' || UPPER(SUBSTRING(REPLACE(gen_random_uuid()::TEXT, '-', '') FROM 1 FOR 3));
+
   -- create order
-  INSERT INTO orders (user_id, cart_id, status, payment_status)
-  VALUES (p_user_id, p_cart_id, 'pending', 'unpaid')
+  INSERT INTO orders (user_id, cart_id, status, payment_status, order_number)
+  VALUES (p_user_id, p_cart_id, 'pending', 'unpaid', v_order_number)
   RETURNING id INTO v_order_id;
 
   -- coupon
@@ -488,7 +495,7 @@ BEGIN
 
   UPDATE carts SET status = 'checked_out' WHERE id = p_cart_id;
 
-  RETURN v_order_id;
+  RETURN jsonb_build_object('id', v_order_id, 'order_number', v_order_number);
 
 END;
 $$;

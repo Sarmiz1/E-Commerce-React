@@ -1031,10 +1031,10 @@ export default function TrackingPage() {
                   <div>
                     <span className="pd-label" style={{ display: "block", marginBottom: 4 }}>Tracking ID</span>
                     <span style={{ fontFamily: "var(--font-m)", fontSize: 18, fontWeight: 700, color: "var(--text)", letterSpacing: "0.04em" }}>
-                      #{trackedOrder.id.toUpperCase()}
+                      #{trackedOrder.order_number || trackedOrder.id.toUpperCase()}
                     </span>
                   </div>
-                  <CopyBadge text={trackedOrder.id} />
+                  <CopyBadge text={trackedOrder.order_number || trackedOrder.id} />
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button className="pd-btn-ghost" onClick={() => setUpdatedAt(new Date().toISOString())}>

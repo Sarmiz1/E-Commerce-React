@@ -332,7 +332,7 @@ export default function DashOverview() {
                   whileHover={{ backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,80,212,0.02)' }}
                   className="transition-colors cursor-pointer">
                   <td className="px-6 py-3.5">
-                    <span className="text-xs font-mono font-bold" style={{ color: colors.cta.primary }}>{order.id}</span>
+                    <span className="text-xs font-mono font-bold" style={{ color: colors.cta.primary }}>{order.order_number || order.id}</span>
                   </td>
                   <td className="px-6 py-3.5 text-sm font-semibold" style={{ color: colors.text.primary }}>{order.customer}</td>
                   <td className="px-6 py-3.5 text-sm max-w-[160px]" style={{ color: colors.text.secondary }}>

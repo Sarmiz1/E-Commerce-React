@@ -65,6 +65,7 @@ export default function CheckoutPage() {
   const [submitError, setSubmitError] = useState("");
   const [orderNumber, setOrderNumber] = useState("");
   const [orderTotal, setOrderTotal] = useState(0);
+  const [orderedCartSnapshot, setOrderedCartSnapshot] = useState([]);
 
   const heroRef = useRef(null);
 
@@ -126,11 +127,12 @@ export default function CheckoutPage() {
         });
 
         setOrderNumber(
-          result?.orderNumber ||
+          result?.order_number ||
             result?.id ||
             `SE-${Date.now().toString(36).toUpperCase()}`,
         );
         setOrderTotal(totals.total);
+        setOrderedCartSnapshot([...cart]);
         setStep(1);
         clearCart();
         toast("Order placed successfully!", "success");
@@ -162,7 +164,7 @@ export default function CheckoutPage() {
 
         {!cartLoading && cart.length === 0 && step === 0 && <EmptyCart />}
 
-        {!cartLoading && cart.length > 0 && (
+        {!cartLoading && (cart.length > 0 || step === 1) && (
           <AnimatePresence mode="wait">
             {step === 0 && (
               <DetailsStep
@@ -189,7 +191,7 @@ export default function CheckoutPage() {
               >
                 <SuccessScreen
                   orderNumber={orderNumber}
-                  cart={cart}
+                  cart={orderedCartSnapshot}
                   total={orderTotal}
                 />
               </motion.div>

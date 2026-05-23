@@ -129,7 +129,7 @@ export default function DashOrders() {
                     className="cursor-pointer transition-colors"
                     onClick={() => openOrder(order)}>
                     <td className="px-6 py-4">
-                      <span className="text-xs font-mono font-bold" style={{ color: colors.cta.primary }}>{order.id}</span>
+                      <span className="text-xs font-mono font-bold" style={{ color: colors.cta.primary }}>{order.order_number || order.id}</span>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold" style={{ color: colors.text.primary }}>{order.customer}</td>
                     <td className="px-6 py-4 text-sm max-w-[160px]" style={{ color: colors.text.secondary }}>
@@ -181,7 +181,7 @@ export default function DashOrders() {
               {/* Panel header */}
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-mono font-bold" style={{ color: colors.cta.primary }}>{selectedOrder.id}</span>
+                  <span className="text-xs font-mono font-bold" style={{ color: colors.cta.primary }}>{selectedOrder.order_number || selectedOrder.id}</span>
                   <h3 className="font-black text-lg mt-0.5" style={{ color: colors.text.primary }}>Order Details</h3>
                 </div>
                 <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}

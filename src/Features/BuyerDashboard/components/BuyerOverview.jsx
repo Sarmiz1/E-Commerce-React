@@ -271,7 +271,7 @@ export default function BuyerOverview() {
               style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
               <div className="flex items-start justify-between mb-5">
                 <div>
-                  <p className="font-mono text-xs font-bold mb-0.5" style={{ color: '#667eea' }}>{order.id}</p>
+                  <p className="font-mono text-xs font-bold mb-0.5" style={{ color: '#667eea' }}>{order.order_number || order.id}</p>
                   <p className="font-bold text-base" style={{ color: colors.text.primary }}>{order.product}</p>
                   {order.eta && (
                     <div className="flex items-center gap-1.5 mt-1.5">
