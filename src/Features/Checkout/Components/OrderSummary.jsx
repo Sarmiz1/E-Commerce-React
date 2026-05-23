@@ -155,7 +155,7 @@ export function OrderSummary({ cart, coupon, shippingOptions, selectedShipping, 
       </div>
 
       <div className="lg:hidden">
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a]/95 px-4 py-3 shadow-2xl backdrop-blur-xl">
+        <div className="fixed bottom-0 left-0 right-0 z-[900] border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a]/95 px-4 py-3 shadow-2xl backdrop-blur-xl">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <button type="button" onClick={() => setMobileOpen((open) => !open)} className="flex flex-1 items-center gap-2 text-left">
               <span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
