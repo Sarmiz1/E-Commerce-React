@@ -78,6 +78,60 @@ const FallbackSmall = () => (
   </div>
 );
 
+const FallbackFlashSale = () => (
+  <div className="max-w-7xl mx-auto px-6 py-20">
+    <div className="h-64 bg-gray-200 rounded-3xl animate-pulse mb-10" />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+      <Skeleton count={4} />
+    </div>
+  </div>
+);
+
+const FallbackNewArrivals = () => (
+  <div className="max-w-7xl mx-auto px-6 py-20">
+    <div className="flex items-end justify-between mb-12">
+      <div>
+        <div className="h-4 bg-gray-200 rounded w-24 mb-3 animate-pulse" />
+        <div className="h-10 bg-gray-200 rounded w-48 animate-pulse" />
+      </div>
+      <div className="h-5 bg-gray-200 rounded w-20 hidden md:block animate-pulse" />
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+      <Skeleton count={4} />
+    </div>
+  </div>
+);
+
+const FallbackHowItWorks = () => (
+  <div className="py-28 bg-white max-w-6xl mx-auto px-6">
+    <div className="h-4 bg-gray-200 rounded w-32 mx-auto mb-3 animate-pulse" />
+    <div className="h-10 bg-gray-200 rounded w-64 mx-auto mb-20 animate-pulse" />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="flex flex-col items-center">
+          <div className="w-20 h-20 rounded-full bg-gray-100 mb-6 animate-pulse" />
+          <div className="h-6 bg-gray-200 rounded w-32 mb-2 animate-pulse" />
+          <div className="h-4 bg-gray-100 rounded w-40 animate-pulse" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const FallbackText = () => (
+  <div className="max-w-4xl mx-auto px-6 py-20 text-center">
+    <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-6 animate-pulse" />
+    <div className="h-4 bg-gray-100 rounded w-full max-w-2xl mx-auto mb-3 animate-pulse" />
+    <div className="h-4 bg-gray-100 rounded w-3/4 mx-auto animate-pulse" />
+  </div>
+);
+
+const FallbackBanner = () => (
+  <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="h-48 bg-gray-200 rounded-3xl animate-pulse" />
+  </div>
+);
+
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
 const uniqueProducts = (...groups) => {
@@ -221,11 +275,13 @@ export default function HomePage() {
         </LazyRender>
       )}
 
-      <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
-          <HotRightNowSection products={hotRightNow} isLoading={isLoading} />
-        </Suspense>
-      </LazyRender>
+      <div className="max-[340px]:[&_.cart-text]:hidden">
+        <LazyRender>
+          <Suspense fallback={<FallbackGrid />}>
+            <HotRightNowSection products={hotRightNow} isLoading={isLoading} />
+          </Suspense>
+        </LazyRender>
+      </div>
 
       <LazyRender>
         <Suspense fallback={<FallbackGrid />}>
@@ -233,11 +289,13 @@ export default function HomePage() {
         </Suspense>
       </LazyRender>
 
-      <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
-          <TrendingSection products={trending} isLoading={isLoading} />
-        </Suspense>
-      </LazyRender>
+      <div className="max-[340px]:[&_.cart-text]:hidden">
+        <LazyRender>
+          <Suspense fallback={<FallbackGrid />}>
+            <TrendingSection products={trending} isLoading={isLoading} />
+          </Suspense>
+        </LazyRender>
+      </div>
 
       <LazyRender>
         <Suspense fallback={<FallbackSmall />}>
@@ -245,17 +303,19 @@ export default function HomePage() {
         </Suspense>
       </LazyRender>
 
-      <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
-          <RecommendedForYouSection
-            products={recommendedForYou}
-            isLoading={isLoading}
-          />
-        </Suspense>
-      </LazyRender>
+      <div className="max-[340px]:[&_.cart-text]:hidden">
+        <LazyRender>
+          <Suspense fallback={<FallbackGrid />}>
+            <RecommendedForYouSection
+              products={recommendedForYou}
+              isLoading={isLoading}
+            />
+          </Suspense>
+        </LazyRender>
+      </div>
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackFlashSale />}>
           <FlashSaleSection products={flashDeals} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
@@ -273,7 +333,7 @@ export default function HomePage() {
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackBanner />}>
           <StatsBanner />
         </Suspense>
       </LazyRender>
@@ -291,7 +351,7 @@ export default function HomePage() {
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackNewArrivals />}>
           <NewArrivalsSection products={newArrivals} isLoading={isLoading} />
         </Suspense>
       </LazyRender>
@@ -313,11 +373,13 @@ export default function HomePage() {
         </Suspense>
       </LazyRender>
 
-      <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
-          <EditorsPicks products={editorsPicks} isLoading={isLoading} />
-        </Suspense>
-      </LazyRender>
+      <div className="max-[340px]:[&_.cart-text]:hidden">
+        <LazyRender>
+          <Suspense fallback={<FallbackGrid />}>
+            <EditorsPicks products={editorsPicks} isLoading={isLoading} />
+          </Suspense>
+        </LazyRender>
+      </div>
 
       <LazyRender>
         <Suspense fallback={<FallbackBento />}>
@@ -340,13 +402,13 @@ export default function HomePage() {
       )}
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackHowItWorks />}>
           <HowItWorksSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackText />}>
           <PerksSection />
         </Suspense>
       </LazyRender>
@@ -393,19 +455,19 @@ export default function HomePage() {
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackText />}>
           <TestimonialsCarousel />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackBanner />}>
           <NewsletterSection />
         </Suspense>
       </LazyRender>
 
       <LazyRender>
-        <Suspense fallback={<FallbackGrid />}>
+        <Suspense fallback={<FallbackBanner />}>
           <CTABanner />
         </Suspense>
       </LazyRender>

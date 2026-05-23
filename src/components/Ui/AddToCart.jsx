@@ -75,7 +75,7 @@ export default function AddToCart({
               exit={{ opacity: 0, y: -6 }}
             >
               <IconSpinner className="w-4 h-4" />
-              {!isIconOnly && <span>Adding</span>}
+              {!isIconOnly && <span className="cart-text">Adding</span>}
             </Motion.span>
           ) : success ? (
             <Motion.span
@@ -86,7 +86,7 @@ export default function AddToCart({
               exit={{ opacity: 0, y: -6 }}
             >
               <CheckIcon />
-              {!isIconOnly && <span>Added</span>}
+              {!isIconOnly && <span className="cart-text">Added</span>}
             </Motion.span>
           ) : (
             <Motion.span
@@ -97,7 +97,7 @@ export default function AddToCart({
               exit={{ opacity: 0, y: -6 }}
             >
               <BagIcon />
-              {!isIconOnly && <span>Add to Bag</span>}
+              {!isIconOnly && <span className="cart-text">Add to Bag</span>}
             </Motion.span>
           )}
         </AnimatePresence>
