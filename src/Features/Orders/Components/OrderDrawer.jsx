@@ -118,7 +118,7 @@ export default function OrderDrawer({
           </AnimatePresence>
         </div>
 
-        <div className="sticky bottom-0 bg-white dark:bg-[#0D1421] border-t border-gray-100 dark:border-white/10 px-6 py-4 space-y-3">
+        <div className="sticky bottom-0 bg-white dark:bg-[#0D1421] border-t border-gray-100 dark:border-white/10 px-6 py-4 space-y-3 z-[900]">
           <button
             type="button"
             onClick={onClose}

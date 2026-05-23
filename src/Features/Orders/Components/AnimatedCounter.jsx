@@ -1,13 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { useInView } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export default function AnimatedCounter({ end, suffix = "", duration = 1200, decimals = 0 }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
   const [value, setValue] = useState(0);
 
   useEffect(() => {
-    if (!isInView) return undefined;
 
     let frameId;
     const startTime = Date.now();
@@ -26,10 +22,10 @@ export default function AnimatedCounter({ end, suffix = "", duration = 1200, dec
     frameId = requestAnimationFrame(tick);
 
     return () => cancelAnimationFrame(frameId);
-  }, [decimals, duration, end, isInView]);
+  }, [decimals, duration, end]);
 
   return (
-    <span ref={ref} className="or-count-in tabular-nums">
+    <span className="or-count-in tabular-nums">
       {value}
       {suffix}
     </span>

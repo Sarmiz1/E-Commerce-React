@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +26,7 @@ export function Ticker({ order }) {
       borderBottom: "1px solid var(--border)",
       padding: "10px 0",
       overflow: "hidden",
-      background: "rgba(0,0,0,0.25)",
+      background: "var(--bg-2)",
       flexShrink: 0,
     }}>
       <div style={{ display: "flex", whiteSpace: "nowrap", animation: "pd-ticker 28s linear infinite" }}>

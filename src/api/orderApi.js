@@ -51,7 +51,7 @@ export const OrderAPI = {
         .order("created_at", { ascending: false })
     ),
 
-  // Cancels an order
+  // Cancels an order (marks as cancelled instead of deleting)
   cancelOrder: (orderId) =>
     handleResponse(
       supabase
