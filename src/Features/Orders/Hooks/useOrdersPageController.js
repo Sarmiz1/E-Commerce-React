@@ -7,8 +7,14 @@ import { OrderAPI } from "../../../api/orderApi";
 import { useCartActions } from "../../../context/cart/CartContext";
 import { filterAndSortOrders, getReorderCartItems } from "../Utils/ordersUtils";
 import { useOrders } from "../../../hooks/order/useOrders";
+import { useToastStore } from "../../../Store/useToastStore";
+import { useQueryClient } from "@tanstack/react-query";
+
+const toast = (msg, type = "success") =>
+  useToastStore.getState().addToast(msg, type);
 
 export default function useOrdersPageController() {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const { data: ordersData, isLoading } = useOrders();
@@ -62,8 +68,10 @@ export default function useOrdersPageController() {
     setIsCancelling(true);
     try {
       await OrderAPI.cancelOrder(cancelTarget);
+      toast("Order cancelled successfully", "success");
       setCancelTarget(null);
       closeDrawer();
+      await queryClient.invalidateQueries({ queryKey: ["orders"] });
       revalidator.revalidate();
     } catch (error) {
       console.error("Cancel Order Error:", error);

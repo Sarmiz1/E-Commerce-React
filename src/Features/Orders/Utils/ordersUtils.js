@@ -62,7 +62,8 @@ export const getOrderStats = (orders = []) => ({
   delivered: orders.filter((order) => order?.status === "delivered").length,
   inProgress: orders.filter((order) => {
     const knownStatuses = ["processing", "shipped", "delivered", "cancelled"];
-    const normalizedStatus = knownStatuses.includes(order?.status) ? order?.status : "processing";
+    const status = order?.status ? order.status.toLowerCase() : "processing";
+    const normalizedStatus = knownStatuses.includes(status) ? status : "processing";
     return ["processing", "shipped"].includes(normalizedStatus);
   }).length,
 });
@@ -77,7 +78,8 @@ export const filterAndSortOrders = (
     .filter((order) => {
       if (statusFilter !== "all") {
         const knownStatuses = ["processing", "shipped", "delivered", "cancelled"];
-        const normalizedStatus = knownStatuses.includes(order?.status) ? order?.status : "processing";
+        const status = order?.status ? order.status.toLowerCase() : "processing";
+        const normalizedStatus = knownStatuses.includes(status) ? status : "processing";
         if (normalizedStatus !== statusFilter) return false;
       }
 
