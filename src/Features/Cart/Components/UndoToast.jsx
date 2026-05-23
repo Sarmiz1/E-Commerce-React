@@ -18,11 +18,11 @@ export function UndoToast({ item, onUndo, onExpire }) {
 
   return (
     <motion.div
-      initial={{ y: 60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 60, opacity: 0 }}
+      initial={{ x: "-50%", y: 60, opacity: 0 }}
+      animate={{ x: "-50%", y: 0, opacity: 1 }}
+      exit={{ x: "-50%", y: 60, opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 26 }}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[99] flex items-center gap-4 bg-gray-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl min-w-[280px] max-w-[360px]"
+      className="fixed bottom-32 lg:bottom-6 left-1/2 z-[99] flex items-center gap-4 bg-gray-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl min-w-[280px] max-w-[360px]"
     >
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold truncate">Removed "{item?.name}"</p>

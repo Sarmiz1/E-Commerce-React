@@ -130,7 +130,7 @@ export default function ProductDetail() {
 
   return (
     <div
-      className="pd-root pd-grain min-h-screen pb-36 lg:pb-0"
+      className="pd-root pd-grain min-h-screen pb-36 lg:pb-0 -mb-44 lg:-mb-0"
       data-theme={isDark ? "dark" : "light"}
       style={{ background: "var(--pd-page)", color: "var(--cream)" }}
     >

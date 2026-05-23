@@ -22,7 +22,7 @@ function QtyStepperButton({ dir, onClick, disabled }) {
       transition={{ type: "spring", stiffness: 600, damping: 18 }}
       onClick={onClick}
       disabled={disabled}
-      className="w-8 h-8 rounded-xl flex items-center justify-center text-gray-500 dark:text-neutral-400 hover:text-indigo-700 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-bold text-lg leading-none select-none"
+      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-gray-500 dark:text-neutral-400 hover:text-indigo-700 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed font-bold text-base sm:text-lg leading-none select-none"
     >
       {dir === "plus" ? "+" : "−"}
     </motion.button>
@@ -75,9 +75,9 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
         layout
         className="relative bg-white dark:bg-neutral-900 border border-gray-100/80 dark:border-neutral-800 rounded-3xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-grab active:cursor-grabbing"
       >
-        <div className="flex gap-4 items-start">
+        <div className="flex gap-3 sm:gap-4 items-start">
           <Link to={`/products/${item.products?.slug || item.products?.id}`} className="flex-shrink-0">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 hover:scale-105 transition-transform duration-300">
+            <div className="w-16 h-16 min-[350px]:w-20 min-[350px]:h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 hover:scale-105 transition-transform duration-300">
               {item.products?.image && (
                 <motion.img 
                   layoutId={`product-image-${item.products?.id}`}
@@ -118,7 +118,7 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
               <span className="text-gray-400 dark:text-neutral-500 text-xs font-normal ml-1">each</span>
             </p>
 
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3 flex-wrap">
               <div className="flex items-center bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl">
                 <QtyStepperButton dir="minus" disabled={item.quantity <= 1 || pendingQty}
                   onClick={() => onQtyChange(item.id, item.quantity - 1)} />
@@ -151,7 +151,7 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
           </div>
 
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            <p className="font-black text-gray-900 dark:text-white text-base">{formatMoneyCents(lineTotal)}</p>
+            <p className="font-black text-gray-900 dark:text-white text-sm sm:text-base">{formatMoneyCents(lineTotal)}</p>
             <motion.button
               whileHover={{ scale: 1.12, color: "#ef4444" }}
               whileTap={{ scale: 0.9 }}

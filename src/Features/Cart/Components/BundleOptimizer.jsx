@@ -45,7 +45,7 @@ export function BundleOptimizer({ cartItems, recommendations, onAddItem }) {
           {/* Background decoration */}
           <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full blur-3xl opacity-20 dark:opacity-30 pointer-events-none" />
           
-          <div className="flex flex-col sm:flex-row items-center gap-5 relative z-10">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5 relative z-10">
             
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
@@ -64,7 +64,7 @@ export function BundleOptimizer({ cartItems, recommendations, onAddItem }) {
               </div>
             </div>
 
-            <div className="flex-1 flex items-center gap-4 bg-white dark:bg-neutral-800/50 p-2.5 rounded-2xl w-full">
+            <div className="flex-1 flex items-center gap-2 sm:gap-4 bg-white dark:bg-neutral-800/50 p-2 sm:p-2.5 rounded-2xl w-full">
               <img 
                 src={bundleSuggestion.image} 
                 alt={bundleSuggestion.name} 
@@ -84,7 +84,7 @@ export function BundleOptimizer({ cartItems, recommendations, onAddItem }) {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleAdd}
                 disabled={isAdding}
-                className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-xl text-xs font-black hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex-shrink-0"
+                className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs font-black hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex-shrink-0"
               >
                 {isAdding ? <Spinner c="w-4 h-4 mx-auto" /> : "Add to Bundle"}
               </motion.button>

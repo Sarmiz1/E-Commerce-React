@@ -89,7 +89,7 @@ export default function CartPage() {
 
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <h1 className="ct-head-item text-5xl font-black text-gray-900 dark:text-white leading-tight">
+              <h1 className="ct-head-item text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-tight">
                 Shopping Cart
               </h1>
               <p className="ct-head-item text-gray-400 dark:text-neutral-500 mt-2 text-base">
@@ -119,7 +119,7 @@ export default function CartPage() {
 
       <SavingsTicker savings={savings} />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-28 lg:pb-8">
+      <div className="max-w-6xl mx-auto px-2 lg:px-4 sm:px-6 py-8 pb-28 lg:pb-8">
         {isEmpty ? (
           <EmptyCart savedItems={savedForLater} onMoveToCart={handleMoveToCart} navigate={navigate} />
         ) : (
