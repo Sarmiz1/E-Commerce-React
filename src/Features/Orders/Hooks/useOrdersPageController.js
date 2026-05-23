@@ -75,10 +75,12 @@ export default function useOrdersPageController() {
       revalidator.revalidate();
     } catch (error) {
       console.error("Cancel Order Error:", error);
+      toast(error.message || "Failed to cancel order. Check database permissions.", "error");
+      setCancelTarget(null);
     } finally {
       setIsCancelling(false);
     }
-  }, [cancelTarget, closeDrawer, revalidator]);
+  }, [cancelTarget, closeDrawer, revalidator, queryClient]);
 
   const handleReorder = useCallback(
     async (order) => {

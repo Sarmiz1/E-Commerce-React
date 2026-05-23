@@ -403,14 +403,13 @@ using (
 -- ==============================================================================
 
 create policy "Users can view their orders"
-on orders
-for select
-using (user_id = auth.uid());
+  on orders for select using (auth.uid() = user_id);
 
 create policy "Users can create orders"
-on orders
-for insert
-with check (user_id = auth.uid());
+  on orders for insert with check (auth.uid() = user_id);
+
+create policy "Users can update their orders"
+  on orders for update using (auth.uid() = user_id);
 
 create policy "Users can view order items"
 on order_items

@@ -24,7 +24,7 @@ export default function TrackingTimeline({ order }) {
   const lastDone = steps.reduce((activeIndex, step, index) => (step.done ? index : activeIndex), -1);
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-indigo-50 rounded-3xl p-6 border border-indigo-100/50">
+    <div className="bg-gradient-to-br from-gray-50 to-indigo-50 dark:from-[#0D1421] dark:to-[#0A101C] rounded-3xl p-6 border border-indigo-100/50 dark:border-white dark:border-[#0D1421]/10">
       <div className="flex items-center gap-2 mb-5">
         <Icons.Truck c="w-4 h-4 text-indigo-500" />
         <p className="text-xs font-black uppercase tracking-widest text-indigo-500">
