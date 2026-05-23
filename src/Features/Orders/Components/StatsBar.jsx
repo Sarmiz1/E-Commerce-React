@@ -58,9 +58,19 @@ export default function StatsBar({ orders }) {
             >
               {stat.icon}
             </div>
-            <p className={`text-3xl font-black bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-              {stat.prefix}
-              <AnimatedCounter end={stat.value} decimals={stat.decimals || 0} />
+            <p
+              className={`text-3xl font-black`}
+              style={{
+                backgroundImage: `linear-gradient(to right, var(--tw-gradient-from, currentColor), var(--tw-gradient-to, currentColor))`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              <span className={`bg-gradient-to-r text-xl md:text-2xl lg:text-3xl ${stat.color} bg-clip-text text-transparent`}>
+                {stat.prefix}
+                <AnimatedCounter end={stat.value} decimals={stat.decimals || 0} />
+              </span>
             </p>
             <p className="text-gray-400 text-xs uppercase tracking-widest mt-1 font-semibold">
               {stat.label}

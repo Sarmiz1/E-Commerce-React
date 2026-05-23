@@ -40,7 +40,7 @@ export function ProductTabs({ product }) {
       <AnimatePresence mode="wait">
         {tab === "description" && (
           <motion.div key="desc" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}
-            className="pt-5 space-y-4" style={{ WebkitBackdropFilter: "none", backdropFilter: "none" }}>
+            className="pt-5 space-y-4" style={{ isolation: "isolate" }}>
             <p className="text-sm leading-relaxed" style={{ color: "var(--silver)", fontFamily: "Jost,sans-serif" }}>{description}</p>
             <div className="flex flex-wrap gap-2 pt-1">
               {["Premium Quality", "Durable Materials", "Eco-Conscious", "1-Year Warranty"].map(f => (
@@ -54,7 +54,7 @@ export function ProductTabs({ product }) {
         )}
         {tab === "details" && (
           <motion.div key="det" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}
-            className="pt-5" style={{ WebkitBackdropFilter: "none", backdropFilter: "none" }}>
+            className="pt-5" style={{ isolation: "isolate" }}>
             {[
               { label: "Product ID", value: String(product.id || "—").slice(0, 12) + "…" },
               { label: "Price", value: formatMoneyCents(product.price_cents) },
@@ -73,7 +73,7 @@ export function ProductTabs({ product }) {
         )}
         {tab === "shipping" && (
           <motion.div key="ship" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}
-            className="pt-5 space-y-4" style={{ WebkitBackdropFilter: "none", backdropFilter: "none" }}>
+            className="pt-5 space-y-4" style={{ isolation: "isolate" }}>
             <div className="flex items-start gap-3">
               <TruckIcon className="w-5 h-5 text-gold mt-0.5" />
               <div>

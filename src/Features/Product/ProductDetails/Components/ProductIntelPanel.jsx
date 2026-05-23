@@ -51,7 +51,7 @@ export function ProductIntelPanel({ product }) {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       className="mt-6 rounded-2xl overflow-hidden"
-      style={{ background: "var(--pd-intel-grad)", border: "1px solid var(--pd-b5)" }}>
+      style={{ background: "var(--pd-intel-grad)", border: "1px solid var(--pd-b5)", isolation: "isolate" }}>
       {/* Header */}
       <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--pd-b1)" }}>
         <span className="pd-chip" style={{ color: "var(--gold)", letterSpacing: "0.2em" }}>Intelligence</span>
