@@ -58,7 +58,9 @@ export const getOrderItemTotalCents = (item) => {
 
 export const getOrderStats = (orders = []) => ({
   totalOrders: orders.length,
-  totalSpentCents: orders.reduce((sum, order) => sum + getOrderTotalCents(order), 0),
+  totalSpentCents: orders.reduce((sum, order) => 
+    order?.status === "cancelled" ? sum : sum + getOrderTotalCents(order)
+  , 0),
   delivered: orders.filter((order) => order?.status === "delivered").length,
   inProgress: orders.filter((order) => {
     const knownStatuses = ["processing", "shipped", "delivered", "cancelled"];
