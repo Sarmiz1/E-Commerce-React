@@ -33,12 +33,11 @@ export default function MarketingNavbar({
   const desktopLinkClass = isSellerHeroSurface
     ? "text-sm font-bold text-white/80 transition hover:text-white"
     : "text-sm font-bold text-slate-600 transition hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400";
-  const mobileLinkClass = isSellerHeroSurface
-    ? "rounded-xl px-3 py-3 text-left text-sm font-bold text-slate-100 transition hover:bg-white/10"
-    : "rounded-xl px-3 py-3 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10";
+  const mobileLinkClass = "rounded-xl px-3 py-3 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/10";
   const themeButtonClass = isSellerHeroSurface
     ? "border-white/15 text-white/85 hover:border-white/30 hover:bg-white/10 hover:text-white"
     : "border-slate-200 text-slate-600 hover:border-blue-200 hover:text-blue-600 dark:border-white/10 dark:text-slate-300 dark:hover:border-white/20 dark:hover:text-white";
+  const mobileThemeButtonClass = "border-slate-200 text-slate-600 hover:border-blue-200 hover:text-blue-600 dark:border-white/10 dark:text-slate-300 dark:hover:border-white/20 dark:hover:text-white";
 
   const scrollToHash = (href, event) => {
     event?.preventDefault();
@@ -154,7 +153,7 @@ export default function MarketingNavbar({
           <div className="grid gap-2">
             {navLinks.map((link) => renderLink(link, mobileLinkClass))}
             <button
-              className={`inline-flex h-12 items-center justify-between rounded-xl border px-3 text-sm font-black transition ${themeButtonClass}`}
+              className={`inline-flex h-12 items-center justify-between rounded-xl border px-3 text-sm font-black transition ${mobileThemeButtonClass}`}
               onClick={toggle}
               type="button"
             >

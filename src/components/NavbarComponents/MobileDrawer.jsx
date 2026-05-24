@@ -1,5 +1,6 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { useWishlist } from "../../hooks/useWishlist";
+import { useAuth } from "../../Store/useAuthStore";
 import { Logo } from "../Ui/Logo";
 import { ThemeToggle } from "../Ui/ThemeToggle";
 import { ArrowRight, BagIcon, CloseIcon, HeartIcon, UserIcon } from "./Icons";
@@ -12,7 +13,13 @@ const accountLinks = [
 
 export function MobileDrawer({ open, isDark, pathname, links, categories, offers, onClose, onNavigate }) {
   const { wishlistCount } = useWishlist();
+  const { user, signOut } = useAuth();
   const hasWishlistItems = wishlistCount > 0;
+
+  const handleLogout = async () => {
+    onClose();
+    await signOut();
+  };
 
   return (
     <AnimatePresence>
@@ -167,6 +174,34 @@ export function MobileDrawer({ open, isDark, pathname, links, categories, offers
                     </Motion.button>
                   );
                 })}
+
+                {user && (
+                  <Motion.button
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.75 }}
+                    onClick={handleLogout}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all mb-1 text-sm font-semibold text-left mt-1 ${
+                      isDark
+                        ? "bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                        : "bg-red-50 text-red-600 hover:bg-red-100"
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      isDark ? "bg-red-500/15 text-red-400" : "bg-red-100 text-red-500"
+                    }`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                    </span>
+                    <span className="flex-1">Sign Out</span>
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                      isDark ? "bg-red-500/15 text-red-400" : "bg-red-100 text-red-500"
+                    }`}>Bye 👋</span>
+                  </Motion.button>
+                )}
               </div>
             </div>
 

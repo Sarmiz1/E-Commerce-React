@@ -122,6 +122,7 @@ function buildCSSVars(tokens) {
 function applyThemeToDom(isDark) {
   const root = document.documentElement;
   root.setAttribute("data-theme", isDark ? "dark" : "light");
+  root.style.colorScheme = isDark ? "dark" : "light";
   if (isDark) {
     root.classList.add("dark");
     root.classList.remove("light");

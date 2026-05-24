@@ -124,7 +124,7 @@ export default function AuthForm({
     if (!isSuccess) return;
 
     if (mode === "login") {
-      const from = location.state?.from?.pathname || "/";
+      const from = location.state?.from || "/";
       navigate(from, { replace: true });
       return;
     }

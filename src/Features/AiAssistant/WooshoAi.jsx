@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Store/useThemeStore";
@@ -58,10 +59,26 @@ const QUICK_PROMPTS = [
   { label: "Show my cart", icon: "🛒" },
 ];
 
+const HIDDEN_PATHS = ["/cart", "/checkout", "/account", "/admin", "/ai-shop"];
+
 export default function WooshoAI() {
   const { colors, isDark } = useTheme();
+  const location = useLocation();
   const cta = colors.cta.primary;
   const ctaText = colors.cta.primaryText;
+
+  // Hide on dashboard/transaction paths
+  const isHiddenPath = HIDDEN_PATHS.some((p) => location.pathname.startsWith(p));
+
+  // Hide when any modal locks the body scroll
+  const [modalOpen, setModalOpen] = useState(false);
+  useEffect(() => {
+    const check = () => setModalOpen(document.body.style.overflow === "hidden");
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["style"] });
+    return () => observer.disconnect();
+  }, []);
 
   const {
     isOpen, setIsOpen,
@@ -77,29 +94,40 @@ export default function WooshoAI() {
   const bubbleBg = isDark ? colors.surface.elevated : "#fff";
   const bubbleBorder = colors.border.default;
 
+  const shouldHide = isHiddenPath || modalOpen;
+
   return (
     <>
       <style>{CSS}</style>
       <style>{`:root { --woo-bubble-bg:${bubbleBg}; --woo-border:${bubbleBorder}; }`}</style>
 
       {/* Trigger Button */}
-      <motion.button
-        whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}
-        onClick={() => setIsOpen(o => !o)}
-        className="woo-trigger-btn"
-        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 2147483646, width: 60, height: 60, borderRadius: "50%", background: isOpen ? "#1e1e1e" : cta, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 8px 28px ${isOpen ? "rgba(0,0,0,0.4)" : cta + "66"}` }}
-      >
-        <AnimatePresence mode="wait">
-          <motion.div key={isOpen ? "x" : "spark"} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.18 }}>
-            {isOpen ? <X size={22} color="#fff" /> : <Sparkles size={22} color={ctaText} fill={ctaText} />}
-          </motion.div>
-        </AnimatePresence>
-        {!isOpen && cartItems.length > 0 && (
-          <div style={{ position: "absolute", top: -3, right: -3, background: "#ef4444", color: "#fff", width: 18, height: 18, borderRadius: "50%", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
-            {cartItems.length}
-          </div>
+      <AnimatePresence>
+        {!shouldHide && (
+          <motion.button
+            key="woo-trigger"
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ duration: 0.2 }}
+            whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}
+            onClick={() => setIsOpen(o => !o)}
+            className="woo-trigger-btn"
+            style={{ position: "fixed", bottom: 24, right: 24, zIndex: 2147483646, width: 60, height: 60, borderRadius: "50%", background: isOpen ? "#1e1e1e" : cta, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 8px 28px ${isOpen ? "rgba(0,0,0,0.4)" : cta + "66"}` }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div key={isOpen ? "x" : "spark"} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.18 }}>
+                {isOpen ? <X size={22} color="#fff" /> : <Sparkles size={22} color={ctaText} fill={ctaText} />}
+              </motion.div>
+            </AnimatePresence>
+            {!isOpen && cartItems.length > 0 && (
+              <div style={{ position: "absolute", top: -3, right: -3, background: "#ef4444", color: "#fff", width: 18, height: 18, borderRadius: "50%", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid white" }}>
+                {cartItems.length}
+              </div>
+            )}
+          </motion.button>
         )}
-      </motion.button>
+      </AnimatePresence>
 
       {/* Chat Panel */}
       <AnimatePresence>
