@@ -126,7 +126,7 @@ export default function ModernNavbar({
             {/* Cart Mobile Toggle */}
             <motion.button
               whileTap={{ scale: 0.9 }}
-              className="relative p-2 text-gray-900 dark:text-white"
+              className="relative p-2 text-white"
               onClick={() => setCartOpen((v) => !v)}
             >
               <ShoppingCart size={22} />
@@ -147,7 +147,7 @@ export default function ModernNavbar({
             {/* Mobile menu toggle */}
             <motion.button
               whileTap={{ scale: 0.9 }}
-              className="p-2 text-gray-900 dark:text-white"
+              className="p-2 text-white"
               onClick={() => setMobileMenuOpen((v) => !v)}
             >
               <AnimatePresence mode="wait">
@@ -173,7 +173,7 @@ export default function ModernNavbar({
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="absolute top-full left-0 right-0 p-5 z-[9001]"
+                className="fixed inset-x-4 top-[80px] mx-auto w-auto max-w-sm z-[9001]"
               >
                 <div className="bg-white dark:bg-[#121214] rounded-3xl shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
                    <CartDropdownContent 

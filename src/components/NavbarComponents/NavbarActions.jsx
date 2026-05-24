@@ -194,7 +194,7 @@ export function NavbarActions({
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               style={{ transformOrigin: "top right" }}
-              className="absolute top-full right-0 pt-[14px] z-50 w-[calc(100vw-24px)] md:w-[360px] max-w-[360px]"
+              className="fixed inset-x-4 top-[80px] mx-auto w-auto max-w-sm md:max-w-none md:absolute md:top-full md:right-0 md:inset-x-auto md:w-[360px] md:pt-[14px] z-50"
             >
               <div className="w-full max-h-[480px] rounded-[24px] overflow-hidden bg-white/98 shadow-[0_24px_80px_rgba(0,0,0,0.18),0_4px_16px_rgba(0,0,0,0.08)] border border-black/5 backdrop-blur-[24px] flex flex-col">
                 <CartPreview

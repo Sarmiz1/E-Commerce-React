@@ -175,7 +175,7 @@ export function MobileDrawer({ open, isDark, pathname, links, categories, offers
                   );
                 })}
 
-                {user && (
+                {user ? (
                   <Motion.button
                     initial={{ opacity: 0, x: 12 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -200,6 +200,28 @@ export function MobileDrawer({ open, isDark, pathname, links, categories, offers
                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
                       isDark ? "bg-red-500/15 text-red-400" : "bg-red-100 text-red-500"
                     }`}>Bye 👋</span>
+                  </Motion.button>
+                ) : (
+                  <Motion.button
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.75 }}
+                    onClick={() => onNavigate("/login")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all mb-1 text-sm font-semibold text-left mt-1 ${
+                      isDark
+                        ? "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                        : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      isDark ? "bg-indigo-500/15 text-indigo-400" : "bg-indigo-100 text-indigo-500"
+                    }`}>
+                      <UserIcon className="w-4 h-4" />
+                    </span>
+                    <span className="flex-1">Sign In</span>
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                      isDark ? "bg-indigo-500/15 text-indigo-400" : "bg-indigo-100 text-indigo-500"
+                    }`}>Hello 👋</span>
                   </Motion.button>
                 )}
               </div>

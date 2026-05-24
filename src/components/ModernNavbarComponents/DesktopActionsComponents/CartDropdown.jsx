@@ -21,7 +21,7 @@ export default function CartDropdown({
           transition={{ duration: 0.22, ease: EXPO }}
           onMouseEnter={keepCart}
           onMouseLeave={closeCart}
-          className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-[#18181b] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden"
+          className="fixed inset-x-4 top-20 mx-auto w-auto max-w-sm md:max-w-none md:absolute md:inset-x-auto md:right-0 md:top-full mt-3 md:w-80 bg-white dark:bg-[#18181b] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 overflow-hidden"
           style={{ zIndex: 50 }}
         >
           <CartDropdownContent 

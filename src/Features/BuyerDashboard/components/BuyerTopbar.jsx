@@ -58,10 +58,18 @@ export default function BuyerTopbar() {
       <div className="flex items-center gap-1 sm:gap-2 ml-auto">
         {/* Cart with hover dropdown */}
         <div className="relative"
-          onMouseEnter={() => setCartOpen(true)}
-          onMouseLeave={() => setCartOpen(false)}
+          onMouseEnter={() => {
+            if (window.innerWidth >= 640) setCartOpen(true);
+          }}
+          onMouseLeave={() => {
+            if (window.innerWidth >= 640) setCartOpen(false);
+          }}
         >
-          <button className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center"
+          <button 
+            onClick={() => {
+              if (window.innerWidth < 640) setCartOpen(!cartOpen);
+            }}
+            className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center"
             style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
             <BIcon name="cart" size={17} />
             {cart.length > 0 && (
@@ -76,7 +84,7 @@ export default function BuyerTopbar() {
                 key="cart-dropdown"
                 initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                className="absolute right-0 top-12 w-80 rounded-2xl overflow-hidden shadow-2xl z-50"
+                className="fixed inset-x-4 top-[72px] mx-auto w-auto max-w-sm sm:max-w-none sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-80 rounded-2xl overflow-hidden shadow-2xl z-50"
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
                 
                 {/* Invisible bridge to prevent mouse leave in the gap */}
