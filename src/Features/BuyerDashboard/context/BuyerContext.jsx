@@ -30,7 +30,7 @@ import { useMemo } from 'react';
 const BuyerCtx = createContext(null);
 
 export const BUYER_NAV = [
-  { id: 'overview',     label: 'Dashboard',       icon: 'home' },
+  { id: 'overview',     label: 'Dashboard',       icon: 'layout' },
   { id: 'ai',          label: 'My AI',           icon: 'ai',  badge: 'NEW' },
   { id: 'orders',      label: 'My Orders',       icon: 'package' },
   { id: 'wishlist',    label: 'Wishlist',        icon: 'heart' },
