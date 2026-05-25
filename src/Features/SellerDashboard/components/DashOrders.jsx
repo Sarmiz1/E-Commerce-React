@@ -39,8 +39,8 @@ export default function DashOrders() {
   const saveStatus = useCallback(async () => {
     if (!pendingStatus || pendingStatus === selectedOrder.status) return;
     setSaving(true);
-    const result = await updateOrderStatus(selectedOrder.id, pendingStatus);
-    if (result?.success) {
+    try {
+      await updateOrderStatus(selectedOrder.id, pendingStatus);
       // optimistic update
       setOrders(prev => (prev ?? liveOrders ?? []).map(o =>
         o.id === selectedOrder.id ? { ...o, status: pendingStatus } : o
@@ -48,8 +48,11 @@ export default function DashOrders() {
       setSelectedOrder(prev => ({ ...prev, status: pendingStatus }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2200);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }, [pendingStatus, selectedOrder, updateOrderStatus, liveOrders]);
 
   const countsByStatus = STATUSES.reduce((acc, s) => {

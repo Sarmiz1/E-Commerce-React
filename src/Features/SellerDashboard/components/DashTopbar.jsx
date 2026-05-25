@@ -4,27 +4,24 @@ import { useTheme } from "../../../Store/useThemeStore";
 import { useDashboard } from '../context/DashboardContext';
 import { Icon } from './DashIcon';
 import { fmt } from '../utils/format';
+import { useAuthStore } from '../../../Store/useAuthStore';
 
-const NOTIFICATIONS = [
-  { id: 1, type: 'order',   text: 'New order #WOO-8822 received', time: '2 min ago', unread: true },
-  { id: 2, type: 'stock',   text: 'Running Pro Max is low on stock (3 left)', time: '1 hr ago', unread: true },
-  { id: 3, type: 'payout',  text: 'Payout of ₦200,000 processed', time: '3 hrs ago', unread: false },
-  { id: 4, type: 'review',  text: 'New 5★ review on Stealth Sneakers X1', time: '5 hrs ago', unread: false },
-];
 
 export default function DashTopbar() {
   const { colors, isDark, toggle } = useTheme();
-  const { setMobileSidebarOpen, activePage } = useDashboard();
+  const { setMobileSidebarOpen, activePage, setActivePage, notifications, wallet, profile, unreadCount } = useDashboard();
+  const { user, logout } = useAuthStore();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [search, setSearch] = useState('');
+  
+  const displayStoreName = profile?.storeName || user?.user_metadata?.full_name || 'Seller Store';
+  const displayEmail = profile?.businessEmail || user?.email || 'No Email Provided';
 
   const pageTitle = {
     overview: 'Overview', ai_sales_assistant: 'AI Sales Assistant', orders: 'Orders', products: 'Products', analytics: 'Analytics',
     customers: 'Customers', wallet: 'Wallet', plan: 'Subscription Plan', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings',
   }[activePage] || 'Dashboard';
-
-  const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
 
   return (
     <header className="flex items-center gap-4 h-16 px-4 lg:px-8 flex-shrink-0 sticky top-0 z-30" style={{ background: isDark ? `${colors.surface.primary}f0` : `${colors.surface.primary}f0`, borderBottom: `1px solid ${colors.border.subtle}`, backdropFilter: 'blur(12px)' }}>
@@ -52,7 +49,7 @@ export default function DashTopbar() {
       {/* Wallet badge */}
       <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: isDark ? 'rgba(144,171,255,0.08)' : 'rgba(0,80,212,0.06)', border: `1px solid ${isDark ? 'rgba(144,171,255,0.15)' : 'rgba(0,80,212,0.12)'}` }}>
         <Icon name="wallet" size={15} style={{ color: colors.cta.primary }} />
-        <span className="text-sm font-bold" style={{ color: colors.cta.primary }}>{fmt(782000)}</span>
+        <span className="text-sm font-bold" style={{ color: colors.cta.primary }}>{fmt(wallet?.pendingPayout || 0)}</span>
       </div>
 
       {/* Theme toggle */}
@@ -79,7 +76,7 @@ export default function DashTopbar() {
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: colors.state.errorBg, color: colors.state.error }}>{unreadCount} new</span>
               </div>
               <div className="divide-y" style={{ borderColor: colors.border.subtle }}>
-                {NOTIFICATIONS.map(n => (
+                {notifications.map(n => (
                   <div key={n.id} className="px-4 py-3 flex items-start gap-3 transition-colors hover:opacity-80">
                     <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0`} style={{ background: n.unread ? colors.cta.primary : 'transparent', border: n.unread ? 'none' : `1px solid ${colors.border.default}` }} />
                     <div className="flex-1 min-w-0">
@@ -97,7 +94,9 @@ export default function DashTopbar() {
       {/* Profile */}
       <div className="relative">
         <button onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }} className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm">A</div>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm">
+            {displayStoreName.charAt(0).toUpperCase()}
+          </div>
         </button>
         <AnimatePresence>
           {profileOpen && (
@@ -105,11 +104,22 @@ export default function DashTopbar() {
               className="absolute right-0 top-12 w-52 rounded-2xl overflow-hidden shadow-2xl z-50"
               style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
               <div className="px-4 py-3" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
-                <p className="font-bold text-sm" style={{ color: colors.text.primary }}>Ade's Store</p>
-                <p className="text-xs" style={{ color: colors.text.tertiary }}>seller@woosho.com</p>
+                <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{displayStoreName}</p>
+                <p className="text-xs truncate" style={{ color: colors.text.tertiary }}>{displayEmail}</p>
               </div>
-              {[['settings', 'Settings'], ['settings', 'Store Settings'], ['log-out', 'Logout']].map(([ic, label]) => (
-                <button key={label} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80" style={{ color: label === 'Logout' ? colors.state.error : colors.text.secondary }}>
+              {[['settings', 'Settings'], ['log-out', 'Logout']].map(([ic, label]) => (
+                <button 
+                  key={label}
+                  onClick={() => {
+                    if (label === 'Settings') {
+                      setActivePage('settings');
+                      setProfileOpen(false);
+                    } else if (label === 'Logout') {
+                      logout();
+                    }
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80" 
+                  style={{ color: label === 'Logout' ? colors.state.error : colors.text.secondary }}>
                   <Icon name={ic} size={16} />
                   {label}
                 </button>

@@ -66,6 +66,13 @@ import { HomeRoute } from "./Guards/HomeRoute";
 import { HomeIndexRoute } from "./Guards/HomeIndexRoute";
 import { AccountPage } from "./Guards/AccountPage";
 
+
+// *****************************************************************
+
+//  Test
+
+// *************************************************************************
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route
@@ -242,6 +249,7 @@ const router = createBrowserRouter(
           }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
+
 
         {/* Admin Route Protection */}
         <Route element={<AdminRoute />}>

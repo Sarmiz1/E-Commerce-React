@@ -47,17 +47,18 @@ function BalanceCard({ label, value, sub, accent = false, icon, delay = 0 }) {
 
 export default function DashWallet() {
   const { colors, isDark } = useTheme();
-  const { wallet, stats } = useDashboard();
+  const { wallet, profile, setActivePage } = useDashboard();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  const transactions = wallet ?? [];
+  const transactions = wallet?.transactions || [];
   const filteredTxns = filter === 'all' ? transactions : transactions.filter(t => t.status === filter);
 
   // Derive balances from live wallet data
-  const available = (stats?.pendingPayout?.value) ?? transactions.filter(t => t.status === 'settled').reduce((s, t) => s + (t.net || 0), 0);
-  const pending   = transactions.filter(t => t.status === 'pending').reduce((s, t) => s + (t.net || 0), 0);
-  const totalEarnings = (stats?.totalRevenue?.value) ?? transactions.filter(t => t.amount > 0).reduce((s, t) => s + (t.amount || 0), 0);
+  const available = wallet?.balance || 0;
+  const pending   = wallet?.pendingPayout || 0;
+  const totalEarnings = wallet?.totalEarned || 0;
+  const totalWithdrawn = wallet?.totalWithdrawn || 0;
 
   const handleWithdraw = (amount, fee, net) => {
     // In production, this would call the API
@@ -77,11 +78,40 @@ export default function DashWallet() {
       </div>
 
       {/* Balance cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <BalanceCard label="Available Balance" value={available} sub="Ready to withdraw" accent icon="wallet" delay={0} />
-        <BalanceCard label="Pending Balance" value={pending || 312500} sub="Clears in 5–7 days" icon="trending-up" delay={0.08} />
-        <BalanceCard label="Total Earnings" value={totalEarnings || 4820500} sub="All time" icon="bar-chart" delay={0.16} />
+        <BalanceCard label="Pending Payout" value={pending} sub="Clears in 5–7 days" icon="trending-up" delay={0.08} />
+        <BalanceCard label="Total Payouts" value={totalWithdrawn} sub="All time withdrawn" icon="download" delay={0.16} />
+        <BalanceCard label="Total Earnings" value={totalEarnings} sub="Lifetime revenue" icon="bar-chart" delay={0.24} />
       </div>
+
+      {/* Payout Method */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        className="rounded-2xl p-6 shadow-sm flex items-center justify-between flex-wrap gap-4"
+        style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isDark ? 'rgba(139,92,246,0.1)' : 'rgba(139,92,246,0.08)' }}>
+            <Icon name="credit-card" size={20} style={{ color: '#8b5cf6' }} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: colors.text.tertiary }}>Payout Method</p>
+            {profile?.bankName && profile?.accountNumber ? (
+              <div>
+                <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{profile.bankName} •••• {profile.accountNumber.slice(-4)}</p>
+                <p className="text-xs" style={{ color: colors.text.tertiary }}>{profile.accountName}</p>
+              </div>
+            ) : (
+              <p className="font-bold text-sm" style={{ color: colors.state.warning }}>No payout method added</p>
+            )}
+          </div>
+        </div>
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }}
+          onClick={() => setActivePage('settings')}
+          className="px-4 py-2 rounded-lg text-xs font-bold transition-colors"
+          style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
+          {profile?.bankName ? 'Update' : 'Add Method'}
+        </motion.button>
+      </motion.div>
 
       {/* Transaction history */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
@@ -137,7 +167,7 @@ export default function DashWallet() {
       <WithdrawModal
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}
-        availableBalance={available || 782000}
+        availableBalance={available}
         onWithdraw={handleWithdraw}
       />
     </div>

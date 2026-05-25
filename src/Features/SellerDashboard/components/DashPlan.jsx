@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
+import { useDashboard } from '../context/DashboardContext';
 import { Icon } from './DashIcon';
 
 const PLANS = [
@@ -87,7 +88,8 @@ function PlanCard({ plan, currentPlan, onSelect, delay }) {
 
 export default function DashPlan() {
   const { colors, isDark } = useTheme();
-  const [currentPlan, setCurrentPlan] = useState('growth');
+  const { profile } = useDashboard();
+  const [currentPlan, setCurrentPlan] = useState(profile?.subscriptionPlan || 'starter');
   const [confirmModal, setConfirmModal] = useState(null);
   const [cancelModal, setCancelModal] = useState(false);
   const [processing, setProcessing] = useState(false);

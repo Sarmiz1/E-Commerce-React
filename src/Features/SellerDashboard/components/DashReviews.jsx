@@ -56,6 +56,17 @@ export default function DashReviews() {
     setReplyOpen(o => ({ ...o, [id]: false }));
   }, [replyText]);
 
+  if (reviews.length === 0) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-black" style={{ color: colors.text.primary }}>Reviews</h2>
+        <div className="flex items-center justify-center py-20 rounded-2xl shadow-sm" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
+          <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>no available reviews</p>
+        </div>
+      </div>
+    );
+  }
+
   const avgRating = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
   const filtered = filterRating === 0 ? reviews : reviews.filter(r => r.rating === filterRating);
 

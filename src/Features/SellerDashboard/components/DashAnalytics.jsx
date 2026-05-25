@@ -164,16 +164,12 @@ export default function DashAnalytics() {
   const categoryRevenue = ANALYTICS.categoryRevenue || [];
   const trafficSources  = ANALYTICS.trafficSources  || [];
   const peakHours       = ANALYTICS.peakHours       || [];
+  const metrics         = ANALYTICS.metrics         || [];
   const [activeCategory, setActiveCategory] = useState(null);
   const catColors = [colors.cta.primary, '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
   const srcColors = [colors.cta.primary, '#10b981', '#f59e0b', '#8b5cf6'];
 
-  const METRICS = [
-    { label: 'Conversion Rate',      value: '3.8%',  change: '+0.4%',  icon: 'percent' },
-    { label: 'Cart Abandonment',     value: '68.2%', change: '-3.1%',  icon: 'x' },
-    { label: 'Returning Customers',  value: '41%',   change: '+5%',    icon: 'users' },
-    { label: 'Avg. Order Value',     value: '₦38.7K',change: '+8%',    icon: 'trending-up' },
-  ];
+
 
   return (
     <div className="space-y-6">
@@ -181,7 +177,7 @@ export default function DashAnalytics() {
 
       {/* Key metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {METRICS.map((m, i) => <MetricCard key={m.label} {...m} delay={i * 0.08} />)}
+        {metrics.map((m, i) => <MetricCard key={m.label} {...m} delay={i * 0.08} />)}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -223,10 +219,16 @@ export default function DashAnalytics() {
         className="rounded-2xl p-6 shadow-sm" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
         <div className="flex items-center justify-between mb-6">
           <p className="font-bold text-sm" style={{ color: colors.text.primary }}>Peak Shopping Hours</p>
-          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
-            style={{ background: isDark ? 'rgba(0,255,148,0.1)' : 'rgba(5,150,105,0.08)', color: colors.state.success }}>
-            Peak: 6PM–9PM
-          </span>
+          {peakHours.length > 0 && (() => {
+            const peak = [...peakHours].sort((a, b) => b.value - a.value)[0];
+            const peakStr = peak.hour === 0 ? '12AM' : peak.hour < 12 ? `${peak.hour}AM` : peak.hour === 12 ? '12PM' : `${peak.hour - 12}PM`;
+            return (
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
+                style={{ background: isDark ? 'rgba(0,255,148,0.1)' : 'rgba(5,150,105,0.08)', color: colors.state.success }}>
+                Peak: {peakStr}
+              </span>
+            );
+          })()}
         </div>
         <PeakHours data={peakHours} />
       </motion.div>

@@ -2,13 +2,18 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
 import { useDashboard, NAV_ITEMS } from '../context/DashboardContext';
+import { useAuthStore } from '../../../Store/useAuthStore';
 import { Icon } from './DashIcon';
 
 export default function DashSidebar() {
   const { colors, isDark } = useTheme();
-  const { activePage, setActivePage, sidebarCollapsed, setSidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen } = useDashboard();
+  const { activePage, setActivePage, sidebarCollapsed, setSidebarCollapsed, mobileSidebarOpen, setMobileSidebarOpen, profile } = useDashboard();
+  const { user } = useAuthStore();
 
   const sidebarWidth = sidebarCollapsed ? 72 : 240;
+  
+  const displayStoreName = profile?.storeName || user?.user_metadata?.full_name || 'Seller Store';
+  const displayEmail = profile?.businessEmail || user?.email || 'Active';
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full" style={{ background: isDark ? colors.surface.secondary : '#FAFAFA', borderRight: `1px solid ${colors.border.subtle}` }}>
@@ -98,12 +103,14 @@ export default function DashSidebar() {
       {/* Store profile at bottom */}
       <div className="p-3" style={{ borderTop: `1px solid ${colors.border.subtle}` }}>
         <div className="flex items-center gap-3 px-2 py-2 rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0">A</div>
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+            {displayStoreName.charAt(0).toUpperCase()}
+          </div>
           <AnimatePresence>
             {!sidebarCollapsed && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate" style={{ color: colors.text.primary }}>Ade's Store</p>
-                <p className="text-[11px] truncate" style={{ color: colors.text.tertiary }}>Pro Seller · Active</p>
+                <p className="text-sm font-bold truncate" style={{ color: colors.text.primary }}>{displayStoreName}</p>
+                <p className="text-[11px] truncate" style={{ color: colors.text.tertiary }}>Pro Seller · {displayEmail}</p>
               </motion.div>
             )}
           </AnimatePresence>
