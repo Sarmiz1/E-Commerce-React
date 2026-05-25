@@ -64,8 +64,8 @@ export function CartPreview({ cart, onNavigate, formatMoney }) {
 
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 dark:text-white text-xs leading-tight line-clamp-1">{item.name}</p>
-                    <p className="text-gray-400 dark:text-gray-500 text-[10px] mt-0.5">Qty: {item.quantity}</p>
-                    <p className="font-black text-indigo-600 dark:text-indigo-400 text-sm mt-0.5">
+                    <p className="text-gray-800  text-[10px] mt-0.5 dark:text-gray-400">Qty: {item.quantity}</p>
+                    <p className="font-black text-indigo-900 dark:text-indigo-800 text-sm mt-0.5">
                       {formatMoney((item.price ?? 0) * item.quantity)}
                     </p>
                   </div>
