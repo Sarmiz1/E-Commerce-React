@@ -205,11 +205,11 @@ BEGIN
       -- retains exactly what it was named/priced at the time of purchase.
       INSERT INTO order_items (
         order_id, product_id, variant_id,
-        product_name, price_cents, quantity, total_cents
+        product_name, price_cents, quantity
       )
       VALUES (
         v_order_id, item.product_id, item.variant_id,
-        item.name, v_price, item.quantity, v_line
+        item.name, v_price, item.quantity
       );
 
       -- B. Attempt Reservation

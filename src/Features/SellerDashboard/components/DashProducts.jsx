@@ -32,9 +32,10 @@ function ProductAvatar({ name }) {
   );
 }
 
-function StockBar({ stock, max = 50 }) {
+function StockBar({ stock, sales = 0 }) {
   const { colors } = useTheme();
-  const pct = Math.min(100, (stock / max) * 100);
+  const total = stock + sales;
+  const pct = total > 0 ? (sales / total) * 100 : 0;
   const color = stock === 0 ? colors.state.error : stock < 10 ? colors.state.warning : colors.state.success;
   return (
     <div className="flex items-center gap-2">
@@ -309,7 +310,10 @@ export default function DashProducts() {
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [additionalFiles, setAdditionalFiles] = useState([]);
 
-  const products = liveProducts ?? [];
+  const products = (liveProducts ?? []).map(p => ({
+    ...p,
+    status: p.stock === 0 ? 'out_of_stock' : p.status
+  }));
 
   // ── React Hook Form + Zod ─────────────────────────────────────────────────
   const {
@@ -509,7 +513,7 @@ export default function DashProducts() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-bold" style={{ color: colors.text.primary }}>{fmtFull(p.price)}</td>
-                    <td className="px-6 py-4"><StockBar stock={p.stock} /></td>
+                    <td className="px-6 py-4"><StockBar stock={p.stock} sales={p.sales} /></td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5">
                         <span className="text-sm font-bold" style={{ color: colors.text.primary }}>{p.sales}</span>

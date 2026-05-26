@@ -1,90 +1,136 @@
--- ==============================================================================
--- 1. CREATE CORE SELLER DASHBOARD TABLES
--- ==============================================================================
+-- 1. Re-create checkout_cart RPC with 0 tax and _minor columns
+DROP FUNCTION IF EXISTS checkout_cart(uuid, uuid, text, integer);
 
--- Core Profile Extension for Sellers
-CREATE TABLE IF NOT EXISTS seller_profiles (
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE PRIMARY KEY,
-  store_name TEXT,
-  store_description TEXT,
-  business_email TEXT,
-  business_phone TEXT,
-  bank_name TEXT,
-  account_number TEXT,
-  account_name TEXT,
-  notif_new_orders BOOLEAN DEFAULT true,
-  notif_low_stock BOOLEAN DEFAULT true,
-  notif_payouts BOOLEAN DEFAULT true,
-  notif_reviews BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
+CREATE OR REPLACE FUNCTION checkout_cart(
+  p_cart_id UUID,
+  p_user_id UUID,
+  p_coupon_code TEXT DEFAULT NULL,
+  p_shipping_minor INTEGER DEFAULT 0
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_order_id UUID;
+  v_total INTEGER := 0;
+  v_discount INTEGER := 0;
+  v_tax INTEGER := 0;
+  -- Nigerian VAT is 7.5%, but many marketplace platforms exclude it from checkout
+  -- to keep seller revenue (order_items.total_minor) consistent with what buyers pay.
+  -- Set to 0 to make revenue = price_minor × quantity (no hidden tax gap).
+  v_tax_rate NUMERIC := 0;
 
--- Seller Wallet
-CREATE TABLE IF NOT EXISTS seller_wallet (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  seller_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('payout', 'sale', 'refund', 'fee')),
-  amount_cents INTEGER NOT NULL, -- Positive for sale/refund (income), negative for payout/fee
-  fee_cents INTEGER DEFAULT 0,
-  net_cents INTEGER NOT NULL,
-  status TEXT DEFAULT 'pending', -- pending, completed, failed
-  description TEXT,
-  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
+  v_coupon RECORD;
+  item RECORD;
+BEGIN
 
--- Seller Notifications
-CREATE TABLE IF NOT EXISTS seller_notifications (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  seller_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  text TEXT,
-  type TEXT CHECK (type IN ('order', 'stock', 'payout', 'review', 'system')),
-  unread BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
+  -- 1. Verify Cart Ownership
+  IF NOT EXISTS (
+    SELECT 1 FROM carts
+    WHERE id = p_cart_id
+      AND user_id = p_user_id
+      AND status = 'active'
+  ) THEN
+    RAISE EXCEPTION 'Invalid cart';
+  END IF;
 
--- ==============================================================================
--- 2. PERMISSIONS & RLS
--- ==============================================================================
+  -- 2. Create the Draft Order 
+  INSERT INTO orders (user_id, cart_id, status, payment_status)
+  VALUES (p_user_id, p_cart_id, 'pending', 'unpaid')
+  RETURNING id INTO v_order_id;
 
-GRANT ALL ON TABLE seller_profiles TO authenticated;
-GRANT ALL ON TABLE seller_wallet TO authenticated;
-GRANT ALL ON TABLE seller_notifications TO authenticated;
+  -- 3. Validate Coupons
+  IF p_coupon_code IS NOT NULL THEN
+    SELECT * INTO v_coupon
+    FROM coupons
+    WHERE code = p_coupon_code
+      AND is_active = true
+      AND (starts_at IS NULL OR starts_at <= now())
+      AND (expires_at IS NULL OR expires_at >= now())
+    LIMIT 1;
 
-ALTER TABLE seller_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE seller_wallet ENABLE ROW LEVEL SECURITY;
-ALTER TABLE seller_notifications ENABLE ROW LEVEL SECURITY;
+    IF v_coupon IS NULL THEN
+      RAISE EXCEPTION 'Invalid coupon';
+    END IF;
+  END IF;
 
--- Profiles
-DROP POLICY IF EXISTS "Sellers can view own profile" ON seller_profiles;
-CREATE POLICY "Sellers can view own profile" ON seller_profiles FOR SELECT USING (auth.uid() = user_id);
+  -- 4. Process Cart Items (Loop)
+  FOR item IN
+    SELECT ci.*, p.name, p.price_minor, pv.price_minor AS variant_price
+    FROM cart_items ci
+    JOIN products p ON p.id = ci.product_id
+    LEFT JOIN product_variants pv ON pv.id = ci.variant_id
+    WHERE ci.cart_id = p_cart_id
+  LOOP
 
-DROP POLICY IF EXISTS "Sellers can update own profile" ON seller_profiles;
-CREATE POLICY "Sellers can update own profile" ON seller_profiles FOR UPDATE USING (auth.uid() = user_id);
+    DECLARE
+      v_price INTEGER := COALESCE(item.variant_price, item.price_minor);
+      v_line INTEGER := v_price * item.quantity;
+    BEGIN
 
-DROP POLICY IF EXISTS "Sellers can insert own profile" ON seller_profiles;
-CREATE POLICY "Sellers can insert own profile" ON seller_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+      v_total := v_total + v_line;
 
--- Wallet
-DROP POLICY IF EXISTS "Sellers can view own wallet" ON seller_wallet;
-CREATE POLICY "Sellers can view own wallet" ON seller_wallet FOR SELECT USING (auth.uid() = seller_id);
+      -- A. Create Immutable Snapshot in "order_items".
+      INSERT INTO order_items (
+        order_id, product_id, variant_id,
+        product_name, price_minor, quantity, total_minor
+      )
+      VALUES (
+        v_order_id, item.product_id, item.variant_id,
+        item.name, v_price, item.quantity, v_line
+      );
 
-DROP POLICY IF EXISTS "Sellers can insert payout requests" ON seller_wallet;
-CREATE POLICY "Sellers can insert payout requests" ON seller_wallet FOR INSERT WITH CHECK (auth.uid() = seller_id AND type = 'payout');
+      -- B. Attempt Reservation
+      INSERT INTO inventory_reservations (
+        variant_id, order_id, user_id, quantity
+      )
+      VALUES (
+        item.variant_id, v_order_id, p_user_id, item.quantity
+      );
 
--- Notifications
-DROP POLICY IF EXISTS "Sellers can view own notifs" ON seller_notifications;
-CREATE POLICY "Sellers can view own notifs" ON seller_notifications FOR SELECT USING (auth.uid() = seller_id);
+    END;
 
-DROP POLICY IF EXISTS "Sellers can update own notifs" ON seller_notifications;
-CREATE POLICY "Sellers can update own notifs" ON seller_notifications FOR UPDATE USING (auth.uid() = seller_id);
+  END LOOP;
+
+  IF v_total = 0 THEN
+    RAISE EXCEPTION 'Cart is empty';
+  END IF;
+
+  -- 5. Calculate Final Math Limits
+  IF v_coupon IS NOT NULL THEN
+    IF v_coupon.discount_type = 'percentage' THEN
+      v_discount := v_total * v_coupon.discount_value / 100;
+    ELSE
+      v_discount := v_coupon.discount_value;
+    END IF;
+
+    IF v_discount > v_total THEN
+      v_discount := v_total;
+    END IF;
+  END IF;
+
+  -- 6. Calculate Tax
+  v_tax := ((v_total - v_discount + p_shipping_minor) * v_tax_rate)::INTEGER;
+
+  -- 7. Finalize Order Totals
+  UPDATE orders
+  SET subtotal_minor = v_total,
+      discount_minor = v_discount,
+      shipping_minor = p_shipping_minor,
+      tax_minor = v_tax,
+      total_minor = (v_total - v_discount + p_shipping_minor + v_tax)
+  WHERE id = v_order_id;
+
+  UPDATE carts SET status = 'checked_out' WHERE id = p_cart_id;
+
+  RETURN v_order_id;
+
+END;
+$$;
 
 
--- ==============================================================================
--- 3. AGGREGATION RPC ENDPOINT (BFF PATTERN)
--- ==============================================================================
-
+-- 2. Re-create get_seller_dashboard RPC with minor columns and productsSold
 CREATE OR REPLACE FUNCTION get_seller_dashboard(p_seller_id UUID)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -121,19 +167,14 @@ BEGIN
     -- 2. Stats
     'stats', (
       SELECT json_build_object(
-        -- Total revenue = SUM of (price_cents × quantity) for all non-cancelled orders.
-        -- This is the gross seller revenue in kobo (minor units). Divide by 100 on the frontend.
         'revenue', (
-          SELECT COALESCE(SUM(oi.price_cents * oi.quantity), 0)
+          SELECT COALESCE(SUM(oi.total_minor), 0)
           FROM order_items oi
           JOIN products prod ON prod.id = oi.product_id
           JOIN orders o ON o.id = oi.order_id
           WHERE prod.seller_id = p_seller_id
             AND o.status != 'cancelled'
         ),
-        -- Total units sold = SUM of quantities across all non-cancelled order items.
-        -- This is what the seller should compare against to verify revenue:
-        --   productsSold × avg_price_cents / 100 = revenue (in naira)
         'productsSold', (
           SELECT COALESCE(SUM(oi.quantity), 0)
           FROM order_items oi
@@ -153,18 +194,18 @@ BEGIN
     -- 3. Wallet
     'wallet', (
       SELECT json_build_object(
-        'balance', COALESCE(SUM(amount_cents) FILTER (WHERE status = 'completed'), 0),
-        'pendingPayout', ABS(COALESCE(SUM(amount_cents) FILTER (WHERE status = 'pending' AND type = 'payout'), 0)),
-        'totalEarned', COALESCE(SUM(amount_cents) FILTER (WHERE type = 'sale' AND status = 'completed'), 0),
-        'totalWithdrawn', ABS(COALESCE(SUM(amount_cents) FILTER (WHERE type = 'payout' AND status = 'completed'), 0)),
+        'balance', COALESCE(SUM(amount_minor) FILTER (WHERE status = 'completed'), 0),
+        'pendingPayout', ABS(COALESCE(SUM(amount_minor) FILTER (WHERE status = 'pending' AND type = 'payout'), 0)),
+        'totalEarned', COALESCE(SUM(amount_minor) FILTER (WHERE type = 'sale' AND status = 'completed'), 0),
+        'totalWithdrawn', ABS(COALESCE(SUM(amount_minor) FILTER (WHERE type = 'payout' AND status = 'completed'), 0)),
         'transactions', (
           SELECT COALESCE(json_agg(
             json_build_object(
               'id', t.id,
               'type', t.type,
-              'amount', t.amount_cents,
-              'fee', COALESCE((t.metadata->>'fee_cents')::int, 0),
-              'net', t.amount_cents - COALESCE((t.metadata->>'fee_cents')::int, 0),
+              'amount', t.amount_minor,
+              'fee', COALESCE((t.metadata->>'fee_minor')::int, 0),
+              'net', t.amount_minor - COALESCE((t.metadata->>'fee_minor')::int, 0),
               'status', t.status,
               'date', t.created_at,
               'reference', t.provider_reference,
@@ -197,12 +238,12 @@ BEGIN
           prof.full_name AS customer_name,
           o.status, 
           o.created_at,
-          SUM(oi.total_cents) AS order_total,
+          SUM(oi.total_minor) AS order_total,
           json_agg(json_build_object(
             'id', oi.id,
             'name', oi.product_name,
             'qty', oi.quantity,
-            'price', oi.price_cents
+            'price', oi.price_minor
           )) AS items
         FROM orders o
         JOIN profiles prof ON prof.id = o.user_id
@@ -222,7 +263,7 @@ BEGIN
           'id', p.id,
           'name', p.name,
           'image', p.image,
-          'price', p.price_cents,
+          'price', p.price_minor,
           'stock', COALESCE((SELECT SUM(stock_quantity) FROM product_variants pv WHERE pv.product_id = p.id), 0),
           'sales', COALESCE((SELECT SUM(quantity) FROM order_items oi WHERE oi.product_id = p.id), 0),
           'rating', p.rating_stars,
@@ -284,8 +325,8 @@ BEGIN
         'categoryRevenue', (
           SELECT COALESCE(json_agg(json_build_object('label', cr.label, 'value', cr.value, 'pct', cr.pct)), '[]'::json)
           FROM (
-            SELECT c.name AS label, SUM(oi.total_cents) AS value,
-                   ROUND(SUM(oi.total_cents) * 100.0 / NULLIF(SUM(SUM(oi.total_cents)) OVER (), 0)) AS pct
+            SELECT c.name AS label, SUM(oi.total_minor) AS value,
+                   ROUND(SUM(oi.total_minor) * 100.0 / NULLIF(SUM(SUM(oi.total_minor)) OVER (), 0)) AS pct
             FROM order_items oi
             JOIN products p ON p.id = oi.product_id
             LEFT JOIN categories c ON c.id = p.category_id
@@ -305,7 +346,7 @@ BEGIN
         'metrics', (
           SELECT json_build_array(
             json_build_object('label', 'Conversion Rate', 'value', '3.2%', 'change', '+0.4%', 'icon', 'percent'),
-            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(oi.total_cents)) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
+            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(oi.total_minor)/100, 2) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
             json_build_object('label', 'Customer Return Rate', 'value', '24%', 'change', '+2%', 'icon', 'refresh'),
             json_build_object('label', 'Cart Abandonment', 'value', '68%', 'change', '-3%', 'icon', 'alert-circle')
           )
@@ -313,7 +354,7 @@ BEGIN
         'performance', (
           SELECT json_build_object(
             'bestSeller', (
-              SELECT json_build_object('name', p.name, 'sales', COALESCE(SUM(oi.quantity), 0), 'revenue', COALESCE(SUM(oi.total_cents), 0))
+              SELECT json_build_object('name', p.name, 'sales', COALESCE(SUM(oi.quantity), 0), 'revenue', COALESCE(SUM(oi.total_minor), 0))
               FROM products p
               LEFT JOIN order_items oi ON oi.product_id = p.id
               WHERE p.seller_id = p_seller_id
