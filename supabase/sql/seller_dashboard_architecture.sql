@@ -121,7 +121,7 @@ BEGIN
     -- 2. Stats
     'stats', (
       SELECT json_build_object(
-        'revenue', (SELECT COALESCE(SUM(total_cents), 0) FROM order_items oi JOIN products prod ON prod.id = oi.product_id JOIN orders o ON o.id = oi.order_id WHERE prod.seller_id = p_seller_id AND o.status != 'cancelled'),
+        'revenue', (SELECT COALESCE(SUM(oi.total_cents), 0) FROM order_items oi JOIN products prod ON prod.id = oi.product_id JOIN orders o ON o.id = oi.order_id WHERE prod.seller_id = p_seller_id AND o.status != 'cancelled'),
         'totalOrders', (SELECT COUNT(DISTINCT o.id) FROM order_items oi JOIN products prod ON prod.id = oi.product_id JOIN orders o ON o.id = oi.order_id WHERE prod.seller_id = p_seller_id),
         'ordersToday', (SELECT COUNT(DISTINCT o.id) FROM order_items oi JOIN products prod ON prod.id = oi.product_id JOIN orders o ON o.id = oi.order_id WHERE prod.seller_id = p_seller_id AND o.created_at >= current_date),
         'activeProducts', (SELECT COUNT(*) FROM products WHERE seller_id = p_seller_id AND is_active = true),
@@ -279,7 +279,7 @@ BEGIN
         'metrics', (
           SELECT json_build_array(
             json_build_object('label', 'Conversion Rate', 'value', '3.2%', 'change', '+0.4%', 'icon', 'percent'),
-            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(total_cents)) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
+            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(oi.total_cents)) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
             json_build_object('label', 'Customer Return Rate', 'value', '24%', 'change', '+2%', 'icon', 'refresh'),
             json_build_object('label', 'Cart Abandonment', 'value', '68%', 'change', '-3%', 'icon', 'alert-circle')
           )

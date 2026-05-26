@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
+import { useDashboard } from '../context/DashboardContext';
 import { Icon } from './DashIcon';
 
 function Toggle({ value, onChange }) {
@@ -67,6 +68,7 @@ function ToolCard({ icon, title, desc, actionLabel, children, delay = 0, onActio
 
 export default function DashMarketing() {
   const { colors, isDark } = useTheme();
+  const { updateMarketing } = useDashboard();
   const [discountCode, setDiscountCode] = useState('');
   const [discountPct, setDiscountPct] = useState(10);
   const [flashActive, setFlashActive] = useState(false);
@@ -76,10 +78,11 @@ export default function DashMarketing() {
   const [copied, setCopied] = useState(false);
 
   const generateCode = useCallback(async () => {
-    await new Promise(r => setTimeout(r, 800));
     const code = discountCode || `WOO${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-    setGeneratedCode(`${code}${discountPct}`);
-  }, [discountCode, discountPct]);
+    const generated = `${code}${discountPct}`;
+    await updateMarketing({ type: 'discount', code: generated });
+    setGeneratedCode(generated);
+  }, [discountCode, discountPct, updateMarketing]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(generatedCode).catch(() => {});
@@ -129,7 +132,7 @@ export default function DashMarketing() {
 
         {/* Flash sale */}
         <ToolCard icon="zap" title="Flash Sale" desc="Time-limited price drops for your store" actionLabel="Configure Timer" delay={0.1}
-          onAction={() => new Promise(r => setTimeout(r, 500))}>
+          onAction={() => updateMarketing({ type: 'flash_sale', active: flashActive })}>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-4 rounded-xl"
               style={{ background: isDark ? colors.surface.tertiary : '#F9FAFB', border: `1px solid ${colors.border.default}` }}>
@@ -154,7 +157,7 @@ export default function DashMarketing() {
 
         {/* Featured product */}
         <ToolCard icon="star" title="Featured Boost" desc="Pin your product on the homepage hero" actionLabel="Select & Boost Product" delay={0.15}
-          onAction={() => new Promise(r => setTimeout(r, 700))}>
+          onAction={() => updateMarketing({ type: 'featured', active: featuredToggle })}>
           <div className="flex items-center justify-between p-4 rounded-xl"
             style={{ background: isDark ? colors.surface.tertiary : '#F9FAFB', border: `1px solid ${colors.border.default}` }}>
             <div>
@@ -169,7 +172,7 @@ export default function DashMarketing() {
 
         {/* Sponsored */}
         <ToolCard icon="trending-up" title="Sponsored Ads" desc="Pay-per-click campaigns across Woosho" actionLabel="Manage Budget" delay={0.2}
-          onAction={() => new Promise(r => setTimeout(r, 600))}>
+          onAction={() => updateMarketing({ type: 'sponsored', active: sponsoredToggle })}>
           <div className="space-y-3">
             <div className="flex items-center justify-between p-4 rounded-xl"
               style={{ background: isDark ? colors.surface.tertiary : '#F9FAFB', border: `1px solid ${colors.border.default}` }}>

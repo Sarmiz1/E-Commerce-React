@@ -24,7 +24,7 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: ({ orderId, status }) => sellerApi.updateOrderStatus(orderId, status),
     onSuccess: () => {
-      queryClient.invalidateQueries(['seller-dashboard', user?.id]);
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
       addToast('Order status updated successfully', 'success');
     },
     onError: (err) => {
@@ -41,7 +41,7 @@ export function useUpdateReviewStatus() {
   return useMutation({
     mutationFn: ({ reviewId, isVerified }) => sellerApi.updateReviewStatus(reviewId, isVerified),
     onSuccess: () => {
-      queryClient.invalidateQueries(['seller-dashboard', user?.id]);
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
       addToast('Review updated successfully', 'success');
     },
     onError: (err) => {
@@ -58,7 +58,7 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: (productId) => sellerApi.deleteProduct(productId),
     onSuccess: () => {
-      queryClient.invalidateQueries(['seller-dashboard', user?.id]);
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
       addToast('Product deleted successfully', 'success');
     },
     onError: (err) => {
@@ -75,7 +75,7 @@ export function useSaveSettings() {
   return useMutation({
     mutationFn: (settings) => sellerApi.saveSettings(user?.id, settings),
     onSuccess: () => {
-      queryClient.invalidateQueries(['seller-dashboard', user?.id]);
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
       addToast('Settings saved successfully', 'success');
     },
     onError: (err) => {
@@ -93,7 +93,7 @@ export function useRequestWithdrawal() {
     mutationFn: ({ amountCents, feeCents, description }) => 
       sellerApi.requestWithdrawal(user?.id, amountCents, feeCents, description),
     onSuccess: () => {
-      queryClient.invalidateQueries(['seller-dashboard', user?.id]);
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
       addToast('Withdrawal requested successfully', 'success');
     },
     onError: (err) => {
@@ -109,7 +109,99 @@ export function useMarkNotificationsRead() {
   return useMutation({
     mutationFn: () => sellerApi.markNotificationsRead(user?.id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['seller-dashboard', user?.id]);
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
+    }
+  });
+}
+
+// ─── Mock Hooks for simulated backend ───
+
+export function useAddProduct() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: (productData) => sellerApi.addProduct(user?.id, productData),
+    onSuccess: (newProduct) => {
+      // 1. Immediately inject the new product into the cached dashboard data
+      //    so it appears in the Products tab without waiting for a refetch.
+      queryClient.setQueryData(['seller-dashboard', user?.id], (old) => {
+        if (!old) return old;
+        const optimisticEntry = {
+          id: newProduct.id,
+          name: newProduct.name,
+          image: newProduct.image || null,
+          price: newProduct.price_cents,
+          stock: 0,   // variants just inserted; stock will sync on refetch
+          sales: 0,
+          rating: null,
+          status: newProduct.is_active ? 'active' : 'inactive',
+        };
+        return {
+          ...old,
+          products: [optimisticEntry, ...(old.products || [])],
+        };
+      });
+
+      // 2. Force a real refetch in the background to sync accurate stock/sales.
+      queryClient.refetchQueries({ queryKey: ['seller-dashboard', user?.id] });
+
+      addToast('Product added successfully', 'success');
+    },
+    onError: (err) => {
+      addToast(`Failed to add product: ${err.message}`, 'error');
+    }
+  });
+}
+
+export function useUpdateSubscription() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: (planId) => sellerApi.updateSubscription(user?.id, planId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
+      addToast('Subscription updated successfully', 'success');
+    },
+    onError: (err) => {
+      addToast(`Failed to update subscription: ${err.message}`, 'error');
+    }
+  });
+}
+
+export function useUpdateMarketing() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: (marketingData) => sellerApi.updateMarketing(user?.id, marketingData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
+      // Note: Components might handle their own success toasts for marketing tasks, so we keep this quiet or minimal.
+    },
+    onError: (err) => {
+      addToast(`Failed to update marketing: ${err.message}`, 'error');
+    }
+  });
+}
+
+export function useReplyReview() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ reviewId, replyText }) => sellerApi.replyReview(reviewId, replyText),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
+      addToast('Reply submitted successfully', 'success');
+    },
+    onError: (err) => {
+      addToast(`Failed to submit reply: ${err.message}`, 'error');
     }
   });
 }

@@ -55,6 +55,34 @@ export default function DashOrders() {
     }
   }, [pendingStatus, selectedOrder, updateOrderStatus, liveOrders]);
 
+  const exportToCSV = useCallback(() => {
+    if (!filtered || filtered.length === 0) return;
+    
+    // Define headers
+    const headers = ['Order ID', 'Customer', 'Product', 'Amount', 'Status', 'Date'];
+    
+    // Map data to rows
+    const rows = filtered.map(o => [
+      o.order_number || o.id,
+      `"${(o.customer || '').replace(/"/g, '""')}"`, // escape quotes
+      `"${(o.product || '').replace(/"/g, '""')}"`,
+      o.amount,
+      o.status,
+      o.date
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [filtered]);
+
   const countsByStatus = STATUSES.reduce((acc, s) => {
     acc[s] = s === 'all' ? baseOrders.length : baseOrders.filter(o => o.status === s).length;
     return acc;
@@ -73,6 +101,7 @@ export default function DashOrders() {
               className="bg-transparent outline-none text-sm w-36" style={{ color: colors.text.primary }} />
           </div>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+            onClick={exportToCSV}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
             style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.secondary }}>
             <Icon name="download" size={15} /> Export CSV

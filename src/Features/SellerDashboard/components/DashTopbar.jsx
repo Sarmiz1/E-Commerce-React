@@ -10,7 +10,7 @@ import { useAuthStore } from '../../../Store/useAuthStore';
 export default function DashTopbar() {
   const { colors, isDark, toggle } = useTheme();
   const { setMobileSidebarOpen, activePage, setActivePage, notifications, wallet, profile, unreadCount } = useDashboard();
-  const { user, logout } = useAuthStore();
+  const { user, signOut } = useAuthStore();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -115,7 +115,7 @@ export default function DashTopbar() {
                       setActivePage('settings');
                       setProfileOpen(false);
                     } else if (label === 'Logout') {
-                      logout();
+                      signOut();
                     }
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80" 

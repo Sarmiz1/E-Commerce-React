@@ -110,7 +110,7 @@ export default function DashSidebar() {
             {!sidebarCollapsed && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 min-w-0">
                 <p className="text-sm font-bold truncate" style={{ color: colors.text.primary }}>{displayStoreName}</p>
-                <p className="text-[11px] truncate" style={{ color: colors.text.tertiary }}>Pro Seller · {displayEmail}</p>
+                <p className="text-[11px] truncate capitalize" style={{ color: colors.text.tertiary }}>{profile?.subscriptionPlan || 'Starter'} Seller · {displayEmail}</p>
               </motion.div>
             )}
           </AnimatePresence>

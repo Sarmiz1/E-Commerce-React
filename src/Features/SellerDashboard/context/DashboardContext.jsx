@@ -7,7 +7,11 @@ import {
   useDeleteProduct,
   useSaveSettings,
   useRequestWithdrawal,
-  useMarkNotificationsRead
+  useMarkNotificationsRead,
+  useAddProduct,
+  useUpdateSubscription,
+  useUpdateMarketing,
+  useReplyReview
 } from '../hooks/useSellerQueries';
 
 const DashboardContext = createContext(null);
@@ -90,6 +94,10 @@ export function DashboardProvider({ children }) {
   const saveSettingsMut          = useSaveSettings();
   const requestWithdrawalMut     = useRequestWithdrawal();
   const markNotificationsReadMut = useMarkNotificationsRead();
+  const addProductMut            = useAddProduct();
+  const updateSubscriptionMut    = useUpdateSubscription();
+  const updateMarketingMut       = useUpdateMarketing();
+  const replyReviewMut           = useReplyReview();
 
   const value = {
     // UI
@@ -116,6 +124,10 @@ export function DashboardProvider({ children }) {
     saveSettings: (settings) => saveSettingsMut.mutateAsync(settings),
     requestWithdrawal: (amount, fee, desc) => requestWithdrawalMut.mutateAsync({ amountCents: amount, feeCents: fee, description: desc }),
     markAllNotifsRead: () => markNotificationsReadMut.mutateAsync(),
+    addProduct: (productData) => addProductMut.mutateAsync(productData),
+    updateSubscription: (planId) => updateSubscriptionMut.mutateAsync(planId),
+    updateMarketing: (marketingData) => updateMarketingMut.mutateAsync(marketingData),
+    replyReview: (reviewId, replyText) => replyReviewMut.mutateAsync({ reviewId, replyText }),
   };
 
   return (

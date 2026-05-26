@@ -47,7 +47,7 @@ function BalanceCard({ label, value, sub, accent = false, icon, delay = 0 }) {
 
 export default function DashWallet() {
   const { colors, isDark } = useTheme();
-  const { wallet, profile, setActivePage } = useDashboard();
+  const { wallet, profile, setActivePage, requestWithdrawal } = useDashboard();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [filter, setFilter] = useState('all');
 
@@ -60,9 +60,12 @@ export default function DashWallet() {
   const totalEarnings = wallet?.totalEarned || 0;
   const totalWithdrawn = wallet?.totalWithdrawn || 0;
 
-  const handleWithdraw = (amount, fee, net) => {
-    // In production, this would call the API
-    console.log(`Withdrawal: ₦${amount}, Fee: ₦${fee}, Net: ₦${net}`);
+  const handleWithdraw = async (amount, fee, net) => {
+    try {
+      await requestWithdrawal(amount, fee, 'Bank withdrawal');
+    } catch (e) {
+      console.error('Withdrawal failed', e);
+    }
   };
 
   return (

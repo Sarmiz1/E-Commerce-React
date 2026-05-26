@@ -35,7 +35,7 @@ function StarRating({ rating, interactive = false, onRate }) {
 
 export default function DashReviews() {
   const { colors, isDark } = useTheme();
-  const { reviews: liveReviews, updateReviewStatus } = useDashboard();
+  const { reviews: liveReviews, updateReviewStatus, replyReview } = useDashboard();
   const [localReviews, setLocalReviews] = useState(null);
   const [replyText, setReplyText] = useState({});
   const [replyOpen, setReplyOpen] = useState({});
@@ -51,10 +51,14 @@ export default function DashReviews() {
 
   const submitReply = useCallback(async (id) => {
     if (!replyText[id]?.trim()) return;
-    await new Promise(r => setTimeout(r, 600));
-    setSubmitted(s => ({ ...s, [id]: true }));
-    setReplyOpen(o => ({ ...o, [id]: false }));
-  }, [replyText]);
+    try {
+      await replyReview(id, replyText[id]);
+      setSubmitted(s => ({ ...s, [id]: true }));
+      setReplyOpen(o => ({ ...o, [id]: false }));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [replyText, replyReview]);
 
   if (reviews.length === 0) {
     return (

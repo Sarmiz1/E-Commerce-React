@@ -88,7 +88,7 @@ function PlanCard({ plan, currentPlan, onSelect, delay }) {
 
 export default function DashPlan() {
   const { colors, isDark } = useTheme();
-  const { profile } = useDashboard();
+  const { profile, updateSubscription } = useDashboard();
   const [currentPlan, setCurrentPlan] = useState(profile?.subscriptionPlan || 'starter');
   const [confirmModal, setConfirmModal] = useState(null);
   const [cancelModal, setCancelModal] = useState(false);
@@ -102,20 +102,30 @@ export default function DashPlan() {
 
   const confirmChange = useCallback(async () => {
     setProcessing(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setCurrentPlan(confirmModal.id);
-    setProcessing(false);
-    setSuccess(true);
-    setTimeout(() => { setConfirmModal(null); setSuccess(false); }, 2000);
-  }, [confirmModal]);
+    try {
+      await updateSubscription(confirmModal.id);
+      setCurrentPlan(confirmModal.id);
+      setSuccess(true);
+      setTimeout(() => { setConfirmModal(null); setSuccess(false); }, 2000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setProcessing(false);
+    }
+  }, [confirmModal, updateSubscription]);
 
   const confirmCancel = useCallback(async () => {
     setProcessing(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setCurrentPlan('starter');
-    setProcessing(false);
-    setCancelModal(false);
-  }, []);
+    try {
+      await updateSubscription('starter');
+      setCurrentPlan('starter');
+      setCancelModal(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setProcessing(false);
+    }
+  }, [updateSubscription]);
 
   const currentPlanData = PLANS.find(p => p.id === currentPlan);
   const renewDate = new Date(Date.now() + 30 * 86400000).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' });
