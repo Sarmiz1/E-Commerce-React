@@ -78,6 +78,7 @@ export function DashboardProvider({ children }) {
   const products = data.products || [];
   const reviews = data.reviews || [];
   const notifications = data.notifications || [];
+  const revenueChart = data.revenueChart || { '7d': [], '30d': [], '90d': [] };
   
   const analytics = data.analytics || {
     peakHours: [],
@@ -118,6 +119,7 @@ export function DashboardProvider({ children }) {
     products,
     reviews,
     notifications,
+    revenueChart,
     analytics,
     unreadCount,
     
