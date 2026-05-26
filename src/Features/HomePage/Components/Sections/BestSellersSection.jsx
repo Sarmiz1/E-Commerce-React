@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 import { CATEGORIES } from "../../Data/categories";
 import { BRANDS } from "../../Data/brands";
 import { PERKS } from "../../Data/perks";
@@ -82,7 +82,7 @@ export default function BestSellersSection({ products, isLoading }) {
                     <Stars rating={top.rating_stars || 0} />
                     <h3 className="font-black text-2xl mt-2 mb-1 leading-tight">{top.name}</h3>
                     <div className="flex items-center justify-between mt-4">
-                      <span className="font-black text-3xl">{formatMoneyCents(top.price_cents)}</span>
+                      <span className="font-black text-3xl">{formatMoneyMinor(top.price_minor)}</span>
                       <AddToCart productId={top?.id} variant="ghost" />
                     </div>
                   </div>

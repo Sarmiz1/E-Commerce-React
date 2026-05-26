@@ -8,7 +8,7 @@ import { CopyBadge } from './TrackingAtoms';
 import { StatusPanel } from './StatusPanel';
 import { FlightTimeline, ItemList, SupportForm } from './TrackingMolecules';
 import { computeETA, statusColor } from '../Utils/trackingUtils';
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 
 export function TrackingResult({ trackedOrder, updatedAt, refresh, doClear }) {
   const navigate = useNavigate();
@@ -95,7 +95,7 @@ export function TrackingResult({ trackedOrder, updatedAt, refresh, doClear }) {
                   <span className="pd-label">Items ({trackedOrder.order_items?.length ?? 0})</span>
                 </div>
                 <span style={{ fontFamily: 'var(--font-m)', fontWeight: 700, fontSize: 13, color: 'var(--amber)' }}>
-                  {formatMoneyCents(trackedOrder.total_cents ?? 0)}
+                  {formatMoneyMinor(trackedOrder.total_minor ?? 0)}
                 </span>
               </div>
               <ItemList items={trackedOrder.order_items} />

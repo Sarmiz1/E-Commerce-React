@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAllProducts } from "../hooks/product/useProducts"; 
 import { useTheme } from "../Store/useThemeStore"; 
-import { formatMoneyCents } from "../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../utils/FormatMoneyMinor";
 
 export default function GlobalCommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -101,7 +101,7 @@ export default function GlobalCommandPalette() {
                         <h4 className="font-bold text-sm" style={{ color: colors.text.primary }}>{p.name}</h4>
                         <div className="flex items-center gap-3 mt-1">
                           <p className="text-[10px] uppercase font-bold tracking-widest" style={{ color: colors.text.tertiary }}>{p.category || 'Clothing'}</p>
-                          <p className="text-xs font-black" style={{ color: colors.brand.primary || colors.text.primary }}>{formatMoneyCents(p.price_cents)}</p>
+                          <p className="text-xs font-black" style={{ color: colors.brand.primary || colors.text.primary }}>{formatMoneyMinor(p.price_minor)}</p>
                         </div>
                       </div>
                       <span className="text-xs font-bold opacity-30 px-4">↵</span>

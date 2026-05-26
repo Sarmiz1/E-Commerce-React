@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import {
   getOrderItemImage,
   getOrderItemName,
@@ -70,7 +70,7 @@ export default function OrderDrawerItems({ order }) {
               </p>
             </div>
             <p className="font-black text-gray-900 dark:text-white text-sm flex-shrink-0">
-              {formatMoneyCents(getOrderItemTotalCents(item))}
+              {formatMoneyMinor(getOrderItemTotalCents(item))}
             </p>
           </motion.div>
         );

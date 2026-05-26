@@ -132,7 +132,7 @@ async function populateProducts(sellers, catMap) {
       brand: faker.company.name(),
       short_description: faker.commerce.productDescription(),
       full_description: faker.lorem.paragraphs(2),
-      price_cents: Math.floor(Math.random() * 20000) + 1000,
+      price_minor: Math.floor(Math.random() * 20000) + 1000,
       keywords: [faker.commerce.productAdjective(), faker.commerce.department()],
       image: `https://picsum.photos/seed/prod_${i}/600/600`,
       rating_stars: (Math.random() * 2 + 3).toFixed(1),
@@ -142,7 +142,7 @@ async function populateProducts(sellers, catMap) {
 
   const createdProducts = [];
   for (let i = 0; i < products.length; i += BATCH_SIZE) {
-    const { data, error } = await supabase.from("products").insert(products.slice(i, i + BATCH_SIZE)).select("id, name, price_cents");
+    const { data, error } = await supabase.from("products").insert(products.slice(i, i + BATCH_SIZE)).select("id, name, price_minor");
     if (error) {
         console.error("Product Error:", error.message);
         continue;
@@ -161,7 +161,7 @@ async function populateProducts(sellers, catMap) {
         sku: `SKU-${p.id.slice(0,5)}-${v}-${faker.string.alphanumeric(3)}`,
         color: faker.color.human(),
         size: ["S", "M", "L", "XL"][Math.floor(Math.random() * 4)],
-        price_cents: p.price_cents,
+        price_minor: p.price_minor,
         stock_quantity: 50
       });
     }
@@ -183,7 +183,7 @@ async function populateProducts(sellers, catMap) {
     if (error) console.error("Image Error:", error.message);
   }
 
-  const { data: vData } = await supabase.from("product_variants").select("id, product_id, price_cents");
+  const { data: vData } = await supabase.from("product_variants").select("id, product_id, price_minor");
   return { products: createdProducts, variants: vData || [] };
 }
 
@@ -205,7 +205,7 @@ async function populateCommerce(buyers, products, variants) {
       user_id: buyer.id,
       status: "delivered",
       payment_status: "paid",
-      total_cents: 5000
+      total_minor: 5000
     });
 
     const v = variants[Math.floor(Math.random() * variants.length)];
@@ -214,9 +214,9 @@ async function populateCommerce(buyers, products, variants) {
       product_id: v.product_id,
       variant_id: v.id,
       product_name: faker.commerce.productName(),
-      price_cents: v.price_cents,
+      price_minor: v.price_minor,
       quantity: 1,
-      total_cents: v.price_cents
+      total_minor: v.price_minor
     });
 
     reviews.push({

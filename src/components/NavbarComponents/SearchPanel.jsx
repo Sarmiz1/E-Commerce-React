@@ -218,7 +218,7 @@ function SearchResults({ query, results, loading, error, focusedIdx, popularSear
                     {product.keywords?.length > 0 && <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">{product.keywords.slice(0, 3).join(" - ")}</p>}
                   </div>
 
-                  <p className="font-black text-gray-900 text-sm flex-shrink-0">{formatMoney(product.priceCents)}</p>
+                  <p className="font-black text-gray-900 text-sm flex-shrink-0">{formatMoney(product.priceMinor)}</p>
                   <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 transition-colors opacity-0 group-hover:opacity-100" />
                 </Motion.button>
               ))}

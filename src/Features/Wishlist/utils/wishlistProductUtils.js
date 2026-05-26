@@ -33,11 +33,11 @@ export function sortWishlistProducts(products, sortBy) {
   }
 
   if (sortBy === "price-low") {
-    sorted.sort((a, b) => (a?.price_cents || 0) - (b?.price_cents || 0));
+    sorted.sort((a, b) => (a?.price_minor || 0) - (b?.price_minor || 0));
   }
 
   if (sortBy === "price-high") {
-    sorted.sort((a, b) => (b?.price_cents || 0) - (a?.price_cents || 0));
+    sorted.sort((a, b) => (b?.price_minor || 0) - (a?.price_minor || 0));
   }
 
   if (sortBy === "rating") {

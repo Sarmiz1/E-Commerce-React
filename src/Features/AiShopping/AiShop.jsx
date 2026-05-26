@@ -46,7 +46,7 @@ export default function AiShop() {
        query = query.ilike('name', `%${params.keywords[0]}%`);
     }
     if (params.maxPrice) {
-       query = query.lte('price_cents', params.maxPrice);
+       query = query.lte('price_minor', params.maxPrice);
     }
     if (params.category) {
        query = query.ilike('name', `%${params.category}%`);
@@ -492,12 +492,12 @@ export default function AiShop() {
 
               {products.map((p, i) => (
                 <div key={p.id} className="border border-gray-200 rounded-[20px] overflow-hidden hover:shadow-lg transition-all bg-white flex flex-col relative group">
-                  {p.sale_price_cents && (
+                  {p.sale_price_minor && (
                     <div className="absolute top-3 left-3 bg-[#EE4545] text-white text-[10px] font-bold px-2.5 py-1 rounded-md z-10">
                       Sale
                     </div>
                   )}
-                  {i === 2 && !p.sale_price_cents && (
+                  {i === 2 && !p.sale_price_minor && (
                     <div className="absolute top-3 left-3 bg-[#0DA56E] text-white text-[10px] font-bold px-2.5 py-1 rounded-md z-10">
                       New
                     </div>
@@ -516,8 +516,8 @@ export default function AiShop() {
                   <div className="p-4 flex flex-col flex-1">
                     <h3 className="font-bold text-[15px] leading-tight mb-2 text-gray-900 line-clamp-2" title={p.name}>{p.name}</h3>
                     <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-[#5636F3] font-bold text-lg">₦{p.price_cents?.toLocaleString()}</span>
-                      {p.sale_price_cents && <span className="text-gray-400 text-[13px] font-medium line-through">₦{p.sale_price_cents?.toLocaleString()}</span>}
+                      <span className="text-[#5636F3] font-bold text-lg">₦{p.price_minor?.toLocaleString()}</span>
+                      {p.sale_price_minor && <span className="text-gray-400 text-[13px] font-medium line-through">₦{p.sale_price_minor?.toLocaleString()}</span>}
                     </div>
                     <div className="flex items-center gap-1.5 mb-2">
                       <span className="text-[#FBBF24] text-[15px]">★</span>

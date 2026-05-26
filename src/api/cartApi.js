@@ -7,7 +7,7 @@ const RECOMMENDATION_PRODUCT_SELECT = `
   id,
   name,
   slug,
-  price_cents,
+  price_minor,
   category_id,
   brand,
   keywords,
@@ -79,7 +79,7 @@ const logScore = (value = 0, weight = 1) => Math.log(Number(value) + 1) * weight
 
 const getAveragePrice = (products = []) => {
   const prices = products
-    .map((product) => Number(product?.price_cents))
+    .map((product) => Number(product?.price_minor))
     .filter((price) => Number.isFinite(price) && price > 0);
 
   if (!prices.length) return null;
@@ -89,7 +89,7 @@ const getAveragePrice = (products = []) => {
 const getPriceAffinityScore = (product, averagePrice) => {
   if (!averagePrice) return 0;
 
-  const price = Number(product?.price_cents);
+  const price = Number(product?.price_minor);
   if (!Number.isFinite(price) || price <= 0) return 0;
 
   const distance = Math.abs(price - averagePrice) / averagePrice;
@@ -382,7 +382,7 @@ export const CartAPI = {
         id,
         color,
         size,
-        price_cents,
+        price_minor,
         stock_quantity,
 
         products!product_variants_product_id_fkey (
@@ -390,7 +390,7 @@ export const CartAPI = {
           name,
           slug,
           image,
-          price_cents,
+          price_minor,
           rating_stars,
           rating_count
         )
@@ -402,15 +402,15 @@ export const CartAPI = {
 
     // 3. ═══ NORMALIZE ═══
     // Flatten the nested Supabase joins into a shape every consumer expects:
-    //   item.products  → { id, name, slug, image, price_cents, ... }
-    //   item.variant   → { id, color, size, price_cents }
+    //   item.products  → { id, name, slug, image, price_minor, ... }
+    //   item.variant   → { id, color, size, price_minor }
     //   item.name      → shortcut
     //   item.image     → shortcut
-    //   item.price     → shortcut (variant price_cents)
+    //   item.price     → shortcut (variant price_minor)
     const normalized = (items || []).map((row) => {
       const variant = row.product_variants || {};
       const product = variant.products || {};
-      const unitPriceCents = variant.price_cents ?? product.price_cents ?? 0;
+      const unitPriceMinor = variant.price_minor ?? product.price_minor ?? 0;
       const quantity = Math.max(Number(row.quantity) || 1, 1);
 
       return {
@@ -419,8 +419,8 @@ export const CartAPI = {
         quantity,
         variant_id: row.variant_id,
         product_id: row.product_id,
-        unit_price_cents: unitPriceCents,
-        line_total_cents: unitPriceCents * quantity,
+        unit_price_minor: unitPriceMinor,
+        line_total_minor: unitPriceMinor * quantity,
 
         // ─ nested objects (for CartPage / CartRow) ─
         products: {
@@ -428,7 +428,7 @@ export const CartAPI = {
           name: product.name,
           slug: product.slug,
           image: product.image,
-          price_cents: unitPriceCents,
+          price_minor: unitPriceMinor,
           rating_stars: product.rating_stars,
           rating_count: product.rating_count,
         },
@@ -436,7 +436,7 @@ export const CartAPI = {
           id: variant.id,
           color: variant.color,
           size: variant.size,
-          price_cents: variant.price_cents,
+          price_minor: variant.price_minor,
           stock_quantity: variant.stock_quantity,
         },
 
@@ -444,7 +444,7 @@ export const CartAPI = {
         name: product.name,
         image: product.image,
         thumbnail: product.image,
-        price: unitPriceCents,
+        price: unitPriceMinor,
       };
     });
 
@@ -499,8 +499,8 @@ export const CartAPI = {
       const { data, error } = await supabase
         .from("product_variants")
         .select(`
-          id, color, size, price_cents, stock_quantity,
-          products!product_variants_product_id_fkey ( id, name, slug, image, price_cents, rating_stars, rating_count )
+          id, color, size, price_minor, stock_quantity,
+          products!product_variants_product_id_fkey ( id, name, slug, image, price_minor, rating_stars, rating_count )
         `)
         .in("id", variantIds);
       if (error) throw error;
@@ -511,7 +511,7 @@ export const CartAPI = {
     if (productIds.length > 0) {
       const { data, error } = await supabase
         .from("products")
-        .select(`id, name, slug, image, price_cents, rating_stars, rating_count`)
+        .select(`id, name, slug, image, price_minor, rating_stars, rating_count`)
         .in("id", productIds);
       if (error) throw error;
       productsData = data;
@@ -527,7 +527,7 @@ export const CartAPI = {
       } else if (item.product_id) {
         product = productsData.find((d) => d.id === item.product_id) || {};
       }
-      const unitPriceCents = v?.price_cents ?? product.price_cents ?? 0;
+      const unitPriceMinor = v?.price_minor ?? product.price_minor ?? 0;
       const quantity = Math.max(Number(item.quantity) || 1, 1);
       
       return {
@@ -535,15 +535,15 @@ export const CartAPI = {
         quantity,
         variant_id: item.variant_id,
         product_id: item.product_id,
-        unit_price_cents: unitPriceCents,
-        line_total_cents: unitPriceCents * quantity,
+        unit_price_minor: unitPriceMinor,
+        line_total_minor: unitPriceMinor * quantity,
 
         products: {
           id: product.id,
           name: product.name,
           slug: product.slug,
           image: product.image,
-          price_cents: unitPriceCents,
+          price_minor: unitPriceMinor,
           rating_stars: product.rating_stars,
           rating_count: product.rating_count,
         },
@@ -551,14 +551,14 @@ export const CartAPI = {
           id: v?.id,
           color: v?.color,
           size: v?.size,
-          price_cents: v?.price_cents,
+          price_minor: v?.price_minor,
           stock_quantity: v?.stock_quantity,
         },
 
         name: product.name,
         image: product.image,
         thumbnail: product.image,
-        price: unitPriceCents,
+        price: unitPriceMinor,
       };
     });
 

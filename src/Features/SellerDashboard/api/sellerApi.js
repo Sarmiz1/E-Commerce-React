@@ -1,4 +1,5 @@
 import { supabase } from '../../../lib/supabaseClient';
+import { nairaToMinor } from '../../../Utils/currency';
 
 // ── helper: upload a file to Supabase Storage ─────────────────────────────────
 async function uploadImage(file, folder = 'products') {
@@ -31,6 +32,16 @@ export const sellerApi = {
       p_seller_id: sellerId
     });
 
+    if (error) throw error;
+    return data;
+  },
+
+  getProduct: async (productId) => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, product_variants(*), product_images(*)')
+      .eq('id', productId)
+      .single();
     if (error) throw error;
     return data;
   },
@@ -87,15 +98,15 @@ export const sellerApi = {
     return true;
   },
 
-  requestWithdrawal: async (sellerId, amountCents, feeCents, description) => {
+  requestWithdrawal: async (sellerId, amountMinor, feeCents, description) => {
     const { data, error } = await supabase
       .from('seller_wallet')
       .insert([{
         seller_id: sellerId,
         type: 'payout',
-        amount_cents: -amountCents,
+        amount_minor: -amountMinor,
         fee_cents: feeCents,
-        net_cents: -(amountCents - feeCents),
+        net_cents: -(amountMinor - feeCents),
         status: 'pending',
         description: description
       }])
@@ -155,9 +166,9 @@ export const sellerApi = {
         brand: productData.brand || null,
         short_description: productData.shortDescription || null,
         full_description: productData.fullDescription || null,
-        price_cents: Math.round((productData.price || 0) * 100),
-        sale_price_cents: productData.sale_price
-          ? Math.round(Number(productData.sale_price) * 100)
+        price_minor: nairaToMinor(productData.price),
+        sale_price_minor: productData.sale_price
+          ? nairaToMinor(productData.sale_price)
           : null,
         currency: productData.currency || 'NGN',
         keywords: keywordsArray,
@@ -200,15 +211,84 @@ export const sellerApi = {
         color: v.color || null,
         size: v.size || null,
         // variant can override the base price, otherwise inherit it
-        price_cents: v.price_override
-          ? Math.round(Number(v.price_override) * 100)
-          : Math.round((productData.price || 0) * 100),
+        price_minor: v.price_override
+          ? nairaToMinor(v.price_override)
+          : nairaToMinor(productData.price),
         stock_quantity: v.stock || 0,
       }));
 
       const { error: vErr } = await supabase
         .from('product_variants')
         .insert(variantRows);
+      if (vErr) throw vErr;
+    }
+
+    return product;
+  },
+
+  updateProduct: async (productId, productData) => {
+    // 1. Resolve category_id from name
+    const { data: catData } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('name', productData.category)
+      .single();
+
+    // 2. Upload thumbnail if new
+    let thumbnailUrl = productData.image; // Keep existing if not provided
+    if (productData.thumbnailFile && productData.thumbnailFile instanceof File) {
+      thumbnailUrl = await uploadImage(productData.thumbnailFile, 'thumbnails');
+    }
+
+    const featuresArray = productData.features
+      ? (typeof productData.features === 'string' ? productData.features.split(',').map((f) => f.trim()).filter(Boolean) : productData.features)
+      : [];
+
+    const keywordsArray = productData.keywords
+      ? (typeof productData.keywords === 'string' ? productData.keywords.split(',').map((k) => k.trim()).filter(Boolean) : productData.keywords)
+      : [];
+
+    // 5. Update the product row
+    const { data: product, error: pErr } = await supabase
+      .from('products')
+      .update({
+        category_id: catData?.id ?? null,
+        name: productData.name,
+        brand: productData.brand || null,
+        short_description: productData.shortDescription || null,
+        full_description: productData.fullDescription || null,
+        price_minor: nairaToMinor(productData.price),
+        sale_price_minor: productData.sale_price
+          ? nairaToMinor(productData.sale_price)
+          : null,
+        currency: productData.currency || 'NGN',
+        keywords: keywordsArray,
+        features: featuresArray,
+        is_featured: productData.is_featured || false,
+        image: thumbnailUrl || '',
+      })
+      .eq('id', productId)
+      .select()
+      .single();
+
+    if (pErr) throw pErr;
+
+    // We skip updating additional gallery images and variants in this basic implementation for brevity,
+    // or we'd delete them and recreate. Let's just recreate variants if provided:
+    const variants = productData.variants || [];
+    if (variants.length > 0) {
+      await supabase.from('product_variants').delete().eq('product_id', productId);
+      const variantRows = variants.map((v, idx) => ({
+        product_id: product.id,
+        sku: v.sku || `SKU-${product.id.slice(0, 8).toUpperCase()}-${idx + 1}`,
+        color: v.color || null,
+        size: v.size || null,
+        price_minor: v.price_override
+          ? nairaToMinor(v.price_override)
+          : nairaToMinor(productData.price),
+        stock_quantity: v.stock || 0,
+      }));
+      const { error: vErr } = await supabase.from('product_variants').insert(variantRows);
       if (vErr) throw vErr;
     }
 

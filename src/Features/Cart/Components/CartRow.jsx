@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { Ic, Spinner } from "./CartConstants";
 import { getCartItemLineTotalCents, getCartItemUnitPriceCents } from "../Utils/cartItemUtils";
 
@@ -114,7 +114,7 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
             )}
 
             <p className="text-indigo-600 dark:text-indigo-400 font-black text-base mt-2">
-              {formatMoneyCents(price)}
+              {formatMoneyMinor(price)}
               <span className="text-gray-400 dark:text-neutral-500 text-xs font-normal ml-1">each</span>
             </p>
 
@@ -151,7 +151,7 @@ export function CartRow({ item, index, onQtyChange, onRemove, onSaveLater, pendi
           </div>
 
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            <p className="font-black text-gray-900 dark:text-white text-sm sm:text-base">{formatMoneyCents(lineTotal)}</p>
+            <p className="font-black text-gray-900 dark:text-white text-sm sm:text-base">{formatMoneyMinor(lineTotal)}</p>
             <motion.button
               whileHover={{ scale: 1.12, color: "#ef4444" }}
               whileTap={{ scale: 0.9 }}

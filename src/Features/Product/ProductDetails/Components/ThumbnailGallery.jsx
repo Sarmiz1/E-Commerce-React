@@ -221,7 +221,7 @@ export function ThumbnailGallery({ product, imageRef }) {
               {product?.created_at && (renderedAt - new Date(product.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000 && (
                 <span className="pd-chip px-3 py-1.5 rounded-full text-white" style={{ background: "rgba(10,10,11,0.7)", backdropFilter: "blur(8px)", border: "1px solid var(--gold)", color: "var(--gold-light)" }}>Nouveau</span>
               )}
-              {product.price_cents < 2000 && (
+              {product.price_minor < 2000 && (
                 <span className="pd-chip px-3 py-1.5 rounded-full" style={{ background: "rgba(10,10,11,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(244,63,94,0.5)", color: "#f87171" }}>Sale</span>
               )}
             </div>

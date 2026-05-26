@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import WishlistHeart from "../../../components/Ui/WishlistHeart";
 
 export default function InlineAd({ product, type }) {
@@ -93,10 +93,10 @@ export default function InlineAd({ product, type }) {
             <div className="relative z-10 flex items-center gap-4 pr-6 py-4">
               <div className="text-right">
                 <p className="font-black text-xl text-white">
-                  {formatMoneyCents(product.price_cents)}
+                  {formatMoneyMinor(product.price_minor)}
                 </p>
                 <p className="text-[11px] line-through opacity-40 text-white">
-                  {formatMoneyCents(Math.round(product.price_cents * 1.6))}
+                  {formatMoneyMinor(Math.round(product.price_minor * 1.6))}
                 </p>
               </div>
               <motion.span
@@ -195,13 +195,13 @@ export default function InlineAd({ product, type }) {
                 className="font-black text-xl"
                 style={{ color: colors.brand.gold }}
               >
-                {formatMoneyCents(product.price_cents)}
+                {formatMoneyMinor(product.price_minor)}
               </p>
               <p
                 className="text-[11px] line-through"
                 style={{ color: colors.text.tertiary }}
               >
-                {formatMoneyCents(Math.round(product.price_cents * 1.4))}
+                {formatMoneyMinor(Math.round(product.price_minor * 1.4))}
               </p>
             </div>
             <motion.span

@@ -1,90 +1,10 @@
--- ==============================================================================
--- 1. CREATE CORE SELLER DASHBOARD TABLES
--- ==============================================================================
+import fs from 'fs';
+import path from 'path';
 
--- Core Profile Extension for Sellers
-CREATE TABLE IF NOT EXISTS seller_profiles (
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE PRIMARY KEY,
-  store_name TEXT,
-  store_description TEXT,
-  business_email TEXT,
-  business_phone TEXT,
-  bank_name TEXT,
-  account_number TEXT,
-  account_name TEXT,
-  notif_new_orders BOOLEAN DEFAULT true,
-  notif_low_stock BOOLEAN DEFAULT true,
-  notif_payouts BOOLEAN DEFAULT true,
-  notif_reviews BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
+const sqlPath = path.join(process.cwd(), 'cents_to_minor_migration.sql');
 
--- Seller Wallet
-CREATE TABLE IF NOT EXISTS seller_wallet (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  seller_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('payout', 'sale', 'refund', 'fee')),
-  amount_cents INTEGER NOT NULL, -- Positive for sale/refund (income), negative for payout/fee
-  fee_cents INTEGER DEFAULT 0,
-  net_cents INTEGER NOT NULL,
-  status TEXT DEFAULT 'pending', -- pending, completed, failed
-  description TEXT,
-  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
-
--- Seller Notifications
-CREATE TABLE IF NOT EXISTS seller_notifications (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  seller_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  text TEXT,
-  type TEXT CHECK (type IN ('order', 'stock', 'payout', 'review', 'system')),
-  unread BOOLEAN DEFAULT true,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
-);
-
--- ==============================================================================
--- 2. PERMISSIONS & RLS
--- ==============================================================================
-
-GRANT ALL ON TABLE seller_profiles TO authenticated;
-GRANT ALL ON TABLE seller_wallet TO authenticated;
-GRANT ALL ON TABLE seller_notifications TO authenticated;
-
-ALTER TABLE seller_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE seller_wallet ENABLE ROW LEVEL SECURITY;
-ALTER TABLE seller_notifications ENABLE ROW LEVEL SECURITY;
-
--- Profiles
-DROP POLICY IF EXISTS "Sellers can view own profile" ON seller_profiles;
-CREATE POLICY "Sellers can view own profile" ON seller_profiles FOR SELECT USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Sellers can update own profile" ON seller_profiles;
-CREATE POLICY "Sellers can update own profile" ON seller_profiles FOR UPDATE USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Sellers can insert own profile" ON seller_profiles;
-CREATE POLICY "Sellers can insert own profile" ON seller_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Wallet
-DROP POLICY IF EXISTS "Sellers can view own wallet" ON seller_wallet;
-CREATE POLICY "Sellers can view own wallet" ON seller_wallet FOR SELECT USING (auth.uid() = seller_id);
-
-DROP POLICY IF EXISTS "Sellers can insert payout requests" ON seller_wallet;
-CREATE POLICY "Sellers can insert payout requests" ON seller_wallet FOR INSERT WITH CHECK (auth.uid() = seller_id AND type = 'payout');
-
--- Notifications
-DROP POLICY IF EXISTS "Sellers can view own notifs" ON seller_notifications;
-CREATE POLICY "Sellers can view own notifs" ON seller_notifications FOR SELECT USING (auth.uid() = seller_id);
-
-DROP POLICY IF EXISTS "Sellers can update own notifs" ON seller_notifications;
-CREATE POLICY "Sellers can update own notifs" ON seller_notifications FOR UPDATE USING (auth.uid() = seller_id);
-
-
--- ==============================================================================
--- 3. AGGREGATION RPC ENDPOINT (BFF PATTERN)
--- ==============================================================================
-
+const sqlToAppend = `
+-- Re-create get_seller_dashboard RPC with minor instead of cents
 CREATE OR REPLACE FUNCTION get_seller_dashboard(p_seller_id UUID)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -121,27 +41,7 @@ BEGIN
     -- 2. Stats
     'stats', (
       SELECT json_build_object(
-        -- Total revenue = SUM of (price_cents × quantity) for all non-cancelled orders.
-        -- This is the gross seller revenue in kobo (minor units). Divide by 100 on the frontend.
-        'revenue', (
-          SELECT COALESCE(SUM(oi.total_cents), 0)
-          FROM order_items oi
-          JOIN products prod ON prod.id = oi.product_id
-          JOIN orders o ON o.id = oi.order_id
-          WHERE prod.seller_id = p_seller_id
-            AND o.status != 'cancelled'
-        ),
-        -- Total units sold = SUM of quantities across all non-cancelled order items.
-        -- This is what the seller should compare against to verify revenue:
-        --   productsSold × avg_price_cents / 100 = revenue (in naira)
-        'productsSold', (
-          SELECT COALESCE(SUM(oi.quantity), 0)
-          FROM order_items oi
-          JOIN products prod ON prod.id = oi.product_id
-          JOIN orders o ON o.id = oi.order_id
-          WHERE prod.seller_id = p_seller_id
-            AND o.status != 'cancelled'
-        ),
+        'revenue', (SELECT COALESCE(SUM(oi.total_minor), 0) FROM order_items oi JOIN products prod ON prod.id = oi.product_id JOIN orders o ON o.id = oi.order_id WHERE prod.seller_id = p_seller_id AND o.status != 'cancelled'),
         'totalOrders', (SELECT COUNT(DISTINCT o.id) FROM order_items oi JOIN products prod ON prod.id = oi.product_id JOIN orders o ON o.id = oi.order_id WHERE prod.seller_id = p_seller_id),
         'ordersToday', (SELECT COUNT(DISTINCT o.id) FROM order_items oi JOIN products prod ON prod.id = oi.product_id JOIN orders o ON o.id = oi.order_id WHERE prod.seller_id = p_seller_id AND o.created_at >= current_date),
         'activeProducts', (SELECT COUNT(*) FROM products WHERE seller_id = p_seller_id AND is_active = true),
@@ -153,18 +53,18 @@ BEGIN
     -- 3. Wallet
     'wallet', (
       SELECT json_build_object(
-        'balance', COALESCE(SUM(amount_cents) FILTER (WHERE status = 'completed'), 0),
-        'pendingPayout', ABS(COALESCE(SUM(amount_cents) FILTER (WHERE status = 'pending' AND type = 'payout'), 0)),
-        'totalEarned', COALESCE(SUM(amount_cents) FILTER (WHERE type = 'sale' AND status = 'completed'), 0),
-        'totalWithdrawn', ABS(COALESCE(SUM(amount_cents) FILTER (WHERE type = 'payout' AND status = 'completed'), 0)),
+        'balance', COALESCE(SUM(amount_minor) FILTER (WHERE status = 'completed'), 0),
+        'pendingPayout', ABS(COALESCE(SUM(amount_minor) FILTER (WHERE status = 'pending' AND type = 'payout'), 0)),
+        'totalEarned', COALESCE(SUM(amount_minor) FILTER (WHERE type = 'sale' AND status = 'completed'), 0),
+        'totalWithdrawn', ABS(COALESCE(SUM(amount_minor) FILTER (WHERE type = 'payout' AND status = 'completed'), 0)),
         'transactions', (
           SELECT COALESCE(json_agg(
             json_build_object(
               'id', t.id,
               'type', t.type,
-              'amount', t.amount_cents,
-              'fee', COALESCE((t.metadata->>'fee_cents')::int, 0),
-              'net', t.amount_cents - COALESCE((t.metadata->>'fee_cents')::int, 0),
+              'amount', t.amount_minor,
+              'fee', COALESCE((t.metadata->>'fee_minor')::int, 0),
+              'net', t.amount_minor - COALESCE((t.metadata->>'fee_minor')::int, 0),
               'status', t.status,
               'date', t.created_at,
               'reference', t.provider_reference,
@@ -197,12 +97,12 @@ BEGIN
           prof.full_name AS customer_name,
           o.status, 
           o.created_at,
-          SUM(oi.total_cents) AS order_total,
+          SUM(oi.total_minor) AS order_total,
           json_agg(json_build_object(
             'id', oi.id,
             'name', oi.product_name,
             'qty', oi.quantity,
-            'price', oi.price_cents
+            'price', oi.price_minor
           )) AS items
         FROM orders o
         JOIN profiles prof ON prof.id = o.user_id
@@ -222,7 +122,7 @@ BEGIN
           'id', p.id,
           'name', p.name,
           'image', p.image,
-          'price', p.price_cents,
+          'price', p.price_minor,
           'stock', COALESCE((SELECT SUM(stock_quantity) FROM product_variants pv WHERE pv.product_id = p.id), 0),
           'sales', COALESCE((SELECT SUM(quantity) FROM order_items oi WHERE oi.product_id = p.id), 0),
           'rating', p.rating_stars,
@@ -284,8 +184,8 @@ BEGIN
         'categoryRevenue', (
           SELECT COALESCE(json_agg(json_build_object('label', cr.label, 'value', cr.value, 'pct', cr.pct)), '[]'::json)
           FROM (
-            SELECT c.name AS label, SUM(oi.total_cents) AS value,
-                   ROUND(SUM(oi.total_cents) * 100.0 / NULLIF(SUM(SUM(oi.total_cents)) OVER (), 0)) AS pct
+            SELECT c.name AS label, SUM(oi.total_minor) AS value,
+                   ROUND(SUM(oi.total_minor) * 100.0 / NULLIF(SUM(SUM(oi.total_minor)) OVER (), 0)) AS pct
             FROM order_items oi
             JOIN products p ON p.id = oi.product_id
             LEFT JOIN categories c ON c.id = p.category_id
@@ -305,7 +205,7 @@ BEGIN
         'metrics', (
           SELECT json_build_array(
             json_build_object('label', 'Conversion Rate', 'value', '3.2%', 'change', '+0.4%', 'icon', 'percent'),
-            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(oi.total_cents)) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
+            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(oi.total_minor)/100, 2) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
             json_build_object('label', 'Customer Return Rate', 'value', '24%', 'change', '+2%', 'icon', 'refresh'),
             json_build_object('label', 'Cart Abandonment', 'value', '68%', 'change', '-3%', 'icon', 'alert-circle')
           )
@@ -313,7 +213,7 @@ BEGIN
         'performance', (
           SELECT json_build_object(
             'bestSeller', (
-              SELECT json_build_object('name', p.name, 'sales', COALESCE(SUM(oi.quantity), 0), 'revenue', COALESCE(SUM(oi.total_cents), 0))
+              SELECT json_build_object('name', p.name, 'sales', COALESCE(SUM(oi.quantity), 0), 'revenue', COALESCE(SUM(oi.total_minor), 0))
               FROM products p
               LEFT JOIN order_items oi ON oi.product_id = p.id
               WHERE p.seller_id = p_seller_id
@@ -340,3 +240,7 @@ BEGIN
   RETURN dashboard_data;
 END;
 $$;
+`;
+
+fs.appendFileSync(sqlPath, sqlToAppend, 'utf8');
+console.log('Appended successfully');

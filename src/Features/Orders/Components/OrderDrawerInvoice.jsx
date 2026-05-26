@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { getOrderTotalCents } from "../Utils/ordersUtils";
 import { Icons } from "./OrderIcons";
 
@@ -37,9 +37,9 @@ export default function OrderDrawerInvoice({ order }) {
           Invoice Summary
         </p>
         {[
-          ["Subtotal", formatMoneyCents(subtotal)],
-          ["Shipping", shipping === 0 ? "Free" : formatMoneyCents(shipping)],
-          ...(discount > 0 ? [["Discount", `-${formatMoneyCents(discount)}`]] : []),
+          ["Subtotal", formatMoneyMinor(subtotal)],
+          ["Shipping", shipping === 0 ? "Free" : formatMoneyMinor(shipping)],
+          ...(discount > 0 ? [["Discount", `-${formatMoneyMinor(discount)}`]] : []),
         ].map(([label, value]) => (
           <div key={label} className="flex justify-between text-sm">
             <span className="text-gray-500 dark:text-gray-400">{label}</span>
@@ -50,7 +50,7 @@ export default function OrderDrawerInvoice({ order }) {
         ))}
         <div className="flex justify-between text-base font-black text-gray-900 dark:text-white pt-2 border-t border-gray-200 dark:border-white dark:border-[#0D1421]/10 mt-2">
           <span>Total</span>
-          <span className="text-indigo-700">{formatMoneyCents(getOrderTotalCents(order))}</span>
+          <span className="text-indigo-700">{formatMoneyMinor(getOrderTotalCents(order))}</span>
         </div>
       </div>
 

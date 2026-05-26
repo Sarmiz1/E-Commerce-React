@@ -73,7 +73,7 @@ export function rankProductsBySemanticQuery(products, query) {
         });
       });
 
-      if (budget && (product.price_cents || 0) <= budget) score += 10;
+      if (budget && (product.price_minor || 0) <= budget) score += 10;
       if (product.rating_stars >= 4.5) score += 3;
       if (product.rating_count >= 100) score += 2;
       if (product.seller?.is_verified_store) score += 2;

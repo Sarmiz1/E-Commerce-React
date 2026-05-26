@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 import Stars from "../../../../components/Stars";
 import FloatingOrbs from "../FloatingOrbs";
 import { useNavigate } from "react-router";
@@ -70,8 +70,8 @@ export default function DealOfTheDay({ product, isLoading }) {
             </div>
             <h2 className="hp-dotd text-4xl md:text-5xl font-black leading-tight mb-4">{product.name}</h2>
             <div className="hp-dotd flex items-baseline gap-4 mb-6">
-              <span className="text-4xl font-black text-white">{formatMoneyCents(product.price_cents)}</span>
-              <span className="text-gray-500 line-through text-xl">{formatMoneyCents(Math.round(product.price_cents * 1.4))}</span>
+              <span className="text-4xl font-black text-white">{formatMoneyMinor(product.price_minor)}</span>
+              <span className="text-gray-500 line-through text-xl">{formatMoneyMinor(Math.round(product.price_minor * 1.4))}</span>
               <span className="bg-green-500 text-white text-xs font-black px-2.5 py-1 rounded-full">−30% OFF</span>
             </div>
             <Stars rating={product.rating_stars } count={product.rating_count} />

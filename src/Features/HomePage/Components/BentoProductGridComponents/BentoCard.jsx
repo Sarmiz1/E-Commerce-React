@@ -1,6 +1,6 @@
 // Bento Card
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 import AddToCart from "../../../../components/Ui/AddToCart";
 import WishlistHeart from "../../../../components/Ui/WishlistHeart";
 import QuickView from "../../../../components/Ui/QuickView";
@@ -33,7 +33,7 @@ export const BentoCard = ({ product, className = '' }) => {
         <div className="absolute bottom-0 left-0 right-0 p-5 text-white translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
           <p className="font-bold text-sm line-clamp-1 mb-1">{product.name}</p>
           <div className="flex items-center justify-between">
-            <p className="font-black text-lg">{formatMoneyCents(product.price_cents)}</p>
+            <p className="font-black text-lg">{formatMoneyMinor(product.price_minor)}</p>
             <AddToCart productId={product.id} variant="ghost" className="max-md:[&_.cart-text]:hidden" />
           </div>
         </div>

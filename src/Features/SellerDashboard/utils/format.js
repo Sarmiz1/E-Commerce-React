@@ -1,16 +1,20 @@
 // ─── Shared utility: format Nigerian Naira ────────────────────────────────────
-export function fmt(cents) {
-  if (cents === undefined || cents === null) return '₦0';
-  const abs = Math.abs(cents);
-  const sign = cents < 0 ? '-' : '';
-  if (abs >= 1_000_000) return `${sign}₦${(abs / 1_000_000).toFixed(2)}M`;
-  if (abs >= 1_000)     return `${sign}₦${(abs / 1_000).toFixed(0)}K`;
-  return `${sign}₦${abs.toLocaleString()}`;
+// All values from the DB are in minor units (Kobo). 1 Naira = 100 Kobo.
+import { minorToNaira } from '../../../Utils/currency';
+
+export function fmt(minor) {
+  if (minor === undefined || minor === null) return '₦0';
+  const val = Math.abs(minorToNaira(minor));
+  const sign = minor < 0 ? '-' : '';
+  if (val >= 1_000_000) return `${sign}₦${(val / 1_000_000).toFixed(2)}M`;
+  if (val >= 1_000)     return `${sign}₦${(val / 1_000).toFixed(1)}K`;
+  return `${sign}₦${val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
-export function fmtFull(cents) {
-  if (!cents && cents !== 0) return '₦0';
-  return '₦' + Math.abs(cents).toLocaleString();
+export function fmtFull(minor) {
+  if (!minor && minor !== 0) return '₦0';
+  const val = Math.abs(minorToNaira(minor));
+  return '₦' + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function changeColor(change, colors) {

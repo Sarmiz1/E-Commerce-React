@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { CONFIRMATION_STEPS } from "../Utils/checkoutConstants";
 import {
   getCartItemImage,
@@ -143,7 +143,7 @@ export function SuccessScreen({ orderNumber, cart, total }) {
             Order Total
           </span>
           <span className="font-black text-indigo-700">
-            {formatMoneyCents(total)}
+            {formatMoneyMinor(total)}
           </span>
         </div>
       </div>

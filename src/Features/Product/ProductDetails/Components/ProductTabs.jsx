@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { Link } from 'react-router-dom';
-import { formatMoneyCents } from '../../../../utils/FormatMoneyCents';
+import { formatMoneyMinor } from '../../../../utils/FormatMoneyMinor';
 import { IconSpinner } from '../../../../components/Icons/IconSpinner';
 import ProductCard from '../../../../components/Ui/ProductCard';
 import { ErrorMessage } from '../../../../components/ErrorMessage';
@@ -57,7 +57,7 @@ export function ProductTabs({ product }) {
             className="pt-5" style={{ isolation: "isolate" }}>
             {[
               { label: "Product ID", value: String(product.id || "—").slice(0, 12) + "…" },
-              { label: "Price", value: formatMoneyCents(product.price_cents) },
+              { label: "Price", value: formatMoneyMinor(product.price_minor) },
               { label: "Rating", value: `${product.rating_stars ?? "—"} / 5 (${(product.rating_count ?? 0).toLocaleString()} reviews)` },
               { label: "Keywords", value: (product.keywords || []).join(", ") || "—" },
               { label: "Availability", value: "In Stock" },

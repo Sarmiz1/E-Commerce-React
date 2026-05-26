@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 import { Ic, Spinner } from './TrackingIcons';
 import { computeETA, statusColor, statusPct, MILESTONES, MILESTONE_IDX } from '../Utils/trackingUtils';
 import { StatusOrb } from './TrackingAtoms';
@@ -13,7 +13,7 @@ export function Ticker({ order }) {
       `STATUS: ${(order?.status || "").toUpperCase()}`,
       `ETA: ${computeETA(order?.status, order?.created_at)}`,
       `${order?.order_items?.length ?? 0} ITEM${(order?.order_items?.length ?? 0) !== 1 ? "S" : ""} TRACKED`,
-      `VALUE: ${formatMoneyCents(order?.total_cents ?? 0)}`,
+      `VALUE: ${formatMoneyMinor(order?.total_minor ?? 0)}`,
       `AUTO-REFRESH ACTIVE · 30s INTERVAL`,
       `24/7 SUPPORT AVAILABLE`,
     ];
@@ -160,7 +160,7 @@ export function ItemList({ items }) {
             </p>
           </div>
           <p style={{ fontFamily: "var(--font-m)", fontSize: 13, fontWeight: 600, color: "var(--text-2)", flexShrink: 0 }}>
-            {formatMoneyCents(item.total_cents)}
+            {formatMoneyMinor(item.total_minor)}
           </p>
         </motion.div>
       ))}

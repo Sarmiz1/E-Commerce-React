@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ShoppingBag, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { formatMoneyCurrency } from '../../../../utils/FormatMoneyCents';
+import { formatMoneyCurrency } from '../../../../utils/FormatMoneyMinor';
 import MagneticButton from '../../Components/MagneticButton';
 import { BUYER_HERO_COPY, BUYER_HERO_PRODUCTS } from '../Data/heroData';
 
@@ -144,7 +144,7 @@ const HeroSection = () => {
                     <img src={item.img} alt={item.title} className="w-16 h-16 object-cover rounded-xl" />
                     <div className="flex-1">
                       <h4 className="font-bold text-neutral-900 dark:text-white text-sm">{item.title}</h4>
-                      <p className="text-neutral-500 text-xs mt-1">{formatMoneyCurrency(item.priceCents).replace(".00", "")}</p>
+                      <p className="text-neutral-500 text-xs mt-1">{formatMoneyCurrency(item.priceMinor).replace(".00", "")}</p>
                     </div>
                     <button className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white mr-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
                       <ArrowRight size={14} />

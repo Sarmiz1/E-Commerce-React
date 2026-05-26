@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 import { calculateTotalPrice } from "../Utils/calculateTotalPrice";
 import { useCartActions, useCartState } from "../../../../context/cart/CartContext";
 
@@ -56,7 +56,7 @@ const CartDrawer = ({
                   {item?.product?.image && <img src={item?.product?.image} alt={item.product?.name} className="w-16 h-16 object-cover rounded-xl" />}
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-gray-900 truncate">{item?.product?.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{formatMoneyCents(item?.product?.priceCents)}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{formatMoneyMinor(item?.product?.priceMinor)}</p>
 
                     <div className="flex items-center gap-3 mt-2">
                       <button onClick={() => updateQuantity(item?.product?.id, Number(item?.quantity - 1))} className="w-7 h-7 rounded-full bg-white shadow border border-gray-200 text-sm font-bold flex items-center justify-center hover:bg-gray-100">−</button>
@@ -72,7 +72,7 @@ const CartDrawer = ({
             </div>
             {cart?.length > 0 && (
               <div className="p-6 border-t border-gray-100">
-                <div className="flex justify-between items-center mb-4"><span className="text-gray-500 font-medium">Total</span><span className="text-2xl font-black text-gray-900">{formatMoneyCents(totalPrice)}</span></div>
+                <div className="flex justify-between items-center mb-4"><span className="text-gray-500 font-medium">Total</span><span className="text-2xl font-black text-gray-900">{formatMoneyMinor(totalPrice)}</span></div>
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-500/30"
                 onClick={()=> navigate('/checkout')}
                 >Checkout →</motion.button>

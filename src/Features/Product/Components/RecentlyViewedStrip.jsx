@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { useRecentlyViewed } from "../Hooks/useRecentlyViewed";
 import WishlistHeart from "../../../components/Ui/WishlistHeart";
 
@@ -84,7 +84,7 @@ export default function RecentlyViewedStrip() {
                     {product.name}
                   </p>
                   <p className="text-[13px] font-black" style={{ color: colors.text.primary }}>
-                    {formatMoneyCents(product.price_cents)}
+                    {formatMoneyMinor(product.price_minor)}
                   </p>
                 </motion.div>
               </Link>

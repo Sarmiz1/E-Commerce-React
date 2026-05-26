@@ -79,17 +79,17 @@ export const TOOLS = [
 export async function searchProducts({ query = "", category, maxPrice, minRating, limit = 4, sortBy }) {
   let q = supabase
     .from("products")
-    .select("id, name, brand, price_cents, compare_at_price_cents, rating_stars, rating_count, image, category, slug, keywords, stock_quantity")
+    .select("id, name, brand, price_minor, compare_at_price_minor, rating_stars, rating_count, image, category, slug, keywords, stock_quantity")
     .eq("is_active", true)
     .limit(Math.min(limit, 6));
 
   if (query) q = q.or(`name.ilike.%${query}%,brand.ilike.%${query}%`);
   if (category) q = q.ilike("category", `%${category}%`);
-  if (maxPrice) q = q.lte("price_cents", maxPrice * 100);
+  if (maxPrice) q = q.lte("price_minor", maxPrice * 100);
   if (minRating) q = q.gte("rating_stars", minRating);
 
-  if (sortBy === "price_asc") q = q.order("price_cents", { ascending: true });
-  else if (sortBy === "price_desc") q = q.order("price_cents", { ascending: false });
+  if (sortBy === "price_asc") q = q.order("price_minor", { ascending: true });
+  else if (sortBy === "price_desc") q = q.order("price_minor", { ascending: false });
   else if (sortBy === "rating") q = q.order("rating_stars", { ascending: false });
   else if (sortBy === "newest") q = q.order("created_at", { ascending: false });
   else q = q.order("rating_stars", { ascending: false });
@@ -101,11 +101,11 @@ export async function searchProducts({ query = "", category, maxPrice, minRating
     id: p.id,
     name: p.name,
     brand: p.brand || "Woosho",
-    price: Math.round(p.price_cents / 100),
-    price_cents: p.price_cents,
-    originalPrice: p.compare_at_price_cents ? Math.round(p.compare_at_price_cents / 100) : null,
-    discount: p.compare_at_price_cents
-      ? Math.round((1 - p.price_cents / p.compare_at_price_cents) * 100)
+    price: Math.round(p.price_minor / 100),
+    price_minor: p.price_minor,
+    originalPrice: p.compare_at_price_minor ? Math.round(p.compare_at_price_minor / 100) : null,
+    discount: p.compare_at_price_minor
+      ? Math.round((1 - p.price_minor / p.compare_at_price_minor) * 100)
       : 0,
     rating: p.rating_stars || 4.5,
     reviews: p.rating_count || 0,

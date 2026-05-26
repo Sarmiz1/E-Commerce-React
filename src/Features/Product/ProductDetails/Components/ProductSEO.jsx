@@ -81,7 +81,7 @@ export default function ProductSEO({ product, reviews }) {
     offers: {
       "@type": "Offer",
       priceCurrency: "USD",
-      price: ((product.price_cents || 0) / 100).toFixed(2),
+      price: ((product.price_minor || 0) / 100).toFixed(2),
       availability: productAvailability,
       itemCondition: "https://schema.org/NewCondition",
       url: productUrl,

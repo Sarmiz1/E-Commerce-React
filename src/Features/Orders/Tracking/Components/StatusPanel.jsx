@@ -3,7 +3,7 @@ import React from 'react';
 import { Ic } from './TrackingIcons';
 import { computeETA, statusColor, statusPct, STATUS_CFG } from '../Utils/trackingUtils';
 import { StatusOrb, StatBlock, LiveClock } from './TrackingAtoms';
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 
 export function StatusPanel({ order, updatedAt, onRefresh }) {
   const status = order?.status;
@@ -66,7 +66,7 @@ export function StatusPanel({ order, updatedAt, onRefresh }) {
         <StatBlock label="Order ID" value={`#${(order?.id || "—").slice(0, 8).toUpperCase()}`} mono />
         <StatBlock label="Courier" value="WooSho Xpress" />
         <StatBlock label="Items" value={`${order?.order_items?.length ?? 0} item${(order?.order_items?.length ?? 0) !== 1 ? "s" : ""}`} />
-        <StatBlock label="Value" value={formatMoneyCents(order?.total_cents ?? 0)} accent />
+        <StatBlock label="Value" value={formatMoneyMinor(order?.total_minor ?? 0)} accent />
       </div>
 
       {/* Refresh / updated */}

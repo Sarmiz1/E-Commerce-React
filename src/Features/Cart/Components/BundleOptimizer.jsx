@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Ic, Spinner } from "./CartConstants";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 
 export function BundleOptimizer({ cartItems, recommendations, onAddItem }) {
   const [isAdding, setIsAdding] = useState(false);
@@ -13,7 +13,7 @@ export function BundleOptimizer({ cartItems, recommendations, onAddItem }) {
     
     // Sort by price ascending, but ensure rating is decent, to find an easy upsell (like a case, cable, or small accessory)
     const candidates = [...recommendations]
-      .filter(p => p.price_cents < 5000) // Under $50
+      .filter(p => p.price_minor < 5000) // Under $50
       .sort((a, b) => b.recommendation_score - a.recommendation_score);
 
     return candidates.length > 0 ? candidates[0] : recommendations[0];
@@ -76,7 +76,7 @@ export function BundleOptimizer({ cartItems, recommendations, onAddItem }) {
                   {bundleSuggestion.name}
                 </p>
                 <p className="text-xs font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
-                  {formatMoneyCents(bundleSuggestion.price_cents)}
+                  {formatMoneyMinor(bundleSuggestion.price_minor)}
                 </p>
               </div>
               <motion.button

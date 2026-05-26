@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { TAX_RATE } from "../Utils/checkoutConstants";
 import {
   calculateCheckoutTotals,
@@ -37,7 +37,7 @@ function SummaryItem({ item }) {
         <p className="line-clamp-1 text-xs font-semibold text-gray-700 dark:text-gray-200">{name}</p>
         <p className="text-[10px] text-gray-400 dark:text-gray-500">x{getCartItemQuantity(item)}</p>
       </div>
-      <p className="flex-shrink-0 text-xs font-black text-gray-900 dark:text-gray-100">{formatMoneyCents(getCartItemLineTotal(item))}</p>
+      <p className="flex-shrink-0 text-xs font-black text-gray-900 dark:text-gray-100">{formatMoneyMinor(getCartItemLineTotal(item))}</p>
     </div>
   );
 }
@@ -58,7 +58,7 @@ function ShippingSelector({ shippingOptions, selectedShipping, onShippingChange 
           >
             <input type="radio" name="shipping" value={option.id} checked={selectedShipping === option.id} onChange={() => onShippingChange(option.id)} className="accent-indigo-600" />
             <span className="flex-1 text-sm text-gray-700 dark:text-gray-200">{option.label}</span>
-            <span className="text-sm font-black text-gray-900 dark:text-gray-100">{option.price === 0 ? "Free" : formatMoneyCents(option.price)}</span>
+            <span className="text-sm font-black text-gray-900 dark:text-gray-100">{option.price === 0 ? "Free" : formatMoneyMinor(option.price)}</span>
           </label>
         ))}
       </div>
@@ -80,14 +80,14 @@ function PriceBreakdown({ totals, coupon }) {
         <div key={row.label} className="flex justify-between text-sm">
           <span className={`text-gray-500 dark:text-gray-400 dark:text-gray-500 ${row.style}`}>{row.label}</span>
           <span className={`font-bold ${row.style || "text-gray-900 dark:text-gray-100"}`}>
-            {row.value < 0 ? `-${formatMoneyCents(-row.value)}` : row.zero && row.value === 0 ? row.zero : formatMoneyCents(row.value)}
+            {row.value < 0 ? `-${formatMoneyMinor(-row.value)}` : row.zero && row.value === 0 ? row.zero : formatMoneyMinor(row.value)}
           </span>
         </div>
       ))}
 
       <div className="flex justify-between border-t border-gray-100 dark:border-white/10 pt-3">
         <span className="text-lg font-black text-gray-900 dark:text-gray-100">Total</span>
-        <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-2xl font-black text-transparent">{formatMoneyCents(totals.total)}</span>
+        <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-2xl font-black text-transparent">{formatMoneyMinor(totals.total)}</span>
       </div>
     </div>
   );
@@ -171,7 +171,7 @@ export function OrderSummary({ cart, coupon, shippingOptions, selectedShipping, 
             </button>
             <div className="flex-shrink-0 text-right">
               <p className="text-[10px] text-gray-400 dark:text-gray-500">Total</p>
-              <p className="text-lg font-black leading-tight text-gray-900 dark:text-gray-100">{formatMoneyCents(totals.total)}</p>
+              <p className="text-lg font-black leading-tight text-gray-900 dark:text-gray-100">{formatMoneyMinor(totals.total)}</p>
             </div>
           </div>
         </div>

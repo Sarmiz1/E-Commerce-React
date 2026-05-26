@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { STATUS_CONFIG } from "../Utils/ordersConstants";
 import {
   formatOrderDate,
@@ -95,7 +95,7 @@ export default function OrderCard({ order, index, onOpen }) {
           <div className="text-right">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Total</p>
             <p className="text-lg font-black text-gray-900 dark:text-white">
-              {formatMoneyCents(getOrderTotalCents(order))}
+              {formatMoneyMinor(getOrderTotalCents(order))}
             </p>
           </div>
         </div>

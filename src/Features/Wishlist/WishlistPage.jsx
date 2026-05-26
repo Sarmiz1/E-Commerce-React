@@ -9,7 +9,7 @@ import { useCartActions } from "../../context/cart/CartContext";
 import { useAuth } from "../../Store/useAuthStore";
 import { WishlistAPI } from "../../api/wishlistApi";
 import { trackEvent, trackEvents } from "../../api/track_events";
-import { formatMoneyCents } from "../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../utils/FormatMoneyMinor";
 import { getProductImages } from "../../utils/getProductImages";
 import AddToCart from "../../components/Ui/AddToCart";
 import ProductDetailModal from "../../components/Ui/ProductDetailModal";
@@ -53,11 +53,11 @@ function sortWishlistProducts(products, sortBy) {
   }
 
   if (sortBy === "price-low") {
-    sorted.sort((a, b) => (a?.price_cents || 0) - (b?.price_cents || 0));
+    sorted.sort((a, b) => (a?.price_minor || 0) - (b?.price_minor || 0));
   }
 
   if (sortBy === "price-high") {
-    sorted.sort((a, b) => (b?.price_cents || 0) - (a?.price_cents || 0));
+    sorted.sort((a, b) => (b?.price_minor || 0) - (a?.price_minor || 0));
   }
 
   if (sortBy === "rating") {
@@ -75,8 +75,8 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect,
   const variantId = getDefaultVariantId(product);
 
   const isLowStock = product?.stock_quantity > 0 && product?.stock_quantity <= 10;
-  const originalPrice = product?.compare_at_price_cents || product?.original_price_cents;
-  const hasPriceDrop = originalPrice ? product?.price_cents < originalPrice : false;
+  const originalPrice = product?.compare_at_price_minor || product?.original_price_minor;
+  const hasPriceDrop = originalPrice ? product?.price_minor < originalPrice : false;
 
   const isList = viewMode === "list";
 
@@ -153,11 +153,11 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect,
           </h2>
           <div className="mt-3 flex items-baseline gap-2">
             <p className="text-lg font-black tracking-tight text-slate-950 dark:text-white">
-              {formatMoneyCents(product?.price_cents)}
+              {formatMoneyMinor(product?.price_minor)}
             </p>
             {hasPriceDrop && (
               <p className="text-xs font-bold text-slate-400 dark:text-slate-500 line-through">
-                {formatMoneyCents(originalPrice)}
+                {formatMoneyMinor(originalPrice)}
               </p>
             )}
           </div>

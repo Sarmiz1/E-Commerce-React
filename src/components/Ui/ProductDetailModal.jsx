@@ -8,7 +8,7 @@ import React, {
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { useTheme } from "../../Store/useThemeStore";
-import { formatMoneyCents } from "../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../utils/FormatMoneyMinor";
 import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/Utils/constants";
 import { IconStar } from "../Icons/IconStar";
 import { IconPlus } from "../Icons/IconPlus";
@@ -126,7 +126,7 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
     [navigate, product, onClose],
   );
 
-  const onSale = (product?.price_cents || 0) < 2000;
+  const onSale = (product?.price_minor || 0) < 2000;
   const currentColorLabel = selectedColor
     ? typeof selectedColor === "object"
       ? selectedColor.label
@@ -334,14 +334,14 @@ const ProductDetailModal = React.forwardRef(({ product, onClose }, ref) => {
                     className="text-3xl font-black"
                     style={{ color: colors.text.primary }}
                   >
-                    {formatMoneyCents(product?.price_cents || 0)}
+                    {formatMoneyMinor(product?.price_minor || 0)}
                   </span>
                   {onSale && (
                     <span
                       className="text-sm line-through"
                       style={{ color: colors.text.tertiary }}
                     >
-                      {formatMoneyCents(Math.round(product.price_cents * 1.35))}
+                      {formatMoneyMinor(Math.round(product.price_minor * 1.35))}
                     </span>
                   )}
                 </div>

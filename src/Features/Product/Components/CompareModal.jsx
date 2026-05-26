@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { IconClose } from "../../../components/Icons/IconClose";
 
 export default function CompareModal({ items, onClose, onRemove }) {
@@ -12,7 +12,7 @@ export default function CompareModal({ items, onClose, onRemove }) {
 
   const columns = `repeat(${items.length}, minmax(0, 1fr))`;
   const rows = [
-    { label: "Price", render: (p) => formatMoneyCents(p.price_cents) },
+    { label: "Price", render: (p) => formatMoneyMinor(p.price_minor) },
     { label: "Rating", render: (p) => `${p.rating_stars || 0} stars` },
     { label: "Reviews", render: (p) => (p.rating_count || 0).toLocaleString() },
     { label: "Seller", render: (p) => p.seller?.store_name || "WooSho seller" },
@@ -108,7 +108,7 @@ export default function CompareModal({ items, onClose, onRemove }) {
                     {p.name}
                   </p>
                   <p className="text-xl font-black md:text-2xl" style={{ color: colors.text.primary }}>
-                    {formatMoneyCents(p.price_cents)}
+                    {formatMoneyMinor(p.price_minor)}
                   </p>
                 </div>
               ))}

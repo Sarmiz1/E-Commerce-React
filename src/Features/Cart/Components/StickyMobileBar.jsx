@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { Ic, Spinner } from "./CartConstants";
 
 export function StickyMobileBar({ total, itemCount, onCheckout, isCheckingOut = false, checkoutError = "" }) {
@@ -11,7 +11,7 @@ export function StickyMobileBar({ total, itemCount, onCheckout, isCheckingOut = 
           <p className={`text-xs ${checkoutError ? "text-red-500 font-semibold" : "text-gray-400 dark:text-neutral-500"}`}>
             {checkoutError || `${itemCount} item${itemCount !== 1 ? "s" : ""}`}
           </p>
-          <p className="font-black text-gray-900 dark:text-white text-lg leading-tight">{formatMoneyCents(total)}</p>
+          <p className="font-black text-gray-900 dark:text-white text-lg leading-tight">{formatMoneyMinor(total)}</p>
         </div>
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
           onClick={onCheckout}

@@ -6,11 +6,11 @@ export const OrderAPI = {
 
   // Executes the highly-secure PostgreSQL RPC Function we built
   // This bypasses standard INSERTS to natively run the transactional lock and calculations inside the DB.
-  createOrder: ({ cartId, userId, couponCode = null, shippingCents = 0 }) => {
+  createOrder: ({ cartId, userId, couponCode = null, shippingMinor = 0 }) => {
     const args = {
       p_cart_id: cartId,
       p_user_id: userId,
-      p_shipping_cents: shippingCents
+      p_shipping_minor: shippingMinor
     };
     if (couponCode) {
       args.p_coupon_code = couponCode;

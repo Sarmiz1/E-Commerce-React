@@ -7,7 +7,7 @@ import { useAuthStore } from '../../../Store/useAuthStore';
 import { fmt, getGreeting } from '../utils/format';
 
 // ─── Scoped styles ────────────────────────────────────────────────────────────
-function formatMoneyCents(cents) {
+function formatMoneyMinor(cents) {
   return `₦${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
@@ -254,6 +254,8 @@ export default function DashOverview() {
   const monthRevenue = stats?.revenue || 0;
   const todayRevenue = 0; 
   const totalOrders = stats?.totalOrders || 0;
+  const productsSold = stats?.productsSold || 0;
+  const activeProducts = stats?.activeProducts || products?.length || 0;
   const pendingOrders = (orders || []).filter(o => o.status === 'pending').length;
   const totalViews = stats?.customers || 0; 
   
@@ -332,10 +334,10 @@ export default function DashOverview() {
 
       {/* ── KPI cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Total Revenue" value={<>₦<CountUp target={monthRevenue} duration={1400} /></>} sub={`All time`} sparkData={sparkData} accentColor={ELECTRIC} icon="💵" delay={0.1} colors={colors} isDark={isDark} />
+        <KpiCard label="Total Revenue" value={<>₦<CountUp target={monthRevenue / 100} duration={1400} /></>} sub={`All time`} sparkData={sparkData} accentColor={ELECTRIC} icon="💵" delay={0.1} colors={colors} isDark={isDark} />
         <KpiCard label="Orders" value={<><CountUp target={totalOrders} duration={900} /></>} sub={`${pendingOrders} pending action`} accentColor={NEON} icon="📦" delay={0.18} colors={colors} isDark={isDark} />
         <KpiCard label="Customers" value={<><CountUp target={totalViews} duration={1100} /></>} sub="All time" accentColor={GOLD} icon="👁️" delay={0.25} colors={colors} isDark={isDark} />
-        <KpiCard label="Active Products" value={<><CountUp target={products?.length || 0} duration={700} /></>} sub={`${lowStockItems} low stock`} accentColor={VIOLET} icon="🏷️" delay={0.32} colors={colors} isDark={isDark} />
+        <KpiCard label="Products Sold" value={<><CountUp target={productsSold} duration={700} /></>} sub={`${activeProducts} active listings`} accentColor={VIOLET} icon="🏷️" delay={0.32} colors={colors} isDark={isDark} />
       </div>
 
       {/* ── Chart + Performance ── */}
@@ -348,7 +350,7 @@ export default function DashOverview() {
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: colors.text.tertiary }}>Total Revenue</p>
               <p className="text-3xl font-black tabular-nums" style={{ color: colors.text.primary }}>
-                <CountUp target={totalChartRevenue} duration={1500} prefix="₦" />
+                <CountUp target={totalChartRevenue / 100} duration={1500} prefix="₦" />
               </p>
             </div>
             <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6' }}>
@@ -386,7 +388,7 @@ export default function DashOverview() {
               const top = perf.bestSeller;
               const bottom = perf.needsAttention;
               const performanceItems = [];
-              if (top) performanceItems.push({ label: 'Best Seller', name: top.name, meta: `${top.sales || 0} sales · ₦${formatMoneyCents(top.revenue || 0).replace('₦₦','₦')}`, type: 'success' });
+              if (top) performanceItems.push({ label: 'Best Seller', name: top.name, meta: `${top.sales || 0} sales · ₦${formatMoneyMinor(top.revenue || 0).replace('₦₦','₦')}`, type: 'success' });
               if (bottom && (!top || bottom.name !== top.name)) performanceItems.push({ label: 'Needs Attention', name: bottom.name, meta: `${bottom.sales || 0} sales · ${bottom.status}`, type: 'error' });
               return performanceItems.map((item, i) => (
                 <motion.div key={item.type} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 + i * 0.1 }}

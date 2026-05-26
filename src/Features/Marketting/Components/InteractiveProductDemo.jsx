@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, Sparkles } from "lucide-react";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { rankProductsBySemanticQuery } from "../../../utils/semanticProductSearch";
 import { trackEvent } from "../../../api/track_events";
 import { useTheme } from "../../../Store/useThemeStore";
@@ -112,7 +112,7 @@ export default function InteractiveProductDemo({ dark }) {
                   </p>
                 </div>
                 <p className="text-sm font-black text-blue-500">
-                  {formatMoneyCents(product.price_cents)}
+                  {formatMoneyMinor(product.price_minor)}
                 </p>
               </Link>
             ))}

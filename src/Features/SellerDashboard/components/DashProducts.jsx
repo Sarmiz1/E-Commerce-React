@@ -295,7 +295,7 @@ function InputField({ register, name, errors, colors, isDark, ...rest }) {
 
 export default function DashProducts() {
   const { colors, isDark } = useTheme();
-  const { products: liveProducts, deleteProduct, addProduct, loading } = useDashboard();
+  const { products: liveProducts, deleteProduct, addProduct, updateProduct, loading } = useDashboard();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState(null);
@@ -303,6 +303,7 @@ export default function DashProducts() {
   const [addOpen, setAddOpen] = useState(false);
   const [sortBy, setSortBy] = useState('name');
   const [sortDir, setSortDir] = useState(1);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(false);
 
   // Thumbnail & gallery state (outside RHF for File objects)
   const [thumbnailFile, setThumbnailFile] = useState(null);
@@ -325,20 +326,66 @@ export default function DashProducts() {
   const closePanel = useCallback(() => {
     if (isSubmitting) return;
     setAddOpen(false);
+    setEditId(null);
     setThumbnailFile(null);
     setAdditionalFiles([]);
     reset(productDefaults);
   }, [isSubmitting, reset]);
 
+  const handleEditClick = async (id) => {
+    try {
+      setIsLoadingProduct(true);
+      const { sellerApi } = await import('../api/sellerApi');
+      const productData = await sellerApi.getProduct(id);
+      
+      reset({
+        name: productData.name || '',
+        brand: productData.brand || '',
+        category: '', // Usually need to map category_id to name, leaving blank for simplicity
+        currency: productData.currency || 'NGN',
+        is_featured: productData.is_featured || false,
+        price: productData.price_minor ? productData.price_minor / 100 : 0,
+        sale_price: productData.sale_price_minor ? productData.sale_price_minor / 100 : undefined,
+        shortDescription: productData.short_description || '',
+        fullDescription: productData.full_description || '',
+        features: productData.features ? productData.features.join(', ') : '',
+        keywords: productData.keywords ? productData.keywords.join(', ') : '',
+        variants: productData.product_variants && productData.product_variants.length > 0
+          ? productData.product_variants.map(v => ({
+              color: v.color || '',
+              size: v.size || '',
+              sku: v.sku || '',
+              stock: v.stock_quantity || 0,
+              price_override: v.price_minor ? v.price_minor / 100 : 0,
+            }))
+          : [emptyVariant]
+      });
+      setEditId(id);
+      setAddOpen(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingProduct(false);
+    }
+  };
+
   const onSubmit = useCallback(async (data) => {
     // Inject file state into the data object before sending
-    await addProduct({
-      ...data,
-      thumbnailFile,
-      additionalFiles,
-    });
+    if (editId) {
+      await updateProduct(editId, {
+        ...data,
+        thumbnailFile,
+        additionalFiles,
+      });
+    } else {
+      await addProduct({
+        ...data,
+        thumbnailFile,
+        additionalFiles,
+      });
+    }
     closePanel();
-  }, [addProduct, closePanel, thumbnailFile, additionalFiles]);
+  }, [addProduct, updateProduct, editId, closePanel, thumbnailFile, additionalFiles]);
 
   const confirmDelete = useCallback(async (id) => {
     await deleteProduct(id);
@@ -473,7 +520,7 @@ export default function DashProducts() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                          onClick={() => setEditId(p.id)}
+                          onClick={() => handleEditClick(p.id)}
                           className="w-8 h-8 rounded-lg flex items-center justify-center"
                           style={{ background: isDark ? 'rgba(144,171,255,0.08)' : 'rgba(0,80,212,0.06)', color: colors.cta.primary }}>
                           <Icon name="edit" size={14} />

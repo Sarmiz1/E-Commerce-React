@@ -25,7 +25,7 @@ export default function FilterableGrid({ products, isLoading }) {
 
   const filtered = useMemo(() => {
     if (!products.length) return [];
-    if (active === 'Under $20') return products.filter((p) => p.priceCents < 2000);
+    if (active === 'Under $20') return products.filter((p) => p.priceMinor < 2000);
     if (active === 'Top Rated') return products.filter((p) => (p.rating?.stars || 0) >= 4.5);
     if (active === 'On Sale') return products.slice(0, 4);
     return products.slice(0, 8);

@@ -3,7 +3,7 @@ import { Link, useLoaderData, useNavigation, useNavigate } from "react-router-do
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import { useTheme } from "../../Store/useThemeStore";
-import { formatMoneyCents } from "../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../utils/FormatMoneyMinor";
 import ProductCard from "../Product/Components/ProductCard";
 import ProductDetailModal from "../../components/Ui/ProductDetailModal";
 import { useCompare } from "../Product/Hooks/useCompare";
@@ -33,12 +33,12 @@ function filterProducts(products, config) {
   }
 
   // Special filters
-  if (config.onSale) filtered = filtered.filter((p) => p.compare_at_price_cents && p.compare_at_price_cents > p.price_cents);
+  if (config.onSale) filtered = filtered.filter((p) => p.compare_at_price_minor && p.compare_at_price_minor > p.price_minor);
   if (config.inStock) filtered = filtered.filter((p) => p.stock_quantity > 0);
   if (config.sortByNew) filtered = [...filtered].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   if (config.sortByRating) filtered = [...filtered].sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
   if (config.minRating) filtered = filtered.filter((p) => (p.rating_stars || 0) >= config.minRating);
-  if (config.maxPrice) filtered = filtered.filter((p) => p.price_cents <= config.maxPrice * 100);
+  if (config.maxPrice) filtered = filtered.filter((p) => p.price_minor <= config.maxPrice * 100);
 
   // Fallback: if too few, loosen to show at least something
   if (filtered.length < 4 && config.keywords?.length) {
@@ -179,8 +179,8 @@ const SORTS = [
 
 function sortProducts(products, sort) {
   const p = [...products];
-  if (sort === "price-asc") return p.sort((a, b) => a.price_cents - b.price_cents);
-  if (sort === "price-desc") return p.sort((a, b) => b.price_cents - a.price_cents);
+  if (sort === "price-asc") return p.sort((a, b) => a.price_minor - b.price_minor);
+  if (sort === "price-desc") return p.sort((a, b) => b.price_minor - a.price_minor);
   if (sort === "rating") return p.sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
   if (sort === "newest") return p.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   return p;

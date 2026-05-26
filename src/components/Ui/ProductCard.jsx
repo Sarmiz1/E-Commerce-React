@@ -43,7 +43,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion as Motion } from "framer-motion";
-import { formatMoneyCents } from "../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../utils/FormatMoneyMinor";
 import Stars from "../Stars";
 import { useTrackProductClick } from "../../hooks/useTrackProductClick";
 import AddToCart from "./AddToCart";
@@ -61,7 +61,7 @@ function isNewProduct(product) {
 }
 
 function isOnSale(product) {
-  return Boolean(product?.price_cents && product.price_cents < 2000);
+  return Boolean(product?.price_minor && product.price_minor < 2000);
 }
 
 function Badge({ label, colorClass }) {
@@ -217,8 +217,8 @@ function StandardCard({ product }) {
           </h3>
           <Stars rating={product.rating_stars} count={product.rating_count} />
           <div className="mt-auto pt-2 flex items-end justify-between">
-            <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
-            {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
+            <p className="font-black text-xl text-gray-900">{formatMoneyMinor(product.price_minor)}</p>
+            {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyMinor(Math.round(product.price_minor * 1.35))}</p>}
           </div>
 
           <AddToCart productId={product.id} variant className="w-full mt-2" />
@@ -269,7 +269,7 @@ function HorizontalCard({ product }) {
             </div>
           </div>
           <div className="flex items-center justify-between mt-2 gap-2">
-            <p className="font-black text-gray-900 text-base">{formatMoneyCents(product.price_cents)}</p>
+            <p className="font-black text-gray-900 text-base">{formatMoneyMinor(product.price_minor)}</p>
             <AddToCart productId={product.id} variant="pill" />
           </div>
         </div>
@@ -319,7 +319,7 @@ function OverlayCard({ product }) {
           <p className="text-white font-bold text-sm line-clamp-1 mb-1">{product.name}</p>
           <Stars rating={product.rating_stars} count={product.rating_count} />
           <div className="flex items-center justify-between">
-            <p className="font-black text-white text-lg">{formatMoneyCents(product.price_cents)}</p>
+            <p className="font-black text-white text-lg">{formatMoneyMinor(product.price_minor)}</p>
             <AddToCart productId={product.id} variant="ghost" className="!py-1.5 !px-3 !text-xs" />
           </div>
         </div>
@@ -371,7 +371,7 @@ function CompactCard({ product }) {
           </p>
           <Stars rating={product.rating_stars} count={product.rating_count} />
           <div className="flex items-center justify-between mt-auto pt-2">
-            <p className="font-black text-indigo-600 dark:text-indigo-400 text-sm">{formatMoneyCents(product.price_cents)}</p>
+            <p className="font-black text-indigo-600 dark:text-indigo-400 text-sm">{formatMoneyMinor(product.price_minor)}</p>
             <AddToCart productId={product.id} variant="icon" />
           </div>
         </div>
@@ -417,7 +417,7 @@ function GhostCard({ product }) {
           </h3>
           <Stars rating={product.rating_stars} count={product.rating_count} light />
           <div className="flex items-center justify-between mt-auto pt-3">
-            <p className="font-black text-white text-base">{formatMoneyCents(product.price_cents)}</p>
+            <p className="font-black text-white text-base">{formatMoneyMinor(product.price_minor)}</p>
             <AddToCart productId={product.id} variant="ghost" />
           </div>
         </div>
@@ -480,8 +480,8 @@ function NavigateCard({ product }) {
             </h3>
             <Stars rating={product.rating_stars} count={product.rating_count} />
             <div className="mt-auto pt-2 flex items-end justify-between">
-              <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
-              {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
+              <p className="font-black text-xl text-gray-900">{formatMoneyMinor(product.price_minor)}</p>
+              {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyMinor(Math.round(product.price_minor * 1.35))}</p>}
             </div>
           </div>
         </Motion.div>
@@ -529,8 +529,8 @@ function StaticCard({ product }) {
         <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2">{product.name}</h3>
         <Stars rating={product.rating_stars} count={product.rating_count} />
         <div className="mt-auto pt-2 flex items-end justify-between">
-          <p className="font-black text-xl text-gray-900">{formatMoneyCents(product.price_cents)}</p>
-          {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyCents(Math.round(product.price_cents * 1.35))}</p>}
+          <p className="font-black text-xl text-gray-900">{formatMoneyMinor(product.price_minor)}</p>
+          {onSale && <p className="text-gray-400 text-xs line-through">{formatMoneyMinor(Math.round(product.price_minor * 1.35))}</p>}
         </div>
         {/* AddToCart intentionally absent — static variant is display-only */}
       </div>
@@ -579,7 +579,7 @@ function customWideCard({ product }) {
           <Stars rating={product?.rating_stars} count={product?.rating_count} />
         </div>
         <div className="flex items-center justify-between mt-auto pt-2">
-          <p className="font-black text-gray-900">{formatMoneyCents(product?.price_cents)}</p>
+          <p className="font-black text-gray-900">{formatMoneyMinor(product?.price_minor)}</p>
           <AddToCart productId={product?.id} variantId={product?.variant_id} />
         </div>
       </div>

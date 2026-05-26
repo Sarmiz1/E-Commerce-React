@@ -9,9 +9,11 @@ import {
   useRequestWithdrawal,
   useMarkNotificationsRead,
   useAddProduct,
+  useUpdateProduct,
   useUpdateSubscription,
   useUpdateMarketing,
-  useReplyReview
+  useReplyReview,
+  useSellerDashboardRealtime
 } from '../hooks/useSellerQueries';
 
 const DashboardContext = createContext(null);
@@ -40,6 +42,7 @@ export function DashboardProvider({ children }) {
 
   // ── Server data from TanStack Query (BFF Pattern) ───────────────────────────
   const { data: dbData, isLoading } = useSellerDashboard();
+  useSellerDashboardRealtime();
   
   const data = dbData || {};
   
@@ -95,6 +98,7 @@ export function DashboardProvider({ children }) {
   const requestWithdrawalMut     = useRequestWithdrawal();
   const markNotificationsReadMut = useMarkNotificationsRead();
   const addProductMut            = useAddProduct();
+  const updateProductMut         = useUpdateProduct();
   const updateSubscriptionMut    = useUpdateSubscription();
   const updateMarketingMut       = useUpdateMarketing();
   const replyReviewMut           = useReplyReview();
@@ -122,9 +126,10 @@ export function DashboardProvider({ children }) {
     updateReviewStatus: (reviewId, isVerified) => updateReviewStatusMut.mutateAsync({ reviewId, isVerified }),
     deleteProduct: (productId) => deleteProductMut.mutateAsync(productId),
     saveSettings: (settings) => saveSettingsMut.mutateAsync(settings),
-    requestWithdrawal: (amount, fee, desc) => requestWithdrawalMut.mutateAsync({ amountCents: amount, feeCents: fee, description: desc }),
+    requestWithdrawal: (amount, fee, desc) => requestWithdrawalMut.mutateAsync({ amountMinor: amount, feeCents: fee, description: desc }),
     markAllNotifsRead: () => markNotificationsReadMut.mutateAsync(),
     addProduct: (productData) => addProductMut.mutateAsync(productData),
+    updateProduct: (productId, productData) => updateProductMut.mutateAsync({ productId, productData }),
     updateSubscription: (planId) => updateSubscriptionMut.mutateAsync(planId),
     updateMarketing: (marketingData) => updateMarketingMut.mutateAsync(marketingData),
     replyReview: (reviewId, replyText) => replyReviewMut.mutateAsync({ reviewId, replyText }),

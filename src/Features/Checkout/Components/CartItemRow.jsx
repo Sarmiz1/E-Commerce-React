@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import {
   getCartItemImage,
   getCartItemLineTotal,
@@ -42,8 +42,8 @@ export function CartItemRow({ item, onUpdateQty, onRemove, removing, updating })
 
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-sm font-bold leading-tight text-gray-900 dark:text-gray-100">{name}</p>
-        <p className="mt-1 text-base font-black text-indigo-700">{formatMoneyCents(getCartItemLineTotal(item))}</p>
-        <p className="text-[11px] text-gray-400 dark:text-gray-500">{formatMoneyCents(getCartItemUnitPrice(item))} each</p>
+        <p className="mt-1 text-base font-black text-indigo-700">{formatMoneyMinor(getCartItemLineTotal(item))}</p>
+        <p className="text-[11px] text-gray-400 dark:text-gray-500">{formatMoneyMinor(getCartItemUnitPrice(item))} each</p>
 
         <div className="mt-2 flex items-center gap-2">
           <button

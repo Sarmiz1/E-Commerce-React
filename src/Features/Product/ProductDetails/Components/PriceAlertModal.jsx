@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { formatMoneyCents } from '../../../../utils/FormatMoneyCents';
+import { formatMoneyMinor } from '../../../../utils/FormatMoneyMinor';
 import { savePriceAlert } from '../Utils/productHelpers';
 import { 
   BellIcon, CloseIcon, SpinnerIcon,
@@ -10,7 +10,7 @@ import {
 // ─── PriceAlertModal ──────────────────────────────────────────────────────────
 export function PriceAlertModal({ product, onClose }) {
   const [email, setEmail] = useState("");
-  const [targetPrice, setTargetPrice] = useState(Math.round(product.priceCents * 0.8));
+  const [targetPrice, setTargetPrice] = useState(Math.round(product.priceMinor * 0.8));
   const [alertType, setAlertType] = useState("price_drop");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -18,7 +18,7 @@ export function PriceAlertModal({ product, onClose }) {
   const handleSave = async e => {
     e.preventDefault(); if (!email.trim()) return;
     setSaving(true); await new Promise(r => setTimeout(r, 600));
-    savePriceAlert({ productId: product.id, productName: product.name, email: email.trim(), targetPriceCents: targetPrice, type: alertType, createdAt: new Date().toISOString() });
+    savePriceAlert({ productId: product.id, productName: product.name, email: email.trim(), targetPriceMinor: targetPrice, type: alertType, createdAt: new Date().toISOString() });
     setSaving(false); setSaved(true); setTimeout(() => onClose(), 1800);
   };
 
@@ -52,7 +52,7 @@ export function PriceAlertModal({ product, onClose }) {
               <img src={product.image} alt="" className="w-12 h-12 rounded-lg object-cover" onError={e => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100?text=?"; }} />
               <div className="min-w-0">
                 <p className="text-xs font-medium truncate" style={{ color: "var(--platinum)", fontFamily: "Jost,sans-serif" }}>{product.name}</p>
-                <p className="text-xs font-semibold" style={{ color: "var(--gold)", fontFamily: "Cormorant Garamond,serif", fontSize: 13 }}>Current: {formatMoneyCents(product.priceCents)}</p>
+                <p className="text-xs font-semibold" style={{ color: "var(--gold)", fontFamily: "Cormorant Garamond,serif", fontSize: 13 }}>Current: {formatMoneyMinor(product.priceMinor)}</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -68,8 +68,8 @@ export function PriceAlertModal({ product, onClose }) {
               onFocus={e => e.target.style.borderColor = "var(--pd-input-fcs)"} onBlur={e => e.target.style.borderColor = "var(--pd-input-bdr)"} />
             {alertType === "price_drop" && (
               <div>
-                <label className="text-xs mb-2 block" style={{ color: "var(--mist)", fontFamily: "Jost,sans-serif" }}>Alert at: {formatMoneyCents(targetPrice)}</label>
-                <input type="range" className="pd-range w-full" min={Math.round(product.priceCents * 0.3)} max={product.priceCents} value={targetPrice} onChange={e => setTargetPrice(Number(e.target.value))} />
+                <label className="text-xs mb-2 block" style={{ color: "var(--mist)", fontFamily: "Jost,sans-serif" }}>Alert at: {formatMoneyMinor(targetPrice)}</label>
+                <input type="range" className="pd-range w-full" min={Math.round(product.priceMinor * 0.3)} max={product.priceMinor} value={targetPrice} onChange={e => setTargetPrice(Number(e.target.value))} />
               </div>
             )}
             <motion.button type="submit" whileTap={{ scale: 0.97 }} disabled={!email.trim() || saving}

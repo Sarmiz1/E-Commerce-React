@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS inventory_reservations (
 
 -- We explicitly index active reservations because the Trigger needs to constantly
 -- SUM() them. This index makes that SUM() operation lightning fast.
-CREATE INDEX idx_active_reservations
+CREATE INDEX IF NOT EXISTS idx_active_reservations
 ON inventory_reservations(variant_id)
 WHERE status = 'reserved';
 
@@ -125,6 +125,9 @@ EXECUTE FUNCTION trg_safe_reservation_insert();
 -- ==============================================================================
 -- This takes a Cart, turns it into an Order Snapshot, applies Coupons, and 
 -- delegates the inventory checks to the Trigger above.
+
+DROP FUNCTION IF EXISTS checkout_cart(uuid, uuid, text, integer);
+
 CREATE OR REPLACE FUNCTION checkout_cart(
   p_cart_id UUID,
   p_user_id UUID,
@@ -140,7 +143,10 @@ DECLARE
   v_total INTEGER := 0;
   v_discount INTEGER := 0;
   v_tax INTEGER := 0;
-  v_tax_rate NUMERIC := 0.085;
+  -- Nigerian VAT is 7.5%, but many marketplace platforms exclude it from checkout
+  -- to keep seller revenue (order_items.total_cents) consistent with what buyers pay.
+  -- Set to 0 to make revenue = price_cents × quantity (no hidden tax gap).
+  v_tax_rate NUMERIC := 0;
 
   v_coupon RECORD;
   item RECORD;

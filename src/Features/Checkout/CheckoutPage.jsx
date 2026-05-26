@@ -123,7 +123,7 @@ export default function CheckoutPage() {
           cartId,
           userId: user?.id || DEMO_USER_ID,
           couponCode: coupon?.code || null,
-          shippingCents: totals.shipping,
+          shippingMinor: totals.shipping,
         });
 
         setOrderNumber(

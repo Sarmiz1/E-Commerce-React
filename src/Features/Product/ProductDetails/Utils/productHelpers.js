@@ -68,7 +68,7 @@ export function seededRand(seed, min, max) {
 export function computeDemandScore(product) {
   const stars = product.rating_stars || 0;
   const count = product.rating_count || 0;
-  return Math.min(100, Math.round((stars / 5) * 45 + Math.min(count, 2000) / 2000 * 35 + (product.price_cents < 2000 ? 20 : count > 500 ? 15 : 5)));
+  return Math.min(100, Math.round((stars / 5) * 45 + Math.min(count, 2000) / 2000 * 35 + (product.price_minor < 2000 ? 20 : count > 500 ? 15 : 5)));
 }
 
 export function generateSparklinePoints(productId, W, H) {

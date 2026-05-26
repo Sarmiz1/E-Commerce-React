@@ -16,6 +16,37 @@ export function useSellerDashboard() {
   });
 }
 
+export function useSellerDashboardRealtime() {
+  const queryClient = useQueryClient();
+  const { user, isMock } = useAuthStore();
+  const sellerId = user?.id;
+
+  import('react').then(({ useEffect }) => {
+    useEffect(() => {
+      if (!sellerId || isMock) return;
+
+      const { supabase } = require('../../../lib/supabaseClient');
+      
+      const ordersSub = supabase
+        .channel('seller-orders-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory_reservations' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(ordersSub);
+      };
+    }, [sellerId, isMock, queryClient]);
+  });
+}
+
 export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
@@ -90,8 +121,8 @@ export function useRequestWithdrawal() {
   const { addToast } = useToast();
 
   return useMutation({
-    mutationFn: ({ amountCents, feeCents, description }) => 
-      sellerApi.requestWithdrawal(user?.id, amountCents, feeCents, description),
+    mutationFn: ({ amountMinor, feeCents, description }) => 
+      sellerApi.requestWithdrawal(user?.id, amountMinor, feeCents, description),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
       addToast('Withdrawal requested successfully', 'success');
@@ -132,7 +163,7 @@ export function useAddProduct() {
           id: newProduct.id,
           name: newProduct.name,
           image: newProduct.image || null,
-          price: newProduct.price_cents,
+          price: newProduct.price_minor,
           stock: 0,   // variants just inserted; stock will sync on refetch
           sales: 0,
           rating: null,
@@ -156,6 +187,23 @@ export function useAddProduct() {
     },
     onError: (err) => {
       addToast(`Failed to add product: ${err.message}`, 'error');
+    }
+  });
+}
+
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ productId, productData }) => sellerApi.updateProduct(productId, productData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-dashboard', user?.id] });
+      addToast('Product updated successfully', 'success');
+    },
+    onError: (err) => {
+      addToast(`Failed to update product: ${err.message}`, 'error');
     }
   });
 }

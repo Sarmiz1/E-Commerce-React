@@ -19,16 +19,16 @@ export const getCartItemName = (item) =>
 
 export const getCartItemUnitPriceCents = (item) =>
   Number(
-    item?.unit_price_cents ??
-      item?.price_cents ??
+    item?.unit_price_minor ??
+      item?.price_minor ??
       item?.price ??
-      item?.variant?.price_cents ??
-      item?.products?.price_cents ??
+      item?.variant?.price_minor ??
+      item?.products?.price_minor ??
       0,
   ) || 0;
 
 export const getCartItemLineTotalCents = (item) =>
-  Number(item?.line_total_cents) || getCartItemUnitPriceCents(item) * (Number(item?.quantity) || 0);
+  Number(item?.line_total_minor) || getCartItemUnitPriceCents(item) * (Number(item?.quantity) || 0);
 
 export const getCartProductIds = (cartItems = []) =>
   [...new Set(cartItems.map((item) => getCartItemProductId(item)).filter(Boolean))];

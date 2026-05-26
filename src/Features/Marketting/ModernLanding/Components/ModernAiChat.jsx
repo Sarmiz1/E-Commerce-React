@@ -11,7 +11,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatMoneyCurrency } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyCurrency } from "../../../../utils/FormatMoneyMinor";
 import shoeImg from "../../../../assets/marketing/shoe-stealth.png";
 import { AI_CHAT_CTA, AI_CHAT_DEMO, AI_CHAT_FEATURES } from "../Data/aiChatContent";
 
@@ -182,7 +182,7 @@ const ModernAiChat = memo(function ModernAiChat() {
                     <h4 className="font-bold text-lg text-gray-900 dark:text-white">
                       {AI_CHAT_DEMO.product.name}
                     </h4>
-                    <span className="text-blue-600 font-bold">{formatMoneyCurrency(AI_CHAT_DEMO.product.priceCents)}</span>
+                    <span className="text-blue-600 font-bold">{formatMoneyCurrency(AI_CHAT_DEMO.product.priceMinor)}</span>
                   </div>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-5 leading-relaxed">
                     {AI_CHAT_DEMO.product.description}

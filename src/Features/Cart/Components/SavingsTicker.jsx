@@ -1,9 +1,9 @@
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 
 export function SavingsTicker({ savings }) {
   if (savings <= 0) return null;
 
-  const msg = `You're saving ${formatMoneyCents(savings)} on this order`;
+  const msg = `You're saving ${formatMoneyMinor(savings)} on this order`;
   const doubled = Array(12).fill(msg).join("  -  ");
 
   return (

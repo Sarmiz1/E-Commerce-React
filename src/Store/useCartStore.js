@@ -82,20 +82,20 @@ export const useCartStore = create(
           if (idx >= 0) {
             s.cart[idx].quantity = (s.cart[idx].quantity || 0) + quantity;
           } else {
-            const price = variant?.price_cents ?? product?.price_cents ?? 0;
+            const price = variant?.price_minor ?? product?.price_minor ?? 0;
             s.cart.push({
               id: `optimistic_${variantId || productId}_${Date.now()}`,
               product_id: productId,
               variant_id: variantId,
               quantity,
-              unit_price_cents: price,
-              line_total_cents: price * quantity,
+              unit_price_minor: price,
+              line_total_minor: price * quantity,
               products: {
                 id: productId,
                 name: product?.name,
                 slug: product?.slug,
                 image: product?.image,
-                price_cents: price,
+                price_minor: price,
                 rating_stars: product?.rating_stars,
                 rating_count: product?.rating_count,
               },
@@ -103,7 +103,7 @@ export const useCartStore = create(
                 id: variantId,
                 color: variant?.color,
                 size: variant?.size,
-                price_cents: variant?.price_cents,
+                price_minor: variant?.price_minor,
               },
               name: product?.name,
               image: product?.image,

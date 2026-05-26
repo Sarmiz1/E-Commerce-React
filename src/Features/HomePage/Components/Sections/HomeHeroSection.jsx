@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import ParticleField from "../ParticleField";
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 import Stars from "../../../../components/Stars";
 import { useTimeContext } from "../../../../hooks/useTimeContext";
 
@@ -164,7 +164,7 @@ export default function HomeHeroSection({ heroFeatured }) {
                     count={heroFeatured.rating_count}
                   />
                   <p className="text-2xl font-black">
-                    {formatMoneyCents(heroFeatured.price_cents)}
+                    {formatMoneyMinor(heroFeatured.price_minor)}
                   </p>
                 </div>
               </div>

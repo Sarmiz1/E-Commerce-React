@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { Ic, FREE_SHIP_THRESHOLD } from "./CartConstants";
 
 export function FreeShippingBar({ subtotal, discount }) {
@@ -14,7 +14,7 @@ export function FreeShippingBar({ subtotal, discount }) {
         <div className="flex items-center gap-2">
           <Ic.Truck c="w-4 h-4 text-blue-500" />
           <span className="text-sm font-bold text-blue-800 dark:text-blue-300">
-            {isFree ? "Free shipping unlocked" : `Add ${formatMoneyCents(remaining)} for free shipping`}
+            {isFree ? "Free shipping unlocked" : `Add ${formatMoneyMinor(remaining)} for free shipping`}
           </span>
         </div>
         <span className="text-xs text-blue-500 font-bold">{Math.round(pct)}%</span>

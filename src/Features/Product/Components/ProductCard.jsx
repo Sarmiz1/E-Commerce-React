@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { IconCart } from "../../../components/Icons/IconCart"; 
 import { IconStar } from "../../../components/Icons/IconStar"; 
 import { getProductImages } from "../../../utils/getProductImages"; 
@@ -82,7 +82,7 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
     cardRef.current.style.setProperty("--my", y);
   };
 
-  const onSale = product.price_cents < 2000;
+  const onSale = product.price_minor < 2000;
   const isNew = product.created_at && checkDate(product);
   const handleAddToCart = useCallback((event) => {
     event.preventDefault();
@@ -233,11 +233,11 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
         <div className="flex items-center justify-between gap-2 mt-auto pt-1.5">
           <div className="flex items-baseline gap-1.5 min-w-0">
             <span className="font-black text-[15px]" style={{ color: colors.text.primary }}>
-              {formatMoneyCents(product.price_cents)}
+              {formatMoneyMinor(product.price_minor)}
             </span>
             {onSale && (
               <span className="text-[10px] line-through opacity-50" style={{ color: colors.text.tertiary }}>
-                {formatMoneyCents(Math.round(product.price_cents * 1.35))}
+                {formatMoneyMinor(Math.round(product.price_minor * 1.35))}
               </span>
             )}
           </div>

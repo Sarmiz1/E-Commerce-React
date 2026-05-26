@@ -1,5 +1,5 @@
 import { formatDateMonthDay } from "../../../utils/formatDate";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 function OrdersHeader({ orderDate, orderTotal, orderId }) {
   return (
     <header
@@ -17,7 +17,7 @@ function OrdersHeader({ orderDate, orderTotal, orderId }) {
 
         <div className=" mr-0 flex sm:flex-col sm:mr-11 ">
           <div className=" mr-1 sm:flex-col  sm:mr-0 font-bold">Total:</div>
-          <div> {formatMoneyCents(orderTotal)} </div>
+          <div> {formatMoneyMinor(orderTotal)} </div>
         </div>
       </section>
 

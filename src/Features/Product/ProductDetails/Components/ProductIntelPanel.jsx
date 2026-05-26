@@ -42,9 +42,9 @@ export function ProductIntelPanel({ product }) {
   const buySignal = useMemo(() => {
     if (demandScore >= 80) return { icon: "◆", label: "High Demand", sub: `${viewers} connoisseurs viewing` };
     if (demandScore >= 55) return { icon: "◈", label: "Trending", sub: `${viewers} viewing right now` };
-    if (product?.price_cents < 2000) return { icon: "◇", label: "Exceptional Value", sub: "Finest price for this calibre" };
+    if (product?.price_minor < 2000) return { icon: "◇", label: "Exceptional Value", sub: "Finest price for this calibre" };
     return { icon: "◉", label: "Curated Selection", sub: "Handpicked for discerning taste" };
-  }, [demandScore, viewers, product?.price_cents]);
+  }, [demandScore, viewers, product?.price_minor]);
 
   if (!product) return null;
 

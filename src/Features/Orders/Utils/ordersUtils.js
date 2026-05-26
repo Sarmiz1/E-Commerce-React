@@ -14,7 +14,7 @@ export const getOrderDateValue = (order) => {
 };
 
 export const getOrderTotalCents = (order) =>
-  Number(order?.total_cents ?? order?.totals?.total ?? order?.total ?? 0) || 0;
+  Number(order?.total_minor ?? order?.totals?.total ?? order?.total ?? 0) || 0;
 
 export const getOrderShortId = (order, length = 14) =>
   order?.order_number ? String(order.order_number).slice(0, length) : order?.id ? String(order.id).slice(0, length) : "N/A";
@@ -45,11 +45,11 @@ export const getOrderItemTotalCents = (item) => {
   const product = getOrderItemProduct(item);
   const variant = getOrderItemVariant(item);
   const price =
-    item?.total_cents ??
-    item?.line_total_cents ??
-    item?.price_cents ??
-    variant?.price_cents ??
-    product?.price_cents ??
+    item?.total_minor ??
+    item?.line_total_minor ??
+    item?.price_minor ??
+    variant?.price_minor ??
+    product?.price_minor ??
     item?.total ??
     0;
 

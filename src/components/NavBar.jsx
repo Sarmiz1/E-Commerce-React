@@ -7,7 +7,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useRegisterCartIcon } from "../context/cart/CartAnimationContext";
 import { useCartState } from "../context/cart/CartContext";
 import { useTheme } from "../Store/useThemeStore";
-import { formatMoneyCents } from "../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../utils/FormatMoneyMinor";
 import { Logo } from "./Ui/Logo";
 import { DesktopNav } from "./NavbarComponents/DesktopNav";
 import { MobileDrawer } from "./NavbarComponents/MobileDrawer";
@@ -317,7 +317,7 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
               setSearchOpen(false);
               setActiveMenu(null);
             }}
-            formatMoney={formatMoneyCents}
+            formatMoney={formatMoneyMinor}
           />
         </div>
       </Motion.div>
@@ -342,7 +342,7 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
         onClearRecent={() => setRecentSearches([])}
         onRemoveRecent={removeRecentSearch}
         onNavigate={navigateAndClose}
-        formatMoney={formatMoneyCents}
+        formatMoney={formatMoneyMinor}
       />
 
       <MobileDrawer

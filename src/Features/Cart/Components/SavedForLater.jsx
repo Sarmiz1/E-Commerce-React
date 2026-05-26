@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { Ic } from "./CartConstants";
 
 export function SavedForLater({ items, onMoveToCart }) {
@@ -25,7 +25,7 @@ export function SavedForLater({ items, onMoveToCart }) {
             </div>
             <div className="p-3">
               <p className="text-xs font-bold text-gray-800 dark:text-neutral-200 line-clamp-1">{item.products?.name}</p>
-              <p className="text-indigo-600 dark:text-indigo-400 font-black text-sm mt-0.5">{formatMoneyCents(item.products?.price_cents)}</p>
+              <p className="text-indigo-600 dark:text-indigo-400 font-black text-sm mt-0.5">{formatMoneyMinor(item.products?.price_minor)}</p>
               <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                 onClick={() => onMoveToCart(item)}
                 className="w-full mt-2 bg-gray-900 dark:bg-indigo-600 text-white text-xs font-black py-2 rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-colors">

@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import { Ic, Spinner } from "./CartConstants";
 
 function PromoInput({ promo, onApply, onRemove }) {
@@ -120,9 +120,9 @@ export function OrderSummary({
 
       <div className="space-y-2.5">
         {[
-          ["Subtotal", formatMoneyCents(subtotal)],
-          ...(discount > 0 ? [["Discount", `-${formatMoneyCents(discount)}`, true]] : []),
-          ["Shipping", shipping === 0 ? "Free" : formatMoneyCents(shipping)],
+          ["Subtotal", formatMoneyMinor(subtotal)],
+          ...(discount > 0 ? [["Discount", `-${formatMoneyMinor(discount)}`, true]] : []),
+          ["Shipping", shipping === 0 ? "Free" : formatMoneyMinor(shipping)],
         ].map(([label, value, green]) => (
           <div key={label} className="flex justify-between text-sm">
             <span className="text-gray-500 dark:text-neutral-400">{label}</span>
@@ -140,7 +140,7 @@ export function OrderSummary({
       <div className="border-t border-gray-100 dark:border-neutral-800 pt-4 flex justify-between items-baseline">
         <span className="text-gray-700 dark:text-neutral-300 font-bold">Total</span>
         <span className="text-3xl font-black text-gray-900 dark:text-white ct-breathe">
-          {formatMoneyCents(total)}
+          {formatMoneyMinor(total)}
         </span>
       </div>
 
@@ -155,7 +155,7 @@ export function OrderSummary({
         className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black py-4 rounded-2xl text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         {isCheckingOut ? <Spinner /> : <Ic.Lock c="w-4 h-4" />}
-        {isCheckingOut ? "Redirecting..." : `Checkout - ${formatMoneyCents(total)}`}
+        {isCheckingOut ? "Redirecting..." : `Checkout - ${formatMoneyMinor(total)}`}
       </motion.button>
 
       <AnimatePresence>

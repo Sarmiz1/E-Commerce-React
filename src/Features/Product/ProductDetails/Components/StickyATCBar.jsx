@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
-import { formatMoneyCents } from '../../../../utils/FormatMoneyCents';
+import { formatMoneyMinor } from '../../../../utils/FormatMoneyMinor';
 import {
   BagIcon,
   CheckIcon,
@@ -50,7 +50,7 @@ export function StickyATCBar({ product, productId, variantId, quantity = 1, visi
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium line-clamp-1" style={{ color: "var(--platinum)", fontFamily: "Jost,sans-serif" }}>{product.name}</p>
-              <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "Cormorant Garamond,serif" }}>{formatMoneyCents(product.price_cents)}</p>
+              <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "Cormorant Garamond,serif" }}>{formatMoneyMinor(product.price_minor)}</p>
             </div>
             <span className="hidden sm:inline-flex flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--gold)", background: "var(--pd-s2)", border: "1px solid var(--pd-b3)" }}>
               Qty {safeQuantity}

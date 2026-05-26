@@ -68,7 +68,7 @@ export function BuyerProvider({ children }) {
   const data = dbData || {};
   const orders = (data.orders || []).map(o => ({
     ...o,
-    amount: o.total_cents || 0,
+    amount: o.total_minor || 0,
     date: new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }));
   const reviews = data.reviews || [];
@@ -79,7 +79,7 @@ export function BuyerProvider({ children }) {
   const recommendations = (data.recommendations || []).map(r => ({
     ...r,
     ...r.products,
-    price: r.products?.price_cents || 0,
+    price: r.products?.price_minor || 0,
     image: r.products?.image || r.image
   }));
 
@@ -95,8 +95,8 @@ export function BuyerProvider({ children }) {
         id: p.id,
         products: p, // Compatibility
         ...p,
-        price: p.price_cents || 0,
-        originalPrice: p.sale_price_cents || p.price_cents || 0,
+        price: p.price_minor || 0,
+        originalPrice: p.sale_price_minor || p.price_minor || 0,
         image: p.image,
         tag: p.ai_tags?.[0] || 'Price Drop',
         aiNote: p.ai_summary || 'Top rated pick based on your style.',
@@ -124,7 +124,7 @@ export function BuyerProvider({ children }) {
   const activeCart = cart;
 
   // Compute stats on the fly
-  const totalSpentCents = orders.reduce((s, o) => s + (o.total_cents || 0), 0);
+  const totalSpentCents = orders.reduce((s, o) => s + (o.total_minor || 0), 0);
   const delivered  = orders.filter((o) => o.status === 'delivered').length;
   const processing = orders.filter((o) => ['processing', 'pending'].includes(o.status)).length;
   const shipped    = orders.filter((o) => o.status === 'shipped').length;

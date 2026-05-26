@@ -16,7 +16,7 @@ export const AI_CHAT_DEMO = {
     "I've filtered for performance models with high durability ratings.",
   product: {
     name: "Stealth Vector X1",
-    priceCents: 4850000,
+    priceMinor: 4850000,
     description: "Breathable mesh with adaptive carbon-fiber support.",
   },
 };

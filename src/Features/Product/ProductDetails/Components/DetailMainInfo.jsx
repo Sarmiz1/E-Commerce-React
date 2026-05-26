@@ -1,7 +1,7 @@
 import React from "react";
 import { StarRating } from "./StarRating";
 import { StoreHeader } from "../../../../components/Ui/StoreHeader";
-import { formatMoneyCents } from "../../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
 
 export default function DetailMainInfo({ 
   product, 
@@ -75,7 +75,7 @@ export default function DetailMainInfo({
             letterSpacing: "-0.02em",
           }}
         >
-          {formatMoneyCents(product.price_cents)}
+          {formatMoneyMinor(product.price_minor)}
         </span>
         {onSale && (
           <div className="flex items-center gap-2.5">
@@ -83,7 +83,7 @@ export default function DetailMainInfo({
               className="text-lg line-through opacity-30"
               style={{ color: "var(--silver)" }}
             >
-              {formatMoneyCents(origPrice)}
+              {formatMoneyMinor(origPrice)}
             </span>
             <span
               className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase"

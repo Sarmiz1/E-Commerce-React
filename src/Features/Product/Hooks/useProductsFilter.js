@@ -5,7 +5,7 @@ import { rankProductsBySemanticQuery } from "../../../utils/semanticProductSearc
 export function useProductsFilter(allProducts) {
   const [searchParams, setSearchParams] = useSearchParams();
   const maxBudget = useMemo(() => 
-    allProducts.length ? Math.max(...allProducts.map((p) => p.price_cents || 0), 1000) : 10000
+    allProducts.length ? Math.max(...allProducts.map((p) => p.price_minor || 0), 1000) : 10000
   , [allProducts]);
 
   const [filters, setFilters] = useState({ 
@@ -64,10 +64,10 @@ export function useProductsFilter(allProducts) {
         (Array.isArray(p.keywords) && p.keywords.some((k) => k.toLowerCase().includes(q)))
       );
     }
-    r = r.filter((p) => (p.price_cents || 0) <= filters.budget);
+    r = r.filter((p) => (p.price_minor || 0) <= filters.budget);
     if (filters.rating !== null) r = r.filter((p) => (p.rating_stars || 0) >= filters.rating);
-    if (filters.inStock) r = r.filter((p) => (p.price_cents || 0) > 0);
-    if (filters.onSale) r = r.filter((p) => (p.price_cents || 0) < 2000);
+    if (filters.inStock) r = r.filter((p) => (p.price_minor || 0) > 0);
+    if (filters.onSale) r = r.filter((p) => (p.price_minor || 0) < 2000);
 
     if (filters.search?.trim()) {
       const ranked = rankProductsBySemanticQuery(r, filters.search);
@@ -84,8 +84,8 @@ export function useProductsFilter(allProducts) {
     }
     
     const s = filters.sort;
-    if (s === "price-asc") r.sort((a, b) => (a.price_cents || 0) - (b.price_cents || 0));
-    else if (s === "price-desc") r.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
+    if (s === "price-asc") r.sort((a, b) => (a.price_minor || 0) - (b.price_minor || 0));
+    else if (s === "price-desc") r.sort((a, b) => (b.price_minor || 0) - (a.price_minor || 0));
     else if (s === "rating") r.sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
     else if (s === "newest") r.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     else if (s === "recommended") r.sort((a, b) =>

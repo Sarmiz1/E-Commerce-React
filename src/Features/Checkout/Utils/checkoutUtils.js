@@ -68,17 +68,17 @@ export function getCartItemImage(item) {
  * Resolves a cart item's unit price in cents.
  *
  * Priority (highest → lowest):
- *   1. item.products.price_cents  — normalized shape from a joined DB query
- *   2. item.variant.price_cents   — variant-level override
- *   3. item.product.price_cents   — flat product record
+ *   1. item.products.price_minor  — normalized shape from a joined DB query
+ *   2. item.variant.price_minor   — variant-level override
+ *   3. item.product.price_minor   — flat product record
  *   4. item.price                 — legacy / already-normalized shape
  *   5. 0                          — safe fallback; server must validate before charge
  */
 export function getCartItemUnitPrice(item) {
   return Number(
-    item?.products?.price_cents ??
-    item?.variant?.price_cents ??
-    item?.product?.price_cents ??
+    item?.products?.price_minor ??
+    item?.variant?.price_minor ??
+    item?.product?.price_minor ??
     item?.price ??
     0
   );

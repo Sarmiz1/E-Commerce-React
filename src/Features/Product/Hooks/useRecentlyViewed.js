@@ -28,7 +28,7 @@ export function useRecentlyViewed() {
         name: product.name,
         slug: product.slug,
         image: product.image,
-        price_cents: product.price_cents,
+        price_minor: product.price_minor,
         rating_stars: product.rating_stars,
       };
       return [entry, ...filtered].slice(0, MAX_ITEMS);

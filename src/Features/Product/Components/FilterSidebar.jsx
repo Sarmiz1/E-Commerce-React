@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { formatMoneyCents } from "../../../utils/FormatMoneyCents";
+import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
 import PremiumDropdown from "../../../components/Ui/PremiumDropdown";
 import { SORT_OPTIONS, CATEGORIES } from "../Utils/constants";
 
@@ -38,7 +38,7 @@ export function ActiveFilterChips({ filters, selectedCategory, setFilters, setSe
   if (filters.inStock) chips.push({ id: "stock", label: "In Stock" });
   if (filters.onSale) chips.push({ id: "sale", label: "On Sale" });
   if (filters.search?.trim()) chips.push({ id: "search", label: `"${filters.search.trim()}"` });
-  if (filters.budget < maxBudget) chips.push({ id: "budget", label: `< ${formatMoneyCents(filters.budget)}` });
+  if (filters.budget < maxBudget) chips.push({ id: "budget", label: `< ${formatMoneyMinor(filters.budget)}` });
   
   if (!chips.length) return null;
 
@@ -110,7 +110,7 @@ const BudgetSlider = React.memo(({ filters, setFilters, maxBudget, colors }) => 
     <div className="pt-2">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: colors.text.tertiary }}>Max Price</p>
-        <span className="text-sm font-bold" style={{ color: colors.text.primary }}>{formatMoneyCents(localBudget)}</span>
+        <span className="text-sm font-bold" style={{ color: colors.text.primary }}>{formatMoneyMinor(localBudget)}</span>
       </div>
       <div className="relative pt-2">
         <div className="h-[3px] rounded-full w-full" style={{ background: colors.border.default }}>

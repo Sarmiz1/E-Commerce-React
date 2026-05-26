@@ -113,8 +113,8 @@ export default function ProductDetail() {
   const sku = product.sku || product.id;
   
   // Real sales logic: backend must provide compare_at_price or original_price
-  const origPrice = product.compare_at_price_cents || product.original_price_cents;
-  const onSale = origPrice ? product.price_cents < origPrice : false;
+  const origPrice = product.compare_at_price_minor || product.original_price_minor;
+  const onSale = origPrice ? product.price_minor < origPrice : false;
   
   const lowStock = (product.rating_count || 0) < 50;
   const storeInfo = getStoreInfo(product);
