@@ -141,6 +141,11 @@ export function useAddProduct() {
         return {
           ...old,
           products: [optimisticEntry, ...(old.products || [])],
+          stats: old.stats ? {
+            ...old.stats,
+            totalProducts: (old.stats.totalProducts || 0) + 1,
+            activeProducts: optimisticEntry.status === 'active' ? (old.stats.activeProducts || 0) + 1 : (old.stats.activeProducts || 0),
+          } : undefined
         };
       });
 

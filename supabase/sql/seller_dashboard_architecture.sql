@@ -133,25 +133,30 @@ BEGIN
     -- 3. Wallet
     'wallet', (
       SELECT json_build_object(
-        'balance', COALESCE(SUM(net_cents) FILTER (WHERE status = 'completed'), 0),
-        'pendingPayout', ABS(COALESCE(SUM(net_cents) FILTER (WHERE status = 'pending' AND type = 'payout'), 0)),
-        'totalEarned', COALESCE(SUM(net_cents) FILTER (WHERE type = 'sale' AND status = 'completed'), 0),
-        'totalWithdrawn', ABS(COALESCE(SUM(net_cents) FILTER (WHERE type = 'payout' AND status = 'completed'), 0)),
+        'balance', COALESCE(SUM(amount_cents) FILTER (WHERE status = 'completed'), 0),
+        'pendingPayout', ABS(COALESCE(SUM(amount_cents) FILTER (WHERE status = 'pending' AND type = 'payout'), 0)),
+        'totalEarned', COALESCE(SUM(amount_cents) FILTER (WHERE type = 'sale' AND status = 'completed'), 0),
+        'totalWithdrawn', ABS(COALESCE(SUM(amount_cents) FILTER (WHERE type = 'payout' AND status = 'completed'), 0)),
         'transactions', (
           SELECT COALESCE(json_agg(
             json_build_object(
-              'id', w.id,
-              'type', w.type,
-              'amount', w.net_cents,
-              'status', w.status,
-              'date', w.created_at,
-              'desc', w.description
-            ) ORDER BY w.created_at DESC
+              'id', t.id,
+              'type', t.type,
+              'amount', t.amount_cents,
+              'fee', COALESCE((t.metadata->>'fee_cents')::int, 0),
+              'net', t.amount_cents - COALESCE((t.metadata->>'fee_cents')::int, 0),
+              'status', t.status,
+              'date', t.created_at,
+              'reference', t.provider_reference,
+              'metadata', t.metadata
+            ) ORDER BY t.created_at DESC
           ), '[]'::json)
-          FROM seller_wallet w WHERE w.seller_id = p_seller_id
+          FROM transactions t
+          WHERE t.user_id = p_seller_id
         )
       )
-      FROM seller_wallet WHERE seller_id = p_seller_id
+      FROM transactions
+      WHERE user_id = p_seller_id
     ),
 
     -- 4. Recent Orders (last 50)
@@ -259,12 +264,13 @@ BEGIN
         'categoryRevenue', (
           SELECT COALESCE(json_agg(json_build_object('label', cr.label, 'value', cr.value, 'pct', cr.pct)), '[]'::json)
           FROM (
-            SELECT p.category AS label, SUM(oi.total_cents) AS value,
+            SELECT c.name AS label, SUM(oi.total_cents) AS value,
                    ROUND(SUM(oi.total_cents) * 100.0 / NULLIF(SUM(SUM(oi.total_cents)) OVER (), 0)) AS pct
             FROM order_items oi
             JOIN products p ON p.id = oi.product_id
+            LEFT JOIN categories c ON c.id = p.category_id
             WHERE p.seller_id = p_seller_id
-            GROUP BY p.category
+            GROUP BY c.name
             ORDER BY value DESC
           ) cr
         ),
