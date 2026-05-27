@@ -9,7 +9,7 @@ import {
   getCartItemLineTotal,
   getCartItemName,
   getCartItemQuantity,
-} from "../utils/checkoututils";
+} from "../utils/checkoutUtils";
 import { Icon } from "./CheckoutIcons";
 
 function SummaryItem({ item }) {

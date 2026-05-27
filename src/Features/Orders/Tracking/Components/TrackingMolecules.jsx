@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 import { Ic, Spinner } from './TrackingIcons';
-import { computeETA, statusColor, statusPct, MILESTONES, MILESTONE_IDX } from '../utils/trackingutils';
+import { computeETA, statusColor, statusPct, MILESTONES, MILESTONE_IDX } from '../utils/trackingUtils';
 import { StatusOrb } from './TrackingAtoms';
 
 export function Ticker({ order }) {

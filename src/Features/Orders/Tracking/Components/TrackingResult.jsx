@@ -7,7 +7,7 @@ import { Ic } from './TrackingIcons';
 import { CopyBadge } from './TrackingAtoms';
 import { StatusPanel } from './StatusPanel';
 import { FlightTimeline, ItemList, SupportForm } from './TrackingMolecules';
-import { computeETA, statusColor } from '../utils/trackingutils';
+import { computeETA, statusColor } from '../utils/trackingUtils';
 import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 
 export function TrackingResult({ trackedOrder, updatedAt, refresh, doClear }) {

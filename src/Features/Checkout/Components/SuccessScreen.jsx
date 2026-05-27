@@ -9,7 +9,7 @@ import {
   getCartItemKey,
   getCartItemName,
   getCartItemQuantity,
-} from "../utils/checkoututils";
+} from "../utils/checkoutUtils";
 import { Icon } from "./CheckoutIcons";
 
 const CONFETTI_PIECES = Array.from({ length: 24 }, (_, index) => ({

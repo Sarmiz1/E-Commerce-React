@@ -6,7 +6,7 @@ import {
   getCartItemName,
   getCartItemQuantity,
   getCartItemUnitPrice,
-} from "../utils/checkoututils";
+} from "../utils/checkoutUtils";
 import { Icon } from "./CheckoutIcons";
 
 export function CartItemRow({ item, onUpdateQty, onRemove, removing, updating }) {

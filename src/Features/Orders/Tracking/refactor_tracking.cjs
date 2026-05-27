@@ -39,7 +39,7 @@ const howItWorksStr = extract('function HowItWorks', '// ═══════�
 const mainPageStr = extract('export default function TrackingPage()', null);
 
 // Write files
-fs.writeFileSync(path.join(utilsDir, 'trackingutils.js'), `
+fs.writeFileSync(path.join(utilsDir, 'trackingUtils.js'), `
 export ${statusCfgStr.trim()}
 export ${hookStr.replace('function useAutoPoll', 'useAutoPoll').replace('function', 'export function')}
 `.replace(/function statusColor/g, 'export function statusColor')
@@ -60,7 +60,7 @@ export ${iconsStr.trim().replace(/function Spinner/g, 'export function Spinner')
 fs.writeFileSync(path.join(compDir, 'TrackingAtoms.jsx'), `
 import React, { useState, useEffect, useCallback } from 'react';
 import { Ic } from './TrackingIcons';
-import { timeAgo, statusColor } from '../utils/trackingutils';
+import { timeAgo, statusColor } from '../utils/trackingUtils';
 
 export ${statBlockStr.trim()}
 export ${copyBadgeStr.trim()}
@@ -74,7 +74,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { formatMoneyCents } from "../../../../utils/formatMoneyCents";
 import { Ic, Spinner } from './TrackingIcons';
-import { computeETA, statusColor, statusPct, MILESTONES, MILESTONE_IDX } from '../utils/trackingutils';
+import { computeETA, statusColor, statusPct, MILESTONES, MILESTONE_IDX } from '../utils/trackingUtils';
 import { StatusOrb } from './TrackingAtoms';
 
 export ${tickerStr.trim()}
@@ -89,7 +89,7 @@ export ${howItWorksStr.trim()}
 fs.writeFileSync(path.join(compDir, 'StatusPanel.jsx'), `
 import React from 'react';
 import { Ic } from './TrackingIcons';
-import { computeETA, statusColor, statusPct, STATUS_CFG } from '../utils/trackingutils';
+import { computeETA, statusColor, statusPct, STATUS_CFG } from '../utils/trackingUtils';
 import { StatusOrb, StatBlock, LiveClock } from './TrackingAtoms';
 import { formatMoneyCents } from "../../../../utils/formatMoneyCents";
 
@@ -99,7 +99,7 @@ export ${panelStr.trim()}
 fs.writeFileSync(pagePath, `
 ${header.trim()}
 import { FONTS_AND_KEYFRAMES } from './Components/TrackingStyles';
-import { useAutoPoll } from './utils/trackingutils';
+import { useAutoPoll } from './utils/trackingUtils';
 import { Ic, Spinner } from './Components/TrackingIcons';
 import { CopyBadge } from './Components/TrackingAtoms';
 import { Ticker, FlightTimeline, ItemList, SupportForm, ScanningState, NotFound, HowItWorks } from './Components/TrackingMolecules';

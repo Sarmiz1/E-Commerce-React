@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { EMPTY_ERRORS } from "../utils/checkoutConstants";
-import { sanitizeString } from "../utils/checkoututils";
+import { sanitizeString } from "../utils/checkoutUtils";
 
 /**
  * Validates shipping + billing address fields only.
