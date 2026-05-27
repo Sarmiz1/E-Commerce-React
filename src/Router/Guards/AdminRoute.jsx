@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../Store/useAuthStore";
 import { supabase } from "../../lib/supabaseClient";
-import { DashboardSkeleton } from "../../components/Fallback";
+import { DashboardSkeleton } from "../../Components/Fallback";
 
 export const AdminRoute = () => {
   const { user, loading: authLoading } = useAuth();

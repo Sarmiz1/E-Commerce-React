@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   ShieldAlert,
 } from "lucide-react";
-import ModernNavbar from "../../components/ModernNavbar";
+import ModernNavbar from "../../Components/ModernNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 

@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { useAuth } from "../../Store/useAuthStore";
-import { HomeSkeleton } from "../../components/Fallback";
+import { HomeSkeleton } from "../../Components/Fallback";
 
 const HomePage = lazy(() => import("../../Features/HomePage/HomePage"));
 const ModernLanding = lazy(() => import("../../Features/Marketting/ModernLanding/ModernLanding"));

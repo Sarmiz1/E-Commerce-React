@@ -1,7 +1,7 @@
 import { useAuth } from "../../Store/useAuthStore";
 import DefaultLayout from "../../Layout/DefaultLayout";
 import MarkettingLayout from "../../Layout/MarkettingLayout";
-import { HomeSkeleton } from "../../components/Fallback";
+import { HomeSkeleton } from "../../Components/Fallback";
 
 export const HomeRoute = () => {
   const { user, isLoading } = useAuth();

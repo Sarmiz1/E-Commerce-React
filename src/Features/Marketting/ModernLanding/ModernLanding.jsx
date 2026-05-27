@@ -1,6 +1,6 @@
 import React, { lazy, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import SEO from "../../../components/SEO.jsx";
+import SEO from "../../../Components/SEO.jsx";
 import ModernHero from "./Components/ModernHero";
 import MarketingNavbar from "../Components/MarketingNavbar.jsx";
 import LazyMarketingSection from "../Components/LazyMarketingSection.jsx";

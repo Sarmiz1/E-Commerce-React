@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, Moon, Sparkles, Sun, X } from "lucide-react";
 import { useTheme } from "../../../Store/useThemeStore";
-import { Logo } from "../../../components/Ui/Logo";
+import { Logo } from "../../../Components/Ui/Logo";
 
 const DEFAULT_CTA = { label: "AI Shop", href: "/ai-shop" };
 

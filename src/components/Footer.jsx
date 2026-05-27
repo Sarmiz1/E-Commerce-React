@@ -1,4 +1,4 @@
-// src/components/Footer.jsx
+// src/Components/Footer.jsx
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import GoldLine from "./FooterComponents/GoldLine";

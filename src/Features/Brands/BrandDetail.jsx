@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
-import ModernNavbar from "../../components/ModernNavbar";
+import ModernNavbar from "../../Components/ModernNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 

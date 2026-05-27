@@ -1,8 +1,8 @@
 import React from 'react';
 import { 
   mockMetrics, mockOrders, mockProducts, mockSellers, mockTickets, mockActivityFeed, mockAiInsights 
-} from '../components/data/mockAdminData'
-import { MetricCard, DataTable, StatusBadge } from '../components/AdminComponents';
+} from '../Components/data/mockAdminData'
+import { MetricCard, DataTable, StatusBadge } from '../Components/AdminComponents';
 import { Sparkles, ArrowRight, Download, Filter } from 'lucide-react';
 
 // -------------------------------------------------------------

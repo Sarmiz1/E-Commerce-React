@@ -4,7 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
-import Stars from "../../../../components/Stars";
+import Stars from "../../../../Components/Stars";
 import FloatingOrbs from "../FloatingOrbs";
 import { useNavigate } from "react-router";
 

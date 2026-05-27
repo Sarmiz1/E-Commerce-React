@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
 import gsap from 'gsap';
-import { ErrorMessage } from '../../../../components/ErrorMessage';
+import { ErrorMessage } from '../../../../Components/ErrorMessage';
 import {
   BagIcon, CheckIcon, SpinnerIcon,
 } from './Icons';

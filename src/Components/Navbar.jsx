@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx
+// src/Components/Navbar.jsx
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion as Motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";

@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Store/useThemeStore";
 import { useWooshoChat } from "./hooks/useWooshoChat";
 
-import { TypingWave } from "./components/TypingWave";
-import { MessageBubble } from "./components/MessageBubble";
-import { CartPanel } from "./components/CartPanel";
-import { ChatHeader } from "./components/ChatHeader";
-import { ChatInput } from "./components/ChatInput";
+import { TypingWave } from "./Components/TypingWave";
+import { MessageBubble } from "./Components/MessageBubble";
+import { CartPanel } from "./Components/CartPanel";
+import { ChatHeader } from "./Components/ChatHeader";
+import { ChatInput } from "./Components/ChatInput";
 
 const ACCENT = "#5636F3";
 

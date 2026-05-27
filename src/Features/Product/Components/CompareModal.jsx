@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import { IconClose } from "../../../components/Icons/IconClose";
+import { IconClose } from "../../../Components/Icons/IconClose";
 
 export default function CompareModal({ items, onClose, onRemove }) {
   const navigate = useNavigate();

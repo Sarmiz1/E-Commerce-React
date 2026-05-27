@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import ParticleField from "../ParticleField";
 import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
-import Stars from "../../../../components/Stars";
+import Stars from "../../../../Components/Stars";
 import { useTimeContext } from "../../../../hooks/useTimeContext";
 
 export default function HomeHeroSection({ heroFeatured }) {

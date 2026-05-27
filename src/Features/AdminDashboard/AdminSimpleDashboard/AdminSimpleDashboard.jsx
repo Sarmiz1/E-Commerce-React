@@ -3,7 +3,7 @@ import {
   LayoutDashboard, ShoppingBag, Box, Users, Store, BarChart3, 
   LifeBuoy, Sparkles, Briefcase, Settings, LogOut, Hexagon
 } from 'lucide-react';
-import { AdminTopbar } from './components/AdminComponents';
+import { AdminTopbar } from './Components/AdminComponents';
 import { 
   OverviewView, OrdersView, ProductsView, SellersView, AiInsightsView, PlaceholderView 
 } from './views/AdminViews';

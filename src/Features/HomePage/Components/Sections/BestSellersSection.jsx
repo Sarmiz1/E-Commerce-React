@@ -10,14 +10,14 @@ import { PERKS } from "../../Data/perks";
 import { TESTIMONIALS } from "../../Data/testimonials";
 import { HOW_IT_WORKS } from "../../Data/how-it-works";
 import SectionLabel from "../SectionLabel";
-import Stars from "../../../../components/Stars";
+import Stars from "../../../../Components/Stars";
 import ParticleField from "../ParticleField";
 import FloatingOrbs from "../FloatingOrbs";
-import ProductCard from "../../../../components/Ui/ProductCard";
+import ProductCard from "../../../../Components/Ui/ProductCard";
 import { BentoCard } from "../BentoProductGridComponents/BentoCard";
-import AddToCart from "../../../../components/Ui/AddToCart";
-import WishlistHeart from "../../../../components/Ui/WishlistHeart";
-import QuickView from "../../../../components/Ui/QuickView";
+import AddToCart from "../../../../Components/Ui/AddToCart";
+import WishlistHeart from "../../../../Components/Ui/WishlistHeart";
+import QuickView from "../../../../Components/Ui/QuickView";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 

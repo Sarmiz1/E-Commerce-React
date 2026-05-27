@@ -11,12 +11,12 @@ import { WishlistAPI } from "../../api/wishlistApi";
 import { trackEvent, trackEvents } from "../../api/track_events";
 import { formatMoneyMinor } from "../../utils/formatMoneyMinor"
 import { getProductImages } from "../../utils/getProductImages";
-import AddToCart from "../../components/Ui/AddToCart";
-import ProductDetailModal from "../../components/Ui/ProductDetailModal";
-import QuickView from "../../components/Ui/QuickView";
-import WishlistHeart from "../../components/Ui/WishlistHeart";
-import ShareButton from "../../components/Ui/ShareButton";
-import SEO from "../../components/SEO";
+import AddToCart from "../../Components/Ui/AddToCart";
+import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
+import QuickView from "../../Components/Ui/QuickView";
+import WishlistHeart from "../../Components/Ui/WishlistHeart";
+import ShareButton from "../../Components/Ui/ShareButton";
+import SEO from "../../Components/SEO";
 
 // Size of the page
 const PAGE_SIZE = 12;

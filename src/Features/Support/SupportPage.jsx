@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
-import ModernNavbar from "../../components/ModernNavbar";
+import ModernNavbar from "../../Components/ModernNavbar";
 
 const CATEGORIES = [
   {

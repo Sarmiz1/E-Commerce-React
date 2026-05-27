@@ -4,7 +4,7 @@
  * Existing imports of `useToast` / `ToastProvider` continue to work.
  */
 import { useToastStore } from "../../Store/useToastStore";
-import { ToastRenderer } from "../../components/Ui/ToastRenderer";
+import { ToastRenderer } from "../../Components/Ui/ToastRenderer";
 
 /** Keep ToastProvider import working — now just renders the toast stack */
 export function ToastProvider({ children }) {

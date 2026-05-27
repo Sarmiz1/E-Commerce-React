@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import { useRecentlyViewed } from "../Hooks/useRecentlyViewed";
-import WishlistHeart from "../../../components/Ui/WishlistHeart";
+import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 
 export default function RecentlyViewedStrip() {
   const { colors, isDark } = useTheme();

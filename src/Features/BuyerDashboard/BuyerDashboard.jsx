@@ -2,18 +2,18 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { useTheme } from "../../Store/useThemeStore";
 import { BuyerProvider, useBuyer } from './context/BuyerContext';
-import BuyerSidebar from './components/BuyerSidebar';
-import BuyerTopbar from './components/BuyerTopbar';
-import BuyerOverview from './components/BuyerOverview';
-import BuyerAI from './components/BuyerAI';
-import BuyerOrders from './components/BuyerOrders';
-import BuyerWishlist from './components/BuyerWishlist';
-import BuyerWallet from './components/BuyerWallet';
-import BuyerCredits from './components/BuyerCredits';
-import BuyerAnalytics from './components/BuyerAnalytics';
-import { BuyerAddresses, BuyerPayments } from './components/BuyerAddressPayment';
-import { BuyerReviews, BuyerNotifications } from './components/BuyerReviewsNotifs';
-import BuyerSettings from './components/BuyerSettings';
+import BuyerSidebar from './Components/BuyerSidebar';
+import BuyerTopbar from './Components/BuyerTopbar';
+import BuyerOverview from './Components/BuyerOverview';
+import BuyerAI from './Components/BuyerAI';
+import BuyerOrders from './Components/BuyerOrders';
+import BuyerWishlist from './Components/BuyerWishlist';
+import BuyerWallet from './Components/BuyerWallet';
+import BuyerCredits from './Components/BuyerCredits';
+import BuyerAnalytics from './Components/BuyerAnalytics';
+import { BuyerAddresses, BuyerPayments } from './Components/BuyerAddressPayment';
+import { BuyerReviews, BuyerNotifications } from './Components/BuyerReviewsNotifs';
+import BuyerSettings from './Components/BuyerSettings';
 
 // ─── Render functions (not static JSX) so each page mounts cleanly ─────────────
 const PAGES = {

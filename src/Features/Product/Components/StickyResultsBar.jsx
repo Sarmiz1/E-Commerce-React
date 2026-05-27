@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { IconFilter } from "../../../components/Icons/IconFilter";
+import { IconFilter } from "../../../Components/Icons/IconFilter";
 
 export default function StickyResultsBar({ 
   resultCount, 

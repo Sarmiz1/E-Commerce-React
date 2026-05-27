@@ -1,18 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from "../../Store/useThemeStore";
 import { DashboardProvider, useDashboard } from './context/DashboardContext';
-import DashSidebar from './components/DashSidebar';
-import DashTopbar from './components/DashTopbar';
-import DashOverview from './components/DashOverview';
-import DashOrders from './components/DashOrders';
-import DashProducts from './components/DashProducts';
-import DashAnalytics from './components/DashAnalytics';
-import DashCustomers from './components/DashCustomers';
-import DashWallet from './components/DashWallet';
-import DashMarketing from './components/DashMarketing';
-import DashReviews from './components/DashReviews';
-import DashSettings from './components/DashSettings';
-import DashPlan from './components/DashPlan';
+import DashSidebar from './Components/DashSidebar';
+import DashTopbar from './Components/DashTopbar';
+import DashOverview from './Components/DashOverview';
+import DashOrders from './Components/DashOrders';
+import DashProducts from './Components/DashProducts';
+import DashAnalytics from './Components/DashAnalytics';
+import DashCustomers from './Components/DashCustomers';
+import DashWallet from './Components/DashWallet';
+import DashMarketing from './Components/DashMarketing';
+import DashReviews from './Components/DashReviews';
+import DashSettings from './Components/DashSettings';
+import DashPlan from './Components/DashPlan';
 import SalesAssistant from './AI_Sales_Assistant/SalesAssistant';
 
 const SH_STYLES = `

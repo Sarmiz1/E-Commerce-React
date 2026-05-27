@@ -11,7 +11,7 @@ import {
   OrdersSkeleton,
   TrackingSkeleton,
   CartSkeleton,
-} from "../components/Fallback";
+} from "../Components/Fallback";
 
 
 

@@ -32,7 +32,7 @@ import DetailInventory from "./Components/DetailInventory";
 import DetailSecondaryActions from "./Components/DetailSecondaryActions";
 import DetailReassurance from "./Components/DetailReassurance";
 import ProductSEO from "./Components/ProductSEO";
-import { ProductDetailSkeleton } from "../../../components/Fallback";
+import { ProductDetailSkeleton } from "../../../Components/Fallback";
 
 
 

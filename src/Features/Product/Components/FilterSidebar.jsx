@@ -2,7 +2,7 @@ import React, { useCallback, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import PremiumDropdown from "../../../components/Ui/PremiumDropdown";
+import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
 import { SORT_OPTIONS, CATEGORIES } from "../utils/constants";
 
 const CAT_ICONS = {

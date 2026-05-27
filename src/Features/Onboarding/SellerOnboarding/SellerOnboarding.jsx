@@ -7,7 +7,7 @@
 //  │   ├── index.jsx                 ← Route entry + auth guard
 //  │   └── SellerOnboardingPage.jsx  ← This file (main layout)
 //  ├── features/onboarding/
-//  │   ├── components/
+//  │   ├── Components/
 //  │   │   ├── ProgressSidebar.jsx
 //  │   │   ├── StepCard.jsx
 //  │   │   ├── steps/

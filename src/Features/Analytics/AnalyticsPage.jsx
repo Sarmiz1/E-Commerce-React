@@ -15,7 +15,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useTheme } from "../../Store/useThemeStore";
-import ModernNavbar from "../../components/ModernNavbar";
+import ModernNavbar from "../../Components/ModernNavbar";
 
 gsap.registerPlugin(ScrollTrigger);
 

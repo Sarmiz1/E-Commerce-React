@@ -1,5 +1,5 @@
 import React from "react";
-import SEO from "../../../../components/SEO";
+import SEO from "../../../../Components/SEO";
 import { getStoreInfo } from "../../../../utils/getStoreInfo";
 import { getProductImages } from "../../../../utils/getProductImages";
 
