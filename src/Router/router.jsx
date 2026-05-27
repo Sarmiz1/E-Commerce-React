@@ -277,6 +277,19 @@ const router = createBrowserRouter(
         <Route element={<TradeLayout />}>
           {/* Protected Trade Pages */}
           <Route element={<ProtectedRoute />}>
+
+            <Route
+              path="seller-onboarding"
+              lazy={() =>
+                import(
+                  "../Features/SellerOnboarding/SellerOnboarding"
+                ).then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              hydrateFallbackElement={<GenericPageSkeleton />}
+            />
+            
             <Route
               path="checkout"
               element={<CheckoutPage />}
