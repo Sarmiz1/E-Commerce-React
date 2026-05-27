@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import { useRecentlyViewed } from "../Hooks/useRecentlyViewed";
 import WishlistHeart from "../../../components/Ui/WishlistHeart";
 

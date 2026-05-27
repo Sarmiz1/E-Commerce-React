@@ -9,7 +9,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatMoneyCurrency } from "../../../../utils/FormatMoneyMinor";
+import { formatMoneyCurrency } from "../../../../utils/formatMoneyMinor";
 import {
   SELLER_FORECAST_BARS,
   SELLER_HERO_NOTIFICATIONS,

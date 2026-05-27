@@ -8,7 +8,7 @@ import { CopyBadge } from './TrackingAtoms';
 import { StatusPanel } from './StatusPanel';
 import { FlightTimeline, ItemList, SupportForm } from './TrackingMolecules';
 import { computeETA, statusColor } from '../Utils/trackingUtils';
-import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 
 export function TrackingResult({ trackedOrder, updatedAt, refresh, doClear }) {
   const navigate = useNavigate();

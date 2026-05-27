@@ -3,7 +3,7 @@ import { Link, useLoaderData, useNavigation, useNavigate } from "react-router-do
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import { useTheme } from "../../Store/useThemeStore";
-import { formatMoneyMinor } from "../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../utils/formatMoneyMinor";
 import ProductCard from "../Product/Components/ProductCard";
 import ProductDetailModal from "../../components/Ui/ProductDetailModal";
 import { useCompare } from "../Product/Hooks/useCompare";

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Calculator, TrendingUp } from "lucide-react";
-import { formatMoneyCurrency } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyCurrency } from "../../../utils/formatMoneyMinor";
 import { trackEvent } from "../../../api/track_events";
 
 export default function SellerRoiCalculator() {

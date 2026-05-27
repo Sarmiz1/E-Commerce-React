@@ -23,7 +23,7 @@ const replacements = [
   { from: /minOrderCents/g, to: 'minOrderMinor' },
   { from: /min_order_cents/g, to: 'min_order_minor' },
   { from: /formatMoneyCents/g, to: 'formatMoneyMinor' },
-  { from: /FormatMoneyCents/g, to: 'FormatMoneyMinor' },
+  { from: /FormatMoneyCents/g, to: 'formatMoneyMinor' },
   { from: /unitPriceCents/g, to: 'unitPriceMinor' },
   { from: /unit_price_cents/g, to: 'unit_price_minor' },
   { from: /lineTotalCents/g, to: 'lineTotalMinor' },

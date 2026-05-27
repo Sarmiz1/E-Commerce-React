@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
-import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import { IconCart } from "../../../components/Icons/IconCart"; 
 import { IconStar } from "../../../components/Icons/IconStar"; 
 import { getProductImages } from "../../../utils/getProductImages"; 

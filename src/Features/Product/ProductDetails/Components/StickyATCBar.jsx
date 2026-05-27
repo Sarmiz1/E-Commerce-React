@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
-import { formatMoneyMinor } from '../../../../utils/FormatMoneyMinor';
+import { formatMoneyMinor } from '../../../../utils/formatMoneyMinor';
 import {
   BagIcon,
   CheckIcon,

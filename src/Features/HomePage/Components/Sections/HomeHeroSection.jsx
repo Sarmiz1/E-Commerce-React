@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import ParticleField from "../ParticleField";
-import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 import Stars from "../../../../components/Stars";
 import { useTimeContext } from "../../../../hooks/useTimeContext";
 

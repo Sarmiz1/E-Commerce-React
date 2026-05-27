@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, Sparkles } from "lucide-react";
-import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import { rankProductsBySemanticQuery } from "../../../utils/semanticProductSearch";
 import { trackEvent } from "../../../api/track_events";
 import { useTheme } from "../../../Store/useThemeStore";

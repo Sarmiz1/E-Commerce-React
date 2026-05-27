@@ -7,7 +7,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useRegisterCartIcon } from "../context/cart/CartAnimationContext";
 import { useCartState } from "../context/cart/CartContext";
 import { useTheme } from "../Store/useThemeStore";
-import { formatMoneyMinor } from "../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../utils/formatMoneyMinor";
 import { Logo } from "./Ui/Logo";
 import { DesktopNav } from "./NavbarComponents/DesktopNav";
 import { MobileDrawer } from "./NavbarComponents/MobileDrawer";

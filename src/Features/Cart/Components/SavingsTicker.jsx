@@ -1,4 +1,4 @@
-import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 
 export function SavingsTicker({ savings }) {
   if (savings <= 0) return null;

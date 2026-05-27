@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAllProducts } from "../hooks/product/useProducts"; 
 import { useTheme } from "../Store/useThemeStore"; 
-import { formatMoneyMinor } from "../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../utils/formatMoneyMinor";
 
 export default function GlobalCommandPalette() {
   const [isOpen, setIsOpen] = useState(false);

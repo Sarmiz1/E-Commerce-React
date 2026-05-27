@@ -16,7 +16,7 @@
 import { useCallback } from "react";
 import { motion } from "framer-motion";
 import { Link } from 'react-router-dom'
-import { formatMoneyCurrency } from '../../../../utils/FormatMoneyMinor';
+import { formatMoneyCurrency } from '../../../../utils/formatMoneyMinor';
 import SELLER_WIN_IMG from  "../../../../assets/marketing/sellersImg3.png";
 import { SELLER_WIN_STEPS } from '../Data/sectionsData.jsx';
 

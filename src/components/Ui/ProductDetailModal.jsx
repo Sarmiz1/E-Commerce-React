@@ -8,7 +8,7 @@ import React, {
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { useTheme } from "../../Store/useThemeStore";
-import { formatMoneyMinor } from "../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../utils/formatMoneyMinor";
 import { SIZE_TABLES, COLOR_KEYWORDS } from "../../Features/Product/Utils/constants";
 import { IconStar } from "../Icons/IconStar";
 import { IconPlus } from "../Icons/IconPlus";

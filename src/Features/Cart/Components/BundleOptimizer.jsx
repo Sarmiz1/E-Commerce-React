@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Ic, Spinner } from "./CartConstants";
-import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 
 export function BundleOptimizer({ cartItems, recommendations, onAddItem }) {
   const [isAdding, setIsAdding] = useState(false);

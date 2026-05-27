@@ -8,7 +8,7 @@ import {
   UploadCloud,
   Zap,
 } from "lucide-react";
-import { formatMoneyCurrency } from "../../../../utils/FormatMoneyMinor";
+import { formatMoneyCurrency } from "../../../../utils/formatMoneyMinor";
 
 export const SELLER_FEATURES = [
   {

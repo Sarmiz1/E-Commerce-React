@@ -16,7 +16,7 @@ import {
 import InteractiveStarPicker from './InteractiveStarPicker';
 
 
-// import { formatMoneyMinor } from '../../../../utils/FormatMoneyMinor';
+// import { formatMoneyMinor } from '../../../../utils/formatMoneyMinor';
 // import { useCartActions } from '../../../../context/cart/CartContext';
 
 // import { 

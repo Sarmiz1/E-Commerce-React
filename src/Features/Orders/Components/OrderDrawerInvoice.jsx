@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import { getOrderTotalCents } from "../Utils/ordersUtils";
 import { Icons } from "./OrderIcons";
 

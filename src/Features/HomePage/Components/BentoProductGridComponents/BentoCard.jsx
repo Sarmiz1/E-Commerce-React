@@ -1,6 +1,6 @@
 // Bento Card
 import { motion } from "framer-motion";
-import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 import AddToCart from "../../../../components/Ui/AddToCart";
 import WishlistHeart from "../../../../components/Ui/WishlistHeart";
 import QuickView from "../../../../components/Ui/QuickView";

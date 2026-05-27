@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 import { Ic, Spinner } from './TrackingIcons';
 import { computeETA, statusColor, statusPct, MILESTONES, MILESTONE_IDX } from '../Utils/trackingUtils';
 import { StatusOrb } from './TrackingAtoms';

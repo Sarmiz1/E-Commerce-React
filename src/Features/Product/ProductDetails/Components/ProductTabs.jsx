@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { Link } from 'react-router-dom';
-import { formatMoneyMinor } from '../../../../utils/FormatMoneyMinor';
+import { formatMoneyMinor } from '../../../../utils/formatMoneyMinor';
 import { IconSpinner } from '../../../../components/Icons/IconSpinner';
 import ProductCard from '../../../../components/Ui/ProductCard';
 import { ErrorMessage } from '../../../../components/ErrorMessage';

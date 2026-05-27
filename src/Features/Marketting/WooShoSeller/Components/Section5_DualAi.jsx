@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { Bot, User, CheckCircle2 } from 'lucide-react';
-import { formatMoneyCurrency } from '../../../../utils/FormatMoneyMinor';
+import { formatMoneyCurrency } from '../../../../utils/formatMoneyMinor';
 
 export default function Section5_DualAi() {
   const [phase, setPhase] = useState(0);

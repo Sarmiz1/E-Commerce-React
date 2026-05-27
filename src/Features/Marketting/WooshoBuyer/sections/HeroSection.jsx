@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ShoppingBag, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { formatMoneyCurrency } from '../../../../utils/FormatMoneyMinor';
+import { formatMoneyCurrency } from '../../../../utils/formatMoneyMinor';
 import MagneticButton from '../../Components/MagneticButton';
 import { BUYER_HERO_COPY, BUYER_HERO_PRODUCTS } from '../Data/heroData';
 

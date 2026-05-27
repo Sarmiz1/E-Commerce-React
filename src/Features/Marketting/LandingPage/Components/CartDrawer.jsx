@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { formatMoneyMinor } from "../../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 import { calculateTotalPrice } from "../Utils/calculateTotalPrice";
 import { useCartActions, useCartState } from "../../../../context/cart/CartContext";
 

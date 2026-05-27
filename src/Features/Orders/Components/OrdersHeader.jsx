@@ -1,5 +1,5 @@
 import { formatDateMonthDay } from "../../../utils/formatDate";
-import { formatMoneyMinor } from "../../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 function OrdersHeader({ orderDate, orderTotal, orderId }) {
   return (
     <header

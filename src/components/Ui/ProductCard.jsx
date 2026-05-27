@@ -43,7 +43,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion as Motion } from "framer-motion";
-import { formatMoneyMinor } from "../../utils/FormatMoneyMinor";
+import { formatMoneyMinor } from "../../utils/formatMoneyMinor";
 import Stars from "../Stars";
 import { useTrackProductClick } from "../../hooks/useTrackProductClick";
 import AddToCart from "./AddToCart";
