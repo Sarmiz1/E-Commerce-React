@@ -3,7 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { STYLES } from "./Styles/styles";
 
 import MarqueeStrip from "./Components/MarqueeStrip";
-import Navbar from "../../Components/NavBar";
+import Navbar from "../../Components/Navbar";
 
 import LazyRender from "../../Components/Ui/LazyRender";
 import HomePageLoadingState from "./Components/Sections/HomePageLoadingState";
