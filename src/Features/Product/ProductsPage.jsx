@@ -21,7 +21,7 @@ import { useProductsFilter } from "./Hooks/useProductsFilter";
 import { useCompare } from "./Hooks/useCompare";
 
 // Constants
-import { SORT_OPTIONS } from "./utils/constants";
+import { SORT_OPTIONS } from "./utils/constants"; 
 
 // Extracted Components & Hooks
 import { PG_STYLES } from "./Styles/ProductsPageStyles";
