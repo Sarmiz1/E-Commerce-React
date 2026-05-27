@@ -5,7 +5,7 @@ import {
 } from "react-router-dom";
 import { OrderAPI } from "../../../api/orderApi";
 import { useCartActions } from "../../../context/cart/CartContext";
-import { filterAndSortOrders, getReorderCartItems } from "../utils/ordersutils";
+import { filterAndSortOrders, getReorderCartItems } from "../utils/ordersUtils";
 import { useOrders } from "../../../hooks/order/useOrders";
 import { useToastStore } from "../../../Store/useToastStore";
 import { useQueryClient } from "@tanstack/react-query";

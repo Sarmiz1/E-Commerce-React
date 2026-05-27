@@ -6,7 +6,7 @@ import { Icons } from "./OrderIcons";
 import OrderDrawerItems from "./OrderDrawerItems";
 import OrderDrawerTracking from "./OrderDrawerTracking";
 import OrderDrawerInvoice from "./OrderDrawerInvoice";
-import { canCancelOrder, formatOrderDate, getOrderCreatedAt, getOrderShortId } from "../utils/ordersutils";
+import { canCancelOrder, formatOrderDate, getOrderCreatedAt, getOrderShortId } from "../utils/ordersUtils";
 
 const TABS = [
   { id: "items", label: "Items" },

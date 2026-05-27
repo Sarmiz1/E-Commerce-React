@@ -9,7 +9,7 @@ import {
   getOrderItems,
   getOrderShortId,
   getOrderTotalCents,
-} from "../utils/ordersutils";
+} from "../utils/ordersUtils";
 import { Icons } from "./OrderIcons";
 import StatusBadge from "./StatusBadge";
 

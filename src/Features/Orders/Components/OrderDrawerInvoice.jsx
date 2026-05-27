@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import { getOrderTotalCents } from "../utils/ordersutils";
+import { getOrderTotalCents } from "../utils/ordersUtils";
 import { Icons } from "./OrderIcons";
 
 export default function OrderDrawerInvoice({ order }) {
