@@ -20,7 +20,7 @@ import { SubmitErrorAlert } from "./Components/SubmitErrorAlert";
 import { SuccessScreen } from "./Components/SuccessScreen";
 import { TrustBar } from "./Components/TrustBar";
 import { CO_STYLES, EMPTY_ERRORS, EMPTY_FORM } from "./utils/checkoutConstants";
-import { calculateCheckoutTotals } from "./utils/checkoututils";
+import { calculateCheckoutTotals } from "./utils/checkoutUtils";
 import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
 
 
