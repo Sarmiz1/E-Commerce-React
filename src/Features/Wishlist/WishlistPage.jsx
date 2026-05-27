@@ -9,7 +9,7 @@ import { useCartActions } from "../../context/cart/CartContext";
 import { useAuth } from "../../Store/useAuthStore";
 import { WishlistAPI } from "../../api/wishlistApi";
 import { trackEvent, trackEvents } from "../../api/track_events";
-import { formatMoneyMinor } from "../../Utils/formatMoneyMinor"
+import { formatMoneyMinor } from "../../utils/formatMoneyMinor"
 import { getProductImages } from "../../utils/getProductImages";
 import AddToCart from "../../components/Ui/AddToCart";
 import ProductDetailModal from "../../components/Ui/ProductDetailModal";
