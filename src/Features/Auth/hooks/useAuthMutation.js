@@ -5,6 +5,11 @@ import {
   supabaseConfigError,
 } from "../../../lib/supabaseClient";
 
+const siteUrl =
+  import.meta.env.VITE_SITE_URL || window.location.origin;
+
+
+// This function translates raw error messages from Supabase into more user-friendly messages that can be displayed in the UI. It checks for specific keywords in the error message and returns a more understandable message for the user. If no specific case matches, it returns the original message or a generic fallback message. 
 export const getFriendlyError = (message) => {
   if (!message) return "Something went wrong. Please try again.";
 
@@ -33,12 +38,47 @@ export const getFriendlyError = (message) => {
   )
     return "Please wait a moment before requesting another reset link.";
 
+  if (
+    message.includes(
+      "table",
+    )
+  )
+    return "There was an issue connecting to the server. Please try again later.";
+
   if (message.includes("User not found"))
     return "No account found with this email address.";
 
   return message;
 };
 
+// Google sign-in is handled separately because it doesn't fit the typical mutation pattern and requires a redirect. We still want to provide user-friendly error messages for it, so we use the same getFriendlyError function.
+export const signInWithGoogle = async (role = "buyer") => {
+  if (!isSupabaseConfigured) {
+    throw new Error(supabaseConfigError);
+  }
+
+  localStorage.setItem("woosho_oauth_role", role);
+
+  const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${siteUrl}/auth/callback`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
+    },
+  });
+
+  if (error) {
+    throw new Error(getFriendlyError(error.message));
+  }
+};
+
+
+// This hook handles both login and registration mutations based on the mode. It also includes error handling to provide user-friendly messages.
 export const useAuthMutation = (mode, setFormError) => {
   return useMutation({
     mutationFn: async (formData) => {

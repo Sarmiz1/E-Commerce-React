@@ -1,8 +1,18 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleIcon from "../Components/GoogleIcon";
+import { signInWithGoogle } from "../Hooks/useAuthMutation";
 
 const SocialAuth = ({ mode, role, buyerStep, sellerStep, colors, isDark }) => {
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle(role || "buyer");
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+    }
+  };
+
   return (
     <AnimatePresence initial={false}>
       {mode !== "forgot" &&
@@ -34,6 +44,8 @@ const SocialAuth = ({ mode, role, buyerStep, sellerStep, colors, isDark }) => {
                 fontWeight: 600,
                 boxShadow: isDark ? "none" : "0 2px 8px rgba(0,0,0,0.05)",
               }}
+              type="button"
+              onClick={handleGoogleSignIn}
             >
               <GoogleIcon /> Continue with Google
             </button>
