@@ -18,6 +18,7 @@ import WishlistHeart from "../../components/Ui/WishlistHeart";
 import ShareButton from "../../components/Ui/ShareButton";
 import SEO from "../../components/SEO";
 
+// Size of the page
 const PAGE_SIZE = 12;
 
 const SORT_OPTIONS = [
