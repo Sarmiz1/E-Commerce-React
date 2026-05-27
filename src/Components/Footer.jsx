@@ -9,7 +9,7 @@ import BottomBar from "./FooterComponents/BottomBar";
 export default function Footer() {
   const canvasRef = useRef(null);
 
-  // Subtle starfield canvas
+  // Subtle starfield canvas effect
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
