@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import AnimatedCounter from "./AnimatedCounter";
 import { Icons } from "./OrderIcons";
-import { getOrderStats } from "../Utils/ordersUtils";
+import { getOrderStats } from "../utils/ordersutils";
 
 export default function StatsBar({ orders }) {
   const statsData = getOrderStats(orders);

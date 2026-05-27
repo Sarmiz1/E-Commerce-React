@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TRUST_BADGES } from "../Utils/checkoutConstants";
+import { TRUST_BADGES } from "../utils/checkoutConstants";
 import { Icon } from "./CheckoutIcons";
 
 const TRUST_ICONS = [Icon.Lock, Icon.Truck, Icon.Shield, Icon.Star];

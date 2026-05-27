@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { COLOR_KEYWORDS } from "../Features/Product/Utils/constants";
-import { PRODUCT_COLORS, SIZE_MAP } from "../Features/Product/ProductDetails/Utils/productHelpers";
+import { COLOR_KEYWORDS } from "../Features/Product/utils/constants";
+import { PRODUCT_COLORS, SIZE_MAP } from "../Features/Product/ProductDetails/utils/productHelpers";
 
 /**
  * Custom hook to extract and format unique color and size variants from a product.

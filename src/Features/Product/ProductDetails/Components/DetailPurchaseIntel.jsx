@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckIcon, RefreshIcon, ShieldIcon, TruckIcon } from "./Icons";
-import { seededRand } from "../Utils/productHelpers";
+import { seededRand } from "../utils/productHelpers";
 
 export default function DetailPurchaseIntel({
   product,

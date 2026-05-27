@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import {  getAvatarGradient  } from '../Utils/productHelpers';
+import {  getAvatarGradient  } from '../utils/productHelpers';
 
 // ─── ReviewCard ───────────────────────────────────────────────────────────────
 export function ReviewCard({ review }) {

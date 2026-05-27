@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { EMPTY_STATE_CONFIG } from "../Utils/ordersConstants";
+import { EMPTY_STATE_CONFIG } from "../utils/ordersConstants";
 import { Icons } from "./OrderIcons";
 
 const emptyIcons = {

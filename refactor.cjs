@@ -7,13 +7,13 @@ const lines = fs.readFileSync(srcFile, 'utf8').split('\n');
 const getLines = (start, end) => lines.slice(start - 1, end).join('\n');
 
 const dirHooks = path.join(__dirname, 'src/Features/Product/ProductDetails/Hooks');
-const dirUtils = path.join(__dirname, 'src/Features/Product/ProductDetails/Utils');
+const dirutils = path.join(__dirname, 'src/Features/Product/ProductDetails/utils');
 const dirComponents = path.join(__dirname, 'src/Features/Product/ProductDetails/Components');
 const dirStyles = path.join(__dirname, 'src/Features/Product/ProductDetails/Styles');
 
-[dirHooks, dirUtils, dirComponents, dirStyles].forEach(d => fs.mkdirSync(d, { recursive: true }));
+[dirHooks, dirutils, dirComponents, dirStyles].forEach(d => fs.mkdirSync(d, { recursive: true }));
 
-// 1. Utils (Lines 260-370)
+// 1. utils (Lines 260-370)
 const utilsCode = 
 'export function loadReviews(productId) { try { const r = localStorage.getItem("woosho-reviews-" + productId); return r ? JSON.parse(r) : []; } catch { return []; } }\n' +
 'export function saveReviews(productId, reviews) { try { localStorage.setItem("woosho-reviews-" + productId, JSON.stringify(reviews)); } catch { } }\n' +
@@ -92,7 +92,7 @@ const utilsCode =
 '  const pathLen = Math.round(pts.reduce((acc, p, i) => { if (i === 0) return 0; const dx = p.x - pts[i - 1].x, dy = p.y - pts[i - 1].y; return acc + Math.sqrt(dx * dx + dy * dy); }, 0));\n' +
 '  return { pts, pathD, areaD, pathLen };\n' +
 '}\n';
-fs.writeFileSync(path.join(dirUtils, 'productHelpers.js'), utilsCode);
+fs.writeFileSync(path.join(dirutils, 'productHelpers.js'), utilsCode);
 
 // 2. Styles
 const stylesCode = getLines(27, 258).replace('const FONT_LINK', 'export const FONT_LINK').replace('const DETAIL_STYLES', 'export const DETAIL_STYLES');
@@ -109,8 +109,8 @@ fs.writeFileSync(path.join(dirHooks, 'useMagnetic.js'), hooksCode);
 // We should also extract the large ProductDetail logics to useProductDetail.js hook.
 const useProductDetailCode = "import { useState, useEffect, useCallback, useMemo } from 'react';\n" +
 "import { useTheme } from '../../../../Context/theme/ThemeContext';\n" +
-"import { getDominantColor, injectDynamicTheme } from '../../../../Utils/dynamicTheme';\n" +
-"import { loadWishlist, saveWishlist, saveReviews, loadReviews, getSeedReviews, hasPriceAlert } from '../Utils/productHelpers';\n\n" +
+"import { getDominantColor, injectDynamicTheme } from '../../../../utils/dynamicTheme';\n" +
+"import { loadWishlist, saveWishlist, saveReviews, loadReviews, getSeedReviews, hasPriceAlert } from '../utils/productHelpers';\n\n" +
 "export function useProductDetail(product) {\n" +
 "  const productId = product?.id;\n" +
 "  const { isDark } = useTheme();\n\n" +

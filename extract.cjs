@@ -43,7 +43,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { formatMoneyCents } from "../../../../../Utils/formatMoneyCents";
+import { formatMoneyCents } from "../../../../../utils/formatMoneyCents";
 import { CATEGORIES } from "../../Data/categories";
 import { BRANDS } from "../../Data/brands";
 import { PERKS } from "../../Data/perks";

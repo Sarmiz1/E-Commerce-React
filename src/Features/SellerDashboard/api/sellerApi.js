@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabaseClient';
-import { nairaToMinor } from '../../../Utils/currency';
+import { nairaToMinor } from '../../../utils/currency';
 
 // ── helper: upload a file to Supabase Storage ─────────────────────────────────
 async function uploadImage(file, folder = 'products') {

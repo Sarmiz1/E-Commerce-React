@@ -1,6 +1,6 @@
 // ─── Shared utility: format Nigerian Naira ────────────────────────────────────
 // All values from the DB are in minor units (Kobo). 1 Naira = 100 Kobo.
-import { minorToNaira } from '../../../Utils/currency';
+import { minorToNaira } from '../../../utils/currency';
 
 export function fmt(minor) {
   if (minor === undefined || minor === null) return '₦0';

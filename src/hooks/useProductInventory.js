@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { COLOR_KEYWORDS, SIZE_TABLES } from "../Features/Product/Utils/constants";
-import { PRODUCT_COLORS, SIZE_MAP, getProductCategory } from "../Features/Product/ProductDetails/Utils/productHelpers";
+import { COLOR_KEYWORDS, SIZE_TABLES } from "../Features/Product/utils/constants";
+import { PRODUCT_COLORS, SIZE_MAP, getProductCategory } from "../Features/Product/ProductDetails/utils/productHelpers";
 
 /**
  * useProductInventory

@@ -10,7 +10,7 @@ import {
   CheckIcon, SpinnerIcon, ShieldIcon, TruckIcon, RefreshIcon, 
   BellIcon, CloseIcon, LockIcon 
 } from './Icons';
-import { computeRatingDistribution, getReviewHighlights } from '../Utils/productHelpers';
+import { computeRatingDistribution, getReviewHighlights } from '../utils/productHelpers';
 
 import { StarRating } from './StarRating';
 

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Ic } from './TrackingIcons';
-import { computeETA, statusColor, statusPct, STATUS_CFG } from '../Utils/trackingUtils';
+import { computeETA, statusColor, statusPct, STATUS_CFG } from '../utils/trackingutils';
 import { StatusOrb, StatBlock, LiveClock } from './TrackingAtoms';
 import { formatMoneyMinor } from "../../../../utils/formatMoneyMinor";
 

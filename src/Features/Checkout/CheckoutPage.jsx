@@ -19,8 +19,8 @@ import { StepBar } from "./Components/StepBar";
 import { SubmitErrorAlert } from "./Components/SubmitErrorAlert";
 import { SuccessScreen } from "./Components/SuccessScreen";
 import { TrustBar } from "./Components/TrustBar";
-import { CO_STYLES, EMPTY_ERRORS, EMPTY_FORM } from "./Utils/checkoutConstants";
-import { calculateCheckoutTotals } from "./Utils/checkoutUtils";
+import { CO_STYLES, EMPTY_ERRORS, EMPTY_FORM } from "./utils/checkoutConstants";
+import { calculateCheckoutTotals } from "./utils/checkoututils";
 import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
 
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { formatMoneyMinor } from '../../../../utils/formatMoneyMinor';
-import { savePriceAlert } from '../Utils/productHelpers';
+import { savePriceAlert } from '../utils/productHelpers';
 import { 
   BellIcon, CloseIcon, SpinnerIcon,
 } from './Icons';

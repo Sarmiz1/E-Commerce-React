@@ -1,8 +1,8 @@
 import React from "react";
 import { useTheme } from "../../../Store/useThemeStore";
 import HeroLinksThumbnails from "./UI/HeroLinksThumbnails";
-import { CATEGORIES } from "../Utils/categories";
-import { FILTERED_LINKS } from "../Utils/filteredLInk";
+import { CATEGORIES } from "../utils/categories";
+import { FILTERED_LINKS } from "../utils/filteredLInk";
 
 export default function CategoryHeroLinks() {
   const { colors, isDark } = useTheme();

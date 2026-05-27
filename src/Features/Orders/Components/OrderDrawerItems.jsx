@@ -6,7 +6,7 @@ import {
   getOrderItems,
   getOrderItemQuantity,
   getOrderItemTotalCents,
-} from "../Utils/ordersUtils";
+} from "../utils/ordersutils";
 import { Icons } from "./OrderIcons";
 
 export default function OrderDrawerItems({ order }) {

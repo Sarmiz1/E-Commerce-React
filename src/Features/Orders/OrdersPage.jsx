@@ -9,7 +9,7 @@ import OrdersPromo from "./Components/OrdersPromo";
 import ResultsCount from "./Components/ResultsCount";
 import StatsBar from "./Components/StatsBar";
 import useOrdersPageController from "./Hooks/useOrdersPageController";
-import { OR_STYLES } from "./Utils/ordersConstants";
+import { OR_STYLES } from "./utils/ordersConstants";
 
 export default function OrdersPage() {
   const {

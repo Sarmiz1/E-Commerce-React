@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Ic } from './TrackingIcons';
-import { timeAgo, statusColor } from '../Utils/trackingUtils';
+import { timeAgo, statusColor } from '../utils/trackingutils';
 
 export function StatBlock({ label, value, accent = false, mono = false }) {
   return (

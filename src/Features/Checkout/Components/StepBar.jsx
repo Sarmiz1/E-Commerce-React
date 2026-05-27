@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { CHECKOUT_STEPS } from "../Utils/checkoutConstants";
+import { CHECKOUT_STEPS } from "../utils/checkoutConstants";
 import { Icon } from "./CheckoutIcons";
 
 export function StepBar({ step }) {

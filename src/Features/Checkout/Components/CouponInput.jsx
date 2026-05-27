@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { VALID_COUPONS } from "../Utils/checkoutConstants";
+import { VALID_COUPONS } from "../utils/checkoutConstants";
 import { Icon } from "./CheckoutIcons";
 
 export function CouponInput({ onApply, appliedCoupon }) {

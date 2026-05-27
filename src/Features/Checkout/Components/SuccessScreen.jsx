@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import { CONFIRMATION_STEPS } from "../Utils/checkoutConstants";
+import { CONFIRMATION_STEPS } from "../utils/checkoutConstants";
 import {
   getCartItemImage,
   getCartItemKey,
   getCartItemName,
   getCartItemQuantity,
-} from "../Utils/checkoutUtils";
+} from "../utils/checkoututils";
 import { Icon } from "./CheckoutIcons";
 
 const CONFETTI_PIECES = Array.from({ length: 24 }, (_, index) => ({

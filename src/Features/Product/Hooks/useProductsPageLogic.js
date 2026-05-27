@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { PAGE_SIZE, AD_INTERVAL } from "../Utils/constants";
+import { PAGE_SIZE, AD_INTERVAL } from "../utils/constants";
 import { useGridColumns } from "./useGridColumns";
 
 export function useProductsPageLogic({ allProducts, filteredProducts, isLoading, selectedCategory, sort }) {

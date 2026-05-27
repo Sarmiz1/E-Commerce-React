@@ -19,7 +19,7 @@ import DetailPurchaseIntel from "./Components/DetailPurchaseIntel";
 import { ProductNotFound } from "./Components/ProductNotFound";
 import { getStoreInfo } from "../../../utils/getStoreInfo";
 import { useProductInventory } from "../../../hooks/useProductInventory";
-import { hasPriceAlert } from "./Utils/productHelpers";
+import { hasPriceAlert } from "./utils/productHelpers";
 import { useRecentlyViewed } from "../Hooks/useRecentlyViewed";
 import { useAnalyticsEvent } from "../../../hooks/useAnalyticsEvent";
 import { getProductImages } from "../../../utils/getProductImages";

@@ -12,7 +12,7 @@ const commonImports =
 "import { motion, AnimatePresence } from 'framer-motion';\n" +
 "import gsap from 'gsap';\n" +
 "import { Link, useNavigate } from 'react-router-dom';\n" +
-"import { formatMoneyCents } from '../../../../Utils/formatMoneyCents';\n" +
+"import { formatMoneyCents } from '../../../../utils/formatMoneyCents';\n" +
 "import { useCartActions } from '../../../../Context/cart/CartContext';\n" +
 "import { IconSpinner } from '../../../../Components/Icons/IconSpinner';\n" +
 "import ProductCard from '../../../../Components/Ui/ProductCard';\n" +
@@ -26,7 +26,7 @@ const commonImports =
 "  loadReviewerName, saveReviewerName, getAvatarGradient, \n" +
 "  computeRatingDistribution, computeDemandScore, generateSparklinePoints, \n" +
 "  seededRand, savePriceAlert, hasPriceAlert\n" +
-"} from '../Utils/productHelpers';\n" +
+"} from '../utils/productHelpers';\n" +
 "import { useMagnetic } from '../Hooks/useMagnetic';\n\n";
 
 const files = {
@@ -68,7 +68,7 @@ const productDetailImports =
 "import gsap from 'gsap';\n" +
 "import { ScrollTrigger } from 'gsap/ScrollTrigger';\n" +
 "import { IconSpinner } from '../../../../Components/Icons/IconSpinner';\n" +
-"import { formatMoneyCents } from '../../../../Utils/formatMoneyCents';\n" +
+"import { formatMoneyCents } from '../../../../utils/formatMoneyCents';\n" +
 "import { useProductDetail } from './Hooks/useProductDetail';\n" +
 "import { DETAIL_STYLES } from './Styles/DetailStyles';\n" +
 "import { HeartIcon, ShareIcon, ChevronLeft, CheckIcon, BellIcon } from './Components/Icons';\n" +
@@ -83,7 +83,7 @@ const productDetailImports =
 "import { PredictivePairings } from './Components/PredictivePairings';\n" +
 "import { StickyATCBar } from './Components/StickyATCBar';\n" +
 "import { ProductNotFound } from './Components/ProductNotFound';\n" +
-"import { PRODUCT_COLORS, SIZE_MAP, getProductCategory } from './Utils/productHelpers';\n\n" +
+"import { PRODUCT_COLORS, SIZE_MAP, getProductCategory } from './utils/productHelpers';\n\n" +
 "gsap.registerPlugin(ScrollTrigger);\n\n";
 
 const mainCode = getLines(1309, 1602);

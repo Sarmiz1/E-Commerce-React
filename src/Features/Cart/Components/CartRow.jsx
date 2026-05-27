@@ -3,7 +3,7 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import { Ic, Spinner } from "./CartConstants";
-import { getCartItemLineTotalCents, getCartItemUnitPriceCents } from "../Utils/cartItemUtils";
+import { getCartItemLineTotalCents, getCartItemUnitPriceCents } from "../utils/cartItemutils";
 
 function MechanicalDigit({ value, prevValue }) {
   const dir = value > prevValue ? "up" : "down";

@@ -15,7 +15,7 @@ import {
 //   loadReviewerName, saveReviewerName, getAvatarGradient, 
 //   computeRatingDistribution, computeDemandScore, generateSparklinePoints, 
 //   seededRand, savePriceAlert, hasPriceAlert
-// } from '../Utils/productHelpers';
+// } from '../utils/productHelpers';
 // import { useMagnetic } from '../Hooks/useMagnetic';
 
 

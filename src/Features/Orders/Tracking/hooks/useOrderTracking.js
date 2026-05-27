@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { OrderAPI } from '../../../../api/orderApi';
 import { useOrders } from '../../../../hooks/order/useOrders';
-import { useAutoPoll } from '../Utils/trackingUtils';
+import { useAutoPoll } from '../utils/trackingutils';
 
 export function useOrderTracking(trackedId) {
   const [updatedAt, setUpdatedAt] = useState(null);

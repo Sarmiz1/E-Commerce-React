@@ -9,7 +9,7 @@ import {
   hasPriceAlert,
   loadReviews,
   saveReviews,
-} from "../Utils/productHelpers";
+} from "../utils/productHelpers";
 import { useWishlist } from "../../../../hooks/useWishlist";
 
 export function useProductDetail(product) {

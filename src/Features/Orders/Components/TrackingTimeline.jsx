@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import { STATUS_CONFIG } from "../Utils/ordersConstants";
+import { STATUS_CONFIG } from "../utils/ordersConstants";
 import { Icons } from "./OrderIcons";
 
 export default function TrackingTimeline({ order }) {

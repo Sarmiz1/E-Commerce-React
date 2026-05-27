@@ -1,4 +1,4 @@
-import { STATUS_CONFIG } from "../Utils/ordersConstants";
+import { STATUS_CONFIG } from "../utils/ordersConstants";
 
 export default function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.processing;

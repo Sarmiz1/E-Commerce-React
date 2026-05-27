@@ -10,7 +10,7 @@ import {
   CheckIcon, SpinnerIcon, ShieldIcon, TruckIcon, RefreshIcon, 
   BellIcon, CloseIcon, LockIcon 
 } from './Icons';
-import { computeDemandScore, generateSparklinePoints, seededRand } from '../Utils/productHelpers';
+import { computeDemandScore, generateSparklinePoints, seededRand } from '../utils/productHelpers';
 
 // ─── ProductIntelPanel ────────────────────────────────────────────────────────
 export function ProductIntelPanel({ product }) {

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import { STATUS_CONFIG } from "../Utils/ordersConstants";
+import { STATUS_CONFIG } from "../utils/ordersConstants";
 import {
   formatOrderDate,
   getOrderCreatedAt,
@@ -9,7 +9,7 @@ import {
   getOrderItems,
   getOrderShortId,
   getOrderTotalCents,
-} from "../Utils/ordersUtils";
+} from "../utils/ordersutils";
 import { Icons } from "./OrderIcons";
 import StatusBadge from "./StatusBadge";
 

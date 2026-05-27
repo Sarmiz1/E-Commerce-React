@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { COUNTRY_OPTIONS } from "../Utils/checkoutConstants";
-import { detectCardType } from "../Utils/checkoutUtils";
+import { COUNTRY_OPTIONS } from "../utils/checkoutConstants";
+import { detectCardType } from "../utils/checkoututils";
 import { CardTypeBadge } from "./CardTypeBadge";
 import { Field } from "./Field";
 import { Icon } from "./CheckoutIcons";

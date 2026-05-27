@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { SHIPPING_TIERS } from "../Utils/checkoutConstants";
+import { SHIPPING_TIERS } from "../utils/checkoutConstants";
 import { CheckoutForm } from "./CheckoutForm";
 import { Icon } from "./CheckoutIcons";
 import { OrderSummary } from "./OrderSummary";

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FILTER_OPTIONS, SORT_OPTIONS } from "../Utils/ordersConstants";
+import { FILTER_OPTIONS, SORT_OPTIONS } from "../utils/ordersConstants";
 import { Icons } from "./OrderIcons";
 
 export default function FilterToolbar({

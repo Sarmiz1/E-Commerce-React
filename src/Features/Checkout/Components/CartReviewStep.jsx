@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { SHIPPING_TIERS } from "../Utils/checkoutConstants";
-import { getCartItemKey } from "../Utils/checkoutUtils";
+import { SHIPPING_TIERS } from "../utils/checkoutConstants";
+import { getCartItemKey } from "../utils/checkoututils";
 import { CartItemRow } from "./CartItemRow";
 import { CouponInput } from "./CouponInput";
 import { EmptyCart } from "./EmptyCart";

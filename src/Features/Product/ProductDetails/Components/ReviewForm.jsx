@@ -12,7 +12,7 @@ import {
 } from './Icons';
 import { 
   loadReviewerName, saveReviewerName,
-} from '../Utils/productHelpers';
+} from '../utils/productHelpers';
 import InteractiveStarPicker from './InteractiveStarPicker';
 
 
@@ -23,7 +23,7 @@ import InteractiveStarPicker from './InteractiveStarPicker';
 //   loadReviewerName, saveReviewerName, getAvatarGradient, 
 //   computeRatingDistribution, computeDemandScore, generateSparklinePoints, 
 //   seededRand, savePriceAlert, hasPriceAlert
-// } from '../Utils/productHelpers';
+// } from '../utils/productHelpers';
 // import { useMagnetic } from '../Hooks/useMagnetic';
 
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import { TAX_RATE } from "../Utils/checkoutConstants";
+import { TAX_RATE } from "../utils/checkoutConstants";
 import {
   calculateCheckoutTotals,
   getCartItemImage,
@@ -9,7 +9,7 @@ import {
   getCartItemLineTotal,
   getCartItemName,
   getCartItemQuantity,
-} from "../Utils/checkoutUtils";
+} from "../utils/checkoututils";
 import { Icon } from "./CheckoutIcons";
 
 function SummaryItem({ item }) {

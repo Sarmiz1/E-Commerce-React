@@ -1,5 +1,5 @@
 import { Ic } from "./CartConstants";
-import { cartTrustBadges } from "../Utils/cartItemUtils";
+import { cartTrustBadges } from "../utils/cartItemutils";
 
 const badgeIcons = {
   lock: Ic.Lock,

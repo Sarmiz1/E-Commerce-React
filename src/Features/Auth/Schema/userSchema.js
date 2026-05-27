@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
-import { STORE_TYPES, PHONE_REGEX, USERNAME_REGEX } from '../Utils/constraints'
+import { STORE_TYPES, PHONE_REGEX, USERNAME_REGEX } from '../utils/constraints'
 
 // ─── PASSWORD ─────────────────────────────────────────────────────────────────
 
