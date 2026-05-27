@@ -16,7 +16,7 @@ import {
   readSavedForLater,
   validateCartForCheckout,
   writeSavedForLater,
-} from "../utils/cartItemutils";
+} from "../utils/cartItemUtils";
 
 export default function useCartPageController() {
   const navigate = useNavigate();
