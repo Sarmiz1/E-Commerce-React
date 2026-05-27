@@ -78,7 +78,7 @@ const router = createBrowserRouter(
     <Route
       element={<RootLayout />}
       hydrateFallbackElement={<ProductsSkeleton />}
-      // errorElement={<FallbackPage />}
+    // errorElement={<FallbackPage />}
     >
       {/* Home */}
       <Route path="/" element={<HomeRoute />}>
@@ -120,16 +120,6 @@ const router = createBrowserRouter(
             }))
           }
           hydrateFallbackElement={<GenericPageSkeleton />}
-        />
-        
-        <Route
-          path="/auth/callback"
-          lazy={() =>
-            import("../Features/Auth/AuthCallBack").then((m) => ({
-              Component: m.default,
-            }))
-          }   
-        hydrateFallbackElement={<GenericPageSkeleton />}
         />
       </Route>
 
@@ -432,6 +422,16 @@ const router = createBrowserRouter(
           />
         </Route>
       </Route>
+
+      <Route
+        path="auth/callback"
+        lazy={() =>
+          import("../Features/Auth/AuthCallBack").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<GenericPageSkeleton />}
+      />
 
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
