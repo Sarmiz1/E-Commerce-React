@@ -121,6 +121,16 @@ const router = createBrowserRouter(
           }
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
+        
+        <Route
+          path="/auth/callback"
+          lazy={() =>
+            import("../Features/Auth/AuthCallBack").then((m) => ({
+              Component: m.default,
+            }))
+          }   
+        hydrateFallbackElement={<GenericPageSkeleton />}
+        />
       </Route>
 
       {/* Marketing Layout Pages */}
