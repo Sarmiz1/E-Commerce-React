@@ -5,9 +5,6 @@ import {
   supabaseConfigError,
 } from "../../../lib/supabaseClient";
 
-const siteUrl =
-  import.meta.env.VITE_SITE_URL || window.location.origin;
-
 
 // This function translates raw error messages from Supabase into more user-friendly messages that can be displayed in the UI. It checks for specific keywords in the error message and returns a more understandable message for the user. If no specific case matches, it returns the original message or a generic fallback message. 
 export const getFriendlyError = (message) => {
