@@ -1,0 +1,12 @@
+// Barrel export — all page-specific skeleton fallbacks
+export { default as ProductsSkeleton } from "./ProductsSkeleton";
+export { default as ProductDetailSkeleton } from "./ProductDetailSkeleton";
+export { default as OrdersSkeleton } from "./OrdersSkeleton";
+export { default as TrackingSkeleton } from "./TrackingSkeleton";
+export { default as CartSkeleton } from "./CartSkeleton";
+export { default as LandingSkeleton } from "./LandingSkeleton";
+export { default as BuyerSkeleton } from "./BuyerSkeleton";
+export { default as SellerSkeleton } from "./SellerSkeleton";
+export { default as GenericPageSkeleton } from "./GenericPageSkeleton";
+export { default as DashboardSkeleton } from "./DashboardSkeleton";
+export { default as HomeSkeleton } from "./HomeSkeleton";
