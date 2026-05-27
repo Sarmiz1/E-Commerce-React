@@ -282,14 +282,14 @@ const router = createBrowserRouter(
               path="seller-onboarding"
               lazy={() =>
                 import(
-                  "../Features/SellerOnboarding/SellerOnboarding"
+                  "../Features/Onboarding/SellerOnboarding/SellerOnboarding"
                 ).then((m) => ({
                   Component: m.default,
                 }))
               }
               hydrateFallbackElement={<GenericPageSkeleton />}
             />
-            
+
             <Route
               path="checkout"
               element={<CheckoutPage />}
