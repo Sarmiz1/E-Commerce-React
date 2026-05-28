@@ -161,8 +161,8 @@ const BRAND = `
     100% { transform: translateY(80px)  rotate(720deg); opacity: 0; }
   }
 
-  .ob-spin    { animation: ob-spin 0.7s linear infinite; }
-  .ob-float   { animation: ob-float 3.5s ease-in-out infinite; }
+  .ob-spin { animation: ob-spin 0.7s linear infinite; }
+  .ob-float{ animation: ob-float 3.5s ease-in-out infinite; }
 
   /* Upload zone */
   .ob-upload-zone {
@@ -303,9 +303,9 @@ const BRAND = `
   .ob-btn-skip:hover { color: var(--text-2); }
 
   @media (max-width: 1024px) {
-    .ob-layout      { flex-direction: column !important; }
-    .ob-sidebar     { width: 100% !important; position: static !important; }
-    .ob-content     { max-width: 100% !important; }
+    .ob-layout{ flex-direction: column !important; }
+    .ob-sidebar{ width: 100% !important; position: static !important; }
+    .ob-content{ max-width: 100% !important; }
   }
 `;
 
@@ -319,10 +319,10 @@ const step1Schema = z.object({
 const step2Schema = z.object({
   phone: z.string().min(7, "Enter a valid phone number").optional().or(z.literal("")),
   businessEmail: z.string().email("Enter a valid email").optional().or(z.literal("")),
-  supportEmail:  z.string().email("Enter a valid email").optional().or(z.literal("")),
-  country:  z.string().optional(),
-  city:     z.string().optional(),
-  regNumber:z.string().optional(),
+  supportEmail: z.string().email("Enter a valid email").optional().or(z.literal("")),
+  country: z.string().optional(),
+  city: z.string().optional(),
+  regNumber: z.string().optional(),
 });
 
 const step3Schema = z.object({
@@ -330,17 +330,17 @@ const step3Schema = z.object({
 });
 
 const step4Schema = z.object({
-  sellsWhat:    z.array(z.string()).min(1, "Pick at least one category"),
-  storeType:    z.enum(["online", "physical", "both"]),
-  shipRegions:  z.array(z.string()).min(1, "Select at least one region"),
-  fulfillment:  z.enum(["self", "third-party", "both"]),
+  sellsWhat: z.array(z.string()).min(1, "Pick at least one category"),
+  storeType: z.enum(["online", "physical", "both"]),
+  shipRegions: z.array(z.string()).min(1, "Select at least one region"),
+  fulfillment: z.enum(["self", "third-party", "both"]),
 });
 
 const step5Schema = z.object({
   payoutMethod: z.enum(["bank", "skip"]),
-  accountName:  z.string().optional(),
-  bankName:     z.string().optional(),
-  accountNumber:z.string().optional(),
+  accountName: z.string().optional(),
+  bankName: z.string().optional(),
+  accountNumber: z.string().optional(),
 });
 
 // ─── Onboarding state (production: useOnboarding.js hook) ────────────────────
@@ -360,7 +360,7 @@ function loadState() {
 }
 
 function saveState(state) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { }
 }
 
 // ─── Supabase API (production: features/onboarding/lib/onboardingApi.js) ──────
@@ -987,7 +987,7 @@ function StepActions({ isSubmitting, onSkip, primaryLabel = "Save & Continue" })
 
 // ─── Step Card (accordion wrapper) ───────────────────────────────────────────
 function StepCard({ step, title, subtitle, icon, status, isActive, onActivate, children }) {
-  const isDone   = status === "done";
+  const isDone = status === "done";
   const isLocked = status === "locked";
 
   return (
@@ -1155,7 +1155,7 @@ function ProgressSidebar({ steps, completedSteps, currentStep, onStepClick }) {
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {steps.map((step, i) => {
-            const done  = completedSteps.includes(step.id);
+            const done = completedSteps.includes(step.id);
             const active = currentStep === step.id;
             return (
               <div key={step.id}>
@@ -1258,11 +1258,11 @@ export default function SellerOnboardingPage() {
   const { currentStep, completedSteps, data } = state;
 
   const STEPS = [
-    { id: 1, label: "Store Identity",    icon: "🏪", title: "Name your store",     subtitle: "Create your brand presence on Woosho" },
-    { id: 2, label: "Contact & Business",icon: "📋", title: "Contact details",      subtitle: "How customers and Woosho can reach you" },
-    { id: 3, label: "Store Branding",    icon: "🎨", title: "Brand your storefront",subtitle: "Logo, banner, and your signature colour" },
-    { id: 4, label: "Seller Preferences",icon: "⚙️", title: "Your selling style",   subtitle: "What you sell and how you ship it" },
-    { id: 5, label: "Payout Setup",      icon: "💳", title: "Get paid",             subtitle: "Connect your bank or set up later" },
+    { id: 1, label: "Store Identity", icon: "🏪", title: "Name your store", subtitle: "Create your brand presence on Woosho" },
+    { id: 2, label: "Contact & Business", icon: "📋", title: "Contact details", subtitle: "How customers and Woosho can reach you" },
+    { id: 3, label: "Store Branding", icon: "🎨", title: "Brand your storefront", subtitle: "Logo, banner, and your signature colour" },
+    { id: 4, label: "Seller Preferences", icon: "⚙️", title: "Your selling style", subtitle: "What you sell and how you ship it" },
+    { id: 5, label: "Payout Setup", icon: "💳", title: "Get paid", subtitle: "Connect your bank or set up later" },
   ];
 
   // ── Persist state ───────────────────────────────────────────────────────────
