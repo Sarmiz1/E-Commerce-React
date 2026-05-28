@@ -76,7 +76,7 @@ export default function AuthCallback() {
       await new Promise((r) => setTimeout(r, 400));
 
       if (selectedRole === "seller") {
-        navigate("/seller-onboarding", { replace: true });
+        navigate("/onboarding", { replace: true });
       } else {
         navigate("/account", { replace: true });
       }

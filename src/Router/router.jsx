@@ -279,10 +279,10 @@ const router = createBrowserRouter(
           <Route element={<ProtectedRoute />}>
 
             <Route
-              path="seller-onboarding"
+              path="onboarding"
               lazy={() =>
                 import(
-                  "../Features/Onboarding/SellerOnboarding/SellerOnboarding"
+                  "../Features/Onboarding/Onboarding"
                 ).then((m) => ({
                   Component: m.default,
                 }))
