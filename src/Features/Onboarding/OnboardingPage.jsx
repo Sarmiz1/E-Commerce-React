@@ -43,6 +43,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { ArrowLeft } from 'lucide-react';
+
 
 // ─── WooSho Design Tokens + Global Styles ────────────────────────────────────
 const GLOBAL_STYLES = `
@@ -1235,14 +1237,14 @@ export default function OnboardingPage() {
       }}
       >
         <span style={{ fontFamily: "var(--font-d)", fontWeight: 800, fontSize: 19, color: "var(--amber)", letterSpacing: "-0.02em", cursor: "pointer" }}
-          onClick={resetRole}>Woosho</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          onClick={resetRole}><ArrowLeft size={20}/></span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "space-between", }}>
           {showFlow && (
             <button className="ob-btn-ghost" style={{ padding: "6px 10px", fontSize: 12 }} onClick={resetRole}>
               ← Change role
             </button>
           )}
-          <button className="ob-btn-ghost" style={{ padding: "6px 12px", fontSize: 12 }} onClick={() => navigate("/account")}>
+          <button className="ob-btn-ghost" style={{ padding: "6px 12px", fontSize: 12, }} onClick={() => navigate("/account")}>
             Save & exit
           </button>
         </div>
