@@ -282,7 +282,7 @@ const router = createBrowserRouter(
               path="onboarding"
               lazy={() =>
                 import(
-                  "../Features/Onboarding/Onboarding"
+                  "../Features/Onboarding/OnboardingPage"
                 ).then((m) => ({
                   Component: m.default,
                 }))
