@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import GoogleIcon from "../Components/GoogleIcon";
 import { signInWithGoogle } from "../Hooks/useAuthMutation";
 
-const SocialAuth = ({ mode, role, buyerStep, sellerStep, colors, isDark }) => {
+const SocialAuth = ({ mode, colors, isDark }) => {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogle(role || "buyer");
+      await signInWithGoogle();
     } catch (error) {
       console.error("Google sign-in error:", error);
     }
@@ -15,9 +15,7 @@ const SocialAuth = ({ mode, role, buyerStep, sellerStep, colors, isDark }) => {
 
   return (
     <AnimatePresence initial={false}>
-      {mode !== "forgot" &&
-        !(mode === "register" && role === "seller" && sellerStep > 1) &&
-        !(mode === "register" && role === "buyer" && buyerStep > 1) && (
+      {mode !== "forgot" && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}

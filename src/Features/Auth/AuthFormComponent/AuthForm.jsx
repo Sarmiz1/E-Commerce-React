@@ -11,8 +11,7 @@ import SocialAuth from "./SocialAuth";
 import FormHeader from "./FormHeader";
 import LoginForm from "./LoginForm";
 import ForgotForm from "./ForgotForm";
-import BuyerWizard from "./BuyerWizard";
-import SellerWizard from "./SellerWizard";
+import RegisterForm from "./RegisterForm";
 import glassLogo from "../../../assets/logos/glass_logo.png";
 import logoDark from "../../../assets/logos/logo-darkmode.png";
 
@@ -39,8 +38,6 @@ export default function AuthForm({
   initialMode = "login",
 }) {
   const [mode, setMode] = useState(initialMode);
-  const [buyerStep, setBuyerStep] = useState(1);
-  const [sellerStep, setSellerStep] = useState(1);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [formError, setFormError] = useState("");
@@ -75,8 +72,6 @@ export default function AuthForm({
   roleRef.current = role;
 
   useEffect(() => {
-    setBuyerStep(1);
-    setSellerStep(1);
     setShowPass(false);
     setShowConfirm(false);
     setFormError("");
@@ -114,8 +109,6 @@ export default function AuthForm({
   }, [mode, reset]);
 
   useEffect(() => {
-    setBuyerStep(1);
-    setSellerStep(1);
     setFormError("");
   }, [role]);
 
@@ -131,8 +124,12 @@ export default function AuthForm({
 
     // For register/forgot, wait a short moment for them to see the success message
     const timer = setTimeout(() => {
-      navigate("/login", { replace: true });
-      setMode("login");
+      if (mode === "register") {
+        navigate("/onboarding", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+        setMode("login");
+      }
     }, 1200);
 
     return () => clearTimeout(timer);
@@ -166,85 +163,14 @@ export default function AuthForm({
     if (isBusy) return;
 
     if (mode === "register") {
-      let fieldsToValidate = [];
-
-      if (role === "buyer" && buyerStep === 1) {
-        fieldsToValidate = [
-          "full_name",
-          "username",
-          "email",
-          "password",
-          "confirm_password",
-        ];
-      }
-
-      // ✅ Fixed: buyer step 2 address validation was missing
-      if (role === "buyer" && buyerStep === 2) {
-        fieldsToValidate = [
-          "home_address.street",
-          "home_address.city",
-          "home_address.state",
-          "home_address.zip_code",
-          "home_address.country",
-        ];
-      }
-
-      if (role === "seller") {
-        if (sellerStep === 1) {
-          fieldsToValidate = [
-            "full_name",
-            "username",
-            "email",
-            "password",
-            "confirm_password",
-          ];
-        }
-
-        if (sellerStep === 2) {
-          fieldsToValidate = [
-            "store_name",
-            "store_type",
-            "phone",
-            "business_description",
-          ];
-        }
-
-        if (sellerStep === 3) {
-          fieldsToValidate = [
-            "home_address.street",
-            "home_address.city",
-            "home_address.state",
-            "home_address.country",
-            "home_address.zip_code",
-          ];
-        }
-
-        if (sellerStep === 4 && !sameAsStore) {
-          fieldsToValidate = [
-            "store_address.street",
-            "store_address.city",
-            "store_address.state",
-            "store_address.country",
-            "store_address.zip_code",
-          ];
-        }
-      }
+      const fieldsToValidate = [
+        "email",
+        "password",
+        "confirm_password",
+      ];
 
       const isValid = await trigger(fieldsToValidate);
       if (!isValid) return;
-
-      if (role === "buyer" && buyerStep === 1) {
-        setBuyerStep(2);
-        return;
-      }
-
-      if (role === "seller" && sellerStep < 4) {
-        setSellerStep((step) => step + 1);
-        return;
-      }
-
-      await submitForm();
-      return;
     }
 
     await submitForm();
@@ -306,98 +232,37 @@ export default function AuthForm({
 
         <SocialAuth
           mode={mode}
-          role={role}
-          buyerStep={buyerStep}
-          sellerStep={sellerStep}
           colors={colors}
           isDark={isDark}
         />
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${mode}-${role}-${
-              mode === "register"
-                ? role === "buyer"
-                  ? buyerStep
-                  : sellerStep
-                : "login"
-            }`}
-            initial={{
-              opacity: 0,
-              x:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
-                  ? 20
-                  : 0,
-              y:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
-                  ? 0
-                  : 14,
-            }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            exit={{
-              opacity: 0,
-              x:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep === 1 : sellerStep === 1)
-                  ? -20
-                  : mode === "forgot"
-                    ? 20
-                    : 0,
-              y:
-                mode === "register" &&
-                (role === "buyer" ? buyerStep > 1 : sellerStep > 1)
-                  ? 0
-                  : -10,
-            }}
+            key={`${mode}-${role}`}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
           >
             {mode === "register" && (
               <>
-                {((role === "seller" && sellerStep === 1) ||
-                  (role === "buyer" && buyerStep === 1)) && (
-                  <RoleSelector
-                    role={role}
-                    setValue={setValue}
-                    colors={colors}
-                    isDark={isDark}
-                    cta={cta}
-                  />
-                )}
-
-                {role === "buyer" ? (
-                  <BuyerWizard
-                    buyerStep={buyerStep}
-                    setBuyerStep={setBuyerStep}
-                    control={control}
-                    errors={errors}
-                    showPass={showPass}
-                    setShowPass={setShowPass}
-                    showConfirm={showConfirm}
-                    setShowConfirm={setShowConfirm}
-                    watchPassword={watchPassword}
-                    colors={colors}
-                    isDark={isDark}
-                    cta={cta}
-                  />
-                ) : (
-                  <SellerWizard
-                    sellerStep={sellerStep}
-                    setSellerStep={setSellerStep}
-                    control={control}
-                    errors={errors}
-                    showPass={showPass}
-                    setShowPass={setShowPass}
-                    showConfirm={showConfirm}
-                    setShowConfirm={setShowConfirm}
-                    watchPassword={watchPassword}
-                    colors={colors}
-                    isDark={isDark}
-                    cta={cta}
-                    CATEGORIES={CATEGORIES}
-                  />
-                )}
+                <RoleSelector
+                  role={role}
+                  setValue={setValue}
+                  colors={colors}
+                  isDark={isDark}
+                  cta={cta}
+                />
+                <RegisterForm
+                  control={control}
+                  errors={errors}
+                  showPass={showPass}
+                  setShowPass={setShowPass}
+                  showConfirm={showConfirm}
+                  setShowConfirm={setShowConfirm}
+                  colors={colors}
+                  isDark={isDark}
+                />
               </>
             )}
 
@@ -498,40 +363,12 @@ export default function AuthForm({
                     animate={{ opacity: 1 }}
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
-                    {mode === "register" &&
-                    role === "buyer" &&
-                    buyerStep === 1 ? (
-                      <>
-                        Continue to Address <ChevronRight size={17} />
-                      </>
-                    ) : mode === "register" &&
-                      role === "seller" &&
-                      sellerStep === 1 ? (
-                      <>
-                        Continue to Store Details <ChevronRight size={17} />
-                      </>
-                    ) : mode === "register" &&
-                      role === "seller" &&
-                      sellerStep === 2 ? (
-                      <>
-                        Continue to Home Address <ChevronRight size={17} />
-                      </>
-                    ) : mode === "register" &&
-                      role === "seller" &&
-                      sellerStep === 3 ? (
-                      <>
-                        Continue to Store Address <ChevronRight size={17} />
-                      </>
-                    ) : (
-                      <>
-                        {mode === "login"
-                          ? "Sign In"
-                          : mode === "forgot"
-                            ? "Send Reset Link"
-                            : "Create Account"}{" "}
-                        <ArrowRight size={17} />
-                      </>
-                    )}
+                    {mode === "login"
+                      ? "Sign In"
+                      : mode === "forgot"
+                        ? "Send Reset Link"
+                        : "Create Account"}{" "}
+                    <ArrowRight size={17} />
                   </motion.span>
                 )}
               </AnimatePresence>

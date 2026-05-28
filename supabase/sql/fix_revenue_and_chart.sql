@@ -101,6 +101,7 @@ BEGIN
           SELECT COALESCE(json_agg(row ORDER BY row.day ASC), '[]'::json)
           FROM (
             SELECT
+              day_series.day AS day,
               to_char(day_series.day, 'Mon DD') AS label,
               COALESCE(SUM(oi.total_minor), 0)  AS value
             FROM generate_series(
@@ -121,6 +122,7 @@ BEGIN
           SELECT COALESCE(json_agg(row ORDER BY row.day ASC), '[]'::json)
           FROM (
             SELECT
+              day_series.day AS day,
               to_char(day_series.day, 'Mon DD') AS label,
               COALESCE(SUM(oi.total_minor), 0)  AS value
             FROM generate_series(
@@ -141,6 +143,7 @@ BEGIN
           SELECT COALESCE(json_agg(row ORDER BY row.day ASC), '[]'::json)
           FROM (
             SELECT
+              day_series.day AS day,
               to_char(day_series.day, 'Mon DD') AS label,
               COALESCE(SUM(oi.total_minor), 0)  AS value
             FROM generate_series(

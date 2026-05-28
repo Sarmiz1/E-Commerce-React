@@ -42,7 +42,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-// import { supabase } from "@/lib/supabase";
+import { supabase } from "../../lib/supabaseClient";
 
 // ─── WooSho Design Tokens + Global Styles ────────────────────────────────────
 const GLOBAL_STYLES = `
@@ -1194,6 +1194,16 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const [state, setState] = useState(loadState);
 
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.user_metadata?.role && !state.role) {
+        setState((prev) => ({ ...prev, role: session.user.user_metadata.role, currentStep: 1, completedSteps: [] }));
+      }
+    };
+    fetchUserRole();
+  }, []);
+
   // Persist on every change
   useEffect(() => { persistState(state); }, [state]);
 
@@ -1222,7 +1232,9 @@ export default function OnboardingPage() {
         backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
         padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between",
         position: "sticky", top: 0, zIndex: 50,
-      }}>
+      }}
+      className='pt-20'
+      >
         <span style={{ fontFamily: "var(--font-d)", fontWeight: 800, fontSize: 19, color: "var(--amber)", letterSpacing: "-0.02em", cursor: "pointer" }}
           onClick={resetRole}>Woosho</span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

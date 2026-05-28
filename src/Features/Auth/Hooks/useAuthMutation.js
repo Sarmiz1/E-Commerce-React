@@ -49,12 +49,10 @@ export const getFriendlyError = (message) => {
 };
 
 // Google sign-in is handled separately because it doesn't fit the typical mutation pattern and requires a redirect. We still want to provide user-friendly error messages for it, so we use the same getFriendlyError function.
-export const signInWithGoogle = async (role = "buyer") => {
+export const signInWithGoogle = async () => {
   if (!isSupabaseConfigured) {
     throw new Error(supabaseConfigError);
   }
-
-  localStorage.setItem("woosho_oauth_role", role);
 
   const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
 
@@ -104,61 +102,12 @@ export const useAuthMutation = (mode, setFormError) => {
         return { message: "Password reset link sent. Please check your email." };
       }
 
-      const homeAddress = {
-        address_type: "home",
-        full_name: formData.full_name,
-        phone: formData.phone || null,
-        line1: formData.home_address?.street || "",
-        line2: null,
-        city: formData.home_address?.city || "",
-        state: formData.home_address?.state || "",
-        postal_code: formData.home_address?.zip_code || "",
-        country: formData.home_address?.country || "NG",
-        is_default_shipping: true,
-        is_default_billing: true,
-      };
-
-      const addressesToInsert = [homeAddress];
-
-      if (formData.role === "seller") {
-        addressesToInsert.push({
-          address_type: "store",
-          full_name: formData.full_name,
-          phone: formData.phone || null,
-          line1: formData.same_as_store
-            ? formData.home_address?.street || ""
-            : formData.store_address?.street || "",
-          line2: null,
-          city: formData.same_as_store
-            ? formData.home_address?.city || ""
-            : formData.store_address?.city || "",
-          state: formData.same_as_store
-            ? formData.home_address?.state || ""
-            : formData.store_address?.state || "",
-          postal_code: formData.same_as_store
-            ? formData.home_address?.zip_code || ""
-            : formData.store_address?.zip_code || "",
-          country: formData.same_as_store
-            ? formData.home_address?.country || "NG"
-            : formData.store_address?.country || "NG",
-          is_default_shipping: false,
-          is_default_billing: false,
-        });
-      }
-
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            full_name: formData.full_name,
-            username: formData.username,
             role: formData.role,
-            store_type:
-              formData.role === "seller"
-                ? formData.store_type
-                : "independent",
-            addresses: addressesToInsert,
           },
         },
       });
@@ -171,29 +120,9 @@ export const useAuthMutation = (mode, setFormError) => {
         );
       }
 
-      const userId = authData?.user?.id;
-
-      if (!userId) {
-        throw new Error("Account created, but user ID was not returned.");
-      }
-
-      if (formData.role === "seller") {
-        const { error: sellerError } = await supabase
-          .from("seller_profiles")
-          .insert({
-            user_id: userId,
-            store_name: formData.store_name,
-            description: formData.business_description,
-          });
-
-        if (sellerError) {
-          throw new Error(getFriendlyError(sellerError.message));
-        }
-      }
-
       return {
         message:
-          "Account created successfully. Please check your email to verify your account.",
+          "Account created successfully. Redirecting to onboarding...",
       };
     },
 

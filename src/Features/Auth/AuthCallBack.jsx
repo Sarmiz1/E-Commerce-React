@@ -41,13 +41,17 @@ export default function AuthCallback() {
       /* ── Step 1 : load / create profile ─────────────── */
       setCurrent(1);
       const user         = session.user;
-      const selectedRole = localStorage.getItem("woosho_oauth_role") || "buyer";
+      let selectedRole = user.user_metadata?.role || "buyer";
 
       const { data: profile } = await supabase
         .from("profiles")
         .select("id, role, full_name")
         .eq("id", user.id)
         .maybeSingle();
+
+      if (profile && profile.role) {
+        selectedRole = profile.role;
+      }
 
       if (!profile) {
         const { error: profileError } = await supabase.from("profiles").insert({
@@ -66,7 +70,6 @@ export default function AuthCallback() {
       }
 
       setDone((d) => [...d, "profile"]);
-      localStorage.removeItem("woosho_oauth_role");
 
       /* ── Step 2 : redirect ───────────────────────────── */
       setCurrent(2);
