@@ -1223,7 +1223,7 @@ export default function OnboardingPage() {
   const showFlow = !!state.role;
 
   return (
-    <div className="ob-root">
+    <div className="ob-root pt-16">
       <style>{GLOBAL_STYLES}</style>
 
       {/* ── Top nav ── */}
@@ -1233,7 +1233,6 @@ export default function OnboardingPage() {
         padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between",
         position: "sticky", top: 0, zIndex: 50,
       }}
-      className='pt-20'
       >
         <span style={{ fontFamily: "var(--font-d)", fontWeight: 800, fontSize: 19, color: "var(--amber)", letterSpacing: "-0.02em", cursor: "pointer" }}
           onClick={resetRole}>Woosho</span>
