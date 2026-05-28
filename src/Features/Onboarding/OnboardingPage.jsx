@@ -1223,7 +1223,7 @@ export default function OnboardingPage() {
   const showFlow = !!state.role;
 
   return (
-    <div className="ob-root pt-16">
+    <div className="ob-root pt-20">
       <style>{GLOBAL_STYLES}</style>
 
       {/* ── Top nav ── */}
