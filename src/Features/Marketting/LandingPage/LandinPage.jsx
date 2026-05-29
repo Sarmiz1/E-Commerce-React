@@ -26,6 +26,7 @@
 //   <SellerHowToStart />
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState, useMemo } from "react";
+import throttle from "lodash.throttle";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -109,16 +110,13 @@ export default function LandingPage() {
   }, [trendingProducts]);
 
   useEffect(() => {
-    const onScroll = () => {
+    const onScroll = throttle(() => {
       const st = window.scrollY; const dh = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(dh > 0 ? Math.min(st / dh, 1) : 0); setShowTopBtn(st > 400);
-    };
+    }, 16);
     window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); onScroll.cancel(); };
   }, []);
-
-
-  console.log("LandingPage render");
 
 
   const scrollToSection = (id) => { gsap.to(window, { duration: 1, scrollTo: id, ease: "power2.inOut" }); setMobileMenuOpen(false); };
