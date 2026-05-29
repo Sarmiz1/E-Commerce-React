@@ -4,7 +4,7 @@ import ThemeToggle from "../../Features/Marketting/ModernLanding/Components/Them
 import CartDropdown from "./DesktopActionsComponents/CartDropdown";
 import { EXPO } from "./navConstants";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../Features/Auth/AuthContext";
+import { useAuth } from "../../Context/auth/AuthContext";
 import { User, LogOut, LogIn } from "lucide-react";
 
 export default function DesktopActions({
