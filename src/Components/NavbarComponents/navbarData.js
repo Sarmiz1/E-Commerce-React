@@ -51,7 +51,7 @@ export const MEGA_MENU = {
     featured: {
       title: "Just Dropped",
       subtitle: "Fresh off the runway",
-      tag: "New",
+      tag: "New Arrivals",
       gradient: "from-violet-500 to-indigo-600",
     },
     columns: [
@@ -115,7 +115,7 @@ export const MEGA_MENU = {
         ],
       },
       {
-        heading: "Trending",
+        heading: "Standard",
         links: [
           { label: "Off-White", badge: null },
           { label: "Stone Island", badge: null },

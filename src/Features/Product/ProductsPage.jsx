@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useAllProducts } from "../../hooks/product/useProducts";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Store/useThemeStore";
 import { IconSpinner } from "../../Components/Icons/IconSpinner";
 // Components
@@ -159,7 +159,7 @@ export default function ProductsPage() {
 
   return (
     <div
-      className="min-h-screen pt-20 overflow-x-hidden"
+      className="min-h-screen pt-20 overflow-x-clip"
       style={{ background: colors.surface.primary, color: colors.text.primary }}
     >
       <SEO
@@ -210,9 +210,9 @@ export default function ProductsPage() {
 
       {/* ── Main Layout ── */}
       <div className="max-w-screen-xl mx-auto px-6 py-8">
-        <div className="flex gap-10">
+        <div className="flex items-start gap-10">
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-[280px] flex-shrink-0 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pg-slim pr-3 pb-8">
+          <aside className="hidden lg:block w-[280px] flex-shrink-0 self-start sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto pg-slim pr-3 pb-8">
             <div
               className="rounded-[24px] p-6 shadow-xl relative overflow-hidden"
               style={{

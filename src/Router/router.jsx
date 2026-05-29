@@ -73,6 +73,9 @@ import { AccountPage } from "./Guards/AccountPage";
 
 // *************************************************************************
 
+const revalidateOnPathChange = ({ currentUrl, nextUrl, defaultShouldRevalidate }) =>
+  currentUrl.pathname !== nextUrl.pathname ? defaultShouldRevalidate : false;
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route
@@ -331,6 +334,7 @@ const router = createBrowserRouter(
               index
               element={<ProductsPage />}
               loader={fetchProductsLoader}
+              shouldRevalidate={revalidateOnPathChange}
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 

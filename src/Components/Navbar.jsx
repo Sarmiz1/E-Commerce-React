@@ -21,7 +21,6 @@ import {
   SEARCH_CATEGORIES,
   SPECIAL_OFFERS,
 } from "./NavbarComponents/navbarData";
-import { useDebounceCallback } from "../Hooks/useDebounceCallback";
 import { NAVBAR_STYLES } from "./NavbarComponents/navbarStyles";
 
 const getData = null;
@@ -48,12 +47,10 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
   const [cartHover, setCartHover] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [megaTriggerRect, setMegaTriggerRect] = useState(null);
-  const [cartBadgeKey, setCartBadgeKey] = useState(0);
   const [wishlistTip, setWishlistTip] = useState(false);
   const [accountTip, setAccountTip] = useState(false);
   const [searchTip, setSearchTip] = useState(false);
 
-  const prevCartCount = useRef(cartCount);
   const searchRef = useRef(null);
   const cartBtnRef = useRef(null);
   const megaTimer = useRef(null);
@@ -63,38 +60,29 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
 
   useRegisterCartIcon(cartRef);
 
-  const fetchSearchResults = useDebounceCallback(async (query) => {
-    if (!query) {
-      setSearchResults([]);
-      setSearchLoading(false);
-      setSearchError(false);
-      setFocusedIdx(-1);
+  const resetSearchState = useCallback(() => {
+    setSearchQuery("");
+    setSearchResults((results) => (results.length ? [] : results));
+    setSearchLoading(false);
+    setSearchError(false);
+    setFocusedIdx(-1);
+  }, []);
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    resetSearchState();
+  }, [resetSearchState]);
+
+  const toggleSearch = useCallback(() => {
+    if (searchOpen) {
+      closeSearch();
       return;
     }
 
-    setSearchLoading(true);
-    setSearchError(false);
-
-    try {
-      const data = await getData(`/products?search=${encodeURIComponent(query)}&limit=8`);
-      const items = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.products)
-          ? data.products
-          : Array.isArray(data?.data)
-            ? data.data
-            : [];
-
-      setSearchResults(items.slice(0, 8));
-      setSearchError(false);
-    } catch {
-      setSearchResults([]);
-      setSearchError(true);
-    } finally {
-      setSearchLoading(false);
-      setFocusedIdx(-1);
-    }
-  }, 320);
+    setSearchOpen(true);
+    setMobileOpen(false);
+    setActiveMenu(null);
+  }, [closeSearch, searchOpen]);
 
   useLayoutEffect(() => {
     let rafId = 0;
@@ -126,68 +114,69 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
   }, []);
 
   useEffect(() => {
-    if (cartCount !== prevCartCount.current) {
-      setCartBadgeKey((key) => key + 1);
-      prevCartCount.current = cartCount;
-    }
-  }, [cartCount]);
-
-  useEffect(() => {
     if (!searchOpen) return undefined;
     const focusTimer = setTimeout(() => searchRef.current?.focus(), 60);
     return () => clearTimeout(focusTimer);
   }, [searchOpen]);
 
   useEffect(() => {
-    if (mobileOpen) {
-      setSearchOpen(false);
-      setActiveMenu(null);
-    }
-  }, [mobileOpen]);
-
-  useEffect(() => {
-    if (searchOpen) {
+    queueMicrotask(() => {
       setMobileOpen(false);
+      closeSearch();
       setActiveMenu(null);
-    }
-  }, [searchOpen]);
-
-  useEffect(() => {
-    setMobileOpen(false);
-    setSearchOpen(false);
-    setActiveMenu(null);
-  }, [location.pathname]);
+    });
+  }, [closeSearch, location.pathname]);
 
   useEffect(() => {
     const query = searchQuery.trim();
-    if (!query) {
-      setSearchResults([]);
-      setSearchLoading(false);
-      setSearchError(false);
-      setFocusedIdx(-1);
-      return;
-    }
-    fetchSearchResults(query);
-  }, [searchQuery, fetchSearchResults]);
+    if (!query) return undefined;
 
-  useEffect(() => {
-    if (!searchOpen) {
-      setSearchResults([]);
-      setSearchLoading(false);
+    let cancelled = false;
+    const timeoutId = window.setTimeout(async () => {
+      setSearchLoading(true);
       setSearchError(false);
-      setFocusedIdx(-1);
-      setSearchQuery("");
-    }
-  }, [searchOpen]);
+
+      try {
+        const data = await getData(`/products?search=${encodeURIComponent(query)}&limit=8`);
+        if (cancelled) return;
+
+        const items = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.products)
+            ? data.products
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
+
+        setSearchResults(items.slice(0, 8));
+        setSearchError(false);
+      } catch {
+        if (!cancelled) {
+          setSearchResults((results) => (results.length ? [] : results));
+          setSearchError(true);
+        }
+      }
+
+      if (!cancelled) {
+        setSearchLoading(false);
+        setFocusedIdx(-1);
+      }
+    }, 320);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchQuery]);
 
   const navigateAndClose = useCallback(
     (href) => {
       navigate(href);
       setActiveMenu(null);
       setMobileOpen(false);
-      setSearchOpen(false);
+      closeSearch();
     },
-    [navigate],
+    [closeSearch, navigate],
   );
 
   const openMega = useCallback((label, event) => {
@@ -212,9 +201,9 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
 
       setRecentSearches((prev) => [cleanQuery, ...prev.filter((item) => item !== cleanQuery)].slice(0, 8));
       navigate(`/products?search=${encodeURIComponent(cleanQuery)}`);
-      setSearchOpen(false);
+      closeSearch();
     },
-    [navigate],
+    [closeSearch, navigate],
   );
 
   const handleSearch = useCallback(
@@ -247,6 +236,11 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
   const updateSearchQuery = useCallback((value) => {
     setSearchQuery(value);
     setFocusedIdx(-1);
+    if (!value.trim()) {
+      setSearchResults((results) => (results.length ? [] : results));
+      setSearchLoading(false);
+      setSearchError(false);
+    }
   }, []);
 
   const removeRecentSearch = useCallback((term) => {
@@ -310,8 +304,8 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
             cartCount={cartCount}
             cartRef={cartRef}
             cartHover={cartHover}
-            cartBadgeKey={cartBadgeKey}
-            onToggleSearch={() => setSearchOpen((open) => !open)}
+            cartBadgeKey={cartCount}
+            onToggleSearch={toggleSearch}
             onSetSearchTip={setSearchTip}
             onSetWishlistTip={setWishlistTip}
             onSetAccountTip={setAccountTip}
@@ -319,7 +313,7 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
             onNavigate={navigateAndClose}
             onToggleMobile={() => {
               setMobileOpen((open) => !open);
-              setSearchOpen(false);
+              closeSearch();
               setActiveMenu(null);
             }}
             formatMoney={formatMoneyMinor}
@@ -339,7 +333,7 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
         recentSearches={recentSearches}
         popularSearches={POPULAR_SEARCHES}
         categories={SEARCH_CATEGORIES}
-        onClose={() => setSearchOpen(false)}
+        onClose={closeSearch}
         onSubmit={handleSearch}
         onQueryChange={updateSearchQuery}
         onKeyDown={handleSearchKeyDown}

@@ -62,7 +62,11 @@ export default function RootLayout() {
   }, [location.hash, location.key, location.pathname, location.search, user?.id]);
 
   // When navigating, show the skeleton matching the target route
-  const skeleton = isNavigating
+  const isRouteChange =
+    isNavigating &&
+    navigation.location?.pathname &&
+    navigation.location.pathname !== location.pathname;
+  const skeleton = isRouteChange
     ? getSkeletonForPath(navigation.location?.pathname)
     : null;
 

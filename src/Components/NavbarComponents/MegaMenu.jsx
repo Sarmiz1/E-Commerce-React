@@ -9,6 +9,80 @@ const badgeClass = (badge) => {
   return "bg-yellow-100 text-yellow-600";
 };
 
+const NEW_ARRIVALS_SLUG = "new-arrivals";
+const PREMIUM_SLUG = "premium";
+const THIS_WEEK_SLUG = "this-week";
+const COLLECTIONS_SLUG = "collections";
+const BY_CATEGORY_SLUG = "by-category";
+
+const slugify = (value = "") =>
+  String(value).trim().toLowerCase().replace(/\s+/g, "-");
+
+const buildFeaturedHref = (featured) => {
+  const tagSlug = slugify(featured?.tag);
+  const titleSlug = slugify(featured?.title);
+
+  if (tagSlug === PREMIUM_SLUG) {
+    return `/products/brands/${PREMIUM_SLUG}`;
+  }
+
+  return `/products/curations/${tagSlug}/${titleSlug}`;
+};
+
+const buildLinkHref = (featuredTag, heading, label) => {
+  const featuredTagSlug = slugify(featuredTag);
+  const headingSlug = slugify(heading);
+  const labelSlug = slugify(label);
+
+  if (featuredTagSlug === PREMIUM_SLUG) {
+    return `/products/brands/${headingSlug}/${labelSlug}`;
+  }
+
+  if (headingSlug === THIS_WEEK_SLUG) {
+    const curationSlug =
+      labelSlug === NEW_ARRIVALS_SLUG ? NEW_ARRIVALS_SLUG : labelSlug;
+    return `/products/curations/${curationSlug}`;
+  }
+
+  if (headingSlug === COLLECTIONS_SLUG) {
+    return `/products/collections/${labelSlug}`;
+  }
+
+  if (headingSlug === BY_CATEGORY_SLUG) {
+    return `/products/categories/${labelSlug}`;
+  }
+
+  const href = `/products/categories/${labelSlug}`;
+  if (headingSlug === "lifestyle") {
+    return href;
+  }
+
+  return `${href}?${new URLSearchParams({ filter: headingSlug }).toString()}`;
+};
+
+const buildViewAllHref = (featuredTag, heading) => {
+  const featuredTagSlug = slugify(featuredTag);
+  const headingSlug = slugify(heading);
+
+  if (featuredTagSlug === PREMIUM_SLUG) {
+    return `/products/brands/${headingSlug}`;
+  }
+
+  if (headingSlug === THIS_WEEK_SLUG) {
+    return "/products/curations";
+  }
+
+  if (headingSlug === COLLECTIONS_SLUG) {
+    return "/products/collections";
+  }
+
+  if (headingSlug === BY_CATEGORY_SLUG) {
+    return "/products/categories";
+  }
+
+  return `/products/categories?${new URLSearchParams({ filter: headingSlug }).toString()}`;
+};
+
 export function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave }) {
   const panelWidth = 660;
   const gap = 12;
@@ -55,7 +129,7 @@ export function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseL
           </div>
           <Motion.button
             whileHover={{ x: 4 }}
-            onClick={() => onNavigate("/products")}
+            onClick={() => onNavigate(buildFeaturedHref(data.featured))}
             className="relative z-10 flex items-center gap-1.5 text-white font-bold text-xs bg-white/20 hover:bg-white/30 transition-colors px-3 py-2 rounded-full w-fit mt-4"
           >
             Explore <ArrowRight className="w-3 h-3" />
@@ -68,13 +142,23 @@ export function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseL
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{col.heading}</p>
               <div className="space-y-0.5">
                 {col.links.map((link, linkIndex) => (
-                  <button key={link?.label || linkIndex} onClick={() => onNavigate("/products")} className="nb-mega-link">
+                  <button
+                    key={link?.label || linkIndex}
+                    onClick={() => onNavigate(buildLinkHref(data.featured.tag, col.heading, link.label))}
+                    className="nb-mega-link"
+                  >
                     <span className="flex-1 text-left">{link.label}</span>
                     {link.badge && (
                       <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${badgeClass(link.badge)}`}>{link.badge}</span>
                     )}
                   </button>
                 ))}
+                <button
+                  onClick={() => onNavigate(buildViewAllHref(data.featured.tag, col.heading))}
+                  className="mt-2 flex w-full items-center gap-1.5 px-2.5 py-2 text-left text-[11px] font-black uppercase tracking-widest text-indigo-600 transition-colors hover:text-indigo-800"
+                >
+                  View all <ArrowRight className="w-3 h-3" />
+                </button>
               </div>
             </div>
           ))}
