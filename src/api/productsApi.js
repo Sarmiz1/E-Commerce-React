@@ -5,6 +5,11 @@ import { createResourceApi } from "./createResourceApi";
 // 🔥 Ultimate select string with explicit relationship hints
 const PRODUCT_SELECT = `
   *,
+  category:categories!category_id (
+    id,
+    name,
+    slug
+  ),
   seller:seller_public!seller_id (
     id,
     full_name,

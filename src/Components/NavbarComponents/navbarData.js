@@ -134,9 +134,9 @@ export const MEGA_MENU = {
 export const ALL_NAV_LINKS = [
   { label: "Home", href: "/", hasMega: false },
   { label: "Shop", href: "/products", hasMega: true },
-  { label: "New In", href: "/products?filter=new", hasMega: true },
-  { label: "Sale", href: "/products?filter=sale", hasMega: false, accent: true },
-  { label: "Brands", href: "/products?filter=brands", hasMega: true },
+  { label: "New In", href: "/products/curations/new-arrivals", hasMega: true },
+  { label: "Sale", href: "/products?sale=1", hasMega: false, accent: true },
+  { label: "Brands", href: "/products/curations/brands", hasMega: true },
 ];
 
 export const POPULAR_SEARCHES = [
@@ -168,36 +168,42 @@ export const MOBILE_CATEGORIES = [
     label: "Women's",
     emoji: "W",
     image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=200&h=200",
+    href: "/products/categories?filter=women",
   },
   {
     label: "Men's",
     emoji: "M",
     image: "https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&q=80&w=200&h=200",
+    href: "/products/categories?filter=men",
   },
   {
     label: "Bags",
     emoji: "B",
     image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&q=80&w=200&h=200",
+    href: "/products/categories/bags",
   },
   {
     label: "Watches",
     emoji: "W",
     image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&q=80&w=200&h=200",
+    href: "/products/categories/watches",
   },
   {
     label: "Shoes",
     emoji: "S",
     image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=200&h=200",
+    href: "/products/categories/shoes",
   },
   {
     label: "Beauty",
     emoji: "BE",
     image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=200&h=200",
+    href: "/products/categories/beauty",
   },
 ];
 
 export const SPECIAL_OFFERS = [
-  { label: "Flash Sale", desc: "Up to 70% off today only", color: "bg-orange-50 border-orange-100", textColor: "text-orange-600" },
-  { label: "New Arrivals", desc: "68 new items this week", color: "bg-indigo-50 border-indigo-100", textColor: "text-indigo-600" },
-  { label: "Gift Sets", desc: "Perfect presents from $29", color: "bg-rose-50 border-rose-100", textColor: "text-rose-600" },
+  { label: "Flash Sale", desc: "Up to 70% off today only", href: "/products?sale=1", color: "bg-orange-50 border-orange-100", textColor: "text-orange-600" },
+  { label: "New Arrivals", desc: "68 new items this week", href: "/products/curations/new-arrivals", color: "bg-indigo-50 border-indigo-100", textColor: "text-indigo-600" },
+  { label: "Gift Sets", desc: "Perfect presents from $29", href: "/products/categories/gift-sets", color: "bg-rose-50 border-rose-100", textColor: "text-rose-600" },
 ];

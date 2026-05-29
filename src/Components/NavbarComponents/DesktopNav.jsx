@@ -19,7 +19,6 @@ export function DesktopNav({
       {links.map((link) => {
         const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href.split("?")[0]));
         const hasMega = link.hasMega && megaMenu[link.label];
-        {console.log(megaMenu)}
 
         return (
           <div

@@ -1,5 +1,10 @@
 import { motion as Motion } from "framer-motion";
 import { ArrowRight } from "./Icons";
+import {
+  buildFeaturedHref,
+  buildLinkHref,
+  buildViewAllHref,
+} from "./megaMenuLinks";
 
 const badgeClass = (badge) => {
   if (badge === "New") return "bg-blue-100 text-blue-600";
@@ -7,80 +12,6 @@ const badgeClass = (badge) => {
   if (badge === "Sale") return "bg-red-100 text-red-600";
   if (typeof badge === "number" || /^\d+$/.test(badge)) return "bg-gray-100 text-gray-500";
   return "bg-yellow-100 text-yellow-600";
-};
-
-const NEW_ARRIVALS_SLUG = "new-arrivals";
-const PREMIUM_SLUG = "premium";
-const THIS_WEEK_SLUG = "this-week";
-const COLLECTIONS_SLUG = "collections";
-const BY_CATEGORY_SLUG = "by-category";
-
-const slugify = (value = "") =>
-  String(value).trim().toLowerCase().replace(/\s+/g, "-");
-
-const buildFeaturedHref = (featured) => {
-  const tagSlug = slugify(featured?.tag);
-  const titleSlug = slugify(featured?.title);
-
-  if (tagSlug === PREMIUM_SLUG) {
-    return `/products/brands/${PREMIUM_SLUG}`;
-  }
-
-  return `/products/curations/${tagSlug}/${titleSlug}`;
-};
-
-const buildLinkHref = (featuredTag, heading, label) => {
-  const featuredTagSlug = slugify(featuredTag);
-  const headingSlug = slugify(heading);
-  const labelSlug = slugify(label);
-
-  if (featuredTagSlug === PREMIUM_SLUG) {
-    return `/products/brands/${headingSlug}/${labelSlug}`;
-  }
-
-  if (headingSlug === THIS_WEEK_SLUG) {
-    const curationSlug =
-      labelSlug === NEW_ARRIVALS_SLUG ? NEW_ARRIVALS_SLUG : labelSlug;
-    return `/products/curations/${curationSlug}`;
-  }
-
-  if (headingSlug === COLLECTIONS_SLUG) {
-    return `/products/collections/${labelSlug}`;
-  }
-
-  if (headingSlug === BY_CATEGORY_SLUG) {
-    return `/products/categories/${labelSlug}`;
-  }
-
-  const href = `/products/categories/${labelSlug}`;
-  if (headingSlug === "lifestyle") {
-    return href;
-  }
-
-  return `${href}?${new URLSearchParams({ filter: headingSlug }).toString()}`;
-};
-
-const buildViewAllHref = (featuredTag, heading) => {
-  const featuredTagSlug = slugify(featuredTag);
-  const headingSlug = slugify(heading);
-
-  if (featuredTagSlug === PREMIUM_SLUG) {
-    return `/products/brands/${headingSlug}`;
-  }
-
-  if (headingSlug === THIS_WEEK_SLUG) {
-    return "/products/curations";
-  }
-
-  if (headingSlug === COLLECTIONS_SLUG) {
-    return "/products/collections";
-  }
-
-  if (headingSlug === BY_CATEGORY_SLUG) {
-    return "/products/categories";
-  }
-
-  return `/products/categories?${new URLSearchParams({ filter: headingSlug }).toString()}`;
 };
 
 export function MegaMenu({ data, triggerRect, onNavigate, onMouseEnter, onMouseLeave }) {

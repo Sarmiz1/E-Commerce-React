@@ -339,6 +339,38 @@ const router = createBrowserRouter(
             />
 
             <Route
+              path="categories/*"
+              element={<ProductsPage />}
+              loader={fetchProductsLoader}
+              shouldRevalidate={revalidateOnPathChange}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="collections/*"
+              element={<ProductsPage />}
+              loader={fetchProductsLoader}
+              shouldRevalidate={revalidateOnPathChange}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="curations/*"
+              element={<ProductsPage />}
+              loader={fetchProductsLoader}
+              shouldRevalidate={revalidateOnPathChange}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="brands/*"
+              element={<ProductsPage />}
+              loader={fetchProductsLoader}
+              shouldRevalidate={revalidateOnPathChange}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
               path=":productSlug"
               element={<ProductDetail />}
               loader={productDetailsLoader}

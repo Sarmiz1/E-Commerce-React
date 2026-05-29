@@ -22,6 +22,8 @@ import {
 function getSkeletonForPath(pathname) {
   if (!pathname) return null;
 
+  // /products listing endpoints
+  if (/^\/products\/(?:brands|categories|collections|curations)(?:\/|$)/.test(pathname)) return <ProductsSkeleton />;
   // /products/:id
   if (/^\/products\/[^/]+/.test(pathname)) return <ProductDetailSkeleton />;
   // /products (index)

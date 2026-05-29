@@ -91,7 +91,7 @@ export function MobileDrawer({ open, isDark, pathname, links, categories, offers
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 + i * 0.05 }}
-                      onClick={() => onNavigate("/products")}
+                      onClick={() => onNavigate(cat.href || "/products")}
                       className="relative overflow-hidden text-white p-4 rounded-2xl text-left flex flex-col gap-1 group"
                     >
                       <img src={cat.image} alt={cat.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -112,7 +112,7 @@ export function MobileDrawer({ open, isDark, pathname, links, categories, offers
                       initial={{ opacity: 0, x: 12 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 + i * 0.05 }}
-                      onClick={() => onNavigate("/products")}
+                      onClick={() => onNavigate(offer.href || "/products")}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all hover:scale-[1.01] ${isDark ? "bg-white/[0.03] border-white/5" : offer.color}`}
                     >
                       <div className="flex-1">
