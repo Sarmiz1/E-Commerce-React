@@ -72,7 +72,7 @@ const MainLinksGrid = () => {
         <div className="col-span-2">
           {/* Logo wordmark */}
           <div className="mb-6">
-            <p className="text-[10px] font-bold tracking-[0.5em] uppercase text-amber-500/60 mb-1">Est. 2024</p>
+            <p className="text-[10px] font-bold tracking-[0.5em] uppercase text-amber-500/60 mb-1">Est. 2026</p>
             <h2 className="text-3xl font-black tracking-tight" style={{ fontFamily: "'Georgia', 'Palatino Linotype', serif" }}>
               <span className="gold-text">Woo</span>
               <span className="text-white">Sho</span>
