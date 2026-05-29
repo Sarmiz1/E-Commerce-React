@@ -21,7 +21,10 @@ export function useProductsFilter(allProducts) {
 
   useEffect(() => {
     setFilters((f) => {
-      if (f.budget === 10000 || f.budget === 0) return { ...f, budget: maxBudget };
+      if (f.budget === 10000 || f.budget === 0) {
+        if (f.budget === maxBudget) return f;
+        return { ...f, budget: maxBudget };
+      }
       return f;
     });
   }, [maxBudget]);
@@ -53,7 +56,8 @@ export function useProductsFilter(allProducts) {
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true });
     }
-  }, [filters, maxBudget, searchParams, selectedCategory, setSearchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, maxBudget, selectedCategory]);
 
   const filteredProducts = useMemo(() => {
     let r = [...allProducts];

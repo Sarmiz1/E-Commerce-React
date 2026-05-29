@@ -159,7 +159,7 @@ export default function ProductsPage() {
 
   return (
     <div
-      className="min-h-screen pt-20"
+      className="min-h-screen pt-20 overflow-x-hidden"
       style={{ background: colors.surface.primary, color: colors.text.primary }}
     >
       <SEO

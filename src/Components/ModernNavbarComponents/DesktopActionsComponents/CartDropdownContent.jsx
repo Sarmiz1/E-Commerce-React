@@ -1,8 +1,31 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ShoppingBag } from "lucide-react";
+import { Loader2, ShoppingBag, Trash2 } from "lucide-react";
+import { useCartActions } from "../../../context/cart/CartContext";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 
-export default function CartDropdownContent({ cartItems, cartCount, setCartOpen }) {
+const getDropdownItemKey = (item) =>
+  item?.id || item?.variant_id || item?.product_id || item?.products?.id;
+
+const getDropdownItemName = (item) =>
+  item?.products?.name || item?.product?.name || item?.name || item?.title || "Cart item";
+
+const getDropdownItemImage = (item) =>
+  item?.thumbnail || item?.image || item?.products?.image || item?.product?.image;
+
+const getDropdownItemPrice = (item) =>
+  item?.unit_price_minor ??
+  item?.price_minor ??
+  item?.priceMinor ??
+  item?.price ??
+  item?.variant?.price_minor ??
+  item?.products?.price_minor ??
+  item?.product?.price_minor ??
+  0;
+
+export default function CartDropdownContent({ cartItems = [], cartCount, setCartOpen }) {
+  const { removeItem, removingItem, removingItemId } = useCartActions();
+
   return (
     <>
       {cartCount > 0 ? (
@@ -20,32 +43,59 @@ export default function CartDropdownContent({ cartItems, cartCount, setCartOpen 
             </Link>
           </div>
           <div className="max-h-56 overflow-y-auto divide-y divide-gray-50 dark:divide-white/5">
-            {cartItems.slice(0, 5).map((item, i) => (
-              <motion.div
-                key={item?.id || i}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex items-center gap-3 px-5 py-3"
-              >
-                {(item?.thumbnail ?? item?.image) && (
-                  <img
-                    src={item.thumbnail ?? item.image}
-                    alt={item.name ?? item.title}
-                    className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {item.name ?? item.title}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {item.quantity ?? 1} × ₦
-                    {((item.price ?? 0)/1).toLocaleString()}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+            {cartItems.slice(0, 5).map((item, i) => {
+              const itemKey = getDropdownItemKey(item);
+              const itemName = getDropdownItemName(item);
+              const itemImage = getDropdownItemImage(item);
+              const isRemoving =
+                removingItem === true ||
+                removingItem === itemKey ||
+                removingItemId === itemKey;
+
+              return (
+                <motion.div
+                  key={itemKey || i}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: isRemoving ? 0.55 : 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center gap-3 px-5 py-3"
+                >
+                  {itemImage && (
+                    <img
+                      src={itemImage}
+                      alt={itemName}
+                      className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {itemName}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {item.quantity ?? 1} x {formatMoneyMinor(getDropdownItemPrice(item))}
+                    </p>
+                  </div>
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.9 }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      removeItem(item);
+                    }}
+                    disabled={!itemKey || isRemoving}
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-500 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                    aria-label={`Remove ${itemName} from cart`}
+                    title="Remove from cart"
+                  >
+                    {isRemoving ? (
+                      <Loader2 size={15} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={15} />
+                    )}
+                  </motion.button>
+                </motion.div>
+              );
+            })}
           </div>
           <div className="p-4 bg-gray-50 dark:bg-white/[0.03]">
             <motion.div
@@ -57,7 +107,7 @@ export default function CartDropdownContent({ cartItems, cartCount, setCartOpen 
                 onClick={() => setCartOpen(false)}
                 className="block w-full text-center py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors"
               >
-                Checkout →
+                Checkout &rarr;
               </Link>
             </motion.div>
           </div>
@@ -76,7 +126,7 @@ export default function CartDropdownContent({ cartItems, cartCount, setCartOpen 
             onClick={() => setCartOpen(false)}
             className="mt-3 inline-block text-sm text-blue-600 font-semibold hover:underline"
           >
-            Start shopping →
+            Start shopping &rarr;
           </Link>
         </div>
       )}

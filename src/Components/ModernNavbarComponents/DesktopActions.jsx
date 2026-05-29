@@ -33,7 +33,7 @@ export default function DesktopActions({
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.93 }}
-          className="relative p-2 text-white hover:text-blue-400 transition-colors"
+          className="relative p-2 text-black dark:text-white hover:text-blue-400 transition-colors"
           onFocus={openCart}
         >
           <ShoppingCart size={21} />

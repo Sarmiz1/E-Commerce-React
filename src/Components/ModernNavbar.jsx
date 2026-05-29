@@ -176,11 +176,11 @@ export default function ModernNavbar({
                 className="fixed inset-x-4 top-[80px] mx-auto w-auto max-w-sm z-[9001]"
               >
                 <div className="bg-white dark:bg-[#121214] rounded-3xl shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
-                   <CartDropdownContent 
-                     cartItems={cartItems}
-                     cartCount={cartCount}
-                     setCartOpen={setCartOpen}
-                   />
+                  <CartDropdownContent 
+                    cartItems={cartItems}
+                    cartCount={cartCount}
+                    setCartOpen={setCartOpen}
+                  />
                 </div>
               </motion.div>
             )}

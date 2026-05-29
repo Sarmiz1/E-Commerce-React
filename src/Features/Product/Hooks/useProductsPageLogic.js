@@ -6,6 +6,7 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
+  const loadingMoreRef = useRef(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   const gridRef = useRef(null);
@@ -31,10 +32,12 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !loadingMore) {
+        if (entry.isIntersecting && !loadingMoreRef.current) {
+          loadingMoreRef.current = true;
           setLoadingMore(true);
           setTimeout(() => {
             setVisibleCount((v) => v + PAGE_SIZE);
+            loadingMoreRef.current = false;
             setLoadingMore(false);
           }, 100);
         }
@@ -44,7 +47,7 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [allLoaded, isLoading, loadingMore]);
+  }, [allLoaded, isLoading]);
 
   // Reset visible count when filters change
   useEffect(() => {
