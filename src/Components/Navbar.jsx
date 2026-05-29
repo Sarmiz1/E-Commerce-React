@@ -21,6 +21,7 @@ import {
   SEARCH_CATEGORIES,
   SPECIAL_OFFERS,
 } from "./NavbarComponents/navbarData";
+import { useDebounceCallback } from "../Hooks/useDebounceCallback";
 import { NAVBAR_STYLES } from "./NavbarComponents/navbarStyles";
 
 const getData = null;
@@ -56,12 +57,44 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
   const searchRef = useRef(null);
   const cartBtnRef = useRef(null);
   const megaTimer = useRef(null);
-  const searchDebounce = useRef(null);
   const searchResultsRef = useRef(null);
   const pillRef = useRef(null);
   const cartRef = externalCartIconRef || cartBtnRef;
 
   useRegisterCartIcon(cartRef);
+
+  const fetchSearchResults = useDebounceCallback(async (query) => {
+    if (!query) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      setSearchError(false);
+      setFocusedIdx(-1);
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchError(false);
+
+    try {
+      const data = await getData(`/products?search=${encodeURIComponent(query)}&limit=8`);
+      const items = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.products)
+          ? data.products
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+      setSearchResults(items.slice(0, 8));
+      setSearchError(false);
+    } catch {
+      setSearchResults([]);
+      setSearchError(true);
+    } finally {
+      setSearchLoading(false);
+      setFocusedIdx(-1);
+    }
+  }, 320);
 
   useLayoutEffect(() => {
     let rafId = 0;
@@ -126,44 +159,16 @@ export default function Navbar({ cartIconRef: externalCartIconRef }) {
   }, [location.pathname]);
 
   useEffect(() => {
-    clearTimeout(searchDebounce.current);
     const query = searchQuery.trim();
-
     if (!query) {
       setSearchResults([]);
       setSearchLoading(false);
       setSearchError(false);
       setFocusedIdx(-1);
-      return undefined;
+      return;
     }
-
-    setSearchLoading(true);
-    setSearchError(false);
-
-    searchDebounce.current = setTimeout(async () => {
-      try {
-        const data = await getData(`/products?search=${encodeURIComponent(query)}&limit=8`);
-        const items = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.products)
-            ? data.products
-            : Array.isArray(data?.data)
-              ? data.data
-              : [];
-
-        setSearchResults(items.slice(0, 8));
-        setSearchError(false);
-      } catch {
-        setSearchResults([]);
-        setSearchError(true);
-      } finally {
-        setSearchLoading(false);
-        setFocusedIdx(-1);
-      }
-    }, 320);
-
-    return () => clearTimeout(searchDebounce.current);
-  }, [searchQuery]);
+    fetchSearchResults(query);
+  }, [searchQuery, fetchSearchResults]);
 
   useEffect(() => {
     if (!searchOpen) {

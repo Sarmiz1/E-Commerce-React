@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, Moon, Sparkles, Sun, X } from "lucide-react";
 import { useTheme } from "../../../Store/useThemeStore";
 import { Logo } from "../../../Components/Ui/Logo";
+import { useAuth } from "../../../Features/Auth/AuthContext";
+import { User, LogOut, LogIn } from "lucide-react";
 
 const DEFAULT_CTA = { label: "AI Shop", href: "/ai-shop" };
 
@@ -16,6 +18,7 @@ export default function MarketingNavbar({
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark, toggle } = useTheme();
+  const { user, logOut } = useAuth();
 
   useEffect(() => {
     const update = () => setIsScrolled(window.scrollY > 24);
@@ -128,6 +131,37 @@ export default function MarketingNavbar({
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
+
+          {user ? (
+            <div className={`flex items-center gap-2 border-l pl-2 ${isSellerHeroSurface ? 'border-white/20' : 'border-slate-200 dark:border-white/20'}`}>
+              <button
+                onClick={() => navigate("/account")}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${themeButtonClass}`}
+                title="Account"
+                type="button"
+              >
+                <User className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => logOut()}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 ${isSellerHeroSurface ? 'border-white/15 text-white/85' : 'border-slate-200 text-slate-600 dark:border-white/10 dark:text-slate-300'}`}
+                title="Logout"
+                type="button"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate("/login")}
+              className={`inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-black transition ${themeButtonClass}`}
+              type="button"
+            >
+              <LogIn className="h-4 w-4" />
+              Login
+            </button>
+          )}
+
           <button
             className="inline-flex h-10 items-center gap-2 rounded-full bg-blue-600 px-5 text-sm font-black text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700"
             onClick={() => handleAction(cta.href)}
@@ -160,6 +194,34 @@ export default function MarketingNavbar({
               <span>{isDark ? "Light mode" : "Dark mode"}</span>
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
+            
+            {user ? (
+               <div className="grid grid-cols-2 gap-2 mt-1">
+                  <button
+                    className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition ${mobileThemeButtonClass}`}
+                    onClick={() => { setMobileOpen(false); navigate("/account"); }}
+                    type="button"
+                  >
+                    <User className="h-4 w-4" /> Account
+                  </button>
+                  <button
+                    className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition text-red-500 border-red-200 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-500/10`}
+                    onClick={() => { setMobileOpen(false); logOut(); }}
+                    type="button"
+                  >
+                    <LogOut className="h-4 w-4" /> Logout
+                  </button>
+               </div>
+            ) : (
+               <button
+                 className={`inline-flex h-12 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-black transition mt-1 ${mobileThemeButtonClass}`}
+                 onClick={() => { setMobileOpen(false); navigate("/login"); }}
+                 type="button"
+               >
+                 <LogIn className="h-4 w-4" /> Login
+               </button>
+            )}
+
             <button
               className="mt-2 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black text-white"
               onClick={() => handleAction(cta.href)}
