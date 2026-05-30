@@ -1,8 +1,8 @@
-import { Lock, Zap } from "lucide-react";
+import { Lock, X, Zap } from "lucide-react";
 import { ADMIN_NAV, C, glow } from "../constants/adminDashboardConfig";
 import { useAdminDashboard } from "../hooks/useAdminDashboardQueries";
 
-export function AdminSidebar({ moduleId, onModuleChange, user }) {
+export function AdminSidebar({ isOpen, moduleId, onClose, onModuleChange, user }) {
   const allowed = user.role.modules;
   const { data } = useAdminDashboard();
   const badges = {
@@ -12,7 +12,7 @@ export function AdminSidebar({ moduleId, onModuleChange, user }) {
   };
 
   return (
-    <aside style={{width:C.sideW,background:C.surface,borderRight:`1px solid ${C.border}`,
+    <aside className={`admin-sidebar ${isOpen ? "is-open" : ""}`} style={{width:C.sideW,background:C.surface,borderRight:`1px solid ${C.border}`,
       display:'flex',flexDirection:'column',flexShrink:0}}>
       <div style={{padding:'1.375rem',borderBottom:`1px solid ${C.border}`,
         display:'flex',alignItems:'center',gap:12}}>
@@ -25,6 +25,12 @@ export function AdminSidebar({ moduleId, onModuleChange, user }) {
           <div style={{fontSize:16,fontWeight:800,color:C.txt,letterSpacing:'-.02em'}}>Woo Sho</div>
           <div style={{fontSize:9,color:C.txt3,textTransform:'uppercase',letterSpacing:'.08em'}}>Admin Console</div>
         </div>
+        <button className="admin-sidebar-close" type="button" aria-label="Close admin navigation"
+          onClick={onClose} style={{marginLeft:'auto',width:34,height:34,borderRadius:9,
+            background:C.card,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',
+            justifyContent:'center',cursor:'pointer'}}>
+          <X size={16} color={C.txt2}/>
+        </button>
       </div>
       <nav style={{flex:1,overflowY:'auto',padding:'.5rem 0'}}>
         {ADMIN_NAV.map(({id,label,icon:Icon,badgeKey,badgeColor}) => {

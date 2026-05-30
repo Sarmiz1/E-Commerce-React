@@ -68,15 +68,23 @@ connects the controller to the shell:
 | File | Responsibility |
 | --- | --- |
 | `hooks/useAdminDashboardController.js` | Owns active module state, local module transition state, local toast messages, current admin presentation, and logout navigation. |
-| `components/AdminDashboardShell.jsx` | Composes the sidebar, top bar, active module area, loading transition, and toast container. |
-| `components/AdminSidebar.jsx` | Renders the module navigation allowed by the current frontend role presentation. Locked modules remain visible but inaccessible. |
-| `components/AdminTopBar.jsx` | Renders the active module title, date, backend activity dropdown, and logout action. |
+| `components/AdminDashboardShell.jsx` | Composes the sidebar, top bar, active module area, loading transition, toast container, and mobile drawer state. |
+| `components/AdminSidebar.jsx` | Renders role-aware module navigation. On mobile it becomes an off-canvas drawer with overlay, close-button, Escape-key, and module-selection dismissal. |
+| `components/AdminTopBar.jsx` | Renders the active module title, module search, backend status, activity dropdown, logout action, and mobile drawer trigger. |
 | `hooks/useAdminActivityFeed.js` | Reads backend activity through TanStack Query, owns dropdown visibility, and maps activity types to presentation colors. |
 | `constants/adminDashboardConfig.js` | Stores dashboard colors, styles, module titles, navigation metadata, and frontend role presentation. |
 
 The role configuration in `adminDashboardConfig.js` improves the interface.
 It is not the authorization boundary. PostgreSQL independently protects data
 and mutations.
+
+### Responsive Layout
+
+Desktop keeps the full sidebar, charts, and status controls. At tablet widths,
+wide chart groups collapse to one column. At mobile widths, the sidebar becomes
+a drawer, the header keeps only essential controls, stat cards use a compact
+grid, tables scroll horizontally, AI input actions stack, notifications fit the
+viewport, and hiring columns collapse into a readable single-column flow.
 
 ### Server Queries
 

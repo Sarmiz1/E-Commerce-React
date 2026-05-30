@@ -123,7 +123,7 @@ function Btn({ children, disabled, icon: Icon, onClick, variant="ghost" }) {
 function Card({ accent, actions, children, title }) {
   const [hovered, hoverProps] = useHover();
   return (
-    <section {...hoverProps} style={{background:C.card,border:`1px solid ${hovered?C.borderHov:C.border}`,
+    <section className="admin-card" {...hoverProps} style={{background:C.card,border:`1px solid ${hovered?C.borderHov:C.border}`,
       borderRadius:14,overflow:'hidden',transform:hovered?'translateY(-2px)':'none',
       boxShadow:hovered?`0 12px 44px #000000AA, 0 0 22px ${C.blue}10`:`0 2px 12px #00000044`,
       transition:'all .22s cubic-bezier(.4,0,.2,1)'}}>
@@ -145,7 +145,7 @@ function Card({ accent, actions, children, title }) {
 function Stat({ icon: Icon, label, value, color=C.blue }) {
   const [hovered, hoverProps] = useHover();
   return (
-    <div {...hoverProps} style={{flex:'1 1 170px',padding:'1.5rem',background:C.card,
+    <div className="admin-stat-card" {...hoverProps} style={{flex:'1 1 170px',padding:'1.5rem',background:C.card,
       border:`1px solid ${hovered?C.borderHov:C.border}`,borderRadius:14,cursor:'default',
       position:'relative',overflow:'hidden',transform:hovered?'translateY(-5px) scale(1.015)':'none',
       boxShadow:hovered?`0 16px 52px #000000AA, 0 0 30px ${color}28`:`0 2px 12px #00000044`,
@@ -165,12 +165,12 @@ function Stat({ icon: Icon, label, value, color=C.blue }) {
 }
 
 function Stats({ children }) {
-  return <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>{children}</div>;
+  return <div className="admin-stats" style={{display:'flex',gap:12,flexWrap:'wrap'}}>{children}</div>;
 }
 
 function Table({ columns, rows, emptyMessage }) {
   return (
-    <div style={{overflowX:'auto'}}>
+    <div className="admin-table-scroll" style={{overflowX:'auto'}}>
       <table style={{width:'100%',borderCollapse:'collapse'}}>
         <thead>
           <tr style={{borderBottom:`1px solid ${C.border}`}}>{columns.map((column) => (
@@ -223,10 +223,10 @@ export function ModuleLoader() {
 
 export function Toast({ toasts }) {
   return (
-    <div style={{position:'fixed',right:24,bottom:24,zIndex:9999,display:'flex',
+    <div className="admin-toast-container" style={{position:'fixed',right:24,bottom:24,zIndex:9999,display:'flex',
       flexDirection:'column',gap:9,pointerEvents:'none'}}>
       {toasts.map((toast) => (
-        <div key={toast.id} style={{padding:'12px 18px',borderRadius:11,color:C.txt,background:C.card,
+        <div className="admin-toast" key={toast.id} style={{padding:'12px 18px',borderRadius:11,color:C.txt,background:C.card,
           border:`1px solid ${toast.color}55`,boxShadow:`0 10px 36px #000000BB, 0 0 18px ${toast.color}33`,
           display:'flex',alignItems:'center',gap:10,animation:'slideIn .22s cubic-bezier(.4,0,.2,1)',
           minWidth:290,maxWidth:390}}>
@@ -294,7 +294,7 @@ function DashboardModule({ data }) {
   const categoryMaximum = Math.max(...categories.map((category) => Number(category.revenue_minor || 0)), 1);
   return (
     <div style={{display:'flex',flexDirection:'column',gap:16}}>
-      <div style={{background:`linear-gradient(135deg,${C.blueDim}CC,${C.cyanDim}AA)`,
+      <div className="admin-dashboard-banner" style={{background:`linear-gradient(135deg,${C.blueDim}CC,${C.cyanDim}AA)`,
         border:`1px solid ${C.blue}44`,borderRadius:14,padding:'1.25rem 1.5rem',
         display:'flex',alignItems:'center',gap:13}}>
         <Sparkles size={20} color={C.cyan}/>
@@ -313,7 +313,7 @@ function DashboardModule({ data }) {
         <Stat icon={Clock} label="Pending Orders" value={stats.pendingOrders || 0} color={C.amber}/>
         <Stat icon={LifeBuoy} label="Open Tickets" value={stats.openTickets || 0} color={C.red}/>
       </Stats>
-      <div style={{display:'grid',gridTemplateColumns:'minmax(0,5fr) minmax(260px,2fr)',gap:14}}>
+      <div className="admin-grid-overview" style={{display:'grid',gridTemplateColumns:'minmax(0,5fr) minmax(260px,2fr)',gap:14}}>
         <Card title="Revenue & Orders Overview" accent={C.blue}>
           <div style={{padding:'1.25rem'}}>
             <ResponsiveContainer width="100%" height={230}>
@@ -513,7 +513,7 @@ function AnalyticsModule({ data }) {
         <Stat icon={Users} label="Registered Users" value={data.stats?.users || 0} color={C.cyan}/>
         <Stat icon={Package} label="Catalog Products" value={data.stats?.products || 0} color={C.purple}/>
       </Stats>
-      <div style={{display:'grid',gridTemplateColumns:'minmax(0,5fr) minmax(240px,2fr)',gap:14}}>
+      <div className="admin-grid-overview" style={{display:'grid',gridTemplateColumns:'minmax(0,5fr) minmax(240px,2fr)',gap:14}}>
         <Card title="User Growth Trend" accent={C.blue}>
           <div style={{padding:'1.25rem'}}>
             {growth.length > 0 ? (
@@ -556,7 +556,7 @@ function AnalyticsModule({ data }) {
           </div>
         </Card>
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'minmax(280px,2fr) minmax(0,3fr)',gap:14}}>
+      <div className="admin-grid-analytics-bottom" style={{display:'grid',gridTemplateColumns:'minmax(280px,2fr) minmax(0,3fr)',gap:14}}>
         <Card title="Commerce Funnel" accent={C.cyan}>
           <div style={{padding:'1.25rem',display:'flex',flexDirection:'column',gap:14}}>
             {funnel.map((item) => <div key={item.stage}>
@@ -643,7 +643,7 @@ function AiModule({ data, mutation, toast }) {
         AI requests are stored in the backend queue. Connect a server-side worker or Edge Function to process them and write responses.
       </PanelMessage>
       <Card title="Queue Platform Analysis">
-        <div style={{padding:'1.2rem',display:'flex',gap:8}}>
+        <div className="admin-ai-form" style={{padding:'1.2rem',display:'flex',gap:8}}>
           <input value={prompt} onChange={(event)=>setPrompt(event.target.value)} placeholder="Describe the platform analysis needed"
             style={{flex:1,padding:'10px 12px',borderRadius:9,border:`1px solid ${C.border}`,background:C.surface,color:C.txt}}/>
           <Btn icon={Send} variant="cyan" disabled={!prompt.trim() || mutation.isPending} onClick={submit}>Queue</Btn>
@@ -666,7 +666,7 @@ function HiringModule({ data, mutation, toast }) {
     onError: (error) => toast(error.message, C.red),
   });
   return (
-    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(185px,1fr))',gap:12}}>
+    <div className="admin-hiring-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(185px,1fr))',gap:12}}>
       {stages.map((stage, index) => {
         const stageCandidates = candidates.filter((candidate)=>candidate.stage===stage);
         return <Card key={stage} title={`${titleCase(stage)} (${stageCandidates.length})`}>

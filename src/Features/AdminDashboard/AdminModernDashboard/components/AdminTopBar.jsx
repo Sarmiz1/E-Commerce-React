@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bell, ChevronRight, LogOut, Search } from "lucide-react";
+import { Bell, ChevronRight, LogOut, Menu, Search } from "lucide-react";
 import { ADMIN_MODULE_TITLES, ADMIN_NAV, C, glow } from "../constants/adminDashboardConfig";
 import { useAdminActivityFeed } from "../hooks/useAdminActivityFeed";
 
@@ -15,7 +15,7 @@ function formatActivityTime(value) {
       }).format(date);
 }
 
-export function AdminTopBar({ moduleId, onLogout, onModuleChange, user }) {
+export function AdminTopBar({ isMenuOpen, moduleId, onLogout, onMenuOpen, onModuleChange, user }) {
   const [search, setSearch] = useState("");
   const { isError, isLoading, isOpen, setIsOpen, stream } = useAdminActivityFeed();
   const matches = useMemo(() => {
@@ -32,14 +32,19 @@ export function AdminTopBar({ moduleId, onLogout, onModuleChange, user }) {
   }).format(new Date());
 
   return (
-    <header style={{height:60,background:C.surface,borderBottom:`1px solid ${C.border}`,
+    <header className="admin-topbar" style={{height:60,background:C.surface,borderBottom:`1px solid ${C.border}`,
       display:'flex',alignItems:'center',padding:'0 1.75rem',gap:14,flexShrink:0}}>
-      <div style={{flex:1,display:'flex',alignItems:'center',gap:9}}>
+      <button className="admin-mobile-menu-btn" type="button" aria-label="Open admin navigation"
+        aria-expanded={isMenuOpen} onClick={onMenuOpen} style={{width:38,height:38,borderRadius:9,background:C.card,
+          border:`1px solid ${C.border}`,alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+        <Menu size={17} color={C.txt2}/>
+      </button>
+      <div className="admin-topbar-heading" style={{flex:1,display:'flex',alignItems:'center',gap:9,minWidth:0}}>
         <span style={{fontSize:16,fontWeight:700,color:C.txt}}>{ADMIN_MODULE_TITLES[moduleId]}</span>
-        <ChevronRight size={14} color={C.txt3}/>
-        <span style={{fontSize:12,color:C.txt3}}>{dateLabel}</span>
+        <ChevronRight className="admin-topbar-date" size={14} color={C.txt3}/>
+        <span className="admin-topbar-date" style={{fontSize:12,color:C.txt3}}>{dateLabel}</span>
       </div>
-      <div style={{position:'relative'}}>
+      <div className="admin-module-search" style={{position:'relative'}}>
         <Search size={13} color={C.txt3} style={{position:'absolute',left:11,top:'50%',transform:'translateY(-50%)'}}/>
         <input value={search} onChange={(event)=>setSearch(event.target.value)}
           placeholder="Find a module..." style={{background:C.card,border:`1px solid ${C.border}`,
@@ -58,7 +63,7 @@ export function AdminTopBar({ moduleId, onLogout, onModuleChange, user }) {
           </div>
         )}
       </div>
-      <div style={{display:'flex',alignItems:'center',gap:5,padding:'5px 12px',
+      <div className="admin-status-pill" style={{display:'flex',alignItems:'center',gap:5,padding:'5px 12px',
         background:`${isError?C.red:isLoading?C.amber:C.green}14`,
         border:`1px solid ${isError?C.red:isLoading?C.amber:C.green}33`,borderRadius:20}}>
         <span style={{width:6,height:6,borderRadius:'50%',
@@ -68,7 +73,7 @@ export function AdminTopBar({ moduleId, onLogout, onModuleChange, user }) {
         </span>
       </div>
       {user.role.modules.includes("ai") && (
-        <div style={{display:'flex',alignItems:'center',gap:5,padding:'5px 12px',
+        <div className="admin-ai-pill" style={{display:'flex',alignItems:'center',gap:5,padding:'5px 12px',
           background:`${C.cyan}14`,border:`1px solid ${C.cyan}33`,borderRadius:20}}>
           <span style={{width:6,height:6,borderRadius:'50%',background:C.cyan}}/>
           <span style={{fontSize:11,color:C.cyan,fontWeight:700}}>AI Queue</span>
@@ -87,7 +92,7 @@ export function AdminTopBar({ moduleId, onLogout, onModuleChange, user }) {
           )}
         </button>
         {isOpen && (
-          <div style={{position:'absolute',right:0,top:46,width:340,background:C.card,
+          <div className="admin-activity-dropdown" style={{position:'absolute',right:0,top:46,width:340,background:C.card,
             border:`1px solid ${C.border}`,borderRadius:14,zIndex:500,
             boxShadow:`0 28px 72px #000000CC`,overflow:'hidden',animation:'fadeIn .15s ease'}}>
             <div style={{padding:'1rem 1.25rem',borderBottom:`1px solid ${C.border}`,
