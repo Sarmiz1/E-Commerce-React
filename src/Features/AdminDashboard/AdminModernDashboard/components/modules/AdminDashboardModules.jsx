@@ -101,6 +101,7 @@ function Badge({ type }) {
 }
 
 function Btn({ children, disabled, icon: Icon, onClick, variant="ghost" }) {
+  const [hovered, hoverProps] = useHover();
   const variants = {
     ghost: [C.txt2, "transparent", C.border],
     success: [C.green, `${C.green}18`, `${C.green}44`],
@@ -109,11 +110,16 @@ function Btn({ children, disabled, icon: Icon, onClick, variant="ghost" }) {
     purple: [C.purple, `${C.purple}18`, `${C.purple}44`],
   };
   const [color, background, border] = variants[variant] || variants.ghost;
+  const isHovered = hovered && !disabled;
   return (
-    <button disabled={disabled} onClick={onClick} style={{display:'inline-flex',alignItems:'center',
+    <button {...hoverProps} disabled={disabled} onClick={onClick} style={{display:'inline-flex',alignItems:'center',
       gap:5,padding:'5px 10px',borderRadius:8,fontSize:11,fontWeight:700,
-      color:disabled?C.txt3:color,background,border:`1px solid ${border}`,
-      cursor:disabled?'not-allowed':'pointer',opacity:disabled?.6:1}}>
+      color:disabled?C.txt3:color,background:isHovered?`${color}24`:background,
+      border:`1px solid ${isHovered?`${color}88`:border}`,
+      cursor:disabled?'not-allowed':'pointer',opacity:disabled?.6:1,
+      transform:isHovered?'translateY(-2px) scale(1.035)':'none',
+      boxShadow:isHovered?`0 8px 18px ${color}22`:'none',
+      transition:'transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease'}}>
       {Icon && <Icon size={11}/>}
       {children}
     </button>
@@ -283,7 +289,7 @@ function CategoryMetricCard({ category, maximum }) {
         <div style={{height:'100%',width:`${revenue / maximum * 100}%`,
           background:`linear-gradient(90deg,${C.blue},${C.cyan})`,borderRadius:4}}/>
       </div>
-      <div style={{fontSize:10,color:C.txt3,marginTop:8}}>Share of category revenue</div>
+      <div style={{fontSize:10,color:C.txt3,marginTop:8}}>Share of category merchandise sales</div>
     </div>
   );
 }
@@ -291,6 +297,7 @@ function CategoryMetricCard({ category, maximum }) {
 function DashboardModule({ data }) {
   const stats = data.stats || {};
   const categories = data.categories || [];
+  const salesChartMeta = data.salesChartMeta || {};
   const categoryMaximum = Math.max(...categories.map((category) => Number(category.revenue_minor || 0)), 1);
   return (
     <div style={{display:'flex',flexDirection:'column',gap:16}}>
@@ -301,20 +308,26 @@ function DashboardModule({ data }) {
         <div>
           <strong style={{fontSize:13,color:C.txt}}>Live backend overview</strong>
           <span style={{fontSize:13,color:C.cyan}}>
-            {` - ${stats.pendingOrders || 0} pending orders, ${stats.openTickets || 0} open support tickets, and ${stats.products || 0} catalog products.`}
+            {` - ${stats.pendingOrders || 0} pending orders worth ${formatMoney(stats.pendingUnpaidValueMinor)}, ${stats.openTickets || 0} open support tickets, and ${stats.products || 0} catalog products.`}
           </span>
         </div>
       </div>
       <Stats>
-        <Stat icon={DollarSign} label="Total Revenue" value={formatMoney(stats.revenueMinor)} color={C.green}/>
+        <Stat icon={DollarSign} label="Paid Revenue" value={formatMoney(stats.revenueMinor)} color={C.green}/>
         <Stat icon={ShoppingCart} label="Total Orders" value={stats.orders || 0}/>
         <Stat icon={Users} label="Users" value={stats.users || 0} color={C.cyan}/>
         <Stat icon={Package} label="Products" value={stats.products || 0} color={C.purple}/>
         <Stat icon={Clock} label="Pending Orders" value={stats.pendingOrders || 0} color={C.amber}/>
+        <Stat icon={Clock} label="Pending Unpaid Value" value={formatMoney(stats.pendingUnpaidValueMinor)} color={C.amber}/>
         <Stat icon={LifeBuoy} label="Open Tickets" value={stats.openTickets || 0} color={C.red}/>
       </Stats>
       <div className="admin-grid-overview" style={{display:'grid',gridTemplateColumns:'minmax(0,5fr) minmax(260px,2fr)',gap:14}}>
-        <Card title="Revenue & Orders Overview" accent={C.blue}>
+        <Card title="Paid Revenue & Orders Overview" accent={C.blue}
+          actions={<span style={{fontSize:11,color:C.txt3}}>
+            {salesChartMeta.isHistorical
+              ? `Latest paid activity through ${formatDate(salesChartMeta.endDate)}`
+              : "Last 7 days"}
+          </span>}>
           <div style={{padding:'1.25rem'}}>
             <ResponsiveContainer width="100%" height={230}>
               <AreaChart data={data.salesChart || []} margin={{top:8,right:8,bottom:0,left:-18}}>
@@ -329,7 +342,7 @@ function DashboardModule({ data }) {
                 <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,fontSize:12}}
                   labelStyle={{color:C.txt}} formatter={(value,name)=>[
                     name === "revenueMinor" ? formatMoney(value) : value,
-                    name === "revenueMinor" ? "Revenue" : "Orders",
+                    name === "revenueMinor" ? "Paid Revenue" : "Paid Orders",
                   ]}/>
                 <Area type="monotone" dataKey="revenueMinor" stroke={C.blue} strokeWidth={2.5} fill="url(#adminRevenue)" dot={false}/>
                 <Area type="monotone" dataKey="orders" stroke={C.cyan} strokeWidth={2} fill="transparent" dot={false}/>
@@ -358,7 +371,7 @@ function DashboardModule({ data }) {
           {categories.map((category) => <CategoryMetricCard key={category.name} category={category} maximum={categoryMaximum}/>)}
         </div>
       )}
-      {!categories.length && <PanelMessage>No category revenue is available yet.</PanelMessage>}
+      {!categories.length && <PanelMessage>No paid category merchandise sales are available yet.</PanelMessage>}
     </div>
   );
 }
@@ -367,6 +380,7 @@ function OrdersModule({ data, mutation, toast }) {
   const [filter, setFilter] = useState("all");
   const orders = data.orders || [];
   const filtered = filter === "all" ? orders : orders.filter((order) => order.status === filter);
+  const pendingOrderId = mutation.isPending ? mutation.variables?.id : null;
   const update = (id, status) => mutation.mutate({ id, status }, {
     onSuccess: () => toast("Order status updated", C.green),
     onError: (error) => toast(error.message, C.red),
@@ -393,8 +407,10 @@ function OrdersModule({ data, mutation, toast }) {
               <Td><Badge type={order.status}/></Td><Td><Badge type={order.payment}/></Td>
               <Td>{formatMoney(order.amount_minor)}</Td><Td>{formatDate(order.created_at)}</Td>
               <Td><div style={{display:'flex',gap:5}}>
-                {order.status==="pending" && <Btn icon={Truck} variant="success" onClick={()=>update(order.id,"shipped")}>Ship</Btn>}
-                {!["cancelled","delivered"].includes(order.status) && <Btn icon={X} variant="danger" onClick={()=>update(order.id,"cancelled")}>Cancel</Btn>}
+                {order.status==="pending" && <Btn disabled={mutation.isPending} icon={Truck} variant="success"
+                  onClick={()=>update(order.id,"shipped")}>{pendingOrderId===order.id?"Shipping...":"Ship"}</Btn>}
+                {!["cancelled","delivered"].includes(order.status) && <Btn disabled={mutation.isPending} icon={X} variant="danger"
+                  onClick={()=>update(order.id,"cancelled")}>{pendingOrderId===order.id?"Updating...":"Cancel"}</Btn>}
               </div></Td>
             </tr>
           ))}/>
@@ -448,11 +464,11 @@ function UsersModule({ data }) {
       </div>
       <Card title={titleCase(tab)}>
         {tab === "buyers" ? (
-          <Table columns={["Name","Email","Orders","Lifetime Value","Joined"]} emptyMessage="No buyers found in the backend."
+          <Table columns={["Name","Email","Paid Orders","Paid Lifetime Value","Joined"]} emptyMessage="No buyers found in the backend."
             rows={records.map((buyer) => <tr key={buyer.id}><Td>{buyer.name}</Td><Td>{buyer.email}</Td>
               <Td>{buyer.orders}</Td><Td>{formatMoney(buyer.lifetime_value_minor)}</Td><Td>{formatDate(buyer.created_at)}</Td></tr>)}/>
         ) : (
-          <Table columns={["Store","Status","Revenue","Products","Orders","Joined"]} emptyMessage="No sellers found in the backend."
+          <Table columns={["Store","Status","Merchandise Sales","Products","Paid Orders","Joined"]} emptyMessage="No sellers found in the backend."
             rows={records.map((seller) => <tr key={seller.id}><Td>{seller.name}</Td><Td><Badge type={seller.status}/></Td>
               <Td>{formatMoney(seller.revenue_minor)}</Td><Td>{seller.products}</Td><Td>{seller.orders}</Td><Td>{formatDate(seller.created_at)}</Td></tr>)}/>
         )}
@@ -476,7 +492,7 @@ function SellersModule({ data, mutation, toast }) {
         <Stat icon={XCircle} label="Suspended" value={sellers.filter((seller)=>seller.status==="suspended").length} color={C.red}/>
       </Stats>
       <Card title={`Sellers (${sellers.length})`}>
-        <Table columns={["Store","Status","Revenue","Products","Orders","Verified","Actions"]} emptyMessage="No sellers found in the backend."
+        <Table columns={["Store","Status","Merchandise Sales","Products","Paid Orders","Verified","Actions"]} emptyMessage="No sellers found in the backend."
           rows={sellers.map((seller) => (
             <tr key={seller.id}>
               <Td>{seller.name}</Td><Td><Badge type={seller.status}/></Td><Td>{formatMoney(seller.revenue_minor)}</Td>
@@ -508,7 +524,7 @@ function AnalyticsModule({ data }) {
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
-        <Stat icon={DollarSign} label="Gross Merchandise Value" value={formatMoney(data.stats?.revenueMinor)} color={C.green}/>
+        <Stat icon={DollarSign} label="Paid Revenue" value={formatMoney(data.stats?.revenueMinor)} color={C.green}/>
         <Stat icon={ShoppingCart} label="Total Orders" value={data.stats?.orders || 0}/>
         <Stat icon={Users} label="Registered Users" value={data.stats?.users || 0} color={C.cyan}/>
         <Stat icon={Package} label="Catalog Products" value={data.stats?.products || 0} color={C.purple}/>
@@ -530,7 +546,7 @@ function AnalyticsModule({ data }) {
             ) : <PanelMessage>No user-growth records are available yet.</PanelMessage>}
           </div>
         </Card>
-        <Card title="Category Share" accent={C.purple}>
+        <Card title="Merchandise Category Share" accent={C.purple}>
           <div style={{padding:'1.1rem'}}>
             {categories.length > 0 ? (
               <>
@@ -552,7 +568,7 @@ function AnalyticsModule({ data }) {
                   ))}
                 </div>
               </>
-            ) : <PanelMessage>No category revenue is available yet.</PanelMessage>}
+            ) : <PanelMessage>No paid category merchandise sales are available yet.</PanelMessage>}
           </div>
         </Card>
       </div>
@@ -574,7 +590,7 @@ function AnalyticsModule({ data }) {
             {!funnel.length && <PanelMessage>No funnel records are available yet.</PanelMessage>}
           </div>
         </Card>
-        <Card title="Category Revenue" accent={C.amber}>
+        <Card title="Category Merchandise Sales" accent={C.amber}>
           <div style={{padding:'1.25rem'}}>
             {categories.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
@@ -582,11 +598,11 @@ function AnalyticsModule({ data }) {
                   <XAxis dataKey="name" tick={{fontSize:11,fill:C.txt3}} axisLine={false} tickLine={false}/>
                   <YAxis tick={{fontSize:10,fill:C.txt3}} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,fontSize:12}}
-                    labelStyle={{color:C.txt}} formatter={(value)=>[formatMoney(value),"Revenue"]}/>
-                  <Bar dataKey="revenue_minor" radius={[5,5,0,0]} fill={C.blue} name="Revenue"/>
+                    labelStyle={{color:C.txt}} formatter={(value)=>[formatMoney(value),"Merchandise Sales"]}/>
+                  <Bar dataKey="revenue_minor" radius={[5,5,0,0]} fill={C.blue} name="Merchandise Sales"/>
                 </BarChart>
               </ResponsiveContainer>
-            ) : <PanelMessage>No category revenue is available yet.</PanelMessage>}
+            ) : <PanelMessage>No paid category merchandise sales are available yet.</PanelMessage>}
           </div>
         </Card>
       </div>

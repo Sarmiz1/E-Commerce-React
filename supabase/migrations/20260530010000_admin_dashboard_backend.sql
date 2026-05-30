@@ -217,10 +217,21 @@ begin
 
   select jsonb_build_object(
     'stats', jsonb_build_object(
-      'revenueMinor', (select coalesce(sum(total_minor), 0) from public.orders where status <> 'cancelled'),
+      'revenueMinor', (
+        select coalesce(sum(total_minor), 0)
+        from public.orders
+        where payment_status = 'paid'
+          and status <> 'cancelled'
+      ),
       'orders', (select count(*) from public.orders),
       'users', (select count(*) from public.profiles),
       'pendingOrders', (select count(*) from public.orders where status = 'pending'),
+      'pendingUnpaidValueMinor', (
+        select coalesce(sum(total_minor), 0)
+        from public.orders
+        where status = 'pending'
+          and payment_status = 'unpaid'
+      ),
       'openTickets', (select count(*) from public.admin_support_tickets where status <> 'resolved'),
       'products', (select count(*) from public.products),
       'sellers', (select count(*) from public.seller_profiles)
@@ -238,6 +249,7 @@ begin
         from public.orders o
         where o.created_at >= day
           and o.created_at < day + interval '1 day'
+          and o.payment_status = 'paid'
           and o.status <> 'cancelled'
       ) s on true
     ),
@@ -249,8 +261,11 @@ begin
           round(coalesce(sum(oi.total_minor), 0) * 100.0 /
             nullif(sum(coalesce(sum(oi.total_minor), 0)) over (), 0), 1) share
         from public.order_items oi
+        join public.orders o on o.id = oi.order_id
         join public.products p on p.id = oi.product_id
         left join public.categories c on c.id = p.category_id
+        where o.payment_status = 'paid'
+          and o.status <> 'cancelled'
         group by c.name
       ) row_data
     ),
@@ -297,8 +312,14 @@ begin
       select coalesce(jsonb_agg(to_jsonb(row_data) order by row_data.created_at desc), '[]'::jsonb)
       from (
         select p.id, coalesce(p.full_name, u.email, 'Unknown buyer') name, u.email, p.created_at,
-          count(distinct o.id) orders,
-          coalesce(sum(o.total_minor) filter (where o.status <> 'cancelled'), 0) lifetime_value_minor
+          count(distinct o.id) filter (
+            where o.payment_status = 'paid'
+              and o.status <> 'cancelled'
+          ) orders,
+          coalesce(sum(o.total_minor) filter (
+            where o.payment_status = 'paid'
+              and o.status <> 'cancelled'
+          ), 0) lifetime_value_minor
         from public.profiles p
         left join auth.users u on u.id = p.id
         left join public.orders o on o.user_id = p.id
@@ -312,11 +333,18 @@ begin
         select sp.user_id id, sp.store_name name, sp.status, sp.is_verified_store verified,
           sp.rating, sp.created_at,
           count(distinct p.id) products,
-          count(distinct oi.order_id) orders,
-          coalesce(sum(oi.total_minor), 0) revenue_minor
+          count(distinct oi.order_id) filter (
+            where o.payment_status = 'paid'
+              and o.status <> 'cancelled'
+          ) orders,
+          coalesce(sum(oi.total_minor) filter (
+            where o.payment_status = 'paid'
+              and o.status <> 'cancelled'
+          ), 0) revenue_minor
         from public.seller_profiles sp
         left join public.products p on p.seller_id = sp.user_id
         left join public.order_items oi on oi.product_id = p.id
+        left join public.orders o on o.id = oi.order_id
         group by sp.user_id, sp.store_name, sp.status, sp.is_verified_store, sp.rating, sp.created_at
       ) row_data
     ) else '[]'::jsonb end,
@@ -336,7 +364,12 @@ begin
         jsonb_build_object('stage', 'Carts', 'value', (select count(*) from public.carts)),
         jsonb_build_object('stage', 'Checked Out Carts', 'value', (select count(*) from public.carts where status = 'checked_out')),
         jsonb_build_object('stage', 'Orders', 'value', (select count(*) from public.orders)),
-        jsonb_build_object('stage', 'Paid Orders', 'value', (select count(*) from public.orders where payment_status = 'paid')),
+        jsonb_build_object('stage', 'Paid Orders', 'value', (
+          select count(*)
+          from public.orders
+          where payment_status = 'paid'
+            and status <> 'cancelled'
+        )),
         jsonb_build_object('stage', 'Delivered Orders', 'value', (select count(*) from public.orders where status = 'delivered'))
       )
     ) else '{}'::jsonb end,

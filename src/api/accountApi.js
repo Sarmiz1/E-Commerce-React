@@ -22,4 +22,14 @@ export const accountApi = {
 
     return data;
   },
+
+  completeSellerOnboarding: async (onboardingData) => {
+    const { data, error } = await supabase.rpc("complete_seller_onboarding", {
+      seller_onboarding_data: onboardingData,
+    });
+
+    if (error) throw error;
+
+    return data;
+  },
 };

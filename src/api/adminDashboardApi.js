@@ -7,7 +7,22 @@ async function runRpc(name, args) {
 }
 
 export const adminDashboardApi = {
-  getDashboard: () => runRpc("get_admin_dashboard"),
+  getDashboard: async () => {
+    const dashboard = await runRpc("get_admin_dashboard");
+
+    try {
+      const salesChart = await runRpc("get_admin_paid_sales_chart");
+      return {
+        ...dashboard,
+        salesChart: salesChart?.series || dashboard.salesChart || [],
+        salesChartMeta: salesChart?.meta || {},
+      };
+    } catch (error) {
+      // Keep deployments compatible while the incremental chart RPC migration is applied.
+      if (!["42883", "PGRST202"].includes(error.code)) throw error;
+      return dashboard;
+    }
+  },
   setOrderStatus: (orderId, status) =>
     runRpc("admin_set_order_status", { order_id: orderId, next_status: status }),
   setProductActive: (productId, active) =>

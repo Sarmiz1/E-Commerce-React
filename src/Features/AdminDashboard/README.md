@@ -111,7 +111,7 @@ and access-denied states consistently.
 
 | Module | Backend data displayed | Available actions |
 | --- | --- | --- |
-| Dashboard | Summary metrics, seven-day revenue, category revenue, recent activity. | Read-only overview. |
+| Dashboard | Summary metrics, paid revenue, pending unpaid value, seven-day paid revenue, category merchandise sales, recent activity. | Read-only overview. |
 | Orders | Orders and status details. | Ship or cancel an order. |
 | Products | Product catalog records and active state. | Activate or deactivate a product. |
 | Users | Buyer and seller records. | Switch between buyer and seller views. |
@@ -146,14 +146,32 @@ The aggregate `get_admin_dashboard` RPC returns a role-scoped payload for the
 current admin. The frontend does not fabricate records when a section is empty.
 Empty backend tables produce explicit empty states.
 
+### Revenue Semantics
+
+Revenue reporting counts orders only when `payment_status = 'paid'` and
+`status <> 'cancelled'`. Unpaid pending orders are excluded from revenue and
+returned separately as `stats.pendingUnpaidValueMinor`.
+
+Category and seller sales sum paid, non-cancelled `order_items.total_minor`.
+These values represent merchandise sales. They may differ from paid revenue
+because final order totals can also include shipping and tax and can subtract
+order-level discounts.
+
+The dashboard chart shows the current seven-day window when paid activity exists
+within that period. If the current period is empty, `get_admin_paid_sales_chart`
+anchors the chart to the latest recorded paid activity and the UI labels that
+historical window explicitly.
+
 ## Backend Migration
 
-Apply both admin migrations before using the dashboard:
+Apply the admin migrations before using the dashboard:
 
 | Migration | Purpose |
 | --- | --- |
 | `supabase/migrations/20260530000000_harden_admin_access.sql` | Adds hardened admin membership and access rules. |
 | `supabase/migrations/20260530010000_admin_dashboard_backend.sql` | Adds dashboard RPCs, mutation RPCs, backend-owned operational tables, seller status, RLS, and role checks. |
+| `supabase/migrations/20260530020000_align_admin_revenue_metrics.sql` | Updates dashboard reporting so revenue uses paid, non-cancelled orders and pending unpaid order value remains separate. |
+| `supabase/migrations/20260530040000_fix_admin_paid_sales_chart_window.sql` | Adds a paid-sales chart RPC that falls back to the latest recorded activity window when the current seven-day window is empty. |
 
 The dashboard backend migration adds:
 

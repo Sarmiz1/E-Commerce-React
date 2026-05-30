@@ -34,10 +34,12 @@ export default function OnboardingPage() {
   const { user } = useAuth();
   const [initLoading, setInitLoading] = useState(true);
   const [dbRole, setDbRole] = useState(null);
+  const [completionError, setCompletionError] = useState("");
 
   const handleComplete = async (finalRole, data) => {
     try {
       if (!user) return;
+      setCompletionError("");
 
       const accountRole = await accountApi.setRole(finalRole);
       const updateData = {
@@ -51,34 +53,31 @@ export default function OnboardingPage() {
          updateData.store_name = data.s1?.storeName;
       }
       
-      await supabase.auth.updateUser({
+      const { error: authError } = await supabase.auth.updateUser({
         data: updateData
       });
+
+      if (authError) throw authError;
       
       // Upsert to corresponding table
       if (accountRole === 'buyer') {
-         await supabase.from('buyer_profiles').upsert({
+         const { error: buyerProfileError } = await supabase.from('buyer_profiles').upsert({
            id: user.id,
            first_name: data.b1?.firstName,
            last_name: data.b1?.lastName,
            username: data.b1?.username,
            preferences: data.b2
          });
+
+         if (buyerProfileError) throw buyerProfileError;
       } else {
-         await supabase.from('seller_profiles').upsert({
-           id: user.id,
-           store_name: data.s1?.storeName,
-           category: data.s1?.category,
-           description: data.s1?.description,
-           contact: data.s2,
-           branding: data.s3,
-           logistics: data.s4
-         });
+         await accountApi.completeSellerOnboarding(data);
       }
       
       navigate('/account');
     } catch (err) {
       console.error("Failed to complete onboarding:", err);
+      setCompletionError(err.message || "Unable to finish onboarding. Please try again.");
     }
   };
 
@@ -195,6 +194,14 @@ export default function OnboardingPage() {
 
         {/* Steps Column */}
         <div className="ob-steps-col" style={{ flex: 1, maxWidth: 640, display: "flex", flexDirection: "column", gap: 16 }}>
+          {completionError && (
+            <div role="alert" style={{ padding: "12px 14px", border: "1px solid var(--amber-border)", borderRadius: 10, background: "var(--amber-bg)", color: "var(--text-2)", fontSize: 13 }}>
+              <p style={{ marginBottom: 8 }}>{completionError}</p>
+              <button type="button" className="ob-btn-primary seller" onClick={() => handleComplete(role, data)}>
+                Try again
+              </button>
+            </div>
+          )}
           
           <AnimatePresence>
             {isDone && <Confetti role={role} />}

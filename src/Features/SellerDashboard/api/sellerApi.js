@@ -16,18 +16,6 @@ async function uploadImage(file, folder = 'products') {
 
 export const sellerApi = {
   getDashboard: async (sellerId) => {
-    // 1. Ensure profile exists (auto-heal)
-    const { data: profExists } = await supabase
-      .from('seller_profiles')
-      .select('user_id')
-      .eq('user_id', sellerId)
-      .single();
-
-    if (!profExists) {
-      await supabase.from('seller_profiles').insert([{ user_id: sellerId }]);
-    }
-
-    // 2. Fetch full dashboard payload via RPC
     const { data, error } = await supabase.rpc('get_seller_dashboard', {
       p_seller_id: sellerId
     });
