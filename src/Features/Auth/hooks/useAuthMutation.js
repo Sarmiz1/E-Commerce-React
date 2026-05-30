@@ -82,14 +82,14 @@ export const useAuthMutation = (mode, setFormError) => {
       }
 
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
 
         if (error) throw new Error(getFriendlyError(error.message));
 
-        return { message: "Signed in successfully." };
+        return { message: "Signed in successfully.", userId: data.user?.id };
       }
 
       if (mode === "forgot") {
@@ -107,7 +107,7 @@ export const useAuthMutation = (mode, setFormError) => {
         password: formData.password,
         options: {
           data: {
-            role: formData.role,
+            requested_account_role: formData.role,
           },
         },
       });

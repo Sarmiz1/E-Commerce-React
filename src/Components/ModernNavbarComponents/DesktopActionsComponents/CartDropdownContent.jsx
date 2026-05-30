@@ -1,11 +1,11 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Loader2, ShoppingBag, Trash2 } from "lucide-react";
 import { useCartActions } from "../../../context/cart/CartContext";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 
 const getDropdownItemKey = (item) =>
-  item?.id || item?.variant_id || item?.product_id || item?.products?.id;
+  item?.variant_id || item?.product_id || item?.products?.id || item?.id;
 
 const getDropdownItemName = (item) =>
   item?.products?.name || item?.product?.name || item?.name || item?.title || "Cart item";
@@ -27,10 +27,13 @@ export default function CartDropdownContent({ cartItems = [], cartCount, setCart
   const { removeItem, removingItem, removingItemId } = useCartActions();
 
   return (
-    <>
+    <div
+      className="flex w-full flex-col"
+      style={{ height: "min(352px, calc(100vh - 112px))" }}
+    >
       {cartCount > 0 ? (
         <>
-          <div className="px-5 py-3.5 border-b border-gray-100 dark:border-white/10 flex items-center justify-between">
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-5 py-3.5 dark:border-white/10">
             <span className="font-bold text-sm text-gray-900 dark:text-white">
               Cart <span className="text-blue-600">({cartCount})</span>
             </span>
@@ -42,62 +45,69 @@ export default function CartDropdownContent({ cartItems = [], cartCount, setCart
               View all
             </Link>
           </div>
-          <div className="max-h-56 overflow-y-auto divide-y divide-gray-50 dark:divide-white/5">
-            {cartItems.slice(0, 5).map((item, i) => {
-              const itemKey = getDropdownItemKey(item);
-              const itemName = getDropdownItemName(item);
-              const itemImage = getDropdownItemImage(item);
-              const isRemoving =
-                removingItem === true ||
-                removingItem === itemKey ||
-                removingItemId === itemKey;
+          <div className="min-h-0 flex-1 overflow-y-auto divide-y divide-gray-50 dark:divide-white/5">
+            <AnimatePresence initial={false}>
+              {cartItems.slice(0, 5).map((item, i) => {
+                const itemKey = getDropdownItemKey(item);
+                const itemMutationKey = item?.id || itemKey;
+                const itemName = getDropdownItemName(item);
+                const itemImage = getDropdownItemImage(item);
+                const isRemoving =
+                  removingItem === true ||
+                  removingItem === itemMutationKey ||
+                  removingItemId === itemMutationKey ||
+                  removingItem === itemKey ||
+                  removingItemId === itemKey;
 
-              return (
-                <motion.div
-                  key={itemKey || i}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: isRemoving ? 0.55 : 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-3 px-5 py-3"
-                >
-                  {itemImage && (
-                    <img
-                      src={itemImage}
-                      alt={itemName}
-                      className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {itemName}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {item.quantity ?? 1} x {formatMoneyMinor(getDropdownItemPrice(item))}
-                    </p>
-                  </div>
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.9 }}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      removeItem(item);
-                    }}
-                    disabled={!itemKey || isRemoving}
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-500 dark:hover:bg-red-950/30 dark:hover:text-red-400"
-                    aria-label={`Remove ${itemName} from cart`}
-                    title="Remove from cart"
+                return (
+                  <motion.div
+                    key={itemKey || i}
+                    layout="position"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: isRemoving ? 0.55 : 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.18 }}
+                    className="flex items-center gap-3 px-5 py-3"
                   >
-                    {isRemoving ? (
-                      <Loader2 size={15} className="animate-spin" />
-                    ) : (
-                      <Trash2 size={15} />
+                    {itemImage && (
+                      <img
+                        src={itemImage}
+                        alt={itemName}
+                        className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                      />
                     )}
-                  </motion.button>
-                </motion.div>
-              );
-            })}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {itemName}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {item.quantity ?? 1} x {formatMoneyMinor(getDropdownItemPrice(item))}
+                      </p>
+                    </div>
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.9 }}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        removeItem(item);
+                      }}
+                      disabled={!itemKey || isRemoving}
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-500 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                      aria-label={`Remove ${itemName} from cart`}
+                      title="Remove from cart"
+                    >
+                      {isRemoving ? (
+                        <Loader2 size={15} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={15} />
+                      )}
+                    </motion.button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
-          <div className="p-4 bg-gray-50 dark:bg-white/[0.03]">
+          <div className="flex-shrink-0 p-4 bg-gray-50 dark:bg-white/[0.03]">
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
@@ -113,7 +123,7 @@ export default function CartDropdownContent({ cartItems = [], cartCount, setCart
           </div>
         </>
       ) : (
-        <div className="p-8 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
           <ShoppingBag
             size={30}
             className="mx-auto text-gray-300 dark:text-gray-600 mb-3"
@@ -130,6 +140,6 @@ export default function CartDropdownContent({ cartItems = [], cartCount, setCart
           </Link>
         </div>
       )}
-    </>
+    </div>
   );
 }

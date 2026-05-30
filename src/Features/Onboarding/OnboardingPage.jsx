@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/auth/AuthContext"; 
@@ -13,6 +13,7 @@ import { StepCard } from "./components/StepCard";
 import { BuyerStep1, BuyerStep2, BuyerStep3, BuyerStep4 } from "./components/BuyerSteps";
 import { SellerStep1, SellerStep2, SellerStep3, SellerStep4, SellerStep5 } from "./components/SellerSteps";
 import { GLOBAL_STYLES } from "../../Styles/globalStyles";
+import { accountApi } from "../../api/accountApi";
 
 // ─── CONFETTI ────────────────────────────────────────────────────────────────
 function Confetti({ role }) {
@@ -37,10 +38,14 @@ export default function OnboardingPage() {
   const handleComplete = async (finalRole, data) => {
     try {
       if (!user) return;
-      
-      const updateData = { role: finalRole };
+
+      const accountRole = await accountApi.setRole(finalRole);
+      const updateData = {
+        role: accountRole,
+        requested_account_role: null,
+      };
       // Standardize metadata (e.g. storing profile specifics)
-      if (finalRole === 'buyer') {
+      if (accountRole === 'buyer') {
          updateData.full_name = `${data.b1?.firstName || ''} ${data.b1?.lastName || ''}`.trim();
       } else {
          updateData.store_name = data.s1?.storeName;
@@ -51,7 +56,7 @@ export default function OnboardingPage() {
       });
       
       // Upsert to corresponding table
-      if (finalRole === 'buyer') {
+      if (accountRole === 'buyer') {
          await supabase.from('buyer_profiles').upsert({
            id: user.id,
            first_name: data.b1?.firstName,
@@ -81,17 +86,51 @@ export default function OnboardingPage() {
   const { role, currentStep, completedSteps, data } = state;
 
   useEffect(() => {
-    // Check if user already has a role in their metadata
+    // The profile row is the source of truth; Auth metadata is user-editable.
+    let cancelled = false;
+
     async function checkRole() {
-      if (user?.user_metadata?.role) {
-         setDbRole(user.user_metadata.role);
-         if (!state.role) {
-            handleRoleSelect(user.user_metadata.role);
-         }
+      let profileRole = null;
+
+      if (!user?.id) {
+        if (!cancelled) setInitLoading(false);
+        return;
       }
+
+      try {
+        profileRole = await accountApi.getRole(user.id);
+        const requestedRole =
+          user.user_metadata?.requested_account_role ||
+          (!profileRole ? user.user_metadata?.role : null);
+
+        if (requestedRole) {
+          try {
+            profileRole = await accountApi.setRole(requestedRole);
+          } catch (error) {
+            console.warn("Ignored unsupported account-role preference:", error);
+         }
+        }
+      } catch (error) {
+        console.error("Failed to load account role:", error);
+      }
+
+      if (cancelled) return;
+
+      if (profileRole) {
+        setDbRole(profileRole);
+        if (!state.role) {
+          handleRoleSelect(profileRole);
+        }
+      }
+
       setInitLoading(false);
     }
+
     checkRole();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, handleRoleSelect, state.role]);
 
   if (initLoading) {

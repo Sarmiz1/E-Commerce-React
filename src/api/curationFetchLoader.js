@@ -9,6 +9,8 @@ const HOME_PRODUCT_SELECT = `
   image,
   price_minor,
   sale_price_minor,
+  sale_starts_at,
+  sale_ends_at,
   rating_stars,
   rating_count,
   category_id,
@@ -19,6 +21,11 @@ const HOME_PRODUCT_SELECT = `
   created_at,
   product_variants(*),
   product_images(*),
+  category:categories!category_id (
+    id,
+    name,
+    slug
+  ),
   seller:seller_public!seller_id (
     id,
     full_name,
@@ -211,13 +218,9 @@ async function fetchProducts(productIds) {
     allProducts.push(...(data || []));
   }
 
-  if (firstError && !allProducts.length) {
-    return { data: [], error: firstError };
-  }
-
   return {
     data: allProducts.map(normalizeProduct),
-    error: null,
+    error: firstError,
   };
 }
 
@@ -298,4 +301,8 @@ export const CurationFetchLoaderAPI = {
   }),
 };
 
-export { createEmptyHomeCurations };
+export {
+  createEmptyHomeCurations,
+  fetchProducts as fetchCurationProductsByIds,
+  normalizeSlug as normalizeCurationSlug,
+};

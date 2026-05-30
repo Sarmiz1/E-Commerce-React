@@ -135,32 +135,8 @@ export const ALL_NAV_LINKS = [
   { label: "Home", href: "/", hasMega: false },
   { label: "Shop", href: "/products", hasMega: true },
   { label: "New In", href: "/products/curations/new-arrivals", hasMega: true },
-  { label: "Sale", href: "/products?sale=1", hasMega: false, accent: true },
-  { label: "Brands", href: "/products/curations/brands", hasMega: true },
-];
-
-export const POPULAR_SEARCHES = [
-  "Athletic socks",
-  "Basketball",
-  "Casual T-shirts",
-  "Kitchen toaster",
-  "Dinner plates",
-  "Cooking set",
-  "Sports shoes",
-  "Running gear",
-  "Sunglasses",
-  "Designer bags",
-];
-
-export const SEARCH_CATEGORIES = [
-  { label: "Bags", emoji: "B", query: "bags" },
-  { label: "Watches", emoji: "W", query: "watches" },
-  { label: "Shoes", emoji: "S", query: "shoes" },
-  { label: "Tech", emoji: "T", query: "tech" },
-  { label: "Sports", emoji: "SP", query: "sports" },
-  { label: "Perfumes", emoji: "P", query: "perfumes" },
-  { label: "Sunglasses", emoji: "SG", query: "sunglasses" },
-  { label: "Scarves", emoji: "SC", query: "scarves" },
+  { label: "Sale", href: "/products/curations/flash-sales", hasMega: false, accent: true },
+  { label: "Brands", href: "/products/curations/shop-by-brands", hasMega: true },
 ];
 
 export const MOBILE_CATEGORIES = [
@@ -168,13 +144,13 @@ export const MOBILE_CATEGORIES = [
     label: "Women's",
     emoji: "W",
     image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=200&h=200",
-    href: "/products/categories?filter=women",
+    href: "/products/categories/women",
   },
   {
     label: "Men's",
     emoji: "M",
     image: "https://images.unsplash.com/photo-1516257984-b1b4d707412e?auto=format&fit=crop&q=80&w=200&h=200",
-    href: "/products/categories?filter=men",
+    href: "/products/categories/men",
   },
   {
     label: "Bags",

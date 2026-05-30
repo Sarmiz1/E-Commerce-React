@@ -12,6 +12,7 @@ export default function MobileFilterDrawer({
   maxBudget, 
   selectedCategory, 
   setSelectedCategory, 
+  categoryOptions,
   matchingCount 
 }) {
   return (
@@ -62,6 +63,7 @@ export default function MobileFilterDrawer({
               maxBudget={maxBudget}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
+              categoryOptions={categoryOptions}
               matchingCount={matchingCount}
             />
             <button

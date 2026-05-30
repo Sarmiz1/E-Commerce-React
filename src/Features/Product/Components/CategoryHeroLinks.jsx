@@ -1,19 +1,21 @@
 import React from "react";
 import { useTheme } from "../../../Store/useThemeStore";
 import HeroLinksThumbnails from "./UI/HeroLinksThumbnails";
-import { CATEGORIES } from "../utils/categories";
-import { FILTERED_LINKS } from "../utils/filteredLInk";
 
-export default function CategoryHeroLinks() {
+export default function CategoryHeroLinks({ categoryOptions }) {
   const { colors, isDark } = useTheme();
+  const categories = categoryOptions
+    .filter((category) => category.value !== "All")
+    .map((category) => ({
+      id: category.id,
+      label: category.label,
+      image: category.image,
+      link: `/products?category=${encodeURIComponent(category.value)}`,
+    }));
 
   return (
     <div className="w-full border-b" style={{ borderColor: colors.border.subtle }}>
-      {/* Categories */}
-      <HeroLinksThumbnails items={CATEGORIES} isDark={isDark} colors={colors} />
-
-      {/* Hero Trends */}
-      <HeroLinksThumbnails items={FILTERED_LINKS} isDark={isDark} colors={colors} />
+      <HeroLinksThumbnails items={categories} isDark={isDark} colors={colors} />
     </div>
   );
 }

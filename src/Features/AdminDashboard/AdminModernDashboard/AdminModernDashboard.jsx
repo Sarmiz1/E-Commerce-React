@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import { adminApi } from "../../../api/adminApi";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
@@ -6,11 +9,11 @@ import {
 import {
   LayoutDashboard, ShoppingCart, Package, Users, Store, BarChart2,
   LifeBuoy, Brain, Briefcase, Settings, Bell, Search, TrendingUp,
-  Check, X, Eye, EyeOff, AlertCircle, Clock, CheckCircle2, XCircle,
+  Check, X, Eye, AlertCircle, Clock, CheckCircle2, XCircle,
   Zap, Activity, DollarSign, ShoppingBag, Percent, MessageSquare,
   ArrowUpRight, ArrowDownRight, Filter, Download, Plus, RotateCcw,
   Shield, Key, CreditCard, Truck, LogOut, Ticket, Lock, Send,
-  Sparkles, AlertTriangle, User, ChevronRight, CheckSquare
+  Sparkles, AlertTriangle, User, ChevronRight
 } from "lucide-react";
 
 const C = {
@@ -37,13 +40,6 @@ const ROLES={
     modules:['dashboard','products','sellers'],
     canApprove:true,canSuspend:false,canViewKeys:false,canViewFinance:false,canHire:false},
 };
-const DEMO_USERS=[
-  {id:'super_admin',name:'Sarmiz Okoye',email:'sarmiz@woosho.ng',password:'admin2026'},
-  {id:'support_lead',name:'Amara Nwosu',email:'support@woosho.ng',password:'support123'},
-  {id:'finance_manager',name:'Bello Kuti',email:'finance@woosho.ng',password:'finance123'},
-  {id:'content_mod',name:'Ngozi Eze',email:'content@woosho.ng',password:'content123'},
-];
-
 const salesData=[
   {day:'Mon',rev:245,orders:32},{day:'Tue',rev:318,orders:47},
   {day:'Wed',rev:289,orders:41},{day:'Thu',rev:412,orders:63},
@@ -137,11 +133,11 @@ const hiringData={
   Offer:[{name:'Rotimi Owolabi',role:'Lead Designer',score:96,exp:'8yr'}],
   Hired:[{name:'Zara Afolabi',role:'Operations Manager',score:92,exp:'9yr'}],
 };
-const apiKeys=[
-  {name:'Supabase Anon Key',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhZNG1QcSIsInJvbGUiOiJhbm9uIn0.xY4mPq_demo_key',env:'Production',service:'Supabase'},
-  {name:'Stripe Secret Key',key:'sk_live_4xR7mN2pQsTvYh8KjLmN3rWx5ZqPvM9TyU1sA6bC0dE2fG7hI_demo',env:'Production',service:'Stripe'},
-  {name:'Claude API Key',key:'sk-ant-api03-jK8mP2rTzQ9Xz1QwYn5LsD3vF6gH0iB4cE7aM2_demo_key_woosho',env:'Production',service:'Anthropic'},
-  {name:'Paystack Secret Key',key:'sk_live_8hTyU3nWx5RpQvM2jK9mP4rT6sA1bC0dE7fG3hI_paystk_demo',env:'Staging',service:'Paystack'},
+const integrations=[
+  {name:'Supabase',env:'Production',service:'Database'},
+  {name:'Stripe',env:'Production',service:'Payments'},
+  {name:'OpenRouter',env:'Production',service:'AI'},
+  {name:'Paystack',env:'Staging',service:'Payments'},
 ];
 const liveStream=[
   {msg:'New order #WS-4825 placed — ₦15,500',time:'just now',color:C.green},
@@ -413,69 +409,6 @@ function Toast({toasts}) {
   );
 }
 
-// ─── PASSWORD MODAL ───────────────────────────────────────────────────────────
-function PasswordModal({onClose, onSuccess}) {
-  const [pw,setPw] = useState('');
-  const [err,setErr] = useState('');
-  const [vis,setVis] = useState(false);
-  const [loading,setLoading] = useState(false);
-  const ref = useRef();
-  useEffect(() => ref.current?.focus(), []);
-
-  const submit = async () => {
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 950));
-    if (pw === 'admin2026') { onSuccess(); onClose(); }
-    else { setErr('Incorrect password. Hint: admin2026'); setLoading(false); }
-  };
-
-  return (
-    <div style={{position:'fixed',inset:0,background:'#000000CC',backdropFilter:'blur(8px)',
-      zIndex:8000,display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{background:C.card,border:`1px solid ${C.purple}55`,borderRadius:18,
-        padding:'2.25rem',width:410,
-        boxShadow:`0 32px 80px #000000CC, 0 0 50px ${C.purple}22`,animation:'fadeIn .2s ease'}}>
-        <div style={{width:54,height:54,borderRadius:15,background:`${C.purple}22`,
-          border:`1px solid ${C.purple}44`,display:'flex',alignItems:'center',
-          justifyContent:'center',marginBottom:18,boxShadow:glow(C.purple,14)}}>
-          <Lock size={24} color={C.purple}/>
-        </div>
-        <div style={{fontSize:18,fontWeight:800,color:C.txt,marginBottom:8}}>Admin Verification</div>
-        <div style={{fontSize:13,color:C.txt2,marginBottom:24,lineHeight:1.65}}>
-          This action requires Super Admin credentials to access sensitive platform data.
-        </div>
-        <div style={{position:'relative',marginBottom:err?10:20}}>
-          <input ref={ref} type={vis?'text':'password'} value={pw}
-            onChange={e=>{setPw(e.target.value);setErr('');}}
-            onKeyDown={e=>e.key==='Enter'&&submit()}
-            placeholder="Enter Super Admin password..."
-            style={{width:'100%',background:C.surface,
-              border:`1.5px solid ${err?C.red:C.border}`,borderRadius:9,
-              padding:'12px 44px 12px 15px',fontSize:13,color:C.txt,boxSizing:'border-box'}}/>
-          <button onClick={()=>setVis(v=>!v)} style={{position:'absolute',right:13,top:'50%',
-            transform:'translateY(-50%)',background:'none',border:'none',
-            cursor:'pointer',color:C.txt3,display:'flex',padding:0}}>
-            {vis?<EyeOff size={15}/>:<Eye size={15}/>}
-          </button>
-        </div>
-        {err && <div style={{fontSize:12,color:C.red,marginBottom:14,fontWeight:600}}>{err}</div>}
-        <div style={{display:'flex',gap:9}}>
-          <button onClick={onClose} style={{flex:1,padding:'11px',background:'transparent',
-            border:`1px solid ${C.border}`,borderRadius:8,fontSize:13,color:C.txt2,
-            cursor:'pointer',fontWeight:600}}>Cancel</button>
-          <button onClick={submit} disabled={loading||!pw} style={{flex:1,padding:'11px',
-            background:loading||!pw?C.blueDim:C.blue,color:'#fff',border:'none',borderRadius:8,
-            fontSize:13,fontWeight:700,cursor:loading||!pw?'not-allowed':'pointer',
-            boxShadow:!loading&&pw?glow(C.blue,12):'none',transition:'all .15s'}}>
-            {loading?'Verifying...':'Unlock Access'}
-          </button>
-        </div>
-        <div style={{fontSize:10,color:C.txt3,marginTop:14,textAlign:'center'}}>Demo hint: admin2026</div>
-      </div>
-    </div>
-  );
-}
-
 function AccessDenied({module}) {
   return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
@@ -511,109 +444,6 @@ const NAV = [
   {id:'hiring',label:'Hiring',icon:Briefcase},
   {id:'settings',label:'Settings',icon:Settings},
 ];
-
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
-function Login({onLogin}) {
-  const [sel,setSel] = useState(null);
-  const [pw,setPw] = useState('');
-  const [err,setErr] = useState('');
-  const [loading,setLoading] = useState(false);
-  const [vis,setVis] = useState(false);
-
-  const login = async () => {
-    if (!sel) { setErr('Please select a role to continue'); return; }
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 1300));
-    const u = DEMO_USERS.find(x => x.id === sel.id);
-    if (pw === u.password) onLogin({...u, role:ROLES[u.id]});
-    else { setErr(`Incorrect password. Hint: ${u.password}`); setLoading(false); }
-  };
-
-  return (
-    <div style={{minHeight:'100vh',background:C.bg,display:'flex',alignItems:'center',
-      justifyContent:'center',fontFamily:"'Sora',sans-serif",position:'relative',overflow:'hidden'}}>
-      {[[C.blue,'18%','14%'],[C.purple,'84%','20%'],[C.cyan,'10%','80%']].map(([c,x,y],i) => (
-        <div key={i} style={{position:'absolute',width:640,height:640,borderRadius:'50%',
-          background:`radial-gradient(circle, ${c}12 0%, transparent 70%)`,
-          left:x,top:y,transform:'translate(-50%,-50%)',pointerEvents:'none'}}/>
-      ))}
-      <div style={{width:470,position:'relative',animation:'fadeIn .4s ease'}}>
-        <div style={{textAlign:'center',marginBottom:42}}>
-          <div style={{width:64,height:64,borderRadius:20,
-            background:`linear-gradient(135deg,${C.blue},${C.cyan})`,
-            display:'inline-flex',alignItems:'center',justifyContent:'center',
-            marginBottom:18,boxShadow:glow(C.blue,24),animation:'glow 3s infinite'}}>
-            <Zap size={28} color="#fff" fill="#fff"/>
-          </div>
-          <div style={{fontSize:30,fontWeight:800,color:C.txt,letterSpacing:'-.03em'}}>Woo Sho</div>
-          <div style={{fontSize:12,color:C.txt3,marginTop:5,letterSpacing:'.1em',textTransform:'uppercase'}}>Admin Control Room</div>
-        </div>
-        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:22,
-          padding:'2.5rem',boxShadow:`0 44px 110px #000000AA`}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.txt3,marginBottom:14,
-            textTransform:'uppercase',letterSpacing:'.09em'}}>Select Your Role</div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:9,marginBottom:24}}>
-            {DEMO_USERS.map(u => {
-              const role = ROLES[u.id];
-              const active = sel?.id === u.id;
-              return (
-                <button key={u.id} onClick={()=>{setSel(u);setPw('');setErr('');}} style={{
-                  background:active?`${role.color}22`:C.surface,
-                  border:`1.5px solid ${active?role.color:C.border}`,
-                  borderRadius:12,padding:'13px 14px',cursor:'pointer',textAlign:'left',
-                  transition:'all .2s',boxShadow:active?glow(role.color,10):'none',
-                  transform:active?'scale(1.03)':'none'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                    <div style={{width:26,height:26,borderRadius:8,
-                      background:active?role.color:`${role.color}33`,
-                      display:'flex',alignItems:'center',justifyContent:'center',
-                      fontSize:10,color:active?'#fff':role.color,fontWeight:800}}>
-                      {role.icon}
-                    </div>
-                    <span style={{fontSize:12,fontWeight:700,color:active?role.color:C.txt2}}>{role.label}</span>
-                  </div>
-                  <div style={{fontSize:10,color:C.txt3,lineHeight:1.55}}>{u.name}<br/>{u.email}</div>
-                </button>
-              );
-            })}
-          </div>
-          {sel && (
-            <div style={{animation:'fadeUp .2s ease'}}>
-              <div style={{fontSize:11,color:C.txt3,marginBottom:9,fontWeight:700,
-                textTransform:'uppercase',letterSpacing:'.07em'}}>
-                Password for {sel.name}
-              </div>
-              <div style={{position:'relative',marginBottom:err?10:20}}>
-                <input type={vis?'text':'password'} value={pw}
-                  onChange={e=>{setPw(e.target.value);setErr('');}}
-                  onKeyDown={e=>e.key==='Enter'&&login()}
-                  placeholder="Enter password..."
-                  style={{width:'100%',background:C.surface,
-                    border:`1.5px solid ${err?C.red:C.border}`,borderRadius:10,
-                    padding:'12px 44px 12px 16px',fontSize:13,color:C.txt,boxSizing:'border-box'}}/>
-                <button onClick={()=>setVis(v=>!v)} style={{position:'absolute',right:13,top:'50%',
-                  transform:'translateY(-50%)',background:'none',border:'none',
-                  cursor:'pointer',color:C.txt3,display:'flex',padding:0}}>
-                  {vis?<EyeOff size={15}/>:<Eye size={15}/>}
-                </button>
-              </div>
-              {err && <div style={{fontSize:12,color:C.red,marginBottom:14,fontWeight:600}}>{err}</div>}
-            </div>
-          )}
-          <button onClick={login} disabled={!sel||loading} style={{
-            width:'100%',padding:'13px',
-            background:!sel||loading?C.blueDim:C.blue,
-            color:'#fff',border:'none',borderRadius:10,fontSize:13,fontWeight:700,
-            cursor:sel&&!loading?'pointer':'not-allowed',
-            transition:'all .2s',
-            boxShadow:sel&&!loading?glow(C.blue,18):'none'}}>
-            {loading?'Authenticating...':`Sign In${sel?' as '+ROLES[sel.id].label:''}`}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 function Sidebar({mod, setMod, user}) {
@@ -678,7 +508,7 @@ function Sidebar({mod, setMod, user}) {
 }
 
 // ─── TOPBAR ───────────────────────────────────────────────────────────────────
-function TopBar({mod, user, onLogout, addToast}) {
+function TopBar({mod, onLogout}) {
   const [notif,setNotif] = useState(false);
   const [stream,setStream] = useState(liveStream);
   const titles = {dashboard:'Dashboard',orders:'Orders',products:'Products',users:'Users',
@@ -1252,7 +1082,7 @@ function Support({addToast}) {
 }
 
 // ─── AI INSIGHTS ──────────────────────────────────────────────────────────────
-function AIInsights({addToast}) {
+function AIInsights() {
   const [msgs,setMsgs] = useState([
     {role:'ai', text:"Hello! I'm Woo Sho's platform AI. I have full visibility into orders, sellers, buyers, support tickets, and all performance metrics. What would you like to analyse today?"}
   ]);
@@ -1504,39 +1334,40 @@ function Hiring({addToast, user}) {
 }
 
 // ─── SETTINGS ─────────────────────────────────────────────────────────────────
-function SettingsModule({addToast, user}) {
-  const [showPw,setShowPw] = useState(false);
-  const [unlocked,setUnlocked] = useState(false);
-  const [revealed,setRevealed] = useState({});
+function SettingsModule({user}) {
+  const {data: admins=[], isLoading: adminsLoading} = useQuery({
+    queryKey:['admin-users'],
+    queryFn:adminApi.listAdmins,
+  });
 
-  const requestKey = name => {
-    if (!user.role.canViewKeys) { addToast('API key access requires Super Admin role',C.red); return; }
-    if (!unlocked) { setShowPw(true); return; }
-    setRevealed(r => ({...r, [name]:!r[name]}));
-  };
-
-  const roles = [
-    {name:'Super Admin',email:'sarmiz@woosho.ng',access:'Full platform access — all modules',status:'active'},
-    {name:'Support Lead',email:'support@woosho.ng',access:'Support, Users, Orders',status:'active'},
-    {name:'Finance Manager',email:'finance@woosho.ng',access:'Orders, Analytics, Settings',status:'active'},
-    {name:'Content Mod',email:'content@woosho.ng',access:'Products, Sellers',status:'active'},
-  ];
+  const roles = admins.map(admin => ({
+    id:admin.id,
+    name:ROLES[admin.role]?.label || admin.role,
+    email:admin.email,
+    access:(ROLES[admin.role]?.modules || []).join(', '),
+    status:admin.is_active ? 'active' : 'inactive',
+  }));
 
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      {showPw && (
-        <PasswordModal
-          onClose={()=>setShowPw(false)}
-          onSuccess={()=>{setUnlocked(true); addToast('Admin verified — API keys unlocked',C.green);}}/>
-      )}
-
-      <Card title="Admin Roles (RBAC)" noPad accent={C.purple}
-        actions={user.role.canViewKeys ? [<Btn key="a" variant="solid" small icon={Plus}>Add Admin</Btn>] : []}>
+      <Card title="Admin Roles (RBAC)" noPad accent={C.purple}>
         <table style={{width:'100%',borderCollapse:'collapse'}}>
           <Th cols={['Role Name','Email','Access Level','Status','Actions']}/>
           <tbody>
+            {adminsLoading && (
+              <Tr>
+                <Td muted>Loading admin accounts...</Td>
+                <Td/><Td/><Td/><Td/>
+              </Tr>
+            )}
+            {!adminsLoading && roles.length === 0 && (
+              <Tr>
+                <Td muted>No admin accounts found.</Td>
+                <Td/><Td/><Td/><Td/>
+              </Tr>
+            )}
             {roles.map(r => (
-              <Tr key={r.name}>
+              <Tr key={r.id}>
                 <Td bold>{r.name}</Td>
                 <Td>{r.email}</Td>
                 <Td><span style={{fontSize:12,color:C.cyan}}>{r.access}</span></Td>
@@ -1553,29 +1384,14 @@ function SettingsModule({addToast, user}) {
         </table>
       </Card>
 
-      <Card title="API Keys & Integrations" accent={C.red}
-        actions={[
-          unlocked
-            ? <div key="u" style={{display:'flex',alignItems:'center',gap:5,padding:'4px 12px',
-                background:`${C.green}18`,border:`1px solid ${C.green}44`,borderRadius:20}}>
-                <CheckSquare size={11} color={C.green}/>
-                <span style={{fontSize:11,color:C.green,fontWeight:700}}>Unlocked</span>
-              </div>
-            : <div key="l" style={{display:'flex',alignItems:'center',gap:5,padding:'4px 12px',
-                background:`${C.red}18`,border:`1px solid ${C.red}44`,borderRadius:20}}>
-                <Lock size={11} color={C.red}/>
-                <span style={{fontSize:11,color:C.red,fontWeight:700}}>Locked</span>
-              </div>
-        ]}>
-        {!user.role.canViewKeys && (
-          <div style={{background:`${C.red}14`,border:`1px solid ${C.red}33`,borderRadius:9,
-            padding:'.875rem',display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-            <Shield size={14} color={C.red}/>
-            <span style={{fontSize:13,color:C.red}}>API key access is restricted to <strong>Super Admin</strong> only.</span>
-          </div>
-        )}
+      <Card title="Integrations" accent={C.red}>
+        <div style={{background:`${C.green}14`,border:`1px solid ${C.green}33`,borderRadius:9,
+          padding:'.875rem',display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+          <Shield size={14} color={C.green}/>
+          <span style={{fontSize:13,color:C.green}}>Secrets are stored and managed server-side.</span>
+        </div>
         <div style={{display:'flex',flexDirection:'column',gap:9}}>
-          {apiKeys.map(k => (
+          {integrations.map(k => (
             <div key={k.name} style={{display:'flex',alignItems:'center',gap:13,padding:'.9rem',
               background:C.surface,border:`1px solid ${C.border}`,borderRadius:11,transition:'all .2s'}}
               onMouseEnter={e=>e.currentTarget.style.borderColor=C.borderHov}
@@ -1589,9 +1405,7 @@ function SettingsModule({addToast, user}) {
                 <div style={{fontSize:13,fontWeight:700,color:C.txt,marginBottom:4}}>{k.name}</div>
                 <div style={{fontSize:10,color:C.txt3,fontFamily:"'JetBrains Mono',monospace",
                   overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                  {user.role.canViewKeys && unlocked && revealed[k.name]
-                    ? k.key
-                    : `${k.key.substring(0,16)}${'•'.repeat(28)}`}
+                  Managed outside the browser
                 </div>
               </div>
               <div style={{display:'flex',gap:6,flexShrink:0,alignItems:'center'}}>
@@ -1601,16 +1415,6 @@ function SettingsModule({addToast, user}) {
                   background:k.env==='Production'?`${C.green}22`:`${C.amber}22`,
                   color:k.env==='Production'?C.green:C.amber,
                   padding:'3px 9px',borderRadius:20,fontWeight:700}}>{k.env}</span>
-                <button onClick={()=>requestKey(k.name)} style={{
-                  padding:'6px 12px',background:`${C.purple}22`,border:`1px solid ${C.purple}44`,
-                  borderRadius:8,fontSize:11,color:C.purple,cursor:'pointer',
-                  display:'flex',alignItems:'center',gap:5,fontWeight:700,transition:'all .15s'}}
-                  onMouseEnter={e=>e.currentTarget.style.background=`${C.purple}38`}
-                  onMouseLeave={e=>e.currentTarget.style.background=`${C.purple}22`}>
-                  {user.role.canViewKeys && unlocked && revealed[k.name]
-                    ? <><EyeOff size={11}/> Hide</>
-                    : <><Eye size={11}/> View</>}
-                </button>
               </div>
             </div>
           ))}
@@ -1668,10 +1472,17 @@ function SettingsModule({addToast, user}) {
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function AdminModernDashboard() {
-  const [user,setUser] = useState(null);
+  const navigate = useNavigate();
+  const {admin} = useOutletContext();
   const [mod,setMod] = useState('dashboard');
   const [loading,setLoading] = useState(false);
   const [toasts,setToasts] = useState([]);
+  const role = ROLES[admin.role];
+  const user = {
+    ...admin,
+    name:admin.full_name || admin.email,
+    role,
+  };
 
   const addToast = useCallback((msg, color=C.green) => {
     const id = Date.now();
@@ -1687,15 +1498,10 @@ export default function AdminModernDashboard() {
     setLoading(false);
   };
 
-  if (!user) {
-    return (
-      <>
-        <style>{STYLES}</style>
-        <Login onLogin={u => { setUser(u); addToast(`Welcome back, ${u.name.split(' ')[0]}!`, u.role.color); }}/>
-        <Toast toasts={toasts}/>
-      </>
-    );
-  }
+  const logout = async () => {
+    await adminApi.signOut();
+    navigate('/admin/login', {replace:true});
+  };
 
   const allowed = user.role.modules;
   const props = {addToast, user};
@@ -1721,7 +1527,7 @@ export default function AdminModernDashboard() {
         fontFamily:"'Sora',sans-serif",overflow:'hidden',fontSize:14}}>
         <Sidebar mod={mod} setMod={switchMod} user={user}/>
         <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minWidth:0}}>
-          <TopBar mod={mod} user={user} onLogout={()=>setUser(null)} addToast={addToast}/>
+          <TopBar mod={mod} user={user} onLogout={logout} addToast={addToast}/>
           <main style={{flex:1,overflow:'auto',padding:'1.5rem 1.75rem'}}>
             {loading
               ? <ModuleLoader/>

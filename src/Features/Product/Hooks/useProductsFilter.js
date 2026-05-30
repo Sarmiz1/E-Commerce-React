@@ -1,21 +1,19 @@
 import { useCallback, useMemo } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
-import { rankProductsBySemanticQuery } from "../../../utils/semanticProductSearch";
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
+import { ProductsAPI } from "../../../api/productsApi";
+import { useDebounce } from "../../../Hooks/useDebounce";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const NEW_ARRIVAL_WINDOW_MS = 90 * DAY_MS;
-const LISTING_ENDPOINTS = new Set(["brands", "categories", "collections", "curations"]);
-const SPECIAL_FILTERS = new Set(["brands", "new", "new-arrivals", "sale"]);
-const CURATION_FILTERS = new Set([
-  "flash-deals",
-  "flash-sales",
-  "new",
-  "new-arrivals",
-  "sale",
-  "trending",
-  "trending-now",
+const PRODUCT_SEARCH_LIMIT = 1000;
+const PRODUCT_SEARCH_DEBOUNCE_MS = 250;
+const VALID_SORTS = new Set([
+  "default",
+  "recommended",
+  "price-asc",
+  "price-desc",
+  "rating",
+  "newest",
 ]);
-const SEARCH_STOP_WORDS = new Set(["and"]);
 
 const normalizeText = (value = "") =>
   String(value)
@@ -25,7 +23,7 @@ const normalizeText = (value = "") =>
     .replace(/\s+/g, " ")
     .trim();
 
-const slugToText = (value = "") => {
+const normalizeCategory = (value = "") => {
   try {
     return normalizeText(decodeURIComponent(value).replace(/-/g, " "));
   } catch {
@@ -33,34 +31,21 @@ const slugToText = (value = "") => {
   }
 };
 
-const getProductCorpus = (product) =>
-  normalizeText([
-    product.name,
-    product.description,
-    product.short_description,
-    product.full_description,
-    typeof product.brand === "string" ? product.brand : product.brand?.name,
-    typeof product.category === "string" ? product.category : product.category?.name,
-    typeof product.category === "object" ? product.category?.slug : "",
-    product.category_name,
-    product.seller?.store_name,
-    ...(Array.isArray(product.keywords) ? product.keywords : []),
-    ...(Array.isArray(product.ai_tags) ? product.ai_tags : []),
-  ].filter(Boolean).join(" "));
+const getProductCategoryValues = (product) => {
+  const category = product?.category;
 
-const matchesTerm = (product, term) => {
-  const corpus = getProductCorpus(product);
-  const words = slugToText(term)
-    .split(" ")
-    .filter((word) => word.length > 1 && !SEARCH_STOP_WORDS.has(word));
-
-  return words.some((word) => corpus.includes(word));
+  return [
+    typeof category === "string" ? category : "",
+    category?.id,
+    category?.name,
+    category?.slug,
+    product?.category_name,
+  ].filter(Boolean);
 };
 
-export const isSaleProduct = (product) => {
+const hasActiveSalePrice = (product) => {
   const price = Number(product?.price_minor) || 0;
   const salePrice = Number(product?.sale_price_minor) || 0;
-  const originalPrice = Number(product?.compare_at_price_minor || product?.original_price_minor) || 0;
   const now = Date.now();
   const saleStartsAt = product?.sale_starts_at ? new Date(product.sale_starts_at).getTime() : null;
   const saleEndsAt = product?.sale_ends_at ? new Date(product.sale_ends_at).getTime() : null;
@@ -68,59 +53,70 @@ export const isSaleProduct = (product) => {
     (!saleStartsAt || saleStartsAt <= now) &&
     (!saleEndsAt || saleEndsAt >= now);
 
-  return (
-    (saleWindowIsActive && salePrice > 0 && salePrice < price) ||
-    (price > 0 && originalPrice > price)
+  return saleWindowIsActive && salePrice > 0 && salePrice < price;
+};
+
+export const getEffectivePriceMinor = (product) =>
+  hasActiveSalePrice(product)
+    ? Number(product.sale_price_minor)
+    : Number(product?.price_minor) || 0;
+
+export const isSaleProduct = (product) => {
+  const price = Number(product?.price_minor) || 0;
+  const originalPrice = Number(product?.compare_at_price_minor || product?.original_price_minor) || 0;
+
+  return hasActiveSalePrice(product) || (price > 0 && originalPrice > price);
+};
+
+export const isInStockProduct = (product) => {
+  const variants = product?.product_variants || product?.variants || [];
+
+  if (variants.length) {
+    return variants.some((variant) => Number(variant?.stock_quantity) > 0);
+  }
+
+  return Number(product?.stock_quantity) > 0;
+};
+
+export const matchesProductCategory = (product, selectedCategory) => {
+  const normalizedSelection = normalizeCategory(selectedCategory);
+  if (!normalizedSelection || normalizedSelection === "all") return true;
+
+  return getProductCategoryValues(product).some(
+    (value) => normalizeCategory(value) === normalizedSelection,
   );
 };
 
-export const getListingContext = (pathname, rawFilter) => {
-  const segments = pathname.split("/").filter(Boolean);
-  const productsIndex = segments.indexOf("products");
-  const routeSegments = productsIndex >= 0 ? segments.slice(productsIndex + 1) : [];
-  let [endpoint, ...slugs] = routeSegments;
+export const getProductCategoryOptions = (products = []) => {
+  const categoriesByValue = new Map();
 
-  if (!LISTING_ENDPOINTS.has(endpoint)) {
-    endpoint = "";
-    slugs = [];
-  }
+  products.forEach((product) => {
+    const category = product?.category;
+    const label = typeof category === "string" ? category : category?.name;
+    const value = typeof category === "string" ? category : category?.slug || category?.name;
+    if (!label || !value) return;
 
-  if (endpoint === "curations" && slugs[0] === "brands") {
-    endpoint = "brands";
-    slugs = slugs.slice(1);
-  }
+    const normalizedValue = normalizeCategory(value);
+    if (categoriesByValue.has(normalizedValue)) return;
 
-  const queryFilter = slugToText(rawFilter);
-  const normalizedSlugs = slugs.map(slugToText);
-  const curationFilters = endpoint === "curations"
-    ? normalizedSlugs.map((slug) => slug.replace(/\s+/g, "-"))
-    : [];
-  const routeTerms =
-    endpoint === "curations"
-      ? slugs.filter((slug) => !CURATION_FILTERS.has(slug)).slice(-1)
-      : slugs.slice(-1);
-  const queryTerms =
-    routeTerms.length === 0 &&
-    queryFilter &&
-    !SPECIAL_FILTERS.has(queryFilter.replace(/\s+/g, "-"))
-      ? [queryFilter]
-      : [];
-  const terms = [...new Set([...routeTerms, ...queryTerms].map(slugToText).filter(Boolean))];
+    categoriesByValue.set(normalizedValue, {
+      id: category?.id || normalizedValue,
+      label,
+      value,
+      image: product?.image || product?.product_images?.[0]?.image_url || "",
+    });
+  });
 
-  return {
-    endpoint,
-    terms,
-    isNewArrival:
-      queryFilter === "new" ||
-      queryFilter === "new arrivals" ||
-      curationFilters.some((filter) => filter === "new" || filter === "new-arrivals"),
-    isSale:
-      queryFilter === "sale" ||
-      curationFilters.some((filter) => filter === "sale" || filter === "flash-deals" || filter === "flash-sales"),
-    isTrending:
-      queryFilter === "trending" ||
-      curationFilters.some((filter) => filter === "trending" || filter === "trending-now"),
-  };
+  return [
+    { id: "all", label: "All", value: "All", image: "" },
+    ...[...categoriesByValue.values()].sort((a, b) => a.label.localeCompare(b.label)),
+  ];
+};
+
+const getNumericParam = (value, fallback) => {
+  if (value === null || value === "") return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 };
 
 const setOrDelete = (params, key, value, shouldSet = Boolean(value)) => {
@@ -129,25 +125,54 @@ const setOrDelete = (params, key, value, shouldSet = Boolean(value)) => {
 };
 
 export function useProductsFilter(allProducts) {
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsKey = searchParams.toString();
+  const categoryOptions = useMemo(
+    () => getProductCategoryOptions(allProducts),
+    [allProducts],
+  );
   const maxBudget = useMemo(
     () => allProducts.length
-      ? Math.max(...allProducts.map((product) => product.price_minor || 0), 1000)
+      ? Math.max(...allProducts.map(getEffectivePriceMinor), 1000)
       : 10000,
     [allProducts],
   );
 
-  const filters = useMemo(() => ({
-    sort: searchParams.get("sort") || "default",
-    rating: searchParams.get("rating") ? Number(searchParams.get("rating")) : null,
-    inStock: searchParams.get("stock") === "1",
-    onSale: searchParams.get("sale") === "1",
-    budget: searchParams.get("budget") ? Number(searchParams.get("budget")) : maxBudget,
-    search: searchParams.get("search") || "",
-  }), [maxBudget, searchParams]);
+  const filters = useMemo(() => {
+    const requestedSort = searchParams.get("sort") || "default";
+    const requestedRating = searchParams.get("rating");
+    const rating = requestedRating === null
+      ? null
+      : getNumericParam(requestedRating, null);
+    const requestedBudget = getNumericParam(searchParams.get("budget"), maxBudget);
+
+    return {
+      sort: VALID_SORTS.has(requestedSort) ? requestedSort : "default",
+      rating: rating !== null && rating >= 0 && rating <= 5 ? rating : null,
+      inStock: searchParams.get("stock") === "1",
+      onSale: searchParams.get("sale") === "1",
+      budget: Math.min(Math.max(requestedBudget, 0), maxBudget),
+      search: searchParams.get("search") || "",
+    };
+  }, [maxBudget, searchParams]);
   const selectedCategory = searchParams.get("category") || "All";
+  const selectedCategoryOption = categoryOptions.find(
+    (category) => normalizeCategory(category.value) === normalizeCategory(selectedCategory),
+  );
+  const selectedCategoryLabel = selectedCategoryOption?.label || selectedCategory;
+  const selectedCategoryValue = selectedCategoryOption?.value || selectedCategory;
+  const searchTerm = filters.search.trim();
+  const debouncedSearchTerm = useDebounce(searchTerm, PRODUCT_SEARCH_DEBOUNCE_MS);
+  const isSearchDebouncing = Boolean(searchTerm && searchTerm !== debouncedSearchTerm);
+  const {
+    data: backendSearchProducts = [],
+    isLoading: isSearchLoading,
+    isFetching: isSearchFetching,
+    isError: isSearchError,
+  } = useQuery({
+    ...ProductsAPI.search(debouncedSearchTerm, PRODUCT_SEARCH_LIMIT),
+    enabled: Boolean(debouncedSearchTerm),
+  });
 
   const writeFilters = useCallback((nextFilters, nextCategory) => {
     const next = new URLSearchParams(searchParamsKey);
@@ -175,56 +200,32 @@ export function useProductsFilter(allProducts) {
     writeFilters(filters, nextCategory);
   }, [filters, selectedCategory, writeFilters]);
 
-  const listingContext = useMemo(
-    () => getListingContext(location.pathname, searchParams.get("filter")),
-    [location.pathname, searchParams],
-  );
-
   const filteredProducts = useMemo(() => {
-    let products = [...allProducts];
-
-    if (listingContext.isNewArrival) {
-      const newestTimestamp = Math.max(
-        ...products.map((product) => new Date(product.created_at || 0).getTime()),
-        0,
-      );
-      if (newestTimestamp) {
-        products = products.filter((product) =>
-          new Date(product.created_at || 0).getTime() >= newestTimestamp - NEW_ARRIVAL_WINDOW_MS,
-        );
-      }
-    }
-
-    if (listingContext.terms.length) {
-      products = products.filter((product) =>
-        listingContext.terms.some((term) => matchesTerm(product, term)),
-      );
-    }
+    let products = searchTerm && !isSearchDebouncing
+      ? [...backendSearchProducts]
+      : searchTerm
+        ? []
+        : [...allProducts];
 
     if (selectedCategory !== "All") {
-      products = products.filter((product) => matchesTerm(product, selectedCategory));
+      products = products.filter((product) =>
+        matchesProductCategory(product, selectedCategory),
+      );
     }
 
-    products = products.filter((product) => (product.price_minor || 0) <= filters.budget);
+    products = products.filter((product) => getEffectivePriceMinor(product) <= filters.budget);
     if (filters.rating !== null) {
       products = products.filter((product) => (product.rating_stars || 0) >= filters.rating);
     }
-    if (filters.inStock) products = products.filter((product) => (product.price_minor || 0) > 0);
-    if (filters.onSale || listingContext.isSale) products = products.filter(isSaleProduct);
-
-    if (filters.search?.trim()) {
-      const ranked = rankProductsBySemanticQuery(products, filters.search);
-      products = ranked.length
-        ? ranked
-        : products.filter((product) => matchesTerm(product, filters.search));
-    }
+    if (filters.inStock) products = products.filter(isInStockProduct);
+    if (filters.onSale) products = products.filter(isSaleProduct);
 
     const sort = filters.sort;
-    if (sort === "price-asc") products.sort((a, b) => (a.price_minor || 0) - (b.price_minor || 0));
-    else if (sort === "price-desc") products.sort((a, b) => (b.price_minor || 0) - (a.price_minor || 0));
-    else if (sort === "rating" || (sort === "default" && listingContext.isTrending)) {
+    if (sort === "price-asc") products.sort((a, b) => getEffectivePriceMinor(a) - getEffectivePriceMinor(b));
+    else if (sort === "price-desc") products.sort((a, b) => getEffectivePriceMinor(b) - getEffectivePriceMinor(a));
+    else if (sort === "rating") {
       products.sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
-    } else if (sort === "newest" || (sort === "default" && listingContext.isNewArrival)) {
+    } else if (sort === "newest") {
       products.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     } else if (sort === "recommended") {
       products.sort((a, b) =>
@@ -234,14 +235,21 @@ export function useProductsFilter(allProducts) {
     }
 
     return products;
-  }, [allProducts, filters, listingContext, selectedCategory]);
+  }, [allProducts, backendSearchProducts, filters, isSearchDebouncing, searchTerm, selectedCategory]);
 
   return {
     filters,
     setFilters,
     selectedCategory,
+    selectedCategoryLabel,
+    selectedCategoryValue,
     setSelectedCategory,
+    categoryOptions,
     maxBudget,
     filteredProducts,
+    filterKey: searchParamsKey,
+    isSearchLoading: isSearchLoading || isSearchDebouncing,
+    isSearchFetching: isSearchFetching || isSearchDebouncing,
+    isSearchError,
   };
 }

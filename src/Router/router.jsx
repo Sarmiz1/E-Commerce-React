@@ -253,6 +253,15 @@ const router = createBrowserRouter(
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
 
+        <Route
+          path="admin/login"
+          lazy={() =>
+            import("../Features/AdminDashboard/AdminLoginPage").then((m) => ({
+              Component: m.default,
+            }))
+          }
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
 
         {/* Admin Route Protection */}
         <Route element={<AdminRoute />}>
@@ -351,6 +360,26 @@ const router = createBrowserRouter(
               element={<ProductsPage />}
               loader={fetchProductsLoader}
               shouldRevalidate={revalidateOnPathChange}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="curations"
+              lazy={() =>
+                import("../Features/Curation/CurationIndexPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="curations/:curationSlug"
+              lazy={() =>
+                import("../Features/Curation/CurationPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 

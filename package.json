@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "css": "tailwindcss -i ./src/index.css -o ./dist/output.css --watch"
+    "css": "tailwindcss -i ./src/index.css -o ./dist/output.css --watch",
+    "admin:promote": "node scripts/promote-admin.mjs"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.4.0",

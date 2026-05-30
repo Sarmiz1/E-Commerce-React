@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronRight, ChevronLeft, Check } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ import ForgotForm from "./ForgotForm";
 import RegisterForm from "./RegisterForm";
 import glassLogo from "../../../assets/logos/glass_logo.png";
 import logoDark from "../../../assets/logos/logo-darkmode.png";
+import { adminApi } from "../../../api/adminApi";
 
 const CATEGORIES = [
   { value: "electronics", label: "Electronics & Gadgets" },
@@ -55,30 +56,27 @@ export default function AuthForm({
     watch,
     trigger,
     setValue,
+    getValues,
     reset,
     formState: { errors },
   } = useAuthForm(mode);
 
   const role = watch("role");
-  const watchPassword = watch("password");
-  const sameAsStore = watch("same_as_store");
 
   const authMutation = useAuthMutation(mode, setFormError);
+  const resetMutation = authMutation.reset;
 
   const isBusy = authMutation.isPending;
   const isSuccess = authMutation.isSuccess;
-
-  const roleRef = useRef(role);
-  roleRef.current = role;
 
   useEffect(() => {
     setShowPass(false);
     setShowConfirm(false);
     setFormError("");
-    authMutation.reset();
+    resetMutation();
 
     reset({
-      role: roleRef.current,
+      role: getValues("role"),
       email: "",
       password: "",
       confirm_password: "",
@@ -106,7 +104,7 @@ export default function AuthForm({
         country: "Nigeria",
       },
     });
-  }, [mode, reset]);
+  }, [getValues, mode, reset, resetMutation]);
 
   useEffect(() => {
     setFormError("");
@@ -118,8 +116,20 @@ export default function AuthForm({
 
     if (mode === "login") {
       const from = location.state?.from || "/";
-      navigate(from, { replace: true });
-      return;
+      let cancelled = false;
+
+      adminApi
+        .getCurrentAdmin(authMutation.data?.userId)
+        .then((admin) => {
+          if (!cancelled) navigate(admin ? "/admin" : from, { replace: true });
+        })
+        .catch(() => {
+          if (!cancelled) navigate(from, { replace: true });
+        });
+
+      return () => {
+        cancelled = true;
+      };
     }
 
     // For register/forgot, wait a short moment for them to see the success message
@@ -133,7 +143,7 @@ export default function AuthForm({
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, [isSuccess, mode, navigate, location.state]);
+  }, [authMutation.data?.userId, isSuccess, mode, navigate, location.state]);
 
   const submitForm = handleSubmit(
     async (formData) => {

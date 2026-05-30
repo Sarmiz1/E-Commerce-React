@@ -24,7 +24,9 @@ const loadState = () => {
 const persistState = (s) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-  } catch {}
+  } catch {
+    // Onboarding can continue if storage is unavailable.
+  }
 };
 
 export function useOnboarding(user, onComplete) {

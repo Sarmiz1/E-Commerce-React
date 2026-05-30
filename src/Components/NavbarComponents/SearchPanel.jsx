@@ -1,5 +1,7 @@
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { ArrowRight, CloseIcon, SearchIcon } from "./Icons";
+import { getProductImages } from "../../utils/getProductImages";
+import { MOBILE_CATEGORIES } from "./navbarData";
 
 export function SearchPanel({
   open,
@@ -21,6 +23,7 @@ export function SearchPanel({
   onClearRecent,
   onRemoveRecent,
   onNavigate,
+  onRetry,
   formatMoney,
 }) {
   return (
@@ -108,6 +111,7 @@ export function SearchPanel({
                     onQueryChange={onQueryChange}
                     onCommitSearch={onCommitSearch}
                     onNavigate={onNavigate}
+                    onRetry={onRetry}
                     formatMoney={formatMoney}
                   />
                 ) : (
@@ -130,7 +134,7 @@ export function SearchPanel({
   );
 }
 
-function SearchResults({ query, results, loading, error, focusedIdx, popularSearches, onQueryChange, onCommitSearch, onNavigate, formatMoney }) {
+function SearchResults({ query, results, loading, error, focusedIdx, popularSearches, onQueryChange, onCommitSearch, onNavigate, onRetry, formatMoney }) {
   return (
     <div className="px-4 sm:px-5 py-4">
       <AnimatePresence mode="wait">
@@ -156,7 +160,7 @@ function SearchResults({ query, results, loading, error, focusedIdx, popularSear
             <div className="text-4xl mb-3">!</div>
             <p className="font-bold text-gray-700 text-sm">Search unavailable</p>
             <p className="text-gray-400 text-xs mt-1">Check your connection and try again.</p>
-            <button onClick={() => onQueryChange(`${query} `)} className="mt-4 text-indigo-600 text-xs font-bold hover:underline">
+            <button onClick={() => onRetry()} className="mt-4 text-indigo-600 text-xs font-bold hover:underline">
               Retry
             </button>
           </Motion.div>
@@ -206,8 +210,8 @@ function SearchResults({ query, results, loading, error, focusedIdx, popularSear
                   }`}
                 >
                   <div className="w-11 h-11 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
-                    {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
+                    {getProductImages(product)[0] ? (
+                      <img src={getProductImages(product)[0]} alt={product.name} className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300 text-lg">[]</div>
                     )}
@@ -218,7 +222,7 @@ function SearchResults({ query, results, loading, error, focusedIdx, popularSear
                     {product.keywords?.length > 0 && <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">{product.keywords.slice(0, 3).join(" - ")}</p>}
                   </div>
 
-                  <p className="font-black text-gray-900 text-sm flex-shrink-0">{formatMoney(product.priceMinor)}</p>
+                  <p className="font-black text-gray-900 text-sm flex-shrink-0">{formatMoney(product.price_minor)}</p>
                   <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 transition-colors opacity-0 group-hover:opacity-100" />
                 </Motion.button>
               ))}
@@ -241,6 +245,8 @@ function SearchResults({ query, results, loading, error, focusedIdx, popularSear
 }
 
 function SearchSuggestions({ recentSearches, popularSearches, categories, onQueryChange, onClearRecent, onRemoveRecent, onNavigate }) {
+  const browseCategories = MOBILE_CATEGORIES.length ? MOBILE_CATEGORIES : categories;
+
   return (
     <div className="px-4 sm:px-5 py-4 space-y-5">
       {recentSearches.length > 0 && (
@@ -293,17 +299,27 @@ function SearchSuggestions({ recentSearches, popularSearches, categories, onQuer
 
       <div className="pb-1">
         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2.5">Browse Categories</p>
-        <div className="grid grid-cols-4 gap-2">
-          {categories.map((cat) => (
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {browseCategories.map((cat) => (
             <Motion.button
-              key={cat.label}
+              key={cat.id || cat.href || cat.query}
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onNavigate(`/products?search=${cat.query}`)}
-              className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200 border border-gray-100 transition-all group"
+              onClick={() => onNavigate(cat.href || `/products?search=${encodeURIComponent(cat.query)}`)}
+              className="relative h-20 overflow-hidden rounded-2xl border border-gray-100 bg-gray-900 text-left shadow-sm transition-all group"
             >
-              <span className="text-xl">{cat.emoji}</span>
-              <span className="text-[10px] font-bold text-gray-600 group-hover:text-indigo-700 transition-colors">{cat.label}</span>
+              {cat.image && (
+                <img
+                  src={cat.image}
+                  alt={cat.label}
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              )}
+              <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/5 transition-colors group-hover:from-black/95" />
+              <span className="absolute inset-x-0 bottom-0 px-2 pb-2 text-[10px] font-black leading-tight text-white drop-shadow">
+                {cat.label}
+              </span>
             </Motion.button>
           ))}
         </div>

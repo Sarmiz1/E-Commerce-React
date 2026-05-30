@@ -41,7 +41,10 @@ export default function AuthCallback() {
       /* ── Step 1 : load / create profile ─────────────── */
       setCurrent(1);
       const user         = session.user;
-      let selectedRole = user.user_metadata?.role || "buyer";
+      let selectedRole =
+        user.user_metadata?.requested_account_role ||
+        user.user_metadata?.role ||
+        "buyer";
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -54,12 +57,16 @@ export default function AuthCallback() {
       }
 
       if (!profile) {
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id:         user.id,
-          full_name:  user.user_metadata?.full_name || user.user_metadata?.name || user.email,
-          avatar_url: user.user_metadata?.avatar_url || null,
-          role:       selectedRole,
-        });
+        const { data: createdProfile, error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            id:         user.id,
+            full_name:  user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            role:       selectedRole,
+          })
+          .select("role")
+          .single();
 
         if (profileError) {
           console.error("Profile creation error:", profileError);
@@ -67,6 +74,8 @@ export default function AuthCallback() {
           setTimeout(() => navigate("/login", { replace: true }), 1800);
           return;
         }
+
+        selectedRole = createdProfile.role;
       }
 
       setDone((d) => [...d, "profile"]);

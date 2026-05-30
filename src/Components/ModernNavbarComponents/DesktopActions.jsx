@@ -4,8 +4,7 @@ import ThemeToggle from "../../Features/Marketting/ModernLanding/Components/Them
 import CartDropdown from "./DesktopActionsComponents/CartDropdown";
 import { EXPO } from "./navConstants";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../Context/auth/AuthContext";
-import { User, LogOut, LogIn } from "lucide-react";
+import NavAuthButton from "./NavAuthButton";
 
 export default function DesktopActions({
   cartCount,
@@ -17,7 +16,6 @@ export default function DesktopActions({
   keepCart,
 }) {
   const navigate = useNavigate();
-  const { user, logOut } = useAuth();
 
   return (
     <motion.div
@@ -73,38 +71,7 @@ export default function DesktopActions({
         <Sparkles size={15} className="animate-pulse" />
       </motion.button>
 
-      {user ? (
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/account")}
-            className="p-2 text-black dark:text-white hover:text-blue-400 transition-colors flex items-center justify-center rounded-full"
-            title="Account"
-          >
-            <User size={20} />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => logOut()}
-            className="p-2 text-black dark:text-white hover:text-red-400 transition-colors flex items-center justify-center rounded-full"
-            title="Logout"
-          >
-            <LogOut size={20} />
-          </motion.button>
-        </div>
-      ) : (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/login")}
-          className="fhlex items-center gap-2 px-4 py-2 text-sm font-semibold  text-black dark:text-white border border-white/20 hover:border-white/50 hover:bg-white/10 rounded-full transition-all"
-        >
-          <LogIn size={16} />
-          Login
-        </motion.button>
-      )}
+      <NavAuthButton />
     </motion.div>
   );
 }

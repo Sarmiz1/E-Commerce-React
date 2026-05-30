@@ -14,6 +14,7 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
   });
   const momentumRaf = useRef(null);
   const [dragged, setDragged] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   // ── Momentum decay ──
   const startMomentum = useCallback(() => {
@@ -48,6 +49,7 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
       velocity: 0,
     };
     setDragged(false);
+    setDragging(true);
     el.style.scrollBehavior = "auto"; // disable smooth while dragging
   }, []);
 
@@ -75,6 +77,7 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
   const onDragEnd = useCallback(() => {
     if (!drag.current.active) return;
     drag.current.active = false;
+    setDragging(false);
     startMomentum();
   }, [startMomentum]);
 
@@ -122,7 +125,7 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
           scrollbarWidth: "none",
           msOverflowStyle: "none",
           WebkitOverflowScrolling: "touch",
-          cursor: drag.current?.active ? "grabbing" : "grab",
+          cursor: dragging ? "grabbing" : "grab",
         }}
       >
         <style>{`
@@ -150,12 +153,18 @@ const HeroLinksThumbnails = ({ items, isDark, colors }) => {
               }}
             >
               <div className="w-full h-full rounded-full overflow-hidden relative" style={{ background: colors.surface.secondary }}>
-                <img
-                  src={item.image}
-                  alt={item.label}
-                  draggable="false"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.label}
+                    draggable="false"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-sm font-black uppercase">
+                    {item.label.slice(0, 2)}
+                  </span>
+                )}
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300 pointer-events-none" />
               </div>
             </motion.div>

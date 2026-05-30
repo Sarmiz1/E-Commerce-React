@@ -1,22 +1,62 @@
 import { describe, expect, it } from "vitest";
-import { getListingContext, isSaleProduct } from "../useProductsFilter";
+import {
+  getEffectivePriceMinor,
+  getProductCategoryOptions,
+  isInStockProduct,
+  isSaleProduct,
+  matchesProductCategory,
+} from "../useProductsFilter";
 
-describe("getListingContext", () => {
-  it("keeps the specific category link instead of broadening it with its column", () => {
-    expect(
-      getListingContext("/products/categories/dresses-and-skirts", "women").terms,
-    ).toEqual(["dresses and skirts"]);
+describe("matchesProductCategory", () => {
+  it("matches a joined backend category by its name or slug", () => {
+    const product = {
+      category: {
+        id: "category-1",
+        name: "Beauty & Health",
+        slug: "beauty-and-health",
+      },
+    };
+
+    expect(matchesProductCategory(product, "Beauty & Health")).toBe(true);
+    expect(matchesProductCategory(product, "beauty-and-health")).toBe(true);
   });
 
-  it("uses the column filter for category view-all links", () => {
-    expect(getListingContext("/products/categories", "women").terms).toEqual(["women"]);
+  it("does not match category text found elsewhere in a product", () => {
+    expect(matchesProductCategory(
+      {
+        name: "Gaming desk",
+        full_description: "Perfect for an electronics setup",
+        category: { name: "Home & Garden", slug: "home-and-garden" },
+      },
+      "electronics",
+    )).toBe(false);
   });
+});
 
-  it("uses the leaf brand and recognizes sale curations", () => {
-    expect(getListingContext("/products/curations/brands/luxury/gucci").terms).toEqual([
-      "gucci",
+describe("getProductCategoryOptions", () => {
+  it("derives unique sorted options from backend category joins", () => {
+    expect(getProductCategoryOptions([
+      { image: "fashion.jpg", category: { id: "2", name: "Fashion", slug: "fashion" } },
+      { image: "electronics.jpg", category: { id: "1", name: "Electronics", slug: "electronics" } },
+      { image: "duplicate.jpg", category: { id: "2", name: "Fashion", slug: "fashion" } },
+    ])).toEqual([
+      { id: "all", label: "All", value: "All", image: "" },
+      { id: "1", label: "Electronics", value: "electronics", image: "electronics.jpg" },
+      { id: "2", label: "Fashion", value: "fashion", image: "fashion.jpg" },
     ]);
-    expect(getListingContext("/products/curations/flash-sales").isSale).toBe(true);
+  });
+});
+
+describe("isInStockProduct", () => {
+  it("uses real variant inventory instead of product price", () => {
+    expect(isInStockProduct({
+      price_minor: 5000,
+      product_variants: [{ stock_quantity: 0 }, { stock_quantity: 3 }],
+    })).toBe(true);
+    expect(isInStockProduct({
+      price_minor: 5000,
+      product_variants: [{ stock_quantity: 0 }],
+    })).toBe(false);
   });
 });
 
@@ -39,5 +79,12 @@ describe("isSaleProduct", () => {
         sale_ends_at: "2000-01-01T00:00:00.000Z",
       }),
     ).toBe(false);
+  });
+
+  it("uses an active sale price for budget filtering and sorting", () => {
+    expect(getEffectivePriceMinor({
+      price_minor: 5000,
+      sale_price_minor: 3500,
+    })).toBe(3500);
   });
 });

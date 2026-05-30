@@ -25,9 +25,10 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
     updated_at  TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.admin_users TO anon, authenticated, service_role;
+REVOKE ALL ON TABLE public.admin_users FROM anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.admin_users TO authenticated, service_role;
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admin users are viewable by everyone" ON public.admin_users FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Admin users are viewable by everyone" ON public.admin_users;
 
 
 -- ──────────────────────────────────────────────────────────────────────────────

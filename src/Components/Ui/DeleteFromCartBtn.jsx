@@ -3,7 +3,7 @@ import { TrashIcon } from "../Icons/TrashIcon";
 import { useCartActions } from "../../context/cart/CartContext";
 
 
-export const DeleteFromCartBtn = ({ itemId }) => {
+export const DeleteFromCartBtn = ({ itemId, itemRef = itemId }) => {
   const { 
     removeItem,
     removingItem } = useCartActions();
@@ -16,10 +16,10 @@ export const DeleteFromCartBtn = ({ itemId }) => {
       type="button"
       onClick={(event) => {
         event.stopPropagation();
-        removeItem(itemId);
+        removeItem(itemRef);
       }}
       disabled={isRemoving}
-      className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 rounded-full bg-red-50 dark:bg-red-900/20 hover:bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5"
+      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-50 opacity-100 transition-opacity hover:bg-red-100 focus-visible:opacity-100 dark:bg-red-900/20 md:h-6 md:w-6 md:opacity-0 md:group-hover:opacity-100 mt-0.5"
       aria-label="Remove item from cart"
     >
       { isRemoving ? (

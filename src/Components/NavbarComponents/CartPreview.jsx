@@ -2,12 +2,18 @@ import { AnimatePresence, motion as Motion } from "framer-motion";
 import { ArrowRight, BagIcon } from "./Icons";
 import { DeleteFromCartBtn } from "../Ui/DeleteFromCartBtn";
 
+const getPreviewItemKey = (item, index) =>
+  item?.variant_id || item?.product_id || item?.id || `cart-item-${index}`;
+
 export function CartPreview({ cart, onNavigate, formatMoney }) {
   const itemCount = cart.reduce((a, i) => a + i.quantity, 0);
   const totalPrice = cart.reduce((a, i) => a + (i.price ?? 0) * i.quantity, 0);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div
+      className="w-full flex flex-col"
+      style={{ height: "min(420px, calc(100vh - 112px))" }}
+    >
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
         <div className="flex items-center gap-2">
           <BagIcon className="w-5 h-5 text-indigo-600" />
@@ -27,7 +33,7 @@ export function CartPreview({ cart, onNavigate, formatMoney }) {
       </div>
 
       {cart.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
           <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-4">
             <BagIcon className="w-8 h-8 text-gray-300 dark:text-gray-600" />
           </div>
@@ -44,15 +50,15 @@ export function CartPreview({ cart, onNavigate, formatMoney }) {
         </div>
       ) : (
         <>
-          <div className="nb-cart-scroll overflow-y-auto max-h-[260px] px-4 py-3 space-y-3">
+          <div className="nb-cart-scroll flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-3">
             <AnimatePresence initial={false}>
               {cart.map((item, i) => (
                 <Motion.div
-                  key={item?.id || i}
-                  layout
+                  key={getPreviewItemKey(item, i)}
+                  layout="position"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.22 }}
                   className="flex gap-3 items-start group"
                 >
@@ -70,13 +76,13 @@ export function CartPreview({ cart, onNavigate, formatMoney }) {
                     </p>
                   </div>
 
-                  <DeleteFromCartBtn itemId={item.id} />
+                  <DeleteFromCartBtn itemId={item.id} itemRef={item} />
                 </Motion.div>
               ))}
             </AnimatePresence>
           </div>
 
-          <div className="px-5 py-4 border-t border-gray-100 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02]">
+          <div className="flex-shrink-0 px-5 py-4 border-t border-gray-100 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02]">
             <div className="flex justify-between items-center mb-3">
               <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">Subtotal</span>
               <span className="font-black text-gray-900 dark:text-white text-base">{formatMoney(totalPrice)}</span>

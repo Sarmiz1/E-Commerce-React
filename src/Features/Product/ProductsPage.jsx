@@ -50,10 +50,19 @@ export default function ProductsPage() {
     filters,
     setFilters,
     selectedCategory,
+    selectedCategoryLabel,
+    selectedCategoryValue,
     setSelectedCategory,
+    categoryOptions,
     maxBudget,
     filteredProducts,
+    filterKey,
+    isSearchLoading,
+    isSearchFetching,
+    isSearchError,
   } = useProductsFilter(allProducts);
+  const productListLoading = isLoading || isSearchLoading;
+  const productListFetching = isFetching || isSearchFetching;
   const {
     compareList,
     showCompare,
@@ -77,9 +86,8 @@ export default function ProductsPage() {
   } = useProductsPageLogic({
     allProducts,
     filteredProducts,
-    isLoading,
-    selectedCategory,
-    sort: filters.sort,
+    isLoading: productListLoading,
+    filterKey,
   });
 
   const handleTrackedQuickView = (product) => {
@@ -94,20 +102,20 @@ export default function ProductsPage() {
 
   const pageSubject = filters.search
     ? `Search results for "${filters.search}"`
-    : selectedCategory && selectedCategory !== "All"
-      ? `${selectedCategory} products`
+    : selectedCategoryLabel && selectedCategoryLabel !== "All"
+      ? `${selectedCategoryLabel} products`
       : "Shop products";
   const pageTitle = `${pageSubject} | WooSho`;
   const pageDescription = filters.search
     ? `Explore WooSho products matching ${filters.search}, compare prices, reviews, and seller details in one place.`
-    : selectedCategory && selectedCategory !== "All"
-      ? `Shop ${selectedCategory.toLowerCase()} on WooSho. Find curated products with reviews, quick view, wishlist, and easy cart checkout.`
+    : selectedCategoryLabel && selectedCategoryLabel !== "All"
+      ? `Shop ${selectedCategoryLabel.toLowerCase()} on WooSho. Find curated products with reviews, quick view, wishlist, and easy cart checkout.`
       : "Shop curated products on WooSho with reviews, quick view, wishlist, and easy cart checkout.";
   const pageKeywords = [
     "WooSho",
     "online shopping",
     "products",
-    selectedCategory !== "All" ? selectedCategory : "",
+    selectedCategoryLabel !== "All" ? selectedCategoryLabel : "",
     filters.search,
   ].filter(Boolean).join(", ");
   const canonicalUrl =
@@ -177,13 +185,14 @@ export default function ProductsPage() {
       {/* ── Sticky Results Bar ── */}
       <StickyResultsBar
         resultCount={filteredProducts.length}
-        selectedCategory={selectedCategory}
+        selectedCategory={selectedCategoryLabel}
         sortLabel={SORT_OPTIONS.find((o) => o.value === filters.sort)?.label}
         onOpenFilter={() => setMobileFilterOpen(true)}
       >
         <ActiveFilterChips
           filters={filters}
           selectedCategory={selectedCategory}
+          selectedCategoryLabel={selectedCategoryLabel}
           setFilters={setFilters}
           setSelectedCategory={setSelectedCategory}
           maxBudget={maxBudget}
@@ -196,12 +205,12 @@ export default function ProductsPage() {
       )}
 
       {/* ── Hero Category Links ── */}
-      <CategoryHeroLinks />
+      <CategoryHeroLinks categoryOptions={categoryOptions} />
 
       {/* ── Breadcrumb + Sort Bar ── */}
       <ProductsBreadcrumb 
         colors={colors}
-        selectedCategory={selectedCategory}
+        selectedCategory={selectedCategoryLabel}
         sort={filters.sort}
         search={filters.search}
         setFilters={setFilters}
@@ -235,8 +244,9 @@ export default function ProductsPage() {
                 filters={filters}
                 setFilters={setFilters}
                 maxBudget={maxBudget}
-                selectedCategory={selectedCategory}
+                selectedCategory={selectedCategoryValue}
                 setSelectedCategory={setSelectedCategory}
+                categoryOptions={categoryOptions}
                 matchingCount={filteredProducts.length}
               />
             </div>
@@ -248,6 +258,7 @@ export default function ProductsPage() {
               <ActiveFilterChips
                 filters={filters}
                 selectedCategory={selectedCategory}
+                selectedCategoryLabel={selectedCategoryLabel}
                 setFilters={setFilters}
                 setSelectedCategory={setSelectedCategory}
                 maxBudget={maxBudget}
@@ -268,15 +279,24 @@ export default function ProductsPage() {
                 </p>
 
                 {/* Shows spinner if products is being refetched */}
-                <span>{isFetching && <IconSpinner />}</span>
+                <span>{productListFetching && <IconSpinner />}</span>
               </div>
             </div>
 
             {/* Loading skeleton */}
-            {isLoading && <ProductSkeletonGrid isDark={isDark} colors={colors} />}
+            {productListLoading && <ProductSkeletonGrid isDark={isDark} colors={colors} />}
 
             {/* Empty state */}
-            {!isLoading && filteredProducts.length === 0 && (
+            {!productListLoading && isSearchError && (
+              <div className="py-12 text-center">
+                <p className="font-bold">Search is temporarily unavailable.</p>
+                <p className="mt-1 text-sm" style={{ color: colors.text.tertiary }}>
+                  Please refresh the page and try again.
+                </p>
+              </div>
+            )}
+
+            {!productListLoading && !isSearchError && filteredProducts.length === 0 && (
               <ProductEmptyState 
                 colors={colors}
                 maxBudget={maxBudget}
@@ -353,8 +373,9 @@ export default function ProductsPage() {
         filters={filters}
         setFilters={setFilters}
         maxBudget={maxBudget}
-        selectedCategory={selectedCategory}
+        selectedCategory={selectedCategoryValue}
         setSelectedCategory={setSelectedCategory}
+        categoryOptions={categoryOptions}
         matchingCount={filteredProducts.length}
       />
 

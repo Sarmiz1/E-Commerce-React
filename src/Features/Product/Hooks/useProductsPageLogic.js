@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { PAGE_SIZE, AD_INTERVAL } from "../utils/constants";
 import { useGridColumns } from "./useGridColumns";
 
-export function useProductsPageLogic({ allProducts, filteredProducts, isLoading, selectedCategory, sort }) {
+export function useProductsPageLogic({ allProducts, filteredProducts, isLoading, filterKey }) {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [pagination, setPagination] = useState({ filterKey, visibleCount: PAGE_SIZE });
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingMoreRef = useRef(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -12,6 +12,9 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
   const gridRef = useRef(null);
   const sentinelRef = useRef(null);
   const { cols, adColSpan } = useGridColumns();
+  const visibleCount = pagination.filterKey === filterKey
+    ? pagination.visibleCount
+    : PAGE_SIZE;
 
   // ── Quick-view global listener ──
   useEffect(() => {
@@ -36,7 +39,12 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
           loadingMoreRef.current = true;
           setLoadingMore(true);
           setTimeout(() => {
-            setVisibleCount((v) => v + PAGE_SIZE);
+            setPagination((current) => ({
+              filterKey,
+              visibleCount:
+                (current.filterKey === filterKey ? current.visibleCount : PAGE_SIZE) +
+                PAGE_SIZE,
+            }));
             loadingMoreRef.current = false;
             setLoadingMore(false);
           }, 100);
@@ -47,12 +55,7 @@ export function useProductsPageLogic({ allProducts, filteredProducts, isLoading,
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [allLoaded, isLoading]);
-
-  // Reset visible count when filters change
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [selectedCategory, sort]);
+  }, [allLoaded, filterKey, isLoading]);
 
   // ── Build grid items with dynamic row-fill ──
   const visibleProducts = filteredProducts.slice(0, visibleCount);

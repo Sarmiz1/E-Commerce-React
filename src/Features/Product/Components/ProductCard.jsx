@@ -12,6 +12,7 @@ import QuickView from "../../../Components/Ui/QuickView";
 import { useAddToCart } from "../../../hooks/cart/useAddToCart";
 import { prefetchProductOnHover } from "../../../utils/prefetchProductOnHover";
 import { getAnalyticsSessionId, trackEvent } from "../../../api/track_events";
+import { getEffectivePriceMinor, isSaleProduct } from "../Hooks/useProductsFilter";
 
 const checkDate = (product) => Date.now() - new Date(product?.created_at).getTime() < 30 * 24 * 60 * 60 * 1000;
 
@@ -82,7 +83,12 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
     cardRef.current.style.setProperty("--my", y);
   };
 
-  const onSale = product.price_minor < 2000;
+  const onSale = isSaleProduct(product);
+  const effectivePriceMinor = getEffectivePriceMinor(product);
+  const originalPriceMinor =
+    Number(product.compare_at_price_minor || product.original_price_minor) ||
+    Number(product.price_minor) ||
+    0;
   const isNew = product.created_at && checkDate(product);
   const handleAddToCart = useCallback((event) => {
     event.preventDefault();
@@ -233,11 +239,11 @@ const ProductCard = React.memo(function ProductCard({ product, onQuickView, isCo
         <div className="flex items-center justify-between gap-2 mt-auto pt-1.5">
           <div className="flex items-baseline gap-1.5 min-w-0">
             <span className="font-black text-[15px]" style={{ color: colors.text.primary }}>
-              {formatMoneyMinor(product.price_minor)}
+              {formatMoneyMinor(effectivePriceMinor)}
             </span>
-            {onSale && (
+            {onSale && originalPriceMinor > effectivePriceMinor && (
               <span className="text-[10px] line-through opacity-50" style={{ color: colors.text.tertiary }}>
-                {formatMoneyMinor(Math.round(product.price_minor * 1.35))}
+                {formatMoneyMinor(originalPriceMinor)}
               </span>
             )}
           </div>

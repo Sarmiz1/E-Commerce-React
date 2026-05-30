@@ -30,8 +30,10 @@ export default function ModernNavbar({
 
   // Close mobile menu on route change
   useEffect(() => {
-    setMobileMenuOpen(false);
-    setCartOpen(false);
+    queueMicrotask(() => {
+      setMobileMenuOpen(false);
+      setCartOpen(false);
+    });
   }, [location.pathname, location.hash]);
 
   const openCart = () => {
@@ -103,15 +105,15 @@ export default function ModernNavbar({
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-5 flex items-center justify-between gap-4">
-          <MondernNavLogo pageView={pageView}  />
+          <MondernNavLogo pageView={pageView} />
 
-          <DesktopLinks 
-            navLinks={navLinks} 
-            handleHash={handleHash} 
-            setMobileMenuOpen={setMobileMenuOpen} 
+          <DesktopLinks
+            navLinks={navLinks}
+            handleHash={handleHash}
+            setMobileMenuOpen={setMobileMenuOpen}
           />
 
-          <DesktopActions 
+          <DesktopActions
             cartCount={cartCount}
             cartItems={cartItems}
             cartOpen={cartOpen}
@@ -129,7 +131,8 @@ export default function ModernNavbar({
               className="relative p-2 text-white"
               onClick={() => setCartOpen((v) => !v)}
             >
-              <ShoppingCart size={22} />
+              <ShoppingCart size={22} className="text-black dark:text-white"
+              />
               <AnimatePresence>
                 {cartCount > 0 && (
                   <motion.span
@@ -158,7 +161,9 @@ export default function ModernNavbar({
                   exit={{ rotate: 90, opacity: 0 }}
                   transition={{ duration: 0.18 }}
                 >
-                  {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                  {mobileMenuOpen ? <X size={24} className="text-black dark:text-white"
+                  /> : <Menu size={24} className="text-black dark:text-white"
+                  />}
                 </motion.div>
               </AnimatePresence>
             </motion.button>
@@ -176,7 +181,7 @@ export default function ModernNavbar({
                 className="fixed inset-x-4 top-[80px] mx-auto w-auto max-w-sm z-[9001]"
               >
                 <div className="bg-white dark:bg-[#121214] rounded-3xl shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
-                  <CartDropdownContent 
+                  <CartDropdownContent
                     cartItems={cartItems}
                     cartCount={cartCount}
                     setCartOpen={setCartOpen}
@@ -187,7 +192,7 @@ export default function ModernNavbar({
           </AnimatePresence>
         </div>
 
-        <MobileMenu 
+        <MobileMenu
           mobileMenuOpen={mobileMenuOpen}
           navLinks={navLinks}
           handleHash={handleHash}

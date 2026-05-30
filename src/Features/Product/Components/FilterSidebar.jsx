@@ -1,9 +1,9 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
-import { SORT_OPTIONS, CATEGORIES } from "../utils/constants";
+import { SORT_OPTIONS } from "../utils/constants";
 
 const CAT_ICONS = {
   All: "🛍️",
@@ -17,22 +17,17 @@ const CAT_ICONS = {
 };
 
 export function AnimatedCount({ value }) {
-  const [key, setKey] = useState(0);
-  const prev = useRef(value);
-  useEffect(() => {
-    if (prev.current !== value) { setKey((k) => k + 1); prev.current = value; }
-  }, [value]);
   return (
     <span className="inline-block overflow-hidden align-middle" style={{ height: "1.2em" }}>
-      <span key={key} className="pg-count inline-block tabular-nums">{value}</span>
+      <span key={value} className="pg-count inline-block tabular-nums">{value}</span>
     </span>
   );
 }
 
-export function ActiveFilterChips({ filters, selectedCategory, setFilters, setSelectedCategory, maxBudget }) {
+export function ActiveFilterChips({ filters, selectedCategory, selectedCategoryLabel = selectedCategory, setFilters, setSelectedCategory, maxBudget }) {
   const { colors, isDark } = useTheme();
   const chips = [];
-  if (selectedCategory !== "All") chips.push({ id: "cat", label: selectedCategory });
+  if (selectedCategory !== "All") chips.push({ id: "cat", label: selectedCategoryLabel });
   if (filters.sort !== "default") chips.push({ id: "sort", label: SORT_OPTIONS.find(o => o.value === filters.sort)?.label || "" });
   if (filters.rating !== null) chips.push({ id: "rating", label: `${filters.rating}+★` });
   if (filters.inStock) chips.push({ id: "stock", label: "In Stock" });
@@ -66,28 +61,31 @@ export function ActiveFilterChips({ filters, selectedCategory, setFilters, setSe
   );
 }
 
-const CategoryGrid = React.memo(({ selectedCategory, setSelectedCategory, colors }) => {
+const CategoryGrid = React.memo(({ categoryOptions, selectedCategory, setSelectedCategory, colors }) => {
   return (
     <div>
       <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: colors.text.tertiary }}>Category</p>
       <div className="grid grid-cols-2 gap-2">
-        {CATEGORIES.map((cat) => (
-          <motion.button 
-            key={cat}
-            whileHover={{ y: -2, scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setSelectedCategory(cat)}
-            className="flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 gap-2"
-            style={
-              selectedCategory === cat
-                ? { background: colors.cta.primary, color: colors.cta.primaryText, borderColor: colors.cta.primary, boxShadow: `0 4px 12px ${colors.cta.primary}40` }
-                : { background: colors.surface.secondary, color: colors.text.secondary, borderColor: colors.border.subtle }
-            }
-          >
-            <span className="text-xl">{CAT_ICONS[cat] || "🏷️"}</span>
-            <span className="text-[11px] font-bold whitespace-nowrap">{cat}</span>
-          </motion.button>
-        ))}
+        {categoryOptions.map((category) => {
+          const cat = category.label;
+          return (
+            <motion.button
+              key={category.id}
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setSelectedCategory(category.value)}
+              className="flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 gap-2"
+              style={
+                selectedCategory === category.value
+                  ? { background: colors.cta.primary, color: colors.cta.primaryText, borderColor: colors.cta.primary, boxShadow: `0 4px 12px ${colors.cta.primary}40` }
+                  : { background: colors.surface.secondary, color: colors.text.secondary, borderColor: colors.border.subtle }
+              }
+            >
+              <span className="text-xl">{CAT_ICONS[cat] || "🏷️"}</span>
+              <span className="text-[11px] font-bold text-center leading-tight">{cat}</span>
+            </motion.button>
+          );
+        })}
       </div>
     </div>
   );
@@ -95,10 +93,6 @@ const CategoryGrid = React.memo(({ selectedCategory, setSelectedCategory, colors
 
 const BudgetSlider = React.memo(({ filters, setFilters, maxBudget, colors }) => {
   const [localBudget, setLocalBudget] = useState(filters.budget);
-
-  useEffect(() => {
-    setLocalBudget(filters.budget);
-  }, [filters.budget]);
 
   const commitBudget = () => {
     if (localBudget !== filters.budget) {
@@ -151,7 +145,7 @@ const BudgetSlider = React.memo(({ filters, setFilters, maxBudget, colors }) => 
   );
 });
 
-const FilterSidebar = React.memo(function FilterSidebar({ filters, setFilters, maxBudget, selectedCategory, setSelectedCategory, matchingCount }) {
+const FilterSidebar = React.memo(function FilterSidebar({ filters, setFilters, maxBudget, selectedCategory, setSelectedCategory, categoryOptions, matchingCount }) {
   const { colors, isDark } = useTheme();
 
   const resetAll = useCallback(() => {
@@ -202,10 +196,10 @@ const FilterSidebar = React.memo(function FilterSidebar({ filters, setFilters, m
       />
 
       {/* Category - Visual Layout */}
-      <CategoryGrid selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} colors={colors} />
+      <CategoryGrid categoryOptions={categoryOptions} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} colors={colors} />
 
       {/* Budget */}
-      <BudgetSlider filters={filters} setFilters={setFilters} maxBudget={maxBudget} colors={colors} />
+      <BudgetSlider key={filters.budget} filters={filters} setFilters={setFilters} maxBudget={maxBudget} colors={colors} />
 
       {/* Min rating */}
       <div>

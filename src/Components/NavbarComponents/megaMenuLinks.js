@@ -16,7 +16,7 @@ export const buildFeaturedHref = (featured) => {
   const tagSlug = slugify(featured?.tag);
 
   if (tagSlug === PREMIUM_SLUG) {
-    return "/products/curations/brands";
+    return "/products/curations/shop-by-brands";
   }
 
   return `/products/curations/${tagSlug}`;
@@ -28,7 +28,7 @@ export const buildLinkHref = (featuredTag, heading, label) => {
   const labelSlug = slugify(label);
 
   if (featuredTagSlug === PREMIUM_SLUG) {
-    return `/products/curations/brands/${headingSlug}/${labelSlug}`;
+    return `/products/curations/shop-by-brands/${headingSlug}/${labelSlug}`;
   }
 
   if (headingSlug === THIS_WEEK_SLUG) {
@@ -45,12 +45,7 @@ export const buildLinkHref = (featuredTag, heading, label) => {
     return `/products/categories/${labelSlug}`;
   }
 
-  const href = `/products/categories/${labelSlug}`;
-  if (headingSlug === "lifestyle") {
-    return href;
-  }
-
-  return `${href}?${new URLSearchParams({ filter: headingSlug }).toString()}`;
+  return `/products/categories/${labelSlug}`;
 };
 
 export const buildViewAllHref = (featuredTag, heading) => {
@@ -58,7 +53,7 @@ export const buildViewAllHref = (featuredTag, heading) => {
   const headingSlug = slugify(heading);
 
   if (featuredTagSlug === PREMIUM_SLUG) {
-    return `/products/curations/brands/${headingSlug}`;
+    return `/products/curations/shop-by-brands/${headingSlug}`;
   }
 
   if (headingSlug === THIS_WEEK_SLUG) {
@@ -73,5 +68,5 @@ export const buildViewAllHref = (featuredTag, heading) => {
     return "/products/categories";
   }
 
-  return `/products/categories?${new URLSearchParams({ filter: headingSlug }).toString()}`;
+  return `/products/categories/${headingSlug}`;
 };

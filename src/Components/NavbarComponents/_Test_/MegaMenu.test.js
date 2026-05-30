@@ -5,16 +5,16 @@ import {
   buildViewAllHref,
 } from "../megaMenuLinks";
 
-describe("MegaMenu filtered destinations", () => {
+describe("MegaMenu destinations", () => {
   it("routes shop links to category endpoints", () => {
     expect(buildFeaturedHref({ tag: "Trending" })).toBe("/products/curations/trending");
     expect(buildLinkHref("Trending", "Women", "Dresses & Skirts")).toBe(
-      "/products/categories/dresses-and-skirts?filter=women",
+      "/products/categories/dresses-and-skirts",
     );
     expect(buildLinkHref("Trending", "Lifestyle", "Kitchen & Dining")).toBe(
       "/products/categories/kitchen-and-dining",
     );
-    expect(buildViewAllHref("Trending", "Men")).toBe("/products/categories?filter=men");
+    expect(buildViewAllHref("Trending", "Men")).toBe("/products/categories/men");
   });
 
   it("routes new-arrival links to their matching listing endpoints", () => {
