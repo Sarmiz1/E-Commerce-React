@@ -100,8 +100,10 @@ viewport, and hiring columns collapse into a readable single-column flow.
 | `useMoveAdminHiringCandidate()` | Advances a hiring candidate to another stage. |
 | `useQueueAdminAiQuery()` | Adds an AI analysis request to the backend queue. |
 
-Every successful mutation invalidates `["admin-dashboard"]`, so each module
-refreshes from the backend instead of manually patching copied data.
+Every mutation invalidates `["admin-dashboard"]` after it settles, so each
+module refreshes from the backend. Order status actions also apply an optimistic
+cache update first, keeping the Orders table, dashboard summary cards, and
+sidebar pending-order badge responsive while the authoritative refetch runs.
 
 ### Dashboard Modules
 
