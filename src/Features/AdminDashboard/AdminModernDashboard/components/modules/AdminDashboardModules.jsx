@@ -108,6 +108,9 @@ const formatSalesChartLabel = (value, range) => {
 const titleCase = (value = "") =>
   value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
 
+const getAdminProductStatus = (product) =>
+  product.status || (!product.is_active ? "inactive" : Number(product.stock || 0) > 0 ? "active" : "out_of_stock");
+
 function useHover() {
   const [hovered, setHovered] = useState(false);
   return [
@@ -543,8 +546,9 @@ function ProductsModule({ mutation, productsQuery, toast }) {
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
         <Stat icon={Package} label="Products" value={products.length}/>
-        <Stat icon={CheckCircle2} label="Active" value={products.filter((product)=>product.is_active).length} color={C.green}/>
-        <Stat icon={XCircle} label="Inactive" value={products.filter((product)=>!product.is_active).length} color={C.red}/>
+        <Stat icon={CheckCircle2} label="Active" value={products.filter((product)=>getAdminProductStatus(product)==="active").length} color={C.green}/>
+        <Stat icon={XCircle} label="Out Of Stock" value={products.filter((product)=>getAdminProductStatus(product)==="out_of_stock").length} color={C.red}/>
+        <Stat icon={XCircle} label="Inactive" value={products.filter((product)=>getAdminProductStatus(product)==="inactive").length} color={C.txt3}/>
       </Stats>
       <Card title={`Products (${products.length})`}>
         <Table columns={["Product","Category","Seller","Price","Stock","Views","Date Created","Date Updated","Status","Actions"]}
@@ -552,15 +556,19 @@ function ProductsModule({ mutation, productsQuery, toast }) {
           rows={products.map((product) => {
             const pendingUpdate = pendingUpdates.get(product.id);
             const isUpdating = Boolean(pendingUpdate);
+            const productStatus = getAdminProductStatus(product);
+            const hasSellableStock = Number(product.stock || 0) > 0;
             return (
               <tr key={product.id}>
                 <Td>{product.name}</Td><Td>{product.category}</Td><Td>{product.seller}</Td>
                 <Td>{formatMoney(product.price_minor)}</Td><Td>{product.stock}</Td><Td>{product.views}</Td>
                 <Td>{formatDate(product.created_at)}</Td><Td>{formatDate(product.updated_at)}</Td>
-                <Td><Badge type={product.is_active?"active":"inactive"}/></Td>
+                <Td><Badge type={productStatus}/></Td>
                 <Td>{product.is_active
                   ? <Btn disabled={isUpdating} icon={isUpdating?Loader2:X} iconSpin={isUpdating} variant="danger"
                     onClick={()=>update(product.id,false)}>{isUpdating?"Deactivating...":"Deactivate"}</Btn>
+                  : !hasSellableStock
+                    ? <Btn disabled icon={XCircle}>Restock required</Btn>
                   : <Btn disabled={isUpdating} icon={isUpdating?Loader2:Check} iconSpin={isUpdating} variant="success"
                     onClick={()=>update(product.id,true)}>{isUpdating?"Activating...":"Activate"}</Btn>}</Td>
               </tr>

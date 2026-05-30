@@ -60,6 +60,7 @@ export const BADGE_MAP = {
   pending:[C.amber,`${C.amberDim}99`], cancelled:[C.red,`${C.redDim}99`],
   refunded:[C.red,`${C.redDim}99`], paid:[C.green,`${C.greenDim}99`],
   active:[C.green,`${C.greenDim}99`], inactive:[C.txt3,`${C.border}99`],
+  out_of_stock:[C.red,`${C.redDim}99`],
   suspended:[C.red,`${C.redDim}99`], draft:[C.txt3,`${C.border}99`],
   open:[C.red,`${C.redDim}99`], resolved:[C.green,`${C.greenDim}99`],
   high:[C.red,`${C.redDim}99`], medium:[C.amber,`${C.amberDim}99`],

@@ -111,6 +111,17 @@ Product visibility actions are tracked per product. The clicked row disables
 its CTA and shows a spinner while the backend request is running, preventing
 duplicate requests without blocking actions for other products.
 
+Product visibility and inventory are related but distinct. `products.is_active`
+remains the publish switch. The secured Products-tab RPC reports an effective
+`out_of_stock` status when active variants have no sellable units, and the
+backend rejects activation until sellable stock exists.
+
+Product views come from backend analytics. The `track-event` Edge Function
+writes interaction events to `events`, and a database trigger synchronizes
+`view_product`, `product_detail_viewed`, and `quick_view_opened` events into
+`product_metrics.view_count`. A migration backfill restores counts for tracked
+events that existed before the trigger was added.
+
 ### Dashboard Modules
 
 `components/modules/AdminDashboardModules.jsx` contains small shared UI
@@ -190,6 +201,8 @@ Apply the admin migrations before using the dashboard:
 | `supabase/migrations/20260530040000_fix_admin_paid_sales_chart_window.sql` | Adds a paid-sales chart RPC that falls back to the latest recorded activity window when the current seven-day window is empty. |
 | `supabase/migrations/20260530050000_add_admin_paid_sales_chart_ranges.sql` | Adds daily, weekly, monthly, and yearly paid-sales chart ranges using payment-settlement dates with an explicit legacy order-date fallback. |
 | `supabase/migrations/20260530060000_add_admin_products_rpc.sql` | Adds the secured Products-tab RPC, including backend-owned creation and update timestamps. |
+| `supabase/migrations/20260530070000_add_admin_product_inventory_status.sql` | Adds backend-derived product inventory status and prevents activation without sellable stock. |
+| `supabase/migrations/20260530080000_sync_product_view_metrics.sql` | Synchronizes tracked product-view events into product metrics and backfills historical views. |
 
 The dashboard backend migration adds:
 
