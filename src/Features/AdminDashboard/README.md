@@ -93,6 +93,7 @@ viewport, and hiring columns collapse into a readable single-column flow.
 | Hook | Backend action |
 | --- | --- |
 | `useAdminDashboard()` | Fetches the aggregate dashboard payload with key `["admin-dashboard"]`. |
+| `useAdminProducts()` | Fetches Products-tab catalog records with backend-owned creation and update timestamps. |
 | `useSetAdminOrderStatus()` | Updates an order status. |
 | `useSetAdminProductActive()` | Activates or deactivates a product. |
 | `useSetAdminSellerStatus()` | Updates seller approval state. |
@@ -104,6 +105,11 @@ Every mutation invalidates `["admin-dashboard"]` after it settles, so each
 module refreshes from the backend. Order status actions also apply an optimistic
 cache update first, keeping the Orders table, dashboard summary cards, and
 sidebar pending-order badge responsive while the authoritative refetch runs.
+Pending order actions are tracked per order, so one request disables only its
+own row and does not block updates to other orders.
+Product visibility actions are tracked per product. The clicked row disables
+its CTA and shows a spinner while the backend request is running, preventing
+duplicate requests without blocking actions for other products.
 
 ### Dashboard Modules
 
@@ -115,7 +121,7 @@ and access-denied states consistently.
 | --- | --- | --- |
 | Dashboard | Summary metrics, paid revenue, pending unpaid value, seven-day paid revenue, category merchandise sales, recent activity. | Read-only overview. |
 | Orders | Orders and status details. | Ship or cancel an order. |
-| Products | Product catalog records and active state. | Activate or deactivate a product. |
+| Products | Product catalog records, active state, creation date, and last update date. | Activate or deactivate a product. |
 | Users | Buyer and seller records. | Switch between buyer and seller views. |
 | Sellers | Seller profiles and approval state. | Activate, suspend, or reset seller state. |
 | Analytics | Revenue, order, user, product, growth, and funnel metrics. | Read-only reporting. |
@@ -137,6 +143,8 @@ TanStack Query to handle.
 | Frontend method | PostgreSQL RPC |
 | --- | --- |
 | `getDashboard()` | `get_admin_dashboard` |
+| `getProducts()` | `get_admin_products` |
+| `getPaidSalesChart(range)` | `get_admin_paid_sales_chart` |
 | `setOrderStatus(orderId, status)` | `admin_set_order_status` |
 | `setProductActive(productId, active)` | `admin_set_product_active` |
 | `setSellerStatus(sellerId, status)` | `admin_set_seller_status` |
@@ -159,10 +167,16 @@ These values represent merchandise sales. They may differ from paid revenue
 because final order totals can also include shipping and tax and can subtract
 order-level discounts.
 
-The dashboard chart shows the current seven-day window when paid activity exists
-within that period. If the current period is empty, `get_admin_paid_sales_chart`
-anchors the chart to the latest recorded paid activity and the UI labels that
-historical window explicitly.
+The dashboard chart supports daily, weekly, monthly, and yearly server-side
+aggregations. Revenue is booked against `payments.paid_at`, the authoritative
+payment-settlement timestamp. Legacy paid orders without a payment event fall
+back to `orders.created_at`; the chart labels that fallback count explicitly.
+If a selected current period is empty, `get_admin_paid_sales_chart` anchors the
+chart to the latest recorded paid activity and labels that historical window.
+The development seed now writes matching successful payment rows so newly
+seeded chart data follows the same settlement-date contract as real checkout.
+Ranges with no available records, null payloads, or failed chart requests show
+a contained empty state instead of breaking the dashboard page.
 
 ## Backend Migration
 
@@ -174,6 +188,8 @@ Apply the admin migrations before using the dashboard:
 | `supabase/migrations/20260530010000_admin_dashboard_backend.sql` | Adds dashboard RPCs, mutation RPCs, backend-owned operational tables, seller status, RLS, and role checks. |
 | `supabase/migrations/20260530020000_align_admin_revenue_metrics.sql` | Updates dashboard reporting so revenue uses paid, non-cancelled orders and pending unpaid order value remains separate. |
 | `supabase/migrations/20260530040000_fix_admin_paid_sales_chart_window.sql` | Adds a paid-sales chart RPC that falls back to the latest recorded activity window when the current seven-day window is empty. |
+| `supabase/migrations/20260530050000_add_admin_paid_sales_chart_ranges.sql` | Adds daily, weekly, monthly, and yearly paid-sales chart ranges using payment-settlement dates with an explicit legacy order-date fallback. |
+| `supabase/migrations/20260530060000_add_admin_products_rpc.sql` | Adds the secured Products-tab RPC, including backend-owned creation and update timestamps. |
 
 The dashboard backend migration adds:
 

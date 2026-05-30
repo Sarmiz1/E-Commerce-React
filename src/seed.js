@@ -196,19 +196,24 @@ async function populateCommerce(buyers, products, variants) {
   
   const orders = [];
   const orderItems = [];
+  const payments = [];
   const reviews = [];
 
   for (const buyer of buyers) {
     const orderId = faker.string.uuid();
+    const v = variants[Math.floor(Math.random() * variants.length)];
+    const paidAt = faker.date.recent({ days: 365 });
+    const orderedAt = new Date(paidAt.getTime() - faker.number.int({ min: 60_000, max: 259_200_000 }));
     orders.push({
       id: orderId,
       user_id: buyer.id,
       status: "delivered",
       payment_status: "paid",
-      total_minor: 5000
+      total_minor: v.price_minor,
+      created_at: orderedAt.toISOString(),
+      updated_at: paidAt.toISOString()
     });
 
-    const v = variants[Math.floor(Math.random() * variants.length)];
     orderItems.push({
       order_id: orderId,
       product_id: v.product_id,
@@ -217,6 +222,18 @@ async function populateCommerce(buyers, products, variants) {
       price_minor: v.price_minor,
       quantity: 1,
       total_minor: v.price_minor
+    });
+
+    payments.push({
+      order_id: orderId,
+      provider: "seed",
+      provider_reference: `seed-${orderId}`,
+      status: "success",
+      amount_minor: v.price_minor,
+      currency: "NGN",
+      paid_at: paidAt.toISOString(),
+      created_at: paidAt.toISOString(),
+      updated_at: paidAt.toISOString()
     });
 
     reviews.push({
@@ -229,6 +246,7 @@ async function populateCommerce(buyers, products, variants) {
   }
 
   await supabase.from("orders").insert(orders);
+  await supabase.from("payments").insert(payments);
   await supabase.from("order_items").insert(orderItems);
   await supabase.from("product_reviews").insert(reviews);
 }

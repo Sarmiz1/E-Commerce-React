@@ -113,6 +113,11 @@ export const ADMIN_DASHBOARD_STYLES = `
     .admin-stat-card>div:nth-of-type(1){width:36px!important;height:36px!important;margin-bottom:12px!important}
     .admin-stat-card>div:nth-of-type(2){font-size:18px!important;overflow-wrap:anywhere}
     .admin-dashboard-banner{align-items:flex-start!important;padding:1rem!important}
+    .admin-paid-chart-body{padding:1rem!important}
+    .admin-chart-toolbar{flex-direction:column}
+    .admin-chart-range{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%}
+    .admin-chart-range button{justify-content:center;padding-inline:6px!important}
+    .admin-chart-frame{height:260px!important}
     .admin-card>header{padding:.85rem 1rem!important}
     .admin-table-scroll table{min-width:760px}
     .admin-ai-form{flex-direction:column}

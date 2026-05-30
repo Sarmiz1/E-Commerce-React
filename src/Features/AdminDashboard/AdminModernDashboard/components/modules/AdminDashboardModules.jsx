@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
+  CartesianGrid,
   Cell,
+  Legend,
   Line,
   LineChart,
   Pie,
@@ -26,6 +28,7 @@ import {
   DollarSign,
   Key,
   LifeBuoy,
+  Loader2,
   Package,
   RotateCcw,
   Send,
@@ -42,6 +45,8 @@ import {
 } from "lucide-react";
 import {
   useAdminDashboard,
+  useAdminPaidSalesChart,
+  useAdminProducts,
   useMoveAdminHiringCandidate,
   useQueueAdminAiQuery,
   useSetAdminOrderStatus,
@@ -64,6 +69,13 @@ const STAGE_COLORS = {
   hired: C.green,
 };
 
+const SALES_CHART_RANGES = [
+  { id: "days", label: "Days" },
+  { id: "weeks", label: "Weeks" },
+  { id: "months", label: "Months" },
+  { id: "years", label: "Years" },
+];
+
 const formatMoney = (minor = 0) =>
   new Intl.NumberFormat("en-NG", {
     style: "currency",
@@ -71,8 +83,27 @@ const formatMoney = (minor = 0) =>
     maximumFractionDigits: 0,
   }).format(Number(minor || 0) / 100);
 
+const formatCompactMoney = (minor = 0) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Number(minor || 0) / 100);
+
 const formatDate = (value) =>
   value ? new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(value)) : "-";
+
+const formatSalesChartLabel = (value, range) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (range === "weeks") return `Week of ${formatDate(value)}`;
+  if (range === "months") {
+    return new Intl.DateTimeFormat("en-NG", { month: "long", year: "numeric" }).format(date);
+  }
+  if (range === "years") return String(date.getFullYear());
+  return formatDate(value);
+};
 
 const titleCase = (value = "") =>
   value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
@@ -100,7 +131,7 @@ function Badge({ type }) {
   );
 }
 
-function Btn({ children, disabled, icon: Icon, onClick, variant="ghost" }) {
+function Btn({ children, disabled, icon: Icon, iconSpin=false, onClick, variant="ghost" }) {
   const [hovered, hoverProps] = useHover();
   const variants = {
     ghost: [C.txt2, "transparent", C.border],
@@ -120,7 +151,7 @@ function Btn({ children, disabled, icon: Icon, onClick, variant="ghost" }) {
       transform:isHovered?'translateY(-2px) scale(1.035)':'none',
       boxShadow:isHovered?`0 8px 18px ${color}22`:'none',
       transition:'transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease'}}>
-      {Icon && <Icon size={11}/>}
+      {Icon && <Icon size={11} style={iconSpin?{animation:'spin .7s linear infinite'}:undefined}/>}
       {children}
     </button>
   );
@@ -295,9 +326,21 @@ function CategoryMetricCard({ category, maximum }) {
 }
 
 function DashboardModule({ data }) {
+  const [salesChartRange, setSalesChartRange] = useState("days");
+  const salesChartQuery = useAdminPaidSalesChart(salesChartRange);
   const stats = data.stats || {};
   const categories = data.categories || [];
-  const salesChartMeta = data.salesChartMeta || {};
+  const salesChartPayload = salesChartQuery.data?.series ??
+    (salesChartRange === "days" ? data.salesChart : []);
+  const salesChart = Array.isArray(salesChartPayload) ? salesChartPayload.filter(Boolean) : [];
+  const salesChartMeta = salesChartQuery.data?.meta || {};
+  const hasSalesChartInformation = salesChart.some((item) =>
+    Number(item.revenueMinor || 0) > 0 || Number(item.orders || 0) > 0);
+  const chartRevenueMinor = salesChart.reduce((total, item) => total + Number(item.revenueMinor || 0), 0);
+  const chartOrders = salesChart.reduce((total, item) => total + Number(item.orders || 0), 0);
+  const chartPeriod = salesChartMeta.startDate && salesChartMeta.endDate
+    ? `${formatDate(salesChartMeta.startDate)} - ${formatDate(salesChartMeta.endDate)}`
+    : "Loading paid-sales period";
   const categoryMaximum = Math.max(...categories.map((category) => Number(category.revenue_minor || 0)), 1);
   return (
     <div style={{display:'flex',flexDirection:'column',gap:16}}>
@@ -322,32 +365,71 @@ function DashboardModule({ data }) {
         <Stat icon={LifeBuoy} label="Open Tickets" value={stats.openTickets || 0} color={C.red}/>
       </Stats>
       <div className="admin-grid-overview" style={{display:'grid',gridTemplateColumns:'minmax(0,5fr) minmax(260px,2fr)',gap:14}}>
-        <Card title="Paid Revenue & Orders Overview" accent={C.blue}
-          actions={<span style={{fontSize:11,color:C.txt3}}>
-            {salesChartMeta.isHistorical
-              ? `Latest paid activity through ${formatDate(salesChartMeta.endDate)}`
-              : "Last 7 days"}
-          </span>}>
-          <div style={{padding:'1.25rem'}}>
-            <ResponsiveContainer width="100%" height={230}>
-              <AreaChart data={data.salesChart || []} margin={{top:8,right:8,bottom:0,left:-18}}>
-                <defs>
-                  <linearGradient id="adminRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={C.blue} stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor={C.blue} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="label" tick={{fontSize:11,fill:C.txt3}} axisLine={false} tickLine={false}/>
-                <YAxis tick={{fontSize:10,fill:C.txt3}} axisLine={false} tickLine={false}/>
-                <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,fontSize:12}}
-                  labelStyle={{color:C.txt}} formatter={(value,name)=>[
-                    name === "revenueMinor" ? formatMoney(value) : value,
-                    name === "revenueMinor" ? "Paid Revenue" : "Paid Orders",
-                  ]}/>
-                <Area type="monotone" dataKey="revenueMinor" stroke={C.blue} strokeWidth={2.5} fill="url(#adminRevenue)" dot={false}/>
-                <Area type="monotone" dataKey="orders" stroke={C.cyan} strokeWidth={2} fill="transparent" dot={false}/>
-              </AreaChart>
-            </ResponsiveContainer>
+        <Card title="Paid Revenue & Orders Overview" accent={C.blue}>
+          <div className="admin-paid-chart-body" style={{padding:'1.25rem'}}>
+            <div className="admin-chart-toolbar" style={{display:'flex',justifyContent:'space-between',
+              alignItems:'flex-start',gap:14,marginBottom:16}}>
+              <div>
+                <div style={{display:'flex',alignItems:'baseline',gap:10,flexWrap:'wrap'}}>
+                  <strong style={{fontSize:20,color:C.txt,fontFamily:"'JetBrains Mono',monospace"}}>
+                    {formatMoney(chartRevenueMinor)}
+                  </strong>
+                  <span style={{fontSize:12,color:C.cyan}}>{chartOrders.toLocaleString()} paid orders</span>
+                </div>
+                <div style={{fontSize:11,color:C.txt3,marginTop:6}}>
+                  {salesChartMeta.isHistorical ? `Latest recorded paid activity: ${chartPeriod}` : chartPeriod}
+                  {salesChartQuery.isFetching ? " - updating" : ""}
+                </div>
+                {Number(salesChartMeta.legacyFallbackOrders || 0) > 0 && (
+                  <div style={{fontSize:10,color:C.amber,marginTop:6,lineHeight:1.5}}>
+                    {`${Number(salesChartMeta.legacyFallbackOrders).toLocaleString()} legacy paid orders have no payment-settlement timestamp and are plotted by their recorded order date.`}
+                  </div>
+                )}
+              </div>
+              <div className="admin-chart-range" style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                {SALES_CHART_RANGES.map((range) => (
+                  <Btn key={range.id} variant={salesChartRange===range.id?"cyan":"ghost"}
+                    onClick={()=>setSalesChartRange(range.id)}>{range.label}</Btn>
+                ))}
+              </div>
+            </div>
+            {salesChartQuery.isError || (!salesChartQuery.isFetching && !hasSalesChartInformation) ? (
+              <PanelMessage>No available information</PanelMessage>
+            ) : !hasSalesChartInformation ? (
+              <PanelMessage>Loading available information...</PanelMessage>
+            ) : (
+              <div className="admin-chart-frame" style={{width:'100%',height:300,minWidth:0}}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={salesChart} margin={{top:4,right:2,bottom:0,left:0}}>
+                    <defs>
+                      <linearGradient id="adminRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={C.blue} stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor={C.blue} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} stroke={`${C.border}AA`} strokeDasharray="3 4"/>
+                    <XAxis dataKey="label" minTickGap={18} interval="preserveStartEnd"
+                      tick={{fontSize:10,fill:C.txt3}} axisLine={false} tickLine={false}/>
+                    <YAxis yAxisId="revenue" width={68} tickFormatter={formatCompactMoney}
+                      tick={{fontSize:10,fill:C.txt3}} axisLine={false} tickLine={false}/>
+                    <YAxis yAxisId="orders" orientation="right" width={38}
+                      tick={{fontSize:10,fill:C.cyan}} axisLine={false} tickLine={false}/>
+                    <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,fontSize:12}}
+                      labelStyle={{color:C.txt}} labelFormatter={(_label, entries) =>
+                        formatSalesChartLabel(entries?.[0]?.payload?.date, salesChartRange)}
+                      formatter={(value,name)=>[
+                        name === "Paid Revenue" ? formatMoney(value) : Number(value).toLocaleString(),
+                        name,
+                      ]}/>
+                    <Legend iconType="circle" iconSize={7} wrapperStyle={{fontSize:11,color:C.txt2,paddingTop:8}}/>
+                    <Area yAxisId="revenue" type="monotone" dataKey="revenueMinor" name="Paid Revenue"
+                      stroke={C.blue} strokeWidth={2.5} fill="url(#adminRevenue)" dot={false}/>
+                    <Area yAxisId="orders" type="monotone" dataKey="orders" name="Paid Orders"
+                      stroke={C.cyan} strokeWidth={2} fill="transparent" dot={false}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         </Card>
         <Card title="Live Activity" accent={C.green}>
@@ -378,13 +460,25 @@ function DashboardModule({ data }) {
 
 function OrdersModule({ data, mutation, toast }) {
   const [filter, setFilter] = useState("all");
+  const inFlightOrderIds = useRef(new Set());
   const orders = data.orders || [];
   const filtered = filter === "all" ? orders : orders.filter((order) => order.status === filter);
-  const pendingOrderId = mutation.isPending ? mutation.variables?.id : null;
-  const update = (id, status) => mutation.mutate({ id, status }, {
-    onSuccess: () => toast("Order status updated", C.green),
-    onError: (error) => toast(error.message, C.red),
-  });
+  const pendingUpdates = new Map(
+    (mutation.pendingUpdates || []).filter(Boolean).map((pendingUpdate) => [pendingUpdate.id, pendingUpdate]),
+  );
+  const update = async (id, status) => {
+    if (inFlightOrderIds.current.has(id)) return;
+    inFlightOrderIds.current.add(id);
+
+    try {
+      await mutation.mutateAsync({ id, status });
+      toast("Order status updated", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    } finally {
+      inFlightOrderIds.current.delete(id);
+    }
+  };
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
@@ -401,30 +495,50 @@ function OrdersModule({ data, mutation, toast }) {
       <Card title={`Orders (${filtered.length})`}>
         <Table columns={["Order","Customer","Products","Sellers","Status","Payment","Amount","Date","Actions"]}
           emptyMessage="No orders found in the backend."
-          rows={filtered.map((order) => (
-            <tr key={order.id}>
-              <Td>{order.id.slice(0,8)}</Td><Td>{order.customer}</Td><Td>{order.products}</Td><Td>{order.sellers}</Td>
-              <Td><Badge type={order.status}/></Td><Td><Badge type={order.payment}/></Td>
-              <Td>{formatMoney(order.amount_minor)}</Td><Td>{formatDate(order.created_at)}</Td>
-              <Td><div style={{display:'flex',gap:5}}>
-                {order.status==="pending" && <Btn disabled={mutation.isPending} icon={Truck} variant="success"
-                  onClick={()=>update(order.id,"shipped")}>{pendingOrderId===order.id?"Shipping...":"Ship"}</Btn>}
-                {!["cancelled","delivered"].includes(order.status) && <Btn disabled={mutation.isPending} icon={X} variant="danger"
-                  onClick={()=>update(order.id,"cancelled")}>{pendingOrderId===order.id?"Updating...":"Cancel"}</Btn>}
-              </div></Td>
-            </tr>
-          ))}/>
+          rows={filtered.map((order) => {
+            const pendingUpdate = pendingUpdates.get(order.id);
+            const isUpdating = Boolean(pendingUpdate);
+            return (
+              <tr key={order.id}>
+                <Td>{order.id.slice(0,8)}</Td><Td>{order.customer}</Td><Td>{order.products}</Td><Td>{order.sellers}</Td>
+                <Td><Badge type={order.status}/></Td><Td><Badge type={order.payment}/></Td>
+                <Td>{formatMoney(order.amount_minor)}</Td><Td>{formatDate(order.created_at)}</Td>
+                <Td><div style={{display:'flex',gap:5}}>
+                  {order.status==="pending" && <Btn disabled={isUpdating} icon={Truck} variant="success"
+                    onClick={()=>update(order.id,"shipped")}>{pendingUpdate?.status==="shipped"?"Shipping...":"Ship"}</Btn>}
+                  {!["cancelled","delivered"].includes(order.status) && <Btn disabled={isUpdating} icon={X} variant="danger"
+                    onClick={()=>update(order.id,"cancelled")}>{isUpdating?"Updating...":"Cancel"}</Btn>}
+                </div></Td>
+              </tr>
+            );
+          })}/>
       </Card>
     </div>
   );
 }
 
-function ProductsModule({ data, mutation, toast }) {
-  const products = data.products || [];
-  const update = (id, active) => mutation.mutate({ id, active }, {
-    onSuccess: () => toast("Product visibility updated", C.green),
-    onError: (error) => toast(error.message, C.red),
-  });
+function ProductsModule({ mutation, productsQuery, toast }) {
+  const inFlightProductIds = useRef(new Set());
+  if (productsQuery.isLoading) return <ModuleLoader/>;
+  if (productsQuery.isError) return <PanelMessage>{productsQuery.error.message}</PanelMessage>;
+
+  const products = productsQuery.data || [];
+  const pendingUpdates = new Map(
+    (mutation.pendingUpdates || []).filter(Boolean).map((pendingUpdate) => [pendingUpdate.id, pendingUpdate]),
+  );
+  const update = async (id, active) => {
+    if (inFlightProductIds.current.has(id)) return;
+    inFlightProductIds.current.add(id);
+
+    try {
+      await mutation.mutateAsync({ id, active });
+      toast("Product visibility updated", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    } finally {
+      inFlightProductIds.current.delete(id);
+    }
+  };
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
@@ -433,18 +547,25 @@ function ProductsModule({ data, mutation, toast }) {
         <Stat icon={XCircle} label="Inactive" value={products.filter((product)=>!product.is_active).length} color={C.red}/>
       </Stats>
       <Card title={`Products (${products.length})`}>
-        <Table columns={["Product","Category","Seller","Price","Stock","Views","Status","Actions"]}
+        <Table columns={["Product","Category","Seller","Price","Stock","Views","Date Created","Date Updated","Status","Actions"]}
           emptyMessage="No products found in the backend."
-          rows={products.map((product) => (
-            <tr key={product.id}>
-              <Td>{product.name}</Td><Td>{product.category}</Td><Td>{product.seller}</Td>
-              <Td>{formatMoney(product.price_minor)}</Td><Td>{product.stock}</Td><Td>{product.views}</Td>
-              <Td><Badge type={product.is_active?"active":"inactive"}/></Td>
-              <Td>{product.is_active
-                ? <Btn icon={X} variant="danger" onClick={()=>update(product.id,false)}>Deactivate</Btn>
-                : <Btn icon={Check} variant="success" onClick={()=>update(product.id,true)}>Activate</Btn>}</Td>
-            </tr>
-          ))}/>
+          rows={products.map((product) => {
+            const pendingUpdate = pendingUpdates.get(product.id);
+            const isUpdating = Boolean(pendingUpdate);
+            return (
+              <tr key={product.id}>
+                <Td>{product.name}</Td><Td>{product.category}</Td><Td>{product.seller}</Td>
+                <Td>{formatMoney(product.price_minor)}</Td><Td>{product.stock}</Td><Td>{product.views}</Td>
+                <Td>{formatDate(product.created_at)}</Td><Td>{formatDate(product.updated_at)}</Td>
+                <Td><Badge type={product.is_active?"active":"inactive"}/></Td>
+                <Td>{product.is_active
+                  ? <Btn disabled={isUpdating} icon={isUpdating?Loader2:X} iconSpin={isUpdating} variant="danger"
+                    onClick={()=>update(product.id,false)}>{isUpdating?"Deactivating...":"Deactivate"}</Btn>
+                  : <Btn disabled={isUpdating} icon={isUpdating?Loader2:Check} iconSpin={isUpdating} variant="success"
+                    onClick={()=>update(product.id,true)}>{isUpdating?"Activating...":"Activate"}</Btn>}</Td>
+              </tr>
+            );
+          })}/>
       </Card>
     </div>
   );
@@ -727,6 +848,7 @@ function SettingsModule({ data }) {
 
 export function AdminDashboardModules({ addToast, moduleId, user }) {
   const dashboard = useAdminDashboard();
+  const productsQuery = useAdminProducts(moduleId === "products");
   const orderMutation = useSetAdminOrderStatus();
   const productMutation = useSetAdminProductActive();
   const sellerMutation = useSetAdminSellerStatus();
@@ -742,7 +864,7 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
   const modules = {
     dashboard: <DashboardModule data={data}/>,
     orders: <OrdersModule {...shared} mutation={orderMutation}/>,
-    products: <ProductsModule {...shared} mutation={productMutation}/>,
+    products: <ProductsModule {...shared} mutation={productMutation} productsQuery={productsQuery}/>,
     users: <UsersModule data={data}/>,
     sellers: <SellersModule {...shared} mutation={sellerMutation}/>,
     analytics: <AnalyticsModule data={data}/>,

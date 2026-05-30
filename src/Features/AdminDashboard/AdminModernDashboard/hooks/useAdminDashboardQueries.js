@@ -1,12 +1,31 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useMutationState, useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminDashboardApi } from "../../../../api/adminDashboardApi";
 
 export const adminDashboardKey = ["admin-dashboard"];
+const adminOrderStatusMutationKey = [...adminDashboardKey, "order-status"];
+const adminProductActiveMutationKey = [...adminDashboardKey, "product-active"];
 
 export function useAdminDashboard() {
   return useQuery({
     queryKey: adminDashboardKey,
     queryFn: adminDashboardApi.getDashboard,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminProducts(enabled = true) {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "products"],
+    queryFn: adminDashboardApi.getProducts,
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminPaidSalesChart(range) {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "paid-sales-chart", range],
+    queryFn: () => adminDashboardApi.getPaidSalesChart(range),
     staleTime: 30_000,
   });
 }
@@ -62,26 +81,48 @@ function useDashboardMutation(mutationFn, options = {}) {
 export const useSetAdminOrderStatus = () => {
   const queryClient = useQueryClient();
 
-  return useDashboardMutation(
+  const mutation = useDashboardMutation(
     ({ id, status }) => adminDashboardApi.setOrderStatus(id, status),
     {
+      mutationKey: adminOrderStatusMutationKey,
       onMutate: async (variables) => {
         await queryClient.cancelQueries({ queryKey: adminDashboardKey });
         const previousDashboard = queryClient.getQueryData(adminDashboardKey);
         queryClient.setQueryData(adminDashboardKey, (dashboard) => updateOrderStatus(dashboard, variables));
-        return { previousDashboard };
+        return {
+          previousStatus: previousDashboard?.orders?.find((order) => order.id === variables.id)?.status,
+        };
       },
-      onError: (_error, _variables, context) => {
-        if (context?.previousDashboard) {
-          queryClient.setQueryData(adminDashboardKey, context.previousDashboard);
+      onError: (_error, variables, context) => {
+        if (context?.previousStatus) {
+          queryClient.setQueryData(adminDashboardKey, (dashboard) =>
+            updateOrderStatus(dashboard, { id: variables.id, status: context.previousStatus }));
         }
       },
     },
   );
+
+  const pendingUpdates = useMutationState({
+    filters: { mutationKey: adminOrderStatusMutationKey, status: "pending" },
+    select: (pendingMutation) => pendingMutation.state.variables,
+  });
+
+  return { ...mutation, pendingUpdates };
 };
 
-export const useSetAdminProductActive = () =>
-  useDashboardMutation(({ id, active }) => adminDashboardApi.setProductActive(id, active));
+export const useSetAdminProductActive = () => {
+  const mutation = useDashboardMutation(
+    ({ id, active }) => adminDashboardApi.setProductActive(id, active),
+    { mutationKey: adminProductActiveMutationKey },
+  );
+
+  const pendingUpdates = useMutationState({
+    filters: { mutationKey: adminProductActiveMutationKey, status: "pending" },
+    select: (pendingMutation) => pendingMutation.state.variables,
+  });
+
+  return { ...mutation, pendingUpdates };
+};
 
 export const useSetAdminSellerStatus = () =>
   useDashboardMutation(({ id, status }) => adminDashboardApi.setSellerStatus(id, status));

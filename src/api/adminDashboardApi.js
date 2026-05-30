@@ -7,20 +7,15 @@ async function runRpc(name, args) {
 }
 
 export const adminDashboardApi = {
-  getDashboard: async () => {
-    const dashboard = await runRpc("get_admin_dashboard");
-
+  getDashboard: () => runRpc("get_admin_dashboard"),
+  getProducts: () => runRpc("get_admin_products"),
+  getPaidSalesChart: async (range) => {
     try {
-      const salesChart = await runRpc("get_admin_paid_sales_chart");
-      return {
-        ...dashboard,
-        salesChart: salesChart?.series || dashboard.salesChart || [],
-        salesChartMeta: salesChart?.meta || {},
-      };
+      return await runRpc("get_admin_paid_sales_chart", { chart_range: range });
     } catch (error) {
-      // Keep deployments compatible while the incremental chart RPC migration is applied.
-      if (!["42883", "PGRST202"].includes(error.code)) throw error;
-      return dashboard;
+      // Keep the daily view compatible while the range-aware RPC migration is applied.
+      if (range !== "days" || !["42883", "PGRST202"].includes(error.code)) throw error;
+      return runRpc("get_admin_paid_sales_chart");
     }
   },
   setOrderStatus: (orderId, status) =>
