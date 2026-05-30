@@ -1,5 +1,9 @@
 // src/api/productsApi.js
 import { supabase } from "../lib/supabaseClient";
+import {
+  filterSellableProducts,
+  normalizeSellableProduct,
+} from "../utils/productAvailability";
 import { createResourceApi } from "./createResourceApi";
 
 // 🔥 Ultimate select string with explicit relationship hints
@@ -89,7 +93,7 @@ const fetchAllActiveProducts = async () => {
 
     if (error) throw new Error(error.message);
 
-    (data || []).forEach((product) => productsById.set(product.id, product));
+    filterSellableProducts(data || []).forEach((product) => productsById.set(product.id, product));
 
     if (!data || data.length < PRODUCT_PAGE_SIZE) break;
   }
@@ -218,7 +222,7 @@ const fetchProductSearchResults = async (rawSearchTerm, limit = SEARCH_RESULT_LI
       .in("id", rankedCandidates.map(({ product }) => product.id)),
   );
   const completeProductsById = new Map(
-    completeProducts.map((product) => [product.id, product]),
+    filterSellableProducts(completeProducts).map((product) => [product.id, product]),
   );
 
   return rankedCandidates
@@ -272,7 +276,11 @@ export const ProductsAPI = {
 
   getById: (id) => ({
     queryKey: ["product", id],
-    queryFn: () => productsResource.get(supabase, id),
+    queryFn: async () => {
+      const product = normalizeSellableProduct(await productsResource.get(supabase, id));
+      if (!product) throw new Error("Product not found");
+      return product;
+    },
   }),
 
   getBySlug: (slug) => ({
@@ -287,18 +295,20 @@ export const ProductsAPI = {
         throw new Error("Product not found");
       }
 
-      return data[0];
+      const product = normalizeSellableProduct(data[0]);
+      if (!product) throw new Error("Product not found");
+      return product;
     },
   }),
 
   getByKeywords: (keywordsArray) => ({
     queryKey: ["products", keywordsArray],
-    queryFn: () =>
-      productsResource.list(supabase, [
+    queryFn: async () =>
+      filterSellableProducts(await productsResource.list(supabase, [
         ["is_active", "eq", true],
         ["keywords", "overlaps", keywordsArray],
         ["created_at", "order", { ascending: false }],
-      ]),
+      ])),
   }),
 
   search: (searchTerm, limit = SEARCH_RESULT_LIMIT) => ({

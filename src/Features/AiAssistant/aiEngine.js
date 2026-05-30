@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabaseClient";
+import { getSellableVariants } from "../../utils/productAvailability";
 const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY;
 const MODEL = "openrouter/free";
 
@@ -79,7 +80,7 @@ export const TOOLS = [
 export async function searchProducts({ query = "", category, maxPrice, minRating, limit = 4, sortBy }) {
   let q = supabase
     .from("products")
-    .select("id, name, brand, price_minor, compare_at_price_minor, rating_stars, rating_count, image, category, slug, keywords, stock_quantity")
+    .select("id, name, brand, price_minor, compare_at_price_minor, rating_stars, rating_count, image, category, slug, keywords, product_variants(is_active, stock_quantity)")
     .eq("is_active", true)
     .limit(Math.min(limit, 6));
 
@@ -97,7 +98,7 @@ export async function searchProducts({ query = "", category, maxPrice, minRating
   const { data, error } = await q;
   if (error) return { error: "Database error", products: [] };
 
-  const products = (data || []).map(p => ({
+  const products = (data || []).filter((product) => getSellableVariants(product).length).map(p => ({
     id: p.id,
     name: p.name,
     brand: p.brand || "Woosho",
@@ -112,7 +113,7 @@ export async function searchProducts({ query = "", category, maxPrice, minRating
     image: p.image || `https://picsum.photos/seed/${p.id}/400/400`,
     category: p.category,
     slug: p.slug,
-    inStock: (p.stock_quantity || 0) > 0,
+    inStock: true,
   }));
 
   // Cache globally for UI rendering

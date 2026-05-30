@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
+import { filterSellableProducts } from '../../utils/productAvailability';
 import { 
   Sparkles, ChevronDown, HelpCircle, ShoppingCart, 
   X, CheckCircle2, Plus, Mic, Send, Heart, MoreVertical, 
@@ -40,7 +41,11 @@ export default function AiShop() {
   }, [messages]);
 
   const fetchProducts = useCallback(async (params) => {
-    let query = supabase.from('products').select('*').limit(6);
+    let query = supabase
+      .from('products')
+      .select('*, product_variants(is_active, stock_quantity)')
+      .eq('is_active', true)
+      .limit(30);
     
     if (params.keywords && params.keywords.length > 0) {
        query = query.ilike('name', `%${params.keywords[0]}%`);
@@ -54,8 +59,9 @@ export default function AiShop() {
     
     const { data, error } = await query;
     if (data) {
-       setProducts(data);
-       setSearchStatus(`Searched ${data.length * 15}+ products`);
+       const sellableProducts = filterSellableProducts(data).slice(0, 6);
+       setProducts(sellableProducts);
+       setSearchStatus(`Searched ${sellableProducts.length * 15}+ products`);
     } else {
        console.error("DB Error:", error);
     }
@@ -124,7 +130,7 @@ export default function AiShop() {
         let cleanText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
         try {
           parsed = JSON.parse(cleanText);
-        } catch(e) {
+        } catch (_error) {
           parsed = { action: 'chat', reply: cleanText };
         }
       }

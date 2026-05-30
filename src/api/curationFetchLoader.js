@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { normalizeSellableProduct } from "../utils/productAvailability";
 
 const HOME_PRODUCT_SELECT = `
   id,
@@ -18,6 +19,7 @@ const HOME_PRODUCT_SELECT = `
   seller_id,
   keywords,
   is_featured,
+  is_active,
   created_at,
   product_variants(*),
   product_images(*),
@@ -138,14 +140,15 @@ const sortMemberships = (a, b) => {
 const buildCurationCards = (curations, membershipsByCurationId, productsById) =>
   curations.slice(0, 6).map((curation) => {
     const memberships = membershipsByCurationId.get(curation.id) || [];
-    const firstProduct = memberships
+    const availableProducts = memberships
       .map((membership) => productsById.get(membership.product_id))
-      .find(Boolean);
+      .filter(Boolean);
+    const firstProduct = availableProducts[0];
 
     return {
       ...curation,
       label: curation.name,
-      count: memberships.length ? `${memberships.length} picks` : "Curated",
+      count: availableProducts.length ? `${availableProducts.length} picks` : "Curated",
       image: firstProduct?.image || curation.image || curation.image_url || "",
       path: "",
       bg: "from-indigo-500 to-violet-600",
@@ -219,7 +222,10 @@ async function fetchProducts(productIds) {
   }
 
   return {
-    data: allProducts.map(normalizeProduct),
+    data: allProducts
+      .map(normalizeProduct)
+      .map(normalizeSellableProduct)
+      .filter(Boolean),
     error: firstError,
   };
 }

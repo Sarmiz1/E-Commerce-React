@@ -66,6 +66,50 @@ const uniqueProducts = (groups = []) => {
   return [...byId.values()];
 };
 
+const getSellableCartVariants = async (items = []) => {
+  const variantIds = normalizeProductIds(items.map((item) => item.variant_id));
+  if (!variantIds.length) return new Map();
+
+  const { data: variants, error: variantsError } = await supabase
+    .from("product_variants")
+    .select("id, product_id")
+    .in("id", variantIds)
+    .eq("is_active", true)
+    .gt("stock_quantity", 0);
+
+  if (variantsError) throw variantsError;
+
+  const productIds = normalizeProductIds((variants || []).map((variant) => variant.product_id));
+  if (!productIds.length) return new Map();
+
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select("id")
+    .in("id", productIds)
+    .eq("is_active", true);
+
+  if (productsError) throw productsError;
+
+  const sellableProductIds = new Set((products || []).map((product) => product.id));
+  return new Map(
+    (variants || [])
+      .filter((variant) => sellableProductIds.has(variant.product_id))
+      .map((variant) => [variant.id, variant]),
+  );
+};
+
+const assertSellableCartItems = async (items = []) => {
+  const sellableVariants = await getSellableCartVariants(items);
+  const hasUnavailableItem = items.some((item) => {
+    const variant = sellableVariants.get(item.variant_id);
+    return !variant || variant.product_id !== item.product_id;
+  });
+
+  if (hasUnavailableItem) {
+    throw new Error("This product is unavailable or out of stock.");
+  }
+};
+
 const countKeywordOverlap = (product, seedKeywords) => {
   if (!seedKeywords.size || !Array.isArray(product?.keywords)) return 0;
 
@@ -455,7 +499,7 @@ export const CartAPI = {
       if (!rpcError && rpcTotals) {
         totals = rpcTotals;
       }
-    } catch (e) {
+    } catch (_error) {
       // Ignore RPC error, fallback to client calculation
     }
 
@@ -502,7 +546,9 @@ export const CartAPI = {
           id, color, size, price_minor, stock_quantity,
           products!product_variants_product_id_fkey ( id, name, slug, image, price_minor, rating_stars, rating_count )
         `)
-        .in("id", variantIds);
+        .in("id", variantIds)
+        .eq("is_active", true)
+        .gt("stock_quantity", 0);
       if (error) throw error;
       variantsData = data;
     }
@@ -512,7 +558,8 @@ export const CartAPI = {
       const { data, error } = await supabase
         .from("products")
         .select(`id, name, slug, image, price_minor, rating_stars, rating_count`)
-        .in("id", productIds);
+        .in("id", productIds)
+        .eq("is_active", true);
       if (error) throw error;
       productsData = data;
     }
@@ -604,6 +651,8 @@ export const CartAPI = {
         .from("product_variants")
         .select("id")
         .eq("product_id", productId)
+        .eq("is_active", true)
+        .gt("stock_quantity", 0)
         .limit(1);
       
       if (vError) console.error("Error fetching default variant:", vError);
@@ -616,13 +665,16 @@ export const CartAPI = {
       throw new Error(`Could not add to cart: No variant found for product ${productId}`);
     }
 
+    const item = {
+      product_id: productId,
+      variant_id: finalVariantId,
+      quantity: Math.max(quantity, 1),
+    };
+    await assertSellableCartItems([item]);
+
     const { data, error } = await supabase.rpc("add_cart_items_bulk", {
       p_cart_id: cartId,
-      p_items: [{
-        product_id: productId,
-        variant_id: finalVariantId,
-        quantity: Math.max(quantity, 1),
-      }],
+      p_items: [item],
     });
 
     if (error) {
@@ -642,6 +694,8 @@ export const CartAPI = {
       .filter((item) => item.product_id && item.variant_id);
 
     if (!cartId || payload.length === 0) return [];
+
+    await assertSellableCartItems(payload);
 
     const { data, error } = await supabase.rpc("add_cart_items_bulk", {
       p_cart_id: cartId,
