@@ -134,10 +134,10 @@ and access-denied states consistently.
 | --- | --- | --- |
 | Dashboard | Summary metrics, paid revenue, pending unpaid value, seven-day paid revenue, category merchandise sales, recent activity. | Read-only overview. |
 | Orders | Orders and status details. | Ship or cancel an order. |
-| Products | Product catalog records, active state, creation date, and last update date. | Activate or deactivate a product. |
-| Users | Buyer and seller records. | Switch between buyer and seller views. |
-| Sellers | Seller profiles and approval state. | Activate, suspend, or reset seller state. |
-| Analytics | Revenue, order, user, product, growth, and funnel metrics. | Read-only reporting. |
+| Products | Product catalog records, stock-first inventory state, creation date, and last update date. | Filter by inventory or views, then activate or deactivate a product. |
+| Users | Buyer and seller records. Privileged admin identities are excluded from the buyer list. | Switch between buyer and seller views. |
+| Sellers | Seller profiles, approval state, and product counts. | Filter sellers by product availability or suspension state, then activate, suspend, or reset seller state. |
+| Analytics | Revenue, order, user, product, day/month/year growth, funnel, and page-activity metrics. | Read-only reporting. |
 | Support | Admin support tickets. | Resolve or escalate a ticket. |
 | AI Insights | Queue size, product search signals, recent AI requests, statuses, and responses. | Queue a new AI analysis prompt. |
 | Hiring | Backend-defined hiring stages and candidates. | Move a candidate to the next stage. |
@@ -156,7 +156,10 @@ TanStack Query to handle.
 | Frontend method | PostgreSQL RPC |
 | --- | --- |
 | `getDashboard()` | `get_admin_dashboard` |
+| `getBuyers()` | `get_admin_buyers` |
+| `getPageActivity()` | `get_admin_page_activity` |
 | `getProducts()` | `get_admin_products` |
+| `getUserGrowth(range)` | `get_admin_user_growth` |
 | `getPaidSalesChart(range)` | `get_admin_paid_sales_chart` |
 | `setOrderStatus(orderId, status)` | `admin_set_order_status` |
 | `setProductActive(productId, active)` | `admin_set_product_active` |
@@ -205,6 +208,7 @@ Apply the admin migrations before using the dashboard:
 | `supabase/migrations/20260530060000_add_admin_products_rpc.sql` | Adds the secured Products-tab RPC, including backend-owned creation and update timestamps. |
 | `supabase/migrations/20260530070000_add_admin_product_inventory_status.sql` | Adds backend-derived product inventory status and prevents activation without sellable stock. |
 | `supabase/migrations/20260530080000_sync_product_view_metrics.sql` | Synchronizes tracked product-view events into product metrics and backfills historical views. |
+| `supabase/migrations/20260530130000_improve_admin_dashboard_operations.sql` | Adds stock-first product classification, admin-excluded buyers, robust seller status updates, page activity metrics, and day/month/year user-growth ranges. |
 
 The dashboard backend migration adds:
 

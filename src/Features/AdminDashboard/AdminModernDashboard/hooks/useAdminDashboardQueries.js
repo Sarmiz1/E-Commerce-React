@@ -4,6 +4,7 @@ import { adminDashboardApi } from "../../../../api/adminDashboardApi";
 export const adminDashboardKey = ["admin-dashboard"];
 const adminOrderStatusMutationKey = [...adminDashboardKey, "order-status"];
 const adminProductActiveMutationKey = [...adminDashboardKey, "product-active"];
+const adminSellerStatusMutationKey = [...adminDashboardKey, "seller-status"];
 
 export function useAdminDashboard() {
   return useQuery({
@@ -18,6 +19,31 @@ export function useAdminProducts(enabled = true) {
     queryKey: [...adminDashboardKey, "products"],
     queryFn: adminDashboardApi.getProducts,
     enabled,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminBuyers(enabled = true) {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "buyers"],
+    queryFn: adminDashboardApi.getBuyers,
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminPageActivity() {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "page-activity"],
+    queryFn: adminDashboardApi.getPageActivity,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminUserGrowth(range) {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "user-growth", range],
+    queryFn: () => adminDashboardApi.getUserGrowth(range),
     staleTime: 30_000,
   });
 }
@@ -124,8 +150,19 @@ export const useSetAdminProductActive = () => {
   return { ...mutation, pendingUpdates };
 };
 
-export const useSetAdminSellerStatus = () =>
-  useDashboardMutation(({ id, status }) => adminDashboardApi.setSellerStatus(id, status));
+export const useSetAdminSellerStatus = () => {
+  const mutation = useDashboardMutation(
+    ({ id, status }) => adminDashboardApi.setSellerStatus(id, status),
+    { mutationKey: adminSellerStatusMutationKey },
+  );
+
+  const pendingUpdates = useMutationState({
+    filters: { mutationKey: adminSellerStatusMutationKey, status: "pending" },
+    select: (pendingMutation) => pendingMutation.state.variables,
+  });
+
+  return { ...mutation, pendingUpdates };
+};
 
 export const useSetAdminSupportTicketStatus = () =>
   useDashboardMutation(({ id, status, escalate }) =>

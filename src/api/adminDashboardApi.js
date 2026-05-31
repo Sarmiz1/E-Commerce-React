@@ -8,7 +8,26 @@ async function runRpc(name, args) {
 
 export const adminDashboardApi = {
   getDashboard: () => runRpc("get_admin_dashboard"),
+  getBuyers: () => runRpc("get_admin_buyers"),
+  getPageActivity: async () => {
+    try {
+      return await runRpc("get_admin_page_activity");
+    } catch (error) {
+      // Allow the analytics page to remain usable during a rolling migration.
+      if (!["42883", "PGRST202"].includes(error.code)) throw error;
+      return {};
+    }
+  },
   getProducts: () => runRpc("get_admin_products"),
+  getUserGrowth: async (range) => {
+    try {
+      return await runRpc("get_admin_user_growth", { chart_range: range });
+    } catch (error) {
+      // The monthly dashboard payload remains a safe fallback until the RPC is deployed.
+      if (!["42883", "PGRST202"].includes(error.code)) throw error;
+      return [];
+    }
+  },
   getPaidSalesChart: async (range) => {
     try {
       return await runRpc("get_admin_paid_sales_chart", { chart_range: range });

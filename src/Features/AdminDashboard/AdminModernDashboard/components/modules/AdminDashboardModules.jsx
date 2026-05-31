@@ -45,8 +45,11 @@ import {
 } from "lucide-react";
 import {
   useAdminDashboard,
+  useAdminBuyers,
+  useAdminPageActivity,
   useAdminPaidSalesChart,
   useAdminProducts,
+  useAdminUserGrowth,
   useMoveAdminHiringCandidate,
   useQueueAdminAiQuery,
   useSetAdminOrderStatus,
@@ -75,6 +78,21 @@ const SALES_CHART_RANGES = [
   { id: "months", label: "Months" },
   { id: "years", label: "Years" },
 ];
+
+const USER_GROWTH_RANGES = [
+  { id: "days", label: "Days" },
+  { id: "months", label: "Months" },
+  { id: "years", label: "Years" },
+];
+
+const SELLER_FILTERS = [
+  { id: "all", label: "All" },
+  { id: "with_products", label: "With Products" },
+  { id: "without_products", label: "No Products" },
+  { id: "suspended", label: "Suspended" },
+];
+
+const asArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 
 const formatMoney = (minor = 0) =>
   new Intl.NumberFormat("en-NG", {
@@ -109,7 +127,9 @@ const titleCase = (value = "") =>
   value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
 
 const getAdminProductStatus = (product) =>
-  product.status || (!product.is_active ? "inactive" : Number(product.stock || 0) > 0 ? "active" : "out_of_stock");
+  Number(product.stock || 0) <= 0
+    ? "out_of_stock"
+    : product.status || (!product.is_active ? "inactive" : "active");
 
 const PRODUCT_FILTERS = [
   { id: "all", label: "All" },
@@ -125,6 +145,13 @@ const matchesAdminProductFilter = (product, filter) => {
   if (filter === "no_views") return Number(product.views || 0) === 0;
   if (filter === "has_views") return Number(product.views || 0) > 0;
   return getAdminProductStatus(product) === filter;
+};
+
+const matchesAdminSellerFilter = (seller, filter) => {
+  if (filter === "all") return true;
+  if (filter === "with_products") return Number(seller.products || 0) > 0;
+  if (filter === "without_products") return Number(seller.products || 0) === 0;
+  return seller.status === filter;
 };
 
 function useHover() {
@@ -257,6 +284,21 @@ function Td({ children }) {
 function PanelMessage({ children }) {
   return <div style={{padding:'1rem 1.2rem',border:`1px solid ${C.border}`,borderRadius:12,
     background:C.card,color:C.txt2,fontSize:13,lineHeight:1.6}}>{children}</div>;
+}
+
+function PageActivityMetric({ label, metric, valueKey, valueLabel }) {
+  const value = Number(metric?.[valueKey] || 0);
+  return (
+    <div style={{padding:'1rem',border:`1px solid ${C.border}`,borderRadius:12,background:`${C.surface}88`}}>
+      <div style={{fontSize:11,color:C.txt3,textTransform:'uppercase',letterSpacing:'.06em'}}>{label}</div>
+      <strong style={{display:'block',marginTop:8,fontSize:14,color:C.txt,overflowWrap:'anywhere'}}>
+        {metric?.path || "No tracked page yet"}
+      </strong>
+      <div style={{marginTop:7,fontSize:12,color:C.cyan,fontFamily:"'JetBrains Mono',monospace"}}>
+        {value.toLocaleString()} {valueLabel}
+      </div>
+    </div>
+  );
 }
 
 export function ModuleLoader() {
@@ -602,14 +644,19 @@ function ProductsModule({ mutation, productsQuery, toast }) {
   );
 }
 
-function UsersModule({ data }) {
+function UsersModule({ buyersQuery, data }) {
   const [tab, setTab] = useState("buyers");
-  const records = tab === "buyers" ? data.buyers || [] : data.sellers || [];
+  if (buyersQuery.isLoading) return <ModuleLoader/>;
+  if (buyersQuery.isError) return <PanelMessage>{buyersQuery.error.message}</PanelMessage>;
+
+  const buyers = asArray(buyersQuery.data);
+  const sellers = asArray(data.sellers);
+  const records = tab === "buyers" ? buyers : sellers;
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
-        <Stat icon={Users} label="Buyers" value={(data.buyers || []).length}/>
-        <Stat icon={Store} label="Sellers" value={(data.sellers || []).length} color={C.purple}/>
+        <Stat icon={Users} label="Buyers" value={buyers.length}/>
+        <Stat icon={Store} label="Sellers" value={sellers.length} color={C.purple}/>
       </Stats>
       <div style={{display:'flex',gap:7}}>
         {["buyers","sellers"].map((name) => <Btn key={name} variant={tab===name?"cyan":"ghost"} onClick={()=>setTab(name)}>{titleCase(name)}</Btn>)}
@@ -630,11 +677,26 @@ function UsersModule({ data }) {
 }
 
 function SellersModule({ data, mutation, toast }) {
-  const sellers = data.sellers || [];
-  const update = (id, status) => mutation.mutate({ id, status }, {
-    onSuccess: () => toast("Seller status updated", C.green),
-    onError: (error) => toast(error.message, C.red),
-  });
+  const [filter, setFilter] = useState("all");
+  const inFlightSellerIds = useRef(new Set());
+  const sellers = asArray(data.sellers);
+  const filteredSellers = sellers.filter((seller) => matchesAdminSellerFilter(seller, filter));
+  const pendingUpdates = new Map(
+    (mutation.pendingUpdates || []).filter(Boolean).map((pendingUpdate) => [pendingUpdate.id, pendingUpdate]),
+  );
+  const update = async (id, status) => {
+    if (inFlightSellerIds.current.has(id)) return;
+    inFlightSellerIds.current.add(id);
+
+    try {
+      await mutation.mutateAsync({ id, status });
+      toast("Seller status updated", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    } finally {
+      inFlightSellerIds.current.delete(id);
+    }
+  };
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
@@ -643,35 +705,65 @@ function SellersModule({ data, mutation, toast }) {
         <Stat icon={Clock} label="Pending" value={sellers.filter((seller)=>seller.status==="pending").length} color={C.amber}/>
         <Stat icon={XCircle} label="Suspended" value={sellers.filter((seller)=>seller.status==="suspended").length} color={C.red}/>
       </Stats>
-      <Card title={`Sellers (${sellers.length})`}>
-        <Table columns={["Store","Status","Merchandise Sales","Products","Paid Orders","Verified","Actions"]} emptyMessage="No sellers found in the backend."
-          rows={sellers.map((seller) => (
-            <tr key={seller.id}>
+      <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+        {SELLER_FILTERS.map(({ id, label }) => (
+          <Btn key={id} variant={filter===id?"cyan":"ghost"} onClick={()=>setFilter(id)}>{label}</Btn>
+        ))}
+      </div>
+      <Card title={`Sellers (${filteredSellers.length})`}>
+        <Table columns={["Store","Status","Merchandise Sales","Products","Paid Orders","Verified","Actions"]} emptyMessage="No sellers match this filter."
+          rows={filteredSellers.map((seller) => {
+            const pendingUpdate = pendingUpdates.get(seller.id);
+            const isUpdating = Boolean(pendingUpdate);
+            return <tr key={seller.id}>
               <Td>{seller.name}</Td><Td><Badge type={seller.status}/></Td><Td>{formatMoney(seller.revenue_minor)}</Td>
               <Td>{seller.products}</Td><Td>{seller.orders}</Td><Td>{seller.verified?"Yes":"No"}</Td>
               <Td><div style={{display:'flex',gap:5}}>
-                {seller.status!=="active" && <Btn icon={Check} variant="success" onClick={()=>update(seller.id,"active")}>Activate</Btn>}
-                {seller.status!=="suspended" && <Btn icon={X} variant="danger" onClick={()=>update(seller.id,"suspended")}>Suspend</Btn>}
-                {seller.status==="suspended" && <Btn icon={RotateCcw} variant="cyan" onClick={()=>update(seller.id,"pending")}>Reset</Btn>}
+                {seller.status!=="active" && <Btn disabled={isUpdating} icon={isUpdating?Loader2:Check} iconSpin={isUpdating}
+                  variant="success" onClick={()=>update(seller.id,"active")}>
+                  {pendingUpdate?.status==="active"?"Activating...":"Activate"}
+                </Btn>}
+                {seller.status!=="suspended" && <Btn disabled={isUpdating} icon={isUpdating?Loader2:X} iconSpin={isUpdating}
+                  variant="danger" onClick={()=>update(seller.id,"suspended")}>
+                  {pendingUpdate?.status==="suspended"?"Suspending...":"Suspend"}
+                </Btn>}
+                {seller.status==="suspended" && <Btn disabled={isUpdating} icon={isUpdating?Loader2:RotateCcw} iconSpin={isUpdating}
+                  variant="cyan" onClick={()=>update(seller.id,"pending")}>
+                  {pendingUpdate?.status==="pending"?"Resetting...":"Reset"}
+                </Btn>}
               </div></Td>
-            </tr>
-          ))}/>
+            </tr>;
+          })}/>
       </Card>
     </div>
   );
 }
 
 function AnalyticsModule({ data }) {
-  const analytics = data.analytics || {};
-  const funnel = analytics.funnel || [];
-  const categories = data.categories || [];
+  const [growthRange, setGrowthRange] = useState("months");
+  const growthQuery = useAdminUserGrowth(growthRange);
+  const pageActivityQuery = useAdminPageActivity();
+  const analytics = data.analytics && typeof data.analytics === "object" ? data.analytics : {};
+  const funnel = asArray(analytics.funnel);
+  const categories = asArray(data.categories);
+  const pageActivity = pageActivityQuery.data && typeof pageActivityQuery.data === "object"
+    ? pageActivityQuery.data
+    : {};
   const palette = [C.blue,C.cyan,C.green,C.purple,C.amber];
   const maximum = Math.max(...funnel.map((item)=>Number(item.value || 0)), 1);
-  const growth = (analytics.userGrowth || []).map((item) => ({
+  const growthPayload = asArray(growthQuery.data);
+  const growthRecords = growthPayload.length > 0
+    ? growthPayload
+    : growthRange === "months" ? asArray(analytics.userGrowth) : [];
+  const growth = growthRecords.map((item) => ({
     ...item,
-    month: item.month
-      ? new Intl.DateTimeFormat("en-NG", { month:"short", year:"2-digit" }).format(new Date(item.month))
-      : "-",
+    label: item.label || ((item.month || item.date)
+      ? new Intl.DateTimeFormat("en-NG", growthRange === "years"
+        ? { year:"numeric" }
+        : growthRange === "days"
+          ? { month:"short", day:"numeric" }
+          : { month:"short", year:"2-digit" }).format(new Date(item.month || item.date))
+      : "-"),
   }));
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
@@ -681,13 +773,33 @@ function AnalyticsModule({ data }) {
         <Stat icon={Users} label="Registered Users" value={data.stats?.users || 0} color={C.cyan}/>
         <Stat icon={Package} label="Catalog Products" value={data.stats?.products || 0} color={C.purple}/>
       </Stats>
+      <Card title="Page Activity" accent={C.cyan}>
+        <div style={{padding:'1.25rem',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
+          {pageActivityQuery.isError ? <PanelMessage>{pageActivityQuery.error.message}</PanelMessage> : (
+            <>
+              <PageActivityMetric label="Most Visited Page" metric={pageActivity.mostVisitedPage}
+                valueKey="visits" valueLabel="visits"/>
+              <PageActivityMetric label="Highest Activity Page" metric={pageActivity.highestActivityPage}
+                valueKey="events" valueLabel="events"/>
+              <PageActivityMetric label="Lowest Activity Page" metric={pageActivity.lowestActivityPage}
+                valueKey="events" valueLabel="events"/>
+            </>
+          )}
+        </div>
+      </Card>
       <div className="admin-grid-overview" style={{display:'grid',gridTemplateColumns:'minmax(0,5fr) minmax(240px,2fr)',gap:14}}>
-        <Card title="User Growth Trend" accent={C.blue}>
+        <Card title="User Growth Trend" accent={C.blue} actions={
+          <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+            {USER_GROWTH_RANGES.map(({ id, label }) => (
+              <Btn key={id} variant={growthRange===id?"cyan":"ghost"} onClick={()=>setGrowthRange(id)}>{label}</Btn>
+            ))}
+          </div>
+        }>
           <div style={{padding:'1.25rem'}}>
             {growth.length > 0 ? (
               <ResponsiveContainer width="100%" height={230}>
                 <LineChart data={growth} margin={{top:8,right:8,bottom:0,left:-18}}>
-                  <XAxis dataKey="month" tick={{fontSize:11,fill:C.txt3}} axisLine={false} tickLine={false}/>
+                  <XAxis dataKey="label" tick={{fontSize:11,fill:C.txt3}} axisLine={false} tickLine={false}/>
                   <YAxis tick={{fontSize:10,fill:C.txt3}} axisLine={false} tickLine={false}/>
                   <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,fontSize:12}}
                     labelStyle={{color:C.txt}}/>
@@ -695,7 +807,11 @@ function AnalyticsModule({ data }) {
                   <Line type="monotone" dataKey="sellers" stroke={C.cyan} strokeWidth={2} dot={false} name="Sellers"/>
                 </LineChart>
               </ResponsiveContainer>
-            ) : <PanelMessage>No user-growth records are available yet.</PanelMessage>}
+            ) : growthQuery.isError
+              ? <PanelMessage>{growthQuery.error.message}</PanelMessage>
+              : growthQuery.isLoading
+                ? <PanelMessage>Loading user-growth records...</PanelMessage>
+                : <PanelMessage>No user-growth records are available yet.</PanelMessage>}
           </div>
         </Card>
         <Card title="Merchandise Category Share" accent={C.purple}>
@@ -879,6 +995,7 @@ function SettingsModule({ data }) {
 
 export function AdminDashboardModules({ addToast, moduleId, user }) {
   const dashboard = useAdminDashboard();
+  const buyersQuery = useAdminBuyers(moduleId === "users");
   const productsQuery = useAdminProducts(moduleId === "products");
   const orderMutation = useSetAdminOrderStatus();
   const productMutation = useSetAdminProductActive();
@@ -896,7 +1013,7 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
     dashboard: <DashboardModule data={data}/>,
     orders: <OrdersModule {...shared} mutation={orderMutation}/>,
     products: <ProductsModule {...shared} mutation={productMutation} productsQuery={productsQuery}/>,
-    users: <UsersModule data={data}/>,
+    users: <UsersModule buyersQuery={buyersQuery} data={data}/>,
     sellers: <SellersModule {...shared} mutation={sellerMutation}/>,
     analytics: <AnalyticsModule data={data}/>,
     support: <SupportModule {...shared} mutation={supportMutation}/>,
