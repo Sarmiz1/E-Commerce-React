@@ -128,7 +128,7 @@ export function MobileDrawer({ open, isDark, pathname, links, categories, offers
               <div className={`px-4 py-3 border-t ${isDark ? "border-white/5" : "border-gray-100"}`}>
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-2">Account</p>
                 {accountLinks.map((item, i) => {
-                  const isWishlist = item.href === "/product/wishlist";
+                  const isWishlist = item.href === "/wishlist";
                   const isActive = pathname === item.href;
                   const showWishlistState = isWishlist && hasWishlistItems;
                   const itemLabel = showWishlistState

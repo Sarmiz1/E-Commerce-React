@@ -15,6 +15,7 @@ import RegisterForm from "./RegisterForm";
 import glassLogo from "../../../assets/logos/glass_logo.png";
 import logoDark from "../../../assets/logos/logo-darkmode.png";
 import { adminApi } from "../../../api/adminApi";
+import { getSafeAuthReturnTo } from "../utils/authRedirect";
 
 const CATEGORIES = [
   { value: "electronics", label: "Electronics & Gadgets" },
@@ -115,7 +116,7 @@ export default function AuthForm({
     if (!isSuccess) return;
 
     if (mode === "login") {
-      const from = location.state?.from || "/";
+      const from = getSafeAuthReturnTo(location.state?.from, "/");
       let cancelled = false;
 
       adminApi

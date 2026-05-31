@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { consumeAuthReturnTo } from "./utils/authRedirect";
 
 const steps = [
   { id: "session",  label: "Verifying your session"   },
@@ -87,7 +88,10 @@ export default function AuthCallback() {
 
       await new Promise((r) => setTimeout(r, 400));
 
-      if (selectedRole === "seller") {
+      const returnTo = consumeAuthReturnTo();
+      if (returnTo) {
+        navigate(returnTo, { replace: true });
+      } else if (selectedRole === "seller") {
         navigate("/onboarding", { replace: true });
       } else {
         navigate("/account", { replace: true });

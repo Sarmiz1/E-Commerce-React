@@ -118,7 +118,7 @@ export default function CheckoutPage() {
         const result = await OrderAPI.createOrder({
           cartId,
           couponCode: coupon?.code || null,
-          shippingMinor: totals.shipping,
+          shippingTier: selectedShipping,
         });
 
         setOrderNumber(

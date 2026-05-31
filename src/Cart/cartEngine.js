@@ -17,17 +17,33 @@ export const CartEngine = {
   mergeGuestToServer: async (userId, cartId) => {
     const guestCart = CartStorage.get();
 
-    if (!guestCart.length) return;
-
-    for (const item of guestCart) {
-      await CartAPI.add({
-        cartId,
-        productId: item.product_id,
-        variantId: item.variant_id,
-        quantity: item.quantity,
-      });
+    if (!userId || !cartId || !guestCart.length) {
+      return { mergedCount: 0, failedItems: guestCart };
     }
 
-    CartStorage.clear();
+    const results = await Promise.allSettled(
+      guestCart.map((item) =>
+        CartAPI.add({
+          cartId,
+          productId: item.product_id,
+          variantId: item.variant_id,
+          quantity: item.quantity,
+        }),
+      ),
+    );
+    const failedItems = guestCart.filter(
+      (_item, index) => results[index].status === "rejected",
+    );
+
+    if (failedItems.length) {
+      CartStorage.set(failedItems);
+    } else {
+      CartStorage.clear();
+    }
+
+    return {
+      mergedCount: guestCart.length - failedItems.length,
+      failedItems,
+    };
   },
 };

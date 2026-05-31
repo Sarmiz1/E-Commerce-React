@@ -32,6 +32,31 @@ export const WishlistAPI = {
     }
   },
 
+  async mergeGuestToServer() {
+    const guestProductIds = readGuestWishlist();
+    if (!guestProductIds.length) {
+      return { mergedCount: 0, failedProductIds: [] };
+    }
+
+    const results = await Promise.allSettled(
+      guestProductIds.map((productId) => WishlistAPI.add(productId)),
+    );
+    const failedProductIds = guestProductIds.filter(
+      (_productId, index) => results[index].status === "rejected",
+    );
+
+    if (failedProductIds.length) {
+      writeGuestWishlist(failedProductIds);
+    } else {
+      WishlistAPI.clearGuestWishlist();
+    }
+
+    return {
+      mergedCount: guestProductIds.length - failedProductIds.length,
+      failedProductIds,
+    };
+  },
+
   async load() {
     const { data, error } = await supabase
       .from(WISHLIST_TABLE)

@@ -340,7 +340,7 @@ export default function WishlistPage() {
   const bulkBusy = isProcessing || addingItems;
   const wishlistCanonical =
     typeof window !== "undefined"
-      ? `${window.location.origin}/product/wishlist`
+      ? `${window.location.origin}/wishlist`
       : undefined;
   const wishlistSeoImage = (() => {
     const heroProduct = sortedProducts[0] || wishlistProducts[0];

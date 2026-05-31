@@ -3,14 +3,15 @@ const KEY = "guest_cart";
 export const CartStorage = {
   get: () => {
     try {
-      return JSON.parse(localStorage.getItem(KEY)) || [];
+      const items = JSON.parse(localStorage.getItem(KEY)) || [];
+      return Array.isArray(items) ? items : [];
     } catch {
       return [];
     }
   },
 
   set: (items) => {
-    localStorage.setItem(KEY, JSON.stringify(items));
+    localStorage.setItem(KEY, JSON.stringify(Array.isArray(items) ? items : []));
   },
 
   clear: () => localStorage.removeItem(KEY),

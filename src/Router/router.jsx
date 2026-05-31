@@ -322,12 +322,6 @@ const router = createBrowserRouter(
               hydrateFallbackElement={<TrackingSkeleton />}
             />
 
-            <Route
-              path="wishlist"
-              element={<WishlistPage />}
-              loader={fetchProductsLoader}
-              hydrateFallbackElement={<ProductsSkeleton />}
-            />
           </Route>
 
           {/* Public Trade Pages */}
@@ -335,6 +329,13 @@ const router = createBrowserRouter(
             path="cart"
             element={<CartPage />}
             hydrateFallbackElement={<CartSkeleton />}
+          />
+
+          <Route
+            path="wishlist"
+            element={<WishlistPage />}
+            loader={fetchProductsLoader}
+            hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           {/* Products Layout */}
@@ -464,12 +465,14 @@ const router = createBrowserRouter(
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
-          <Route
-            path="members-only"
-            element={<MembersOnlyPage />}
-            loader={fetchProductsLoader}
-            hydrateFallbackElement={<ProductsSkeleton />}
-          />
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="members-only"
+              element={<MembersOnlyPage />}
+              loader={fetchProductsLoader}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+          </Route>
 
           <Route
             path="categories"

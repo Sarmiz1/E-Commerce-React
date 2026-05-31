@@ -8,7 +8,6 @@ import { queryClient } from "../../queries/queryClient";
 import { useToastStore } from "../../Store/useToastStore";
 import {
   useCartStore,
-  selectCartCount,
   getItemKey,
 } from "../../Store/useCartStore";
 
@@ -45,12 +44,19 @@ export function CartProvider({ children }) {
   const store = useCartStore;
 
   // ─── 1. TanStack Query — fetch cart & hydrate Zustand ─────────────────────
-  const { data, isLoading, isFetching, error, status } = useQuery({
+  const { data, isLoading, isFetching, error } = useQuery({
     queryKey: ["cart", user?.id],
     queryFn: async () => {
-      return user?.id
-        ? await CartAPI.load(user.id)
-        : await CartAPI.loadGuestCart(CartEngine.getGuestCart());
+      if (!user?.id) {
+        return CartAPI.loadGuestCart(CartEngine.getGuestCart());
+      }
+
+      const serverCart = await CartAPI.load(user.id);
+      const { mergedCount } = await CartEngine.mergeGuestToServer(
+        user.id,
+        serverCart.cartId,
+      );
+      return mergedCount ? CartAPI.load(user.id) : serverCart;
     },
     enabled: true,
   });

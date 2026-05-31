@@ -1,13 +1,15 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import GoogleIcon from "../Components/GoogleIcon";
 import { signInWithGoogle } from "../Hooks/useAuthMutation";
 
 const SocialAuth = ({ mode, colors, isDark }) => {
+  const location = useLocation();
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(location.state?.from);
     } catch (error) {
       console.error("Google sign-in error:", error);
     }

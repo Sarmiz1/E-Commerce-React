@@ -4,6 +4,7 @@ import {
   supabase,
   supabaseConfigError,
 } from "../../../lib/supabaseClient";
+import { rememberAuthReturnTo } from "../utils/authRedirect";
 
 
 // This function translates raw error messages from Supabase into more user-friendly messages that can be displayed in the UI. It checks for specific keywords in the error message and returns a more understandable message for the user. If no specific case matches, it returns the original message or a generic fallback message. 
@@ -49,12 +50,13 @@ export const getFriendlyError = (message) => {
 };
 
 // Google sign-in is handled separately because it doesn't fit the typical mutation pattern and requires a redirect. We still want to provide user-friendly error messages for it, so we use the same getFriendlyError function.
-export const signInWithGoogle = async () => {
+export const signInWithGoogle = async (returnTo) => {
   if (!isSupabaseConfigured) {
     throw new Error(supabaseConfigError);
   }
 
   const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+  rememberAuthReturnTo(returnTo);
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",

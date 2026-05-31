@@ -35,10 +35,7 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
 
       const guestProductIds = WishlistAPI.getGuestWishlist();
       if (guestProductIds.length) {
-        await Promise.allSettled(
-          guestProductIds.map((guestProductId) => WishlistAPI.add(guestProductId)),
-        );
-        WishlistAPI.clearGuestWishlist();
+        await WishlistAPI.mergeGuestToServer();
       }
 
       return WishlistAPI.load();
