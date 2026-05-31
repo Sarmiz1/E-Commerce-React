@@ -7,7 +7,7 @@ async function runRpc(name, args) {
 }
 
 export const adminDashboardApi = {
-  getDashboard: () => runRpc("get_admin_dashboard"),
+  getDashboard: () => runRpc("get_admin_dashboard_optimized"),
   getBuyers: () => runRpc("get_admin_buyers"),
   getPageActivity: async () => {
     try {
@@ -18,7 +18,13 @@ export const adminDashboardApi = {
       return {};
     }
   },
-  getProducts: () => runRpc("get_admin_products"),
+  getProducts: ({ filter, page, pageSize, search }) =>
+    runRpc("get_admin_products_page", {
+      page_limit: pageSize,
+      page_offset: (page - 1) * pageSize,
+      product_filter: filter,
+      search_term: search,
+    }),
   getUserGrowth: async (range) => {
     try {
       return await runRpc("get_admin_user_growth", { chart_range: range });
@@ -41,6 +47,8 @@ export const adminDashboardApi = {
     runRpc("admin_set_order_status", { order_id: orderId, next_status: status }),
   setProductActive: (productId, active) =>
     runRpc("admin_set_product_active", { product_id: productId, active }),
+  setProductModerationStatus: (productId, status) =>
+    runRpc("admin_set_product_moderation_status", { product_id: productId, next_status: status }),
   setSellerStatus: (sellerId, status) =>
     runRpc("admin_set_seller_status", { seller_id: sellerId, next_status: status }),
   setSupportTicketStatus: (ticketId, status, escalate = false) =>
@@ -54,6 +62,52 @@ export const adminDashboardApi = {
       candidate_id: candidateId,
       next_stage: stage,
     }),
+  getHiring: () => runRpc("get_admin_hiring"),
+  createJobOpening: (job) =>
+    runRpc("admin_create_job_opening", {
+      job_department: job.department,
+      job_employment_type: job.employmentType,
+      job_location: job.location,
+      job_openings: Number(job.openings),
+      job_title: job.title,
+    }),
+  setJobOpeningStatus: (jobId, status) =>
+    runRpc("admin_set_job_opening_status", { job_id: jobId, next_status: status }),
+  saveIntegration: (integration) =>
+    runRpc("admin_upsert_platform_integration", {
+      integration_environment: integration.environment,
+      integration_id: integration.id || null,
+      integration_name: integration.name,
+      integration_service: integration.service,
+      integration_status: integration.status,
+    }),
+  deleteIntegration: (integrationId) =>
+    runRpc("admin_delete_platform_integration", { integration_id: integrationId }),
+  saveSetting: (setting) =>
+    runRpc("admin_upsert_platform_setting", {
+      setting_key: setting.key,
+      setting_value: setting.value,
+    }),
+  deleteSetting: (settingKey) =>
+    runRpc("admin_delete_platform_setting", { setting_key: settingKey }),
+  promoteAdmin: async (admin) => {
+    const result = await runRpc("admin_promote_user", {
+      target_email: admin.email,
+      target_name: admin.name,
+      promotion_passcode: admin.passcode,
+      target_role: admin.role,
+    });
+    if (!result?.success) throw new Error(result?.message || "Admin promotion failed");
+    return result;
+  },
+  configurePromotionPasscode: async (passcode) => {
+    const result = await runRpc("admin_configure_promotion_passcode", {
+      current_passcode: passcode.currentPasscode || null,
+      new_passcode: passcode.newPasscode,
+    });
+    if (!result?.success) throw new Error(result?.message || "Passcode update failed");
+    return result;
+  },
   queueAiQuery: (prompt) =>
     runRpc("admin_queue_ai_query", { query_prompt: prompt }),
 };

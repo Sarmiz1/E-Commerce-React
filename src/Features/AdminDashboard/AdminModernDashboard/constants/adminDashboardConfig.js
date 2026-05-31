@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   Package,
+  ShieldPlus,
   Settings,
   ShoppingCart,
   Store,
@@ -25,7 +26,7 @@ export const glow = (color, power=18) =>
 
 export const ADMIN_ROLES = {
   super_admin:{label:'Super Admin',color:C.purple,icon:'SA',
-    modules:['dashboard','orders','products','users','sellers','analytics','support','ai','hiring','settings'],
+    modules:['dashboard','orders','products','users','sellers','analytics','support','ai','hiring','settings','admin-promotion'],
     canApprove:true,canSuspend:true,canViewKeys:true,canViewFinance:true,canHire:true},
   support_lead:{label:'Support Lead',color:C.cyan,icon:'SL',
     modules:['dashboard','orders','support','users'],
@@ -49,6 +50,7 @@ export const ADMIN_NAV = [
   {id:'ai',label:'AI Insights',icon:Brain},
   {id:'hiring',label:'Hiring',icon:Briefcase},
   {id:'settings',label:'Settings',icon:Settings},
+  {id:'admin-promotion',label:'Admin Promotion',icon:ShieldPlus,hiddenWhenUnauthorized:true},
 ];
 
 export const ADMIN_MODULE_TITLES = Object.fromEntries(
@@ -61,8 +63,9 @@ export const BADGE_MAP = {
   refunded:[C.red,`${C.redDim}99`], paid:[C.green,`${C.greenDim}99`],
   active:[C.green,`${C.greenDim}99`], inactive:[C.txt3,`${C.border}99`],
   out_of_stock:[C.red,`${C.redDim}99`],
+  rejected:[C.red,`${C.redDim}99`], approved:[C.green,`${C.greenDim}99`],
   suspended:[C.red,`${C.redDim}99`], draft:[C.txt3,`${C.border}99`],
-  open:[C.red,`${C.redDim}99`], resolved:[C.green,`${C.greenDim}99`],
+  open:[C.green,`${C.greenDim}99`], closed:[C.txt3,`${C.border}99`], resolved:[C.green,`${C.greenDim}99`],
   high:[C.red,`${C.redDim}99`], medium:[C.amber,`${C.amberDim}99`],
   low:[C.txt3,`${C.border}99`],
 };

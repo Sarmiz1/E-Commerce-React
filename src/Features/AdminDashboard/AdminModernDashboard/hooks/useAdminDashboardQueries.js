@@ -1,10 +1,12 @@
-import { useMutation, useMutationState, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useMutationState, useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminDashboardApi } from "../../../../api/adminDashboardApi";
 
 export const adminDashboardKey = ["admin-dashboard"];
 const adminOrderStatusMutationKey = [...adminDashboardKey, "order-status"];
 const adminProductActiveMutationKey = [...adminDashboardKey, "product-active"];
+const adminProductModerationMutationKey = [...adminDashboardKey, "product-moderation"];
 const adminSellerStatusMutationKey = [...adminDashboardKey, "seller-status"];
+const adminSupportTicketMutationKey = [...adminDashboardKey, "support-ticket"];
 
 export function useAdminDashboard() {
   return useQuery({
@@ -14,10 +16,20 @@ export function useAdminDashboard() {
   });
 }
 
-export function useAdminProducts(enabled = true) {
+export function useAdminProducts(params, enabled = true) {
   return useQuery({
-    queryKey: [...adminDashboardKey, "products"],
-    queryFn: adminDashboardApi.getProducts,
+    queryKey: [...adminDashboardKey, "products", params],
+    queryFn: () => adminDashboardApi.getProducts(params),
+    enabled,
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminHiring(enabled = true) {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "hiring"],
+    queryFn: adminDashboardApi.getHiring,
     enabled,
     staleTime: 30_000,
   });
@@ -150,6 +162,20 @@ export const useSetAdminProductActive = () => {
   return { ...mutation, pendingUpdates };
 };
 
+export const useSetAdminProductModerationStatus = () => {
+  const mutation = useDashboardMutation(
+    ({ id, status }) => adminDashboardApi.setProductModerationStatus(id, status),
+    { mutationKey: adminProductModerationMutationKey },
+  );
+
+  const pendingUpdates = useMutationState({
+    filters: { mutationKey: adminProductModerationMutationKey, status: "pending" },
+    select: (pendingMutation) => pendingMutation.state.variables,
+  });
+
+  return { ...mutation, pendingUpdates };
+};
+
 export const useSetAdminSellerStatus = () => {
   const mutation = useDashboardMutation(
     ({ id, status }) => adminDashboardApi.setSellerStatus(id, status),
@@ -164,12 +190,46 @@ export const useSetAdminSellerStatus = () => {
   return { ...mutation, pendingUpdates };
 };
 
-export const useSetAdminSupportTicketStatus = () =>
-  useDashboardMutation(({ id, status, escalate }) =>
-    adminDashboardApi.setSupportTicketStatus(id, status, escalate));
+export const useSetAdminSupportTicketStatus = () => {
+  const mutation = useDashboardMutation(
+    ({ id, status, escalate }) => adminDashboardApi.setSupportTicketStatus(id, status, escalate),
+    { mutationKey: adminSupportTicketMutationKey },
+  );
+
+  const pendingUpdates = useMutationState({
+    filters: { mutationKey: adminSupportTicketMutationKey, status: "pending" },
+    select: (pendingMutation) => pendingMutation.state.variables,
+  });
+
+  return { ...mutation, pendingUpdates };
+};
 
 export const useMoveAdminHiringCandidate = () =>
   useDashboardMutation(({ id, stage }) => adminDashboardApi.moveHiringCandidate(id, stage));
+
+export const useCreateAdminJobOpening = () =>
+  useDashboardMutation((job) => adminDashboardApi.createJobOpening(job));
+
+export const useSetAdminJobOpeningStatus = () =>
+  useDashboardMutation(({ id, status }) => adminDashboardApi.setJobOpeningStatus(id, status));
+
+export const useSaveAdminIntegration = () =>
+  useDashboardMutation((integration) => adminDashboardApi.saveIntegration(integration));
+
+export const useDeleteAdminIntegration = () =>
+  useDashboardMutation((id) => adminDashboardApi.deleteIntegration(id));
+
+export const useSaveAdminSetting = () =>
+  useDashboardMutation((setting) => adminDashboardApi.saveSetting(setting));
+
+export const useDeleteAdminSetting = () =>
+  useDashboardMutation((key) => adminDashboardApi.deleteSetting(key));
+
+export const usePromoteAdmin = () =>
+  useDashboardMutation((admin) => adminDashboardApi.promoteAdmin(admin));
+
+export const useConfigureAdminPromotionPasscode = () =>
+  useDashboardMutation((passcode) => adminDashboardApi.configurePromotionPasscode(passcode));
 
 export const useQueueAdminAiQuery = () =>
   useDashboardMutation((prompt) => adminDashboardApi.queueAiQuery(prompt));

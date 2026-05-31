@@ -93,12 +93,19 @@ viewport, and hiring columns collapse into a readable single-column flow.
 | Hook | Backend action |
 | --- | --- |
 | `useAdminDashboard()` | Fetches the aggregate dashboard payload with key `["admin-dashboard"]`. |
-| `useAdminProducts()` | Fetches Products-tab catalog records with backend-owned creation and update timestamps. |
+| `useAdminProducts(params)` | Fetches one server-filtered Products-tab page with backend-owned creation and update timestamps. |
 | `useSetAdminOrderStatus()` | Updates an order status. |
 | `useSetAdminProductActive()` | Activates or deactivates a product. |
+| `useSetAdminProductModerationStatus()` | Approves or rejects a pending product. |
 | `useSetAdminSellerStatus()` | Updates seller approval state. |
 | `useSetAdminSupportTicketStatus()` | Resolves or escalates a support ticket. |
 | `useMoveAdminHiringCandidate()` | Advances a hiring candidate to another stage. |
+| `useAdminHiring()` | Fetches hiring candidates, stages, and vacancy records. |
+| `useCreateAdminJobOpening()` | Creates a vacancy record. |
+| `useSetAdminJobOpeningStatus()` | Reopens or closes a vacancy record. |
+| `useSaveAdminIntegration()` / `useDeleteAdminIntegration()` | Manages platform integrations. |
+| `useSaveAdminSetting()` / `useDeleteAdminSetting()` | Manages JSON platform settings. |
+| `usePromoteAdmin()` | Promotes an existing Auth account after super-admin and passcode verification. |
 | `useQueueAdminAiQuery()` | Adds an AI analysis request to the backend queue. |
 
 Every mutation invalidates `["admin-dashboard"]` after it settles, so each
@@ -121,8 +128,9 @@ writes interaction events to `events`, and a database trigger synchronizes
 `view_product`, `product_detail_viewed`, and `quick_view_opened` events into
 `product_metrics.view_count`. A migration backfill restores counts for tracked
 events that existed before the trigger was added.
-The Products tab can filter the loaded catalog by effective inventory status
-or by whether a product has recorded views.
+The Products tab queries server-filtered pages of 75 records and mounts only a
+small visible row window. It can filter by active, pending review, rejected,
+inventory, or view state without rendering or transferring the full catalog.
 
 ### Dashboard Modules
 
@@ -134,14 +142,15 @@ and access-denied states consistently.
 | --- | --- | --- |
 | Dashboard | Summary metrics, paid revenue, pending unpaid value, seven-day paid revenue, category merchandise sales, recent activity. | Read-only overview. |
 | Orders | Orders and status details. | Ship or cancel an order. |
-| Products | Product catalog records, stock-first inventory state, creation date, and last update date. | Filter by inventory or views, then activate or deactivate a product. |
+| Products | Paged product catalog records, moderation state, stock-first inventory state, creation date, and last update date. | Search, filter, approve, reject, activate, or deactivate products. Rows are virtualized. |
 | Users | Buyer and seller records. Privileged admin identities are excluded from the buyer list. | Switch between buyer and seller views. |
 | Sellers | Seller profiles, approval state, and product counts. | Filter sellers by product availability or suspension state, then activate, suspend, or reset seller state. |
-| Analytics | Revenue, order, user, product, day/month/year growth, funnel, and page-activity metrics. | Read-only reporting. |
-| Support | Admin support tickets. | Resolve or escalate a ticket. |
+| Analytics | Revenue, order, user, product, day/month/year growth, funnel, and page-activity metrics. | Open a searchable modal with views and event counts for every tracked page. |
+| Support | Filterable admin support tickets. | Resolve or escalate a ticket. |
 | AI Insights | Queue size, product search signals, recent AI requests, statuses, and responses. | Queue a new AI analysis prompt. |
-| Hiring | Backend-defined hiring stages and candidates. | Move a candidate to the next stage. |
-| Settings | Admin accounts, integrations, and platform settings. | Read-only until dedicated mutation RPCs are added. |
+| Hiring | Vacancy records, open vacancy count, backend-defined hiring stages, and candidates. | Create, filter, reopen, or close jobs and move candidates forward. |
+| Settings | Admin accounts, platform integrations, and JSON platform settings. | Add, edit, or delete integrations and settings. |
+| Admin Promotion | Existing Auth accounts eligible for privileged membership. | Super admins can configure a six-digit passcode and promote accounts. Hidden from every other role. |
 
 Shared micro components in the module file include `Badge`, `Btn`, `Card`,
 `Stat`, `Stats`, `Table`, `Td`, `PanelMessage`, `ModuleLoader`, `Toast`,
@@ -155,17 +164,25 @@ TanStack Query to handle.
 
 | Frontend method | PostgreSQL RPC |
 | --- | --- |
-| `getDashboard()` | `get_admin_dashboard` |
+| `getDashboard()` | `get_admin_dashboard_optimized` |
 | `getBuyers()` | `get_admin_buyers` |
 | `getPageActivity()` | `get_admin_page_activity` |
-| `getProducts()` | `get_admin_products` |
+| `getProducts(params)` | `get_admin_products_page` |
 | `getUserGrowth(range)` | `get_admin_user_growth` |
 | `getPaidSalesChart(range)` | `get_admin_paid_sales_chart` |
 | `setOrderStatus(orderId, status)` | `admin_set_order_status` |
 | `setProductActive(productId, active)` | `admin_set_product_active` |
+| `setProductModerationStatus(productId, status)` | `admin_set_product_moderation_status` |
 | `setSellerStatus(sellerId, status)` | `admin_set_seller_status` |
 | `setSupportTicketStatus(ticketId, status, escalate)` | `admin_set_support_ticket_status` |
 | `moveHiringCandidate(candidateId, stage)` | `admin_move_hiring_candidate` |
+| `getHiring()` | `get_admin_hiring` |
+| `createJobOpening(job)` | `admin_create_job_opening` |
+| `setJobOpeningStatus(jobId, status)` | `admin_set_job_opening_status` |
+| `saveIntegration(integration)` / `deleteIntegration(id)` | `admin_upsert_platform_integration` / `admin_delete_platform_integration` |
+| `saveSetting(setting)` / `deleteSetting(key)` | `admin_upsert_platform_setting` / `admin_delete_platform_setting` |
+| `promoteAdmin(admin)` | `admin_promote_user` |
+| `configurePromotionPasscode(passcode)` | `admin_configure_promotion_passcode` |
 | `queueAiQuery(prompt)` | `admin_queue_ai_query` |
 
 The aggregate `get_admin_dashboard` RPC returns a role-scoped payload for the
@@ -209,6 +226,7 @@ Apply the admin migrations before using the dashboard:
 | `supabase/migrations/20260530070000_add_admin_product_inventory_status.sql` | Adds backend-derived product inventory status and prevents activation without sellable stock. |
 | `supabase/migrations/20260530080000_sync_product_view_metrics.sql` | Synchronizes tracked product-view events into product metrics and backfills historical views. |
 | `supabase/migrations/20260530130000_improve_admin_dashboard_operations.sql` | Adds stock-first product classification, admin-excluded buyers, robust seller status updates, page activity metrics, and day/month/year user-growth ranges. |
+| `supabase/migrations/20260530140000_expand_admin_dashboard_operations.sql` | Adds the lean dashboard payload, paged product moderation, searchable page activity, support UX filters, hiring vacancies, editable settings, and passcode-protected admin promotion. |
 
 The dashboard backend migration adds:
 
@@ -216,6 +234,7 @@ The dashboard backend migration adds:
 | --- | --- |
 | `admin_support_tickets` | Support work queue. |
 | `admin_hiring_candidates` | Hiring pipeline records. |
+| `admin_job_openings` | Hiring vacancy records. |
 | `admin_platform_integrations` | Platform integration status. |
 | `admin_platform_settings` | Backend-owned platform configuration. |
 | `admin_activity_log` | Operational activity feed. |
@@ -231,13 +250,24 @@ The frontend currently presents these module groups:
 
 | Role | Visible modules |
 | --- | --- |
-| `super_admin` | All modules, including AI Insights, Hiring, and Settings. |
+| `super_admin` | All modules, including AI Insights, Hiring, Settings, and Admin Promotion. |
 | `support_lead` | Dashboard, Orders, Support, Users. |
 | `finance_manager` | Dashboard, Orders, Analytics, Settings. |
 | `content_mod` | Dashboard, Products, Sellers. |
 
 Treat this as interface configuration. Update PostgreSQL authorization rules
 when adding or changing privileged capabilities.
+
+### Admin Promotion Passcode
+
+The Admin Promotion tab is omitted entirely for non-super-admin roles. Promotion
+also requires a six-digit passcode. The database stores only a bcrypt hash in
+the private schema, applies a temporary lock after repeated failed promotion
+attempts, and logs successful configuration and promotion events.
+
+On first use, a super admin configures the initial code in the tab. Later
+rotations require the current code. The passcode is an additional control, not
+a substitute for strong Supabase account passwords or MFA.
 
 ## AI Insights
 

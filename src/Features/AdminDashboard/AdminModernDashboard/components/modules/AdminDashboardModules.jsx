@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -24,19 +24,27 @@ import {
   Briefcase,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   DollarSign,
+  Edit2,
+  Eye,
+  Filter,
   Key,
   LifeBuoy,
   Loader2,
   Package,
+  Plus,
   RotateCcw,
+  Search,
   Send,
   Shield,
   ShoppingCart,
   Sparkles,
   Store,
   Ticket,
+  Trash2,
   TrendingUp,
   Truck,
   Users,
@@ -46,14 +54,24 @@ import {
 import {
   useAdminDashboard,
   useAdminBuyers,
+  useAdminHiring,
   useAdminPageActivity,
   useAdminPaidSalesChart,
   useAdminProducts,
   useAdminUserGrowth,
+  useConfigureAdminPromotionPasscode,
+  useCreateAdminJobOpening,
+  useDeleteAdminIntegration,
+  useDeleteAdminSetting,
   useMoveAdminHiringCandidate,
+  usePromoteAdmin,
   useQueueAdminAiQuery,
+  useSaveAdminIntegration,
+  useSaveAdminSetting,
+  useSetAdminJobOpeningStatus,
   useSetAdminOrderStatus,
   useSetAdminProductActive,
+  useSetAdminProductModerationStatus,
   useSetAdminSellerStatus,
   useSetAdminSupportTicketStatus,
 } from "../../hooks/useAdminDashboardQueries";
@@ -92,6 +110,17 @@ const SELLER_FILTERS = [
   { id: "suspended", label: "Suspended" },
 ];
 
+const SUPPORT_FILTERS = [
+  { id: "all", label: "All" },
+  { id: "open", label: "Open" },
+  { id: "pending", label: "Pending" },
+  { id: "resolved", label: "Resolved" },
+  { id: "escalated", label: "Escalated" },
+  { id: "high_priority", label: "High Priority" },
+];
+
+const PRODUCT_PAGE_SIZE = 75;
+
 const asArray = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
 
 const formatMoney = (minor = 0) =>
@@ -127,31 +156,35 @@ const titleCase = (value = "") =>
   value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
 
 const getAdminProductStatus = (product) =>
-  Number(product.stock || 0) <= 0
+  product.moderation_status === "pending" || product.moderation_status === "rejected"
+    ? product.moderation_status
+    : Number(product.stock || 0) <= 0
     ? "out_of_stock"
     : product.status || (!product.is_active ? "inactive" : "active");
 
 const PRODUCT_FILTERS = [
   { id: "all", label: "All" },
+  { id: "active", label: "Active" },
+  { id: "pending", label: "Pending Review" },
+  { id: "rejected", label: "Rejected" },
   { id: "out_of_stock", label: "Out Of Stock" },
   { id: "inactive", label: "Inactive" },
-  { id: "active", label: "Active" },
   { id: "no_views", label: "No Views" },
   { id: "has_views", label: "Has Views" },
 ];
-
-const matchesAdminProductFilter = (product, filter) => {
-  if (filter === "all") return true;
-  if (filter === "no_views") return Number(product.views || 0) === 0;
-  if (filter === "has_views") return Number(product.views || 0) > 0;
-  return getAdminProductStatus(product) === filter;
-};
 
 const matchesAdminSellerFilter = (seller, filter) => {
   if (filter === "all") return true;
   if (filter === "with_products") return Number(seller.products || 0) > 0;
   if (filter === "without_products") return Number(seller.products || 0) === 0;
   return seller.status === filter;
+};
+
+const matchesSupportFilter = (ticket, filter) => {
+  if (filter === "all") return true;
+  if (filter === "escalated") return ticket.is_escalated;
+  if (filter === "high_priority") return ticket.priority === "high";
+  return ticket.status === filter;
 };
 
 function useHover() {
@@ -177,7 +210,7 @@ function Badge({ type }) {
   );
 }
 
-function Btn({ children, disabled, icon: Icon, iconSpin=false, onClick, variant="ghost" }) {
+function Btn({ children, disabled, icon: Icon, iconSpin=false, onClick, type="button", variant="ghost" }) {
   const [hovered, hoverProps] = useHover();
   const variants = {
     ghost: [C.txt2, "transparent", C.border],
@@ -189,7 +222,7 @@ function Btn({ children, disabled, icon: Icon, iconSpin=false, onClick, variant=
   const [color, background, border] = variants[variant] || variants.ghost;
   const isHovered = hovered && !disabled;
   return (
-    <button {...hoverProps} disabled={disabled} onClick={onClick} style={{display:'inline-flex',alignItems:'center',
+    <button {...hoverProps} type={type} disabled={disabled} onClick={onClick} style={{display:'inline-flex',alignItems:'center',
       gap:5,padding:'5px 10px',borderRadius:8,fontSize:11,fontWeight:700,
       color:disabled?C.txt3:color,background:isHovered?`${color}24`:background,
       border:`1px solid ${isHovered?`${color}88`:border}`,
@@ -251,9 +284,20 @@ function Stats({ children }) {
   return <div className="admin-stats" style={{display:'flex',gap:12,flexWrap:'wrap'}}>{children}</div>;
 }
 
-function Table({ columns, rows, emptyMessage }) {
+function Table({ columns, rows, emptyMessage, virtualize=false }) {
+  const [scrollTop, setScrollTop] = useState(0);
+  const rowHeight = 54;
+  const viewportHeight = 560;
+  const overscan = 6;
+  const startIndex = virtualize ? Math.max(0, Math.floor(scrollTop / rowHeight) - overscan) : 0;
+  const visibleCount = virtualize ? Math.ceil(viewportHeight / rowHeight) + overscan * 2 : rows.length;
+  const visibleRows = virtualize ? rows.slice(startIndex, startIndex + visibleCount) : rows;
+  const leadingHeight = startIndex * rowHeight;
+  const trailingHeight = Math.max(0, (rows.length - startIndex - visibleRows.length) * rowHeight);
+
   return (
-    <div className="admin-table-scroll" style={{overflowX:'auto'}}>
+    <div className="admin-table-scroll" onScroll={virtualize?(event)=>setScrollTop(event.currentTarget.scrollTop):undefined}
+      style={{overflowX:'auto',overflowY:virtualize?'auto':undefined,maxHeight:virtualize?viewportHeight:undefined}}>
       <table style={{width:'100%',borderCollapse:'collapse'}}>
         <thead>
           <tr style={{borderBottom:`1px solid ${C.border}`}}>{columns.map((column) => (
@@ -263,16 +307,73 @@ function Table({ columns, rows, emptyMessage }) {
           ))}</tr>
         </thead>
         <tbody>
-          {rows.length ? rows : (
+          {leadingHeight > 0 && <tr aria-hidden="true"><td colSpan={columns.length} style={{height:leadingHeight,padding:0}}/></tr>}
+          {rows.length ? visibleRows : (
             <tr>
               <td colSpan={columns.length} style={{padding:'2rem',textAlign:'center',color:C.txt3,fontSize:13}}>
                 {emptyMessage}
               </td>
             </tr>
           )}
+          {trailingHeight > 0 && <tr aria-hidden="true"><td colSpan={columns.length} style={{height:trailingHeight,padding:0}}/></tr>}
         </tbody>
       </table>
     </div>
+  );
+}
+
+function AdminModal({ children, onClose, title }) {
+  useEffect(() => {
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={title} style={{position:'fixed',inset:0,zIndex:1200,
+      display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem',background:'#000000BB'}}>
+      <button type="button" aria-label="Close modal" onClick={onClose}
+        style={{position:'absolute',inset:0,border:0,background:'transparent',cursor:'pointer'}}/>
+      <section style={{position:'relative',width:'min(900px,100%)',maxHeight:'min(760px,calc(100dvh - 2rem))',
+        overflow:'auto',background:C.card,border:`1px solid ${C.borderHov}`,borderRadius:16,
+        boxShadow:'0 28px 90px #000000DD'}}>
+        <header style={{position:'sticky',top:0,zIndex:1,display:'flex',alignItems:'center',
+          justifyContent:'space-between',gap:12,padding:'1rem 1.2rem',background:C.card,borderBottom:`1px solid ${C.border}`}}>
+          <strong style={{fontSize:15,color:C.txt}}>{title}</strong>
+          <Btn icon={X} onClick={onClose}>Close</Btn>
+        </header>
+        {children}
+      </section>
+    </div>
+  );
+}
+
+const inputStyle = {width:'100%',padding:'10px 12px',borderRadius:9,border:`1px solid ${C.border}`,
+  background:C.surface,color:C.txt,fontSize:12};
+
+function Field({ children, label }) {
+  return (
+    <label style={{display:'flex',flexDirection:'column',gap:6,fontSize:11,color:C.txt3}}>
+      <span style={{fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em'}}>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function SearchInput({ onChange, placeholder, value }) {
+  return (
+    <label style={{position:'relative',display:'block',minWidth:220,flex:'1 1 260px'}}>
+      <Search size={14} color={C.txt3} style={{position:'absolute',left:11,top:'50%',transform:'translateY(-50%)'}}/>
+      <input value={value} onChange={onChange} placeholder={placeholder}
+        style={{...inputStyle,paddingLeft:34}}/>
+    </label>
   );
 }
 
@@ -578,16 +679,39 @@ function OrdersModule({ data, mutation, toast }) {
   );
 }
 
-function ProductsModule({ mutation, productsQuery, toast }) {
+function ProductsModule({ moderationMutation, mutation, toast }) {
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const inFlightProductIds = useRef(new Set());
+  const productsQuery = useAdminProducts({
+    filter,
+    page,
+    pageSize: PRODUCT_PAGE_SIZE,
+    search,
+  });
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPage(1);
+      setSearch(searchInput.trim());
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
   if (productsQuery.isLoading) return <ModuleLoader/>;
   if (productsQuery.isError) return <PanelMessage>{productsQuery.error.message}</PanelMessage>;
 
-  const products = productsQuery.data || [];
-  const filteredProducts = products.filter((product) => matchesAdminProductFilter(product, filter));
+  const products = asArray(productsQuery.data?.items);
+  const summary = productsQuery.data?.summary || {};
+  const total = Number(productsQuery.data?.total || 0);
+  const pageCount = Math.max(1, Math.ceil(total / PRODUCT_PAGE_SIZE));
   const pendingUpdates = new Map(
     (mutation.pendingUpdates || []).filter(Boolean).map((pendingUpdate) => [pendingUpdate.id, pendingUpdate]),
+  );
+  const pendingModerationUpdates = new Map(
+    (moderationMutation.pendingUpdates || []).filter(Boolean).map((pendingUpdate) => [pendingUpdate.id, pendingUpdate]),
   );
   const update = async (id, active) => {
     if (inFlightProductIds.current.has(id)) return;
@@ -602,25 +726,46 @@ function ProductsModule({ mutation, productsQuery, toast }) {
       inFlightProductIds.current.delete(id);
     }
   };
+  const moderate = async (id, status) => {
+    if (inFlightProductIds.current.has(id)) return;
+    inFlightProductIds.current.add(id);
+
+    try {
+      await moderationMutation.mutateAsync({ id, status });
+      toast(`Product ${status}`, status === "approved" ? C.green : C.amber);
+    } catch (error) {
+      toast(error.message, C.red);
+    } finally {
+      inFlightProductIds.current.delete(id);
+    }
+  };
+  const changeFilter = (nextFilter) => {
+    setFilter(nextFilter);
+    setPage(1);
+  };
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
-        <Stat icon={Package} label="Products" value={products.length}/>
-        <Stat icon={CheckCircle2} label="Active" value={products.filter((product)=>getAdminProductStatus(product)==="active").length} color={C.green}/>
-        <Stat icon={XCircle} label="Out Of Stock" value={products.filter((product)=>getAdminProductStatus(product)==="out_of_stock").length} color={C.red}/>
-        <Stat icon={XCircle} label="Inactive" value={products.filter((product)=>getAdminProductStatus(product)==="inactive").length} color={C.txt3}/>
+        <Stat icon={Package} label="Products" value={Number(summary.all || 0)}/>
+        <Stat icon={CheckCircle2} label="Active" value={Number(summary.active || 0)} color={C.green}/>
+        <Stat icon={Clock} label="Pending Review" value={Number(summary.pending || 0)} color={C.amber}/>
+        <Stat icon={XCircle} label="Out Of Stock" value={Number(summary.out_of_stock || 0)} color={C.red}/>
       </Stats>
-      <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+      <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
+        <SearchInput value={searchInput} onChange={(event)=>setSearchInput(event.target.value)}
+          placeholder="Search products, categories, or sellers..."/>
         {PRODUCT_FILTERS.map(({ id, label }) => (
-          <Btn key={id} variant={filter===id?"cyan":"ghost"} onClick={()=>setFilter(id)}>{label}</Btn>
+          <Btn key={id} variant={filter===id?"cyan":"ghost"} onClick={()=>changeFilter(id)}>{label}</Btn>
         ))}
       </div>
-      <Card title={`Products (${filteredProducts.length})`}>
+      <Card title={`Products (${total.toLocaleString()})`} actions={
+        <span style={{fontSize:11,color:C.txt3}}>Page {page} of {pageCount}</span>
+      }>
         <Table columns={["Product","Category","Seller","Price","Stock","Views","Date Created","Date Updated","Status","Actions"]}
-          emptyMessage="No products match this filter."
-          rows={filteredProducts.map((product) => {
-            const pendingUpdate = pendingUpdates.get(product.id);
-            const isUpdating = Boolean(pendingUpdate);
+          emptyMessage="No products match this filter." virtualize
+          rows={products.map((product) => {
+            const pendingUpdate = pendingUpdates.get(product.id) || pendingModerationUpdates.get(product.id);
+            const isUpdating = Boolean(pendingUpdate) || inFlightProductIds.current.has(product.id);
             const productStatus = getAdminProductStatus(product);
             const hasSellableStock = Number(product.stock || 0) > 0;
             return (
@@ -629,17 +774,32 @@ function ProductsModule({ mutation, productsQuery, toast }) {
                 <Td>{formatMoney(product.price_minor)}</Td><Td>{product.stock}</Td><Td>{product.views}</Td>
                 <Td>{formatDate(product.created_at)}</Td><Td>{formatDate(product.updated_at)}</Td>
                 <Td><Badge type={productStatus}/></Td>
-                <Td>{product.is_active
+                <Td><div style={{display:'flex',gap:5}}>
+                  {product.moderation_status==="pending" && <>
+                    <Btn disabled={isUpdating} icon={isUpdating?Loader2:Check} iconSpin={isUpdating} variant="success"
+                      onClick={()=>moderate(product.id,"approved")}>{isUpdating?"Saving...":"Approve"}</Btn>
+                    <Btn disabled={isUpdating} icon={X} variant="danger"
+                      onClick={()=>moderate(product.id,"rejected")}>Reject</Btn>
+                  </>}
+                  {product.moderation_status==="rejected" &&
+                    <Btn disabled={isUpdating} icon={isUpdating?Loader2:Check} iconSpin={isUpdating} variant="success"
+                      onClick={()=>moderate(product.id,"approved")}>{isUpdating?"Saving...":"Approve"}</Btn>}
+                  {product.moderation_status==="approved" && (product.is_active
                   ? <Btn disabled={isUpdating} icon={isUpdating?Loader2:X} iconSpin={isUpdating} variant="danger"
                     onClick={()=>update(product.id,false)}>{isUpdating?"Deactivating...":"Deactivate"}</Btn>
                   : !hasSellableStock
                     ? <Btn disabled icon={XCircle}>Restock required</Btn>
                   : <Btn disabled={isUpdating} icon={isUpdating?Loader2:Check} iconSpin={isUpdating} variant="success"
-                    onClick={()=>update(product.id,true)}>{isUpdating?"Activating...":"Activate"}</Btn>}</Td>
+                    onClick={()=>update(product.id,true)}>{isUpdating?"Activating...":"Activate"}</Btn>)}
+                </div></Td>
               </tr>
             );
           })}/>
       </Card>
+      <div style={{display:'flex',justifyContent:'flex-end',gap:7}}>
+        <Btn disabled={page<=1 || productsQuery.isFetching} icon={ChevronLeft} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Btn>
+        <Btn disabled={page>=pageCount || productsQuery.isFetching} icon={ChevronRight} onClick={()=>setPage((current)=>Math.min(pageCount,current+1))}>Next</Btn>
+      </div>
     </div>
   );
 }
@@ -741,6 +901,8 @@ function SellersModule({ data, mutation, toast }) {
 
 function AnalyticsModule({ data }) {
   const [growthRange, setGrowthRange] = useState("months");
+  const [pageActivityOpen, setPageActivityOpen] = useState(false);
+  const [pageSearch, setPageSearch] = useState("");
   const growthQuery = useAdminUserGrowth(growthRange);
   const pageActivityQuery = useAdminPageActivity();
   const analytics = data.analytics && typeof data.analytics === "object" ? data.analytics : {};
@@ -749,6 +911,9 @@ function AnalyticsModule({ data }) {
   const pageActivity = pageActivityQuery.data && typeof pageActivityQuery.data === "object"
     ? pageActivityQuery.data
     : {};
+  const pageRows = asArray(pageActivity.pages);
+  const filteredPageRows = pageRows.filter((page) =>
+    page.path?.toLowerCase().includes(pageSearch.trim().toLowerCase()));
   const palette = [C.blue,C.cyan,C.green,C.purple,C.amber];
   const maximum = Math.max(...funnel.map((item)=>Number(item.value || 0)), 1);
   const growthPayload = asArray(growthQuery.data);
@@ -773,7 +938,9 @@ function AnalyticsModule({ data }) {
         <Stat icon={Users} label="Registered Users" value={data.stats?.users || 0} color={C.cyan}/>
         <Stat icon={Package} label="Catalog Products" value={data.stats?.products || 0} color={C.purple}/>
       </Stats>
-      <Card title="Page Activity" accent={C.cyan}>
+      <Card title="Page Activity" accent={C.cyan} actions={
+        <Btn icon={Eye} onClick={()=>setPageActivityOpen(true)}>View All Pages</Btn>
+      }>
         <div style={{padding:'1.25rem',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(190px,1fr))',gap:10}}>
           {pageActivityQuery.isError ? <PanelMessage>{pageActivityQuery.error.message}</PanelMessage> : (
             <>
@@ -874,16 +1041,45 @@ function AnalyticsModule({ data }) {
           </div>
         </Card>
       </div>
+      {pageActivityOpen && (
+        <AdminModal title="All Page Activity" onClose={()=>{setPageActivityOpen(false);setPageSearch("");}}>
+          <div style={{padding:'1rem 1.2rem',display:'flex',flexDirection:'column',gap:12}}>
+            <SearchInput value={pageSearch} onChange={(event)=>setPageSearch(event.target.value)}
+              placeholder="Filter pages by path..."/>
+            <Table columns={["Page Path","Views","Activity Events"]}
+              emptyMessage="No tracked pages match this search."
+              rows={filteredPageRows.map((page) => <tr key={page.path}>
+                <Td>{page.path}</Td><Td>{Number(page.visits || 0).toLocaleString()}</Td>
+                <Td>{Number(page.events || 0).toLocaleString()}</Td>
+              </tr>)}/>
+          </div>
+        </AdminModal>
+      )}
     </div>
   );
 }
 
 function SupportModule({ data, mutation, toast }) {
-  const tickets = data.supportTickets || [];
-  const update = (id, status, escalate=false) => mutation.mutate({ id, status, escalate }, {
-    onSuccess: () => toast("Support ticket updated", C.green),
-    onError: (error) => toast(error.message, C.red),
-  });
+  const [filter, setFilter] = useState("all");
+  const inFlightTicketIds = useRef(new Set());
+  const tickets = asArray(data.supportTickets);
+  const filteredTickets = tickets.filter((ticket) => matchesSupportFilter(ticket, filter));
+  const pendingUpdates = new Map(
+    (mutation.pendingUpdates || []).filter(Boolean).map((pendingUpdate) => [pendingUpdate.id, pendingUpdate]),
+  );
+  const update = async (id, status, escalate=false) => {
+    if (inFlightTicketIds.current.has(id)) return;
+    inFlightTicketIds.current.add(id);
+
+    try {
+      await mutation.mutateAsync({ id, status, escalate });
+      toast("Support ticket updated", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    } finally {
+      inFlightTicketIds.current.delete(id);
+    }
+  };
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
@@ -891,17 +1087,27 @@ function SupportModule({ data, mutation, toast }) {
         <Stat icon={AlertTriangle} label="High priority" value={tickets.filter((ticket)=>ticket.priority==="high").length} color={C.amber}/>
         <Stat icon={CheckCircle2} label="Resolved" value={tickets.filter((ticket)=>ticket.status==="resolved").length} color={C.green}/>
       </Stats>
-      <Card title={`Support Tickets (${tickets.length})`}>
+      <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+        {SUPPORT_FILTERS.map(({ id, label }) => (
+          <Btn key={id} variant={filter===id?"cyan":"ghost"} onClick={()=>setFilter(id)}>{label}</Btn>
+        ))}
+      </div>
+      <Card title={`Support Tickets (${filteredTickets.length})`}>
         <Table columns={["Ticket","User","Subject","Category","Priority","Status","Created","Actions"]}
-          emptyMessage="No support tickets found in the backend."
-          rows={tickets.map((ticket) => <tr key={ticket.id}>
-            <Td>{ticket.ticket_number}</Td><Td>{ticket.user_name}</Td><Td>{ticket.subject}</Td><Td>{ticket.category}</Td>
-            <Td><Badge type={ticket.priority}/></Td><Td><Badge type={ticket.status}/></Td><Td>{formatDate(ticket.created_at)}</Td>
-            <Td><div style={{display:'flex',gap:5}}>
-              {ticket.status!=="resolved" && <Btn icon={Check} variant="success" onClick={()=>update(ticket.id,"resolved")}>Resolve</Btn>}
-              {!ticket.is_escalated && <Btn icon={AlertCircle} variant="purple" onClick={()=>update(ticket.id,ticket.status,true)}>Escalate</Btn>}
-            </div></Td>
-          </tr>)}/>
+          emptyMessage="No support tickets match this filter."
+          rows={filteredTickets.map((ticket) => {
+            const isUpdating = pendingUpdates.has(ticket.id) || inFlightTicketIds.current.has(ticket.id);
+            return <tr key={ticket.id}>
+              <Td>{ticket.ticket_number}</Td><Td>{ticket.user_name}</Td><Td>{ticket.subject}</Td><Td>{ticket.category}</Td>
+              <Td><Badge type={ticket.priority}/></Td><Td><Badge type={ticket.status}/></Td><Td>{formatDate(ticket.created_at)}</Td>
+              <Td><div style={{display:'flex',gap:5}}>
+                {ticket.status!=="resolved" && <Btn disabled={isUpdating} icon={isUpdating?Loader2:Check} iconSpin={isUpdating}
+                  variant="success" onClick={()=>update(ticket.id,"resolved")}>{isUpdating?"Saving...":"Resolve"}</Btn>}
+                {!ticket.is_escalated && <Btn disabled={isUpdating} icon={isUpdating?Loader2:AlertCircle} iconSpin={isUpdating}
+                  variant="purple" onClick={()=>update(ticket.id,ticket.status,true)}>{isUpdating?"Saving...":"Escalate"}</Btn>}
+              </div></Td>
+            </tr>;
+          })}/>
       </Card>
     </div>
   );
@@ -942,36 +1148,158 @@ function AiModule({ data, mutation, toast }) {
   );
 }
 
-function HiringModule({ data, mutation, toast }) {
-  const candidates = data.hiringCandidates || [];
-  const stages = data.hiringStages || [];
+function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, toast }) {
+  const [candidateFilter, setCandidateFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState("all");
+  const [jobModalOpen, setJobModalOpen] = useState(false);
+  const [jobForm, setJobForm] = useState({
+    title: "",
+    department: "",
+    location: "",
+    employmentType: "full_time",
+    openings: 1,
+  });
+  if (hiringQuery.isLoading) return <ModuleLoader/>;
+  if (hiringQuery.isError) return <PanelMessage>{hiringQuery.error.message}</PanelMessage>;
+
+  const candidates = asArray(hiringQuery.data?.candidates);
+  const jobs = asArray(hiringQuery.data?.jobs);
+  const stages = asArray(hiringQuery.data?.stages);
+  const filteredJobs = jobs.filter((job) => jobFilter === "all" || job.status === jobFilter);
+  const visibleCandidates = candidates.filter((candidate) => candidateFilter === "all" || candidate.stage === candidateFilter);
+  const openVacancies = jobs.filter((job) => job.status === "open")
+    .reduce((total, job) => total + Number(job.openings || 0), 0);
   const move = (candidate, stage) => mutation.mutate({ id:candidate.id, stage }, {
     onSuccess: () => toast("Candidate stage updated", C.green),
     onError: (error) => toast(error.message, C.red),
   });
+  const createJob = async (event) => {
+    event.preventDefault();
+    try {
+      await jobMutation.mutateAsync(jobForm);
+      setJobModalOpen(false);
+      setJobForm({title:"",department:"",location:"",employmentType:"full_time",openings:1});
+      toast("Job opening created", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const updateJobStatus = (id, status) => jobStatusMutation.mutate({ id, status }, {
+    onSuccess: () => toast("Job opening updated", C.green),
+    onError: (error) => toast(error.message, C.red),
+  });
   return (
-    <div className="admin-hiring-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(185px,1fr))',gap:12}}>
-      {stages.map((stage, index) => {
-        const stageCandidates = candidates.filter((candidate)=>candidate.stage===stage);
-        return <Card key={stage} title={`${titleCase(stage)} (${stageCandidates.length})`}>
-          <div style={{padding:'.8rem',display:'flex',flexDirection:'column',gap:8}}>
-            {stageCandidates.map((candidate) => <div key={candidate.id} style={{padding:'.8rem',borderRadius:9,
-              background:C.surface,border:`1px solid ${C.border}`}}>
-              <strong style={{fontSize:12,color:C.txt}}>{candidate.full_name}</strong>
-              <div style={{fontSize:11,color:C.txt3,marginTop:4}}>{candidate.role_title}</div>
-              <div style={{fontSize:11,color:STAGE_COLORS[stage],marginTop:6}}>Score: {candidate.score ?? "-"}</div>
-              {index < stages.length - 1 && <div style={{marginTop:8}}><Btn icon={Briefcase} variant="cyan"
-                onClick={()=>move(candidate,stages[index+1])}>Move Forward</Btn></div>}
-            </div>)}
-            {!stageCandidates.length && <span style={{fontSize:11,color:C.txt3}}>No candidates.</span>}
-          </div>
-        </Card>;
-      })}
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <Stats>
+        <Stat icon={Briefcase} label="Open Vacancies" value={openVacancies} color={C.green}/>
+        <Stat icon={Users} label="Candidates" value={candidates.length} color={C.blue}/>
+        <Stat icon={Clock} label="In Interviews" value={candidates.filter((candidate)=>candidate.stage==="interview").length} color={C.amber}/>
+        <Stat icon={CheckCircle2} label="Hired" value={candidates.filter((candidate)=>candidate.stage==="hired").length} color={C.cyan}/>
+      </Stats>
+      <Card title="Vacancy Management" accent={C.green} actions={
+        <Btn icon={Plus} variant="success" onClick={()=>setJobModalOpen(true)}>Create Job</Btn>
+      }>
+        <div style={{padding:'1rem 1.2rem',display:'flex',gap:7,flexWrap:'wrap'}}>
+          {["all","open","draft","closed"].map((status) => (
+            <Btn key={status} variant={jobFilter===status?"cyan":"ghost"} onClick={()=>setJobFilter(status)}>{titleCase(status)}</Btn>
+          ))}
+        </div>
+        <Table columns={["Role","Department","Location","Type","Vacancies","Status","Actions"]}
+          emptyMessage="No job openings match this filter."
+          rows={filteredJobs.map((job) => <tr key={job.id}>
+            <Td>{job.title}</Td><Td>{job.department}</Td><Td>{job.location}</Td>
+            <Td>{titleCase(job.employment_type)}</Td><Td>{job.openings}</Td><Td><Badge type={job.status}/></Td>
+            <Td>{job.status==="open"
+              ? <Btn disabled={jobStatusMutation.isPending} icon={X} variant="danger" onClick={()=>updateJobStatus(job.id,"closed")}>Close</Btn>
+              : <Btn disabled={jobStatusMutation.isPending} icon={RotateCcw} variant="success" onClick={()=>updateJobStatus(job.id,"open")}>Reopen</Btn>}</Td>
+          </tr>)}/>
+      </Card>
+      <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+        <Filter size={14} color={C.txt3}/>
+        <span style={{fontSize:12,color:C.txt3}}>Candidate stage</span>
+        <select value={candidateFilter} onChange={(event)=>setCandidateFilter(event.target.value)} style={{...inputStyle,width:'auto'}}>
+          <option value="all">All stages</option>
+          {stages.map((stage) => <option key={stage} value={stage}>{titleCase(stage)}</option>)}
+        </select>
+      </div>
+      <div className="admin-hiring-grid" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(185px,1fr))',gap:12}}>
+        {stages.map((stage, index) => {
+          const stageCandidates = visibleCandidates.filter((candidate)=>candidate.stage===stage);
+          return <Card key={stage} title={`${titleCase(stage)} (${stageCandidates.length})`}>
+            <div style={{padding:'.8rem',display:'flex',flexDirection:'column',gap:8}}>
+              {stageCandidates.map((candidate) => <div key={candidate.id} style={{padding:'.8rem',borderRadius:9,
+                background:C.surface,border:`1px solid ${C.border}`}}>
+                <strong style={{fontSize:12,color:C.txt}}>{candidate.full_name}</strong>
+                <div style={{fontSize:11,color:C.txt3,marginTop:4}}>{candidate.role_title}</div>
+                <div style={{fontSize:11,color:STAGE_COLORS[stage],marginTop:6}}>Score: {candidate.score ?? "-"}</div>
+                {index < stages.length - 1 && <div style={{marginTop:8}}><Btn icon={Briefcase} variant="cyan"
+                  onClick={()=>move(candidate,stages[index+1])}>Move Forward</Btn></div>}
+              </div>)}
+              {!stageCandidates.length && <span style={{fontSize:11,color:C.txt3}}>No candidates.</span>}
+            </div>
+          </Card>;
+        })}
+      </div>
+      {jobModalOpen && (
+        <AdminModal title="Create Job Opening" onClose={()=>setJobModalOpen(false)}>
+          <form onSubmit={createJob} style={{padding:'1.2rem',display:'grid',gap:12}}>
+            <Field label="Job Title"><input required value={jobForm.title} onChange={(event)=>setJobForm({...jobForm,title:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Department"><input required value={jobForm.department} onChange={(event)=>setJobForm({...jobForm,department:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Location"><input required value={jobForm.location} onChange={(event)=>setJobForm({...jobForm,location:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Employment Type"><select value={jobForm.employmentType} onChange={(event)=>setJobForm({...jobForm,employmentType:event.target.value})} style={inputStyle}>
+              {["full_time","part_time","contract","internship"].map((type)=><option key={type} value={type}>{titleCase(type)}</option>)}
+            </select></Field>
+            <Field label="Vacancies"><input required min="1" type="number" value={jobForm.openings}
+              onChange={(event)=>setJobForm({...jobForm,openings:event.target.value})} style={inputStyle}/></Field>
+            <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
+              <Btn onClick={()=>setJobModalOpen(false)}>Cancel</Btn>
+              <Btn type="submit" disabled={jobMutation.isPending} icon={jobMutation.isPending?Loader2:Plus} iconSpin={jobMutation.isPending}
+                variant="success">{jobMutation.isPending?"Creating...":"Create Job"}</Btn>
+            </div>
+          </form>
+        </AdminModal>
+      )}
     </div>
   );
 }
 
-function SettingsModule({ data }) {
+function SettingsModule({ data, deleteIntegrationMutation, deleteSettingMutation, integrationMutation, settingMutation, toast }) {
+  const [integrationEditor, setIntegrationEditor] = useState(null);
+  const [settingEditor, setSettingEditor] = useState(null);
+  const saveIntegration = async (event) => {
+    event.preventDefault();
+    try {
+      await integrationMutation.mutateAsync(integrationEditor);
+      setIntegrationEditor(null);
+      toast("Platform integration saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const saveSetting = async (event) => {
+    event.preventDefault();
+    try {
+      await settingMutation.mutateAsync({...settingEditor,value:JSON.parse(settingEditor.value)});
+      setSettingEditor(null);
+      toast("Platform setting saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const removeIntegration = (id) => {
+    if (!window.confirm("Delete this platform integration?")) return;
+    deleteIntegrationMutation.mutate(id, {
+      onSuccess:()=>toast("Platform integration deleted",C.green),
+      onError:(error)=>toast(error.message,C.red),
+    });
+  };
+  const removeSetting = (key) => {
+    if (!window.confirm(`Delete the "${key}" platform setting?`)) return;
+    deleteSettingMutation.mutate(key, {
+      onSuccess:()=>toast("Platform setting deleted",C.green),
+      onError:(error)=>toast(error.message,C.red),
+    });
+  };
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Card title="Admin Accounts">
@@ -979,15 +1307,118 @@ function SettingsModule({ data }) {
           rows={(data.admins || []).map((admin) => <tr key={admin.id}><Td>{admin.full_name || "-"}</Td><Td>{admin.email}</Td>
             <Td>{ADMIN_ROLES[admin.role]?.label || titleCase(admin.role)}</Td><Td><Badge type={admin.is_active?"active":"inactive"}/></Td></tr>)}/>
       </Card>
-      <Card title="Platform Integrations">
-        <Table columns={["Name","Service","Environment","Status"]} emptyMessage="No platform integrations configured in the backend."
+      <Card title="Platform Integrations" actions={
+        <Btn icon={Plus} variant="success" onClick={()=>setIntegrationEditor({name:"",service:"",environment:"",status:"inactive"})}>Add Integration</Btn>
+      }>
+        <Table columns={["Name","Service","Environment","Status","Actions"]} emptyMessage="No platform integrations configured in the backend."
           rows={(data.integrations || []).map((integration) => <tr key={integration.id}><Td><Key size={13} color={C.blue}/> {integration.name}</Td>
-            <Td>{integration.service}</Td><Td>{integration.environment || "-"}</Td><Td><Badge type={integration.status}/></Td></tr>)}/>
+            <Td>{integration.service}</Td><Td>{integration.environment || "-"}</Td><Td><Badge type={integration.status}/></Td>
+            <Td><div style={{display:'flex',gap:5}}>
+              <Btn icon={Edit2} onClick={()=>setIntegrationEditor(integration)}>Edit</Btn>
+              <Btn disabled={deleteIntegrationMutation.isPending} icon={Trash2} variant="danger" onClick={()=>removeIntegration(integration.id)}>Delete</Btn>
+            </div></Td></tr>)}/>
       </Card>
-      <Card title="Platform Settings">
-        <Table columns={["Setting","Value","Updated"]} emptyMessage="No platform settings configured in the backend."
+      <Card title="Platform Settings" actions={
+        <Btn icon={Plus} variant="success" onClick={()=>setSettingEditor({key:"",value:"{}"})}>Add Setting</Btn>
+      }>
+        <Table columns={["Setting","Value","Updated","Actions"]} emptyMessage="No platform settings configured in the backend."
           rows={(data.settings || []).map((setting) => <tr key={setting.key}><Td>{setting.key}</Td>
-            <Td>{JSON.stringify(setting.value)}</Td><Td>{formatDate(setting.updated_at)}</Td></tr>)}/>
+            <Td>{JSON.stringify(setting.value)}</Td><Td>{formatDate(setting.updated_at)}</Td>
+            <Td><div style={{display:'flex',gap:5}}>
+              <Btn icon={Edit2} onClick={()=>setSettingEditor({key:setting.key,value:JSON.stringify(setting.value,null,2)})}>Edit</Btn>
+              <Btn disabled={deleteSettingMutation.isPending} icon={Trash2} variant="danger" onClick={()=>removeSetting(setting.key)}>Delete</Btn>
+            </div></Td></tr>)}/>
+      </Card>
+      {integrationEditor && (
+        <AdminModal title={integrationEditor.id?"Edit Integration":"Add Integration"} onClose={()=>setIntegrationEditor(null)}>
+          <form onSubmit={saveIntegration} style={{padding:'1.2rem',display:'grid',gap:12}}>
+            <Field label="Name"><input required value={integrationEditor.name} onChange={(event)=>setIntegrationEditor({...integrationEditor,name:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Service"><input required value={integrationEditor.service} onChange={(event)=>setIntegrationEditor({...integrationEditor,service:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Environment"><input value={integrationEditor.environment || ""} onChange={(event)=>setIntegrationEditor({...integrationEditor,environment:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Status"><select value={integrationEditor.status} onChange={(event)=>setIntegrationEditor({...integrationEditor,status:event.target.value})} style={inputStyle}>
+              {["active","inactive","pending"].map((status)=><option key={status} value={status}>{titleCase(status)}</option>)}
+            </select></Field>
+            <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
+              <Btn onClick={()=>setIntegrationEditor(null)}>Cancel</Btn>
+              <Btn type="submit" disabled={integrationMutation.isPending} icon={integrationMutation.isPending?Loader2:Check} iconSpin={integrationMutation.isPending}
+                variant="success">{integrationMutation.isPending?"Saving...":"Save"}</Btn>
+            </div>
+          </form>
+        </AdminModal>
+      )}
+      {settingEditor && (
+        <AdminModal title={settingEditor.key?"Edit Platform Setting":"Add Platform Setting"} onClose={()=>setSettingEditor(null)}>
+          <form onSubmit={saveSetting} style={{padding:'1.2rem',display:'grid',gap:12}}>
+            <Field label="Setting Key"><input required disabled={Boolean((data.settings || []).some((setting)=>setting.key===settingEditor.key))}
+              value={settingEditor.key} onChange={(event)=>setSettingEditor({...settingEditor,key:event.target.value})} style={inputStyle}/></Field>
+            <Field label="JSON Value"><textarea required rows="8" value={settingEditor.value}
+              onChange={(event)=>setSettingEditor({...settingEditor,value:event.target.value})} style={{...inputStyle,resize:'vertical'}}/></Field>
+            <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
+              <Btn onClick={()=>setSettingEditor(null)}>Cancel</Btn>
+              <Btn type="submit" disabled={settingMutation.isPending} icon={settingMutation.isPending?Loader2:Check} iconSpin={settingMutation.isPending}
+                variant="success">{settingMutation.isPending?"Saving...":"Save"}</Btn>
+            </div>
+          </form>
+        </AdminModal>
+      )}
+    </div>
+  );
+}
+
+function AdminPromotionModule({ configurePasscodeMutation, mutation, toast }) {
+  const [promotion, setPromotion] = useState({email:"",name:"",role:"support_lead",passcode:""});
+  const [passcode, setPasscode] = useState({currentPasscode:"",newPasscode:""});
+  const submitPromotion = async (event) => {
+    event.preventDefault();
+    try {
+      await mutation.mutateAsync(promotion);
+      setPromotion({email:"",name:"",role:"support_lead",passcode:""});
+      toast("Admin account promoted", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const configurePasscode = async (event) => {
+    event.preventDefault();
+    try {
+      await configurePasscodeMutation.mutateAsync(passcode);
+      setPasscode({currentPasscode:"",newPasscode:""});
+      toast("Promotion passcode updated", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const onlyDigits = (value) => value.replace(/\D/g, "").slice(0, 6);
+  return (
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(290px,1fr))',gap:14}}>
+      <Card title="Promote Existing Account" accent={C.purple}>
+        <form onSubmit={submitPromotion} style={{padding:'1.2rem',display:'grid',gap:12}}>
+          <PanelMessage>Promotions require an existing Auth account, super-admin membership, and the six-digit promotion passcode.</PanelMessage>
+          <Field label="Account Email"><input required type="email" value={promotion.email}
+            onChange={(event)=>setPromotion({...promotion,email:event.target.value})} style={inputStyle}/></Field>
+          <Field label="Display Name"><input value={promotion.name}
+            onChange={(event)=>setPromotion({...promotion,name:event.target.value})} style={inputStyle}/></Field>
+          <Field label="Admin Role"><select value={promotion.role}
+            onChange={(event)=>setPromotion({...promotion,role:event.target.value})} style={inputStyle}>
+            {Object.entries(ADMIN_ROLES).map(([id, role])=><option key={id} value={id}>{role.label}</option>)}
+          </select></Field>
+          <Field label="Six-Digit Passcode"><input required type="password" inputMode="numeric" autoComplete="off" maxLength="6"
+            value={promotion.passcode} onChange={(event)=>setPromotion({...promotion,passcode:onlyDigits(event.target.value)})} style={inputStyle}/></Field>
+          <Btn type="submit" disabled={mutation.isPending || promotion.passcode.length!==6} icon={mutation.isPending?Loader2:Shield}
+            iconSpin={mutation.isPending} variant="purple">{mutation.isPending?"Promoting...":"Promote Admin"}</Btn>
+        </form>
+      </Card>
+      <Card title="Promotion Passcode" accent={C.amber}>
+        <form onSubmit={configurePasscode} style={{padding:'1.2rem',display:'grid',gap:12}}>
+          <PanelMessage>Bootstrap the code once, then provide the current code for rotations. Codes are hashed server-side and failed promotion attempts lock temporarily.</PanelMessage>
+          <Field label="Current Passcode"><input type="password" inputMode="numeric" autoComplete="off" maxLength="6"
+            value={passcode.currentPasscode} onChange={(event)=>setPasscode({...passcode,currentPasscode:onlyDigits(event.target.value)})} style={inputStyle}/></Field>
+          <Field label="New Six-Digit Passcode"><input required type="password" inputMode="numeric" autoComplete="off" maxLength="6"
+            value={passcode.newPasscode} onChange={(event)=>setPasscode({...passcode,newPasscode:onlyDigits(event.target.value)})} style={inputStyle}/></Field>
+          <Btn type="submit" disabled={configurePasscodeMutation.isPending || passcode.newPasscode.length!==6}
+            icon={configurePasscodeMutation.isPending?Loader2:Key} iconSpin={configurePasscodeMutation.isPending}
+            variant="cyan">{configurePasscodeMutation.isPending?"Updating...":"Configure Passcode"}</Btn>
+        </form>
       </Card>
     </div>
   );
@@ -996,12 +1427,21 @@ function SettingsModule({ data }) {
 export function AdminDashboardModules({ addToast, moduleId, user }) {
   const dashboard = useAdminDashboard();
   const buyersQuery = useAdminBuyers(moduleId === "users");
-  const productsQuery = useAdminProducts(moduleId === "products");
+  const hiringQuery = useAdminHiring(moduleId === "hiring");
   const orderMutation = useSetAdminOrderStatus();
   const productMutation = useSetAdminProductActive();
+  const productModerationMutation = useSetAdminProductModerationStatus();
   const sellerMutation = useSetAdminSellerStatus();
   const supportMutation = useSetAdminSupportTicketStatus();
   const hiringMutation = useMoveAdminHiringCandidate();
+  const jobMutation = useCreateAdminJobOpening();
+  const jobStatusMutation = useSetAdminJobOpeningStatus();
+  const integrationMutation = useSaveAdminIntegration();
+  const deleteIntegrationMutation = useDeleteAdminIntegration();
+  const settingMutation = useSaveAdminSetting();
+  const deleteSettingMutation = useDeleteAdminSetting();
+  const promoteAdminMutation = usePromoteAdmin();
+  const configurePasscodeMutation = useConfigureAdminPromotionPasscode();
   const aiMutation = useQueueAdminAiQuery();
 
   if (dashboard.isLoading) return <ModuleLoader/>;
@@ -1012,14 +1452,18 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
   const modules = {
     dashboard: <DashboardModule data={data}/>,
     orders: <OrdersModule {...shared} mutation={orderMutation}/>,
-    products: <ProductsModule {...shared} mutation={productMutation} productsQuery={productsQuery}/>,
+    products: <ProductsModule {...shared} moderationMutation={productModerationMutation} mutation={productMutation}/>,
     users: <UsersModule buyersQuery={buyersQuery} data={data}/>,
     sellers: <SellersModule {...shared} mutation={sellerMutation}/>,
     analytics: <AnalyticsModule data={data}/>,
     support: <SupportModule {...shared} mutation={supportMutation}/>,
     ai: <AiModule {...shared} mutation={aiMutation}/>,
-    hiring: <HiringModule {...shared} mutation={hiringMutation}/>,
-    settings: <SettingsModule data={data}/>,
+    hiring: <HiringModule {...shared} hiringQuery={hiringQuery} jobMutation={jobMutation}
+      jobStatusMutation={jobStatusMutation} mutation={hiringMutation}/>,
+    settings: <SettingsModule {...shared} deleteIntegrationMutation={deleteIntegrationMutation}
+      deleteSettingMutation={deleteSettingMutation} integrationMutation={integrationMutation} settingMutation={settingMutation}/>,
+    "admin-promotion": <AdminPromotionModule configurePasscodeMutation={configurePasscodeMutation}
+      mutation={promoteAdminMutation} toast={addToast}/>,
   };
 
   if (!user.role.modules.includes(moduleId)) {

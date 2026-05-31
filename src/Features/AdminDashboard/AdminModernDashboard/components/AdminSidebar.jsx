@@ -33,7 +33,8 @@ export function AdminSidebar({ isOpen, moduleId, onClose, onModuleChange, user }
         </button>
       </div>
       <nav style={{flex:1,overflowY:'auto',padding:'.5rem 0'}}>
-        {ADMIN_NAV.map(({id,label,icon:Icon,badgeKey,badgeColor}) => {
+        {ADMIN_NAV.filter(({id,hiddenWhenUnauthorized}) => !hiddenWhenUnauthorized || allowed.includes(id))
+          .map(({id,label,icon:Icon,badgeKey,badgeColor}) => {
           const active = moduleId === id;
           const permitted = allowed.includes(id);
           const badge = badges[badgeKey] || 0;
