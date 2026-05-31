@@ -109,24 +109,12 @@ export default function WithdrawModal({ open, onClose, availableBalance, onWithd
     // Simulate server validation
     await new Promise(r => setTimeout(r, 1800));
 
-    // Mock password check (in production this would be server-side)
-    if (password !== 'seller123' && password.length >= 6) {
-      // Accept any password >= 6 chars for demo
-      setTransactionId(`TXN-${Date.now().toString(36).toUpperCase()}`);
-      setStep(3);
-      setSuccess(true);
-      setProcessing(false);
-      if (onWithdraw) onWithdraw(parsedAmount, fees.totalFee, fees.netAmount);
-    } else if (password === 'seller123') {
-      setTransactionId(`TXN-${Date.now().toString(36).toUpperCase()}`);
-      setStep(3);
-      setSuccess(true);
-      setProcessing(false);
-      if (onWithdraw) onWithdraw(parsedAmount, fees.totalFee, fees.netAmount);
-    } else {
-      setError('Incorrect password. Please try again.');
-      setProcessing(false);
-    }
+    // Demo-only flow. A production withdrawal must validate on the server.
+    setTransactionId(`TXN-${Date.now().toString(36).toUpperCase()}`);
+    setStep(3);
+    setSuccess(true);
+    setProcessing(false);
+    if (onWithdraw) onWithdraw(parsedAmount, fees.totalFee, fees.netAmount);
   }, [password, parsedAmount, fees, onWithdraw]);
 
   if (!open) return null;

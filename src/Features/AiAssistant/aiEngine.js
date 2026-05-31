@@ -1,6 +1,6 @@
 import { supabase } from "../../lib/supabaseClient";
 import { getSellableVariants } from "../../utils/productAvailability";
-const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY;
+import { requestOpenRouter } from "../../api/openrouterApi";
 const MODEL = "openrouter/free";
 
 // ── System Prompt ─────────────────────────────────────────────────────────────
@@ -140,24 +140,15 @@ export async function callWooshoAI(history, userRole, onToolCall) {
     ...history,
   ];
 
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENROUTER_KEY}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      tools: TOOLS,
-      tool_choice: "auto",
-      temperature: 0.55,
-      max_tokens: 1200,
-    }),
+  const data = await requestOpenRouter({
+    model: MODEL,
+    messages,
+    tools: TOOLS,
+    tool_choice: "auto",
+    temperature: 0.55,
+    max_tokens: 1200,
   });
 
-  if (!res.ok) throw new Error(`AI Error ${res.status}`);
-  const data = await res.json();
   const msg = data.choices[0].message;
 
   if (!msg.tool_calls?.length) {
@@ -188,22 +179,12 @@ export async function callWooshoAI(history, userRole, onToolCall) {
   }
 
   // Follow-up call with tool results
-  const followUp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENROUTER_KEY}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [...messages, msg, ...toolResults],
-      temperature: 0.55,
-      max_tokens: 1200,
-    }),
+  const followData = await requestOpenRouter({
+    model: MODEL,
+    messages: [...messages, msg, ...toolResults],
+    temperature: 0.55,
+    max_tokens: 1200,
   });
-
-  if (!followUp.ok) throw new Error(`AI Follow-up Error ${followUp.status}`);
-  const followData = await followUp.json();
 
   return {
     text: followData.choices[0].message.content,

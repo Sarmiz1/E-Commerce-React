@@ -2,14 +2,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { filterSellableProducts } from '../../utils/productAvailability';
+import { requestOpenRouter } from '../../api/openrouterApi';
 import { 
   Sparkles, ChevronDown, HelpCircle, ShoppingCart, 
   X, CheckCircle2, Plus, Mic, Send, Heart, MoreVertical, 
   RotateCcw, Monitor, Shirt, Home, Diamond, Truck, Copy, Scale,
   Cpu, Zap, Grip, ArrowDownCircle, ChevronRight, Loader2
 } from 'lucide-react';
-
-const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY;
 
 const getFallbackRatingCount = (productId) => {
   const seed = String(productId || 'product');
@@ -94,24 +93,16 @@ export default function AiShop() {
       {"action": "chat", "reply": "Your response here"}
       Do NOT wrap the JSON in markdown code blocks. Output raw JSON only.`;
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${OPENROUTER_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "openrouter/free",
-          max_tokens: 1000,
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...messages.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content })),
-            { role: "user", content: userText }
-          ]
-        })
+      const data = await requestOpenRouter({
+        model: "openrouter/free",
+        max_tokens: 1000,
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content })),
+          { role: "user", content: userText }
+        ]
       });
 
-      const data = await response.json();
       let aiText = data.choices[0].message.content || "";
       
       let parsed;

@@ -23,10 +23,6 @@ import { CO_STYLES, EMPTY_ERRORS, EMPTY_FORM } from "./utils/checkoutConstants";
 import { calculateCheckoutTotals } from "./utils/checkoutUtils";
 import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
 
-
-
-const DEMO_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
-
 export default function CheckoutPage() {
   const { user } = useAuth();
   const {
@@ -46,7 +42,7 @@ export default function CheckoutPage() {
   );
   const [step, setStep] = useState(0);
   const [selectedShipping, setSelectedShipping] = useState("standard");
-  const [coupon, setCoupon] = useState(null);
+  const [coupon] = useState(null);
 
   const [form, setForm] = useState(() => {
     const baseForm = EMPTY_FORM();
@@ -83,10 +79,6 @@ export default function CheckoutPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
 
-  const handleCoupon = useCallback((couponData, code) => {
-    setCoupon(couponData ? { ...couponData, code } : null);
-  }, []);
-
   const handleFieldChange = useCallback((field, value) => {
     setForm((previous) => ({ ...previous, [field]: value }));
     setErrors((previous) => ({ ...previous, [field]: "" }));
@@ -118,10 +110,13 @@ export default function CheckoutPage() {
       setSubmitError("");
 
       try {
+        if (!user?.id) {
+          throw new Error("Please sign in before placing your order.");
+        }
+
         const totals = calculateCheckoutTotals(cart, selectedShipping, coupon);
         const result = await OrderAPI.createOrder({
           cartId,
-          userId: user?.id || DEMO_USER_ID,
           couponCode: coupon?.code || null,
           shippingMinor: totals.shipping,
         });
@@ -144,7 +139,7 @@ export default function CheckoutPage() {
         setSubmitting(false);
       }
     },
-    [cart, cartId, coupon, selectedShipping, user?.id, validate],
+    [cart, cartId, clearCart, coupon, selectedShipping, user?.id, validate],
   );
 
   return (

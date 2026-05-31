@@ -10,6 +10,12 @@ if (process.env.RUN_SEED !== "true") {
   throw new Error("❌ Run with RUN_SEED=true");
 }
 
+const seedUserPassword = process.env.SEED_USER_PASSWORD;
+
+if (!seedUserPassword) {
+  throw new Error("Set SEED_USER_PASSWORD before running the seed script");
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -51,7 +57,7 @@ async function populateUsers() {
     } else {
       const { data, error } = await supabase.auth.admin.createUser({
         email,
-        password: "password123",
+        password: seedUserPassword,
         email_confirm: true,
         user_metadata: { 
             full_name: role === 'seller' ? faker.company.name() : faker.person.fullName(), 

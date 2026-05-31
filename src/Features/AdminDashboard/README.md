@@ -121,6 +121,8 @@ writes interaction events to `events`, and a database trigger synchronizes
 `view_product`, `product_detail_viewed`, and `quick_view_opened` events into
 `product_metrics.view_count`. A migration backfill restores counts for tracked
 events that existed before the trigger was added.
+The Products tab can filter the loaded catalog by effective inventory status
+or by whether a product has recorded views.
 
 ### Dashboard Modules
 

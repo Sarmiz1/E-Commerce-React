@@ -1,6 +1,10 @@
+import "dotenv/config";
 
+const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 
-const OPENROUTER_KEY = "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";
+if (!OPENROUTER_KEY) {
+  throw new Error("Set OPENROUTER_API_KEY in the local environment before running this test.");
+}
 
 const SYSTEM_PROMPT = `You are Woosho AI.`;
 const TOOLS = [

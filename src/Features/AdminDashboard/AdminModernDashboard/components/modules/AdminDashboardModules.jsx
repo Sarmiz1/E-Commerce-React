@@ -111,6 +111,22 @@ const titleCase = (value = "") =>
 const getAdminProductStatus = (product) =>
   product.status || (!product.is_active ? "inactive" : Number(product.stock || 0) > 0 ? "active" : "out_of_stock");
 
+const PRODUCT_FILTERS = [
+  { id: "all", label: "All" },
+  { id: "out_of_stock", label: "Out Of Stock" },
+  { id: "inactive", label: "Inactive" },
+  { id: "active", label: "Active" },
+  { id: "no_views", label: "No Views" },
+  { id: "has_views", label: "Has Views" },
+];
+
+const matchesAdminProductFilter = (product, filter) => {
+  if (filter === "all") return true;
+  if (filter === "no_views") return Number(product.views || 0) === 0;
+  if (filter === "has_views") return Number(product.views || 0) > 0;
+  return getAdminProductStatus(product) === filter;
+};
+
 function useHover() {
   const [hovered, setHovered] = useState(false);
   return [
@@ -521,11 +537,13 @@ function OrdersModule({ data, mutation, toast }) {
 }
 
 function ProductsModule({ mutation, productsQuery, toast }) {
+  const [filter, setFilter] = useState("all");
   const inFlightProductIds = useRef(new Set());
   if (productsQuery.isLoading) return <ModuleLoader/>;
   if (productsQuery.isError) return <PanelMessage>{productsQuery.error.message}</PanelMessage>;
 
   const products = productsQuery.data || [];
+  const filteredProducts = products.filter((product) => matchesAdminProductFilter(product, filter));
   const pendingUpdates = new Map(
     (mutation.pendingUpdates || []).filter(Boolean).map((pendingUpdate) => [pendingUpdate.id, pendingUpdate]),
   );
@@ -550,10 +568,15 @@ function ProductsModule({ mutation, productsQuery, toast }) {
         <Stat icon={XCircle} label="Out Of Stock" value={products.filter((product)=>getAdminProductStatus(product)==="out_of_stock").length} color={C.red}/>
         <Stat icon={XCircle} label="Inactive" value={products.filter((product)=>getAdminProductStatus(product)==="inactive").length} color={C.txt3}/>
       </Stats>
-      <Card title={`Products (${products.length})`}>
+      <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+        {PRODUCT_FILTERS.map(({ id, label }) => (
+          <Btn key={id} variant={filter===id?"cyan":"ghost"} onClick={()=>setFilter(id)}>{label}</Btn>
+        ))}
+      </div>
+      <Card title={`Products (${filteredProducts.length})`}>
         <Table columns={["Product","Category","Seller","Price","Stock","Views","Date Created","Date Updated","Status","Actions"]}
-          emptyMessage="No products found in the backend."
-          rows={products.map((product) => {
+          emptyMessage="No products match this filter."
+          rows={filteredProducts.map((product) => {
             const pendingUpdate = pendingUpdates.get(product.id);
             const isUpdating = Boolean(pendingUpdate);
             const productStatus = getAdminProductStatus(product);

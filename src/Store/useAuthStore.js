@@ -80,29 +80,6 @@ export const useAuthStore = create(
     return result;
   },
 
-  loginGuest: async () => {
-    if (!isSupabaseConfigured) {
-      toast(supabaseConfigError, "error");
-      return unavailableAuthResult();
-    }
-
-    const guestEmail = "guest_tester@WooSho.local";
-    const guestPass  = "supa_strong_password_123!";
-    let { data, error } = await supabase.auth.signInWithPassword({
-      email: guestEmail,
-      password: guestPass,
-    });
-    if (error?.message?.includes("Invalid login credentials")) {
-      const res = await supabase.auth.signUp({ email: guestEmail, password: guestPass });
-      if (!res.error) toast("Guest account created!", "info");
-      return res;
-    }
-    if (error) {
-      toast("Guest login failed.", "error");
-    }
-    return { data, error };
-  },
-
       // Internal – called by initAuth to sync session updates
       _setSession: (session) =>
         set((state) => {
@@ -174,7 +151,6 @@ export const useAuth = () => {
       signIn: state.signIn,
       signUp: state.signUp,
       signOut: state.signOut,
-      loginGuest: state.loginGuest,
     }))
   );
 };
