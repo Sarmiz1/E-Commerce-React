@@ -6,10 +6,14 @@ import { useAuth } from '../../../Store/useAuthStore';
 import { useLogout } from '../../../hooks/auth/useLogout';
 import { BIcon } from './BuyerIcon';
 import { fmtFull } from '../utils/fmt';
+import { useNavigate } from 'react-router-dom';
 
 export default function BuyerTopbar() {
   const { colors, isDark, toggle } = useTheme();
   const { page, setPage, setSidebarOpen, notifs, unreadCount, cart, cartTotal, removeFromCart, profile } = useBuyer();
+
+  const navigate = useNavigate();
+
   const logout = useLogout();
   const [notifOpen, setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -145,14 +149,17 @@ export default function BuyerTopbar() {
                       <span className="text-base font-black" style={{ color: colors.text.primary }}>{fmtFull(cartTotal)}</span>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setPage('orders')}
+                      <button onClick={() => navigate('/cart')}
                         className="flex-1 py-2 rounded-xl text-xs font-bold border"
                         style={{ borderColor: colors.border.default, color: colors.text.secondary }}>
                         View All
                       </button>
-                      <motion.button whileTap={{ scale: 0.96 }}
+                      <motion.button 
+                        whileTap={{ scale: 0.96 }}
                         className="flex-[2] py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-                        style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff' }}>
+                        style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff' }}
+                        onClick={() => navigate('/checkout')}
+                        >
                         <BIcon name="cart" size={13} /> Checkout
                       </motion.button>
                     </div>

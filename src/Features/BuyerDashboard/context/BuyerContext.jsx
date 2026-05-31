@@ -22,7 +22,7 @@ import {
   useAddAddress,
   useDeleteAddress,
 } from '../hooks/useBuyerQueries';
-import { useCart } from '../../../context/cart/CartContext';
+import { useCart } from '../../../Store/cartContext';
 import { useAuth } from '../../../context/auth/AuthContext';
 import { useWishlist } from '../../../hooks/useWishlist';
 import { useAllProducts } from '../../../hooks/product/useProducts';

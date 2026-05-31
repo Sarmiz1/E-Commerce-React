@@ -7,7 +7,7 @@ import MondernNavLogo from "./ModernNavbarComponents/MondernNavLogo";
 import DesktopLinks from "./ModernNavbarComponents/DesktopLinks";
 import DesktopActions from "./ModernNavbarComponents/DesktopActions";
 import MobileMenu from "./ModernNavbarComponents/MobileMenu";
-import { useCartState } from "../context/cart/CartContext";
+import { useCartState } from "../Store/cartContext";
 import CartDropdownContent from "./ModernNavbarComponents/DesktopActionsComponents/CartDropdownContent";
 
 export default function ModernNavbar({

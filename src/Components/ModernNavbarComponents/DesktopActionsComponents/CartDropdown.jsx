@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { EXPO } from "../navConstants";
-import { useCartState } from "../../../context/cart/CartContext";
+import { useCartState } from "../../../Store/cartContext";
 import CartDropdownContent from "./CartDropdownContent";
 
 export default function CartDropdown({

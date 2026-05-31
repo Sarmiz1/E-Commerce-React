@@ -4,7 +4,7 @@ import gsap from "gsap";
 
 import { OrderAPI } from "../../api/orderApi";
 import { useAuth } from "../../Store/useAuthStore";
-import { useCartState, useCartActions } from "../../context/cart/CartContext";
+import { useCartState, useCartActions } from "../../Store/cartContext";
 import { useToastStore } from "../../Store/useToastStore";
 
 const toast = (msg, type = "success") =>

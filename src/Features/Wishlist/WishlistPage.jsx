@@ -5,7 +5,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAllProducts } from "../../hooks/product/useProducts";
 import { useWishlist } from "../../hooks/useWishlist";
-import { useCartActions } from "../../context/cart/CartContext";
+import { useCartActions } from "../../Store/cartContext";
 import { useAuth } from "../../Store/useAuthStore";
 import { WishlistAPI } from "../../api/wishlistApi";
 import { trackEvent, trackEvents } from "../../api/track_events";

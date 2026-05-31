@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Loader2, ShoppingBag, Trash2 } from "lucide-react";
-import { useCartActions } from "../../../context/cart/CartContext";
+import { useCartActions } from "../../../Store/cartContext";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 
 const getDropdownItemKey = (item) =>

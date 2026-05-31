@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useRegisterCartIcon } from "../context/cart/CartAnimationContext";
-import { useCartState } from "../context/cart/CartContext";
+import { useCartState } from "../Store/cartContext";
 import { useTheme } from "../Store/useThemeStore";
 import { formatMoneyMinor } from "../utils/formatMoneyMinor";
 import { useDebounce } from "../Hooks/useDebounce";
