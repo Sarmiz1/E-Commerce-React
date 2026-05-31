@@ -95,10 +95,10 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 -- Grant permissions to authenticated users
 GRANT ALL ON TABLE buyer_profiles TO authenticated;
-GRANT ALL ON TABLE wallet_ledger TO authenticated;
-GRANT ALL ON TABLE ai_credits_ledger TO authenticated;
-GRANT ALL ON TABLE buyer_insights TO authenticated;
-GRANT ALL ON TABLE buyer_recommendations TO authenticated;
+GRANT SELECT ON TABLE wallet_ledger TO authenticated;
+GRANT SELECT ON TABLE ai_credits_ledger TO authenticated;
+GRANT SELECT ON TABLE buyer_insights TO authenticated;
+GRANT SELECT ON TABLE buyer_recommendations TO authenticated;
 GRANT ALL ON TABLE payment_methods TO authenticated;
 GRANT ALL ON TABLE wishlists TO authenticated;
 GRANT ALL ON TABLE notifications TO authenticated;
@@ -137,14 +137,22 @@ CREATE POLICY "Users can view own notifs" ON notifications FOR SELECT USING (aut
 -- This queries all relational tables simultaneously and builds a massive, 
 -- optimized JSON payload representing the entire dashboard state.
 
-CREATE OR REPLACE FUNCTION get_buyer_dashboard(buyer_id UUID)
+DROP FUNCTION IF EXISTS get_buyer_dashboard(UUID);
+
+CREATE OR REPLACE FUNCTION get_buyer_dashboard()
 RETURNS JSON
 LANGUAGE plpgsql
 SECURITY DEFINER -- Runs with creator permissions to simplify cross-table aggregation
+SET search_path = public
 AS $$
 DECLARE
+  v_buyer_id UUID := auth.uid();
   dashboard_data JSON;
 BEGIN
+  IF v_buyer_id IS NULL THEN
+    RAISE EXCEPTION 'Authentication required';
+  END IF;
+
   SELECT json_build_object(
     
     -- Profile (Merged with master profiles table)
@@ -160,7 +168,7 @@ BEGIN
       FROM profiles p
       LEFT JOIN buyer_profiles bp ON bp.user_id = p.id
       JOIN auth.users u ON u.id = p.id
-      WHERE p.id = buyer_id
+      WHERE p.id = v_buyer_id
     ),
     
     -- Wallet computed on the fly
@@ -172,10 +180,10 @@ BEGIN
         'totalSpent', COALESCE(ABS(SUM(amount) FILTER (WHERE amount < 0 AND type IN ('purchase', 'credit'))), 0),
         'transactions', (
           SELECT COALESCE(json_agg(t ORDER BY created_at DESC), '[]'::json)
-          FROM wallet_ledger t WHERE t.user_id = buyer_id
+          FROM wallet_ledger t WHERE t.user_id = v_buyer_id
         )
       )
-      FROM wallet_ledger WHERE user_id = buyer_id
+      FROM wallet_ledger WHERE user_id = v_buyer_id
     ),
     
     -- AI Credits computed on the fly
@@ -186,10 +194,10 @@ BEGIN
         'totalUsed', COALESCE(ABS(SUM(amount) FILTER (WHERE amount < 0 AND type = 'usage')), 0),
         'history', (
           SELECT COALESCE(json_agg(json_build_object('date', created_at::date, 'used', ABS(amount), 'desc', description) ORDER BY created_at DESC), '[]'::json)
-          FROM ai_credits_ledger c WHERE c.user_id = buyer_id AND type = 'usage'
+          FROM ai_credits_ledger c WHERE c.user_id = v_buyer_id AND type = 'usage'
         )
       )
-      FROM ai_credits_ledger WHERE user_id = buyer_id
+      FROM ai_credits_ledger WHERE user_id = v_buyer_id
     ),
     
     -- Orders & nested products
@@ -198,7 +206,7 @@ BEGIN
         json_build_object(
           'id', o.id,
           'status', o.status,
-          'total_cents', o.total_cents,
+          'total_minor', o.total_minor,
           'created_at', o.created_at,
           'address', COALESCE(
             o.shipping_address::text,
@@ -213,7 +221,7 @@ BEGIN
           )
         ) ORDER BY o.created_at DESC
       ), '[]'::json)
-      FROM orders o WHERE o.user_id = buyer_id
+      FROM orders o WHERE o.user_id = v_buyer_id
     ),
     
     -- Reviews
@@ -221,35 +229,35 @@ BEGIN
       SELECT COALESCE(json_agg(json_build_object('id', r.id, 'rating', r.rating, 'review_text', r.review_text, 'products', p)), '[]'::json)
       FROM product_reviews r
       JOIN products p ON p.id = r.product_id
-      WHERE r.user_id = buyer_id
+      WHERE r.user_id = v_buyer_id
     ),
     
     -- Notifications
     'notifications', (
       SELECT COALESCE(json_agg(n ORDER BY created_at DESC), '[]'::json)
-      FROM (SELECT * FROM notifications WHERE user_id = buyer_id LIMIT 30) n
+      FROM (SELECT * FROM notifications WHERE user_id = v_buyer_id LIMIT 30) n
     ),
     
     -- Static lists
     'addresses', (
       SELECT COALESCE(json_agg(a), '[]'::json)
-      FROM addresses a WHERE a.user_id = buyer_id
+      FROM addresses a WHERE a.user_id = v_buyer_id
     ),
     'payment_methods', (
       SELECT COALESCE(json_agg(pm), '[]'::json)
-      FROM payment_methods pm WHERE pm.user_id = buyer_id
+      FROM payment_methods pm WHERE pm.user_id = v_buyer_id
     ),
     
     -- AI Generated lists
     'insights', (
       SELECT COALESCE(json_agg(i), '[]'::json)
-      FROM buyer_insights i WHERE i.user_id = buyer_id
+      FROM buyer_insights i WHERE i.user_id = v_buyer_id
     ),
     'recommendations', (
       SELECT COALESCE(json_agg(json_build_object('id', br.id, 'reason', br.reason, 'budget_fit', br.budget_fit, 'products', p)), '[]'::json)
       FROM buyer_recommendations br
       JOIN products p ON p.id = br.product_id
-      WHERE br.user_id = buyer_id
+      WHERE br.user_id = v_buyer_id
     )
     
   ) INTO dashboard_data;
@@ -257,3 +265,6 @@ BEGIN
   RETURN dashboard_data;
 END;
 $$;
+
+REVOKE ALL ON FUNCTION get_buyer_dashboard() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION get_buyer_dashboard() TO authenticated;

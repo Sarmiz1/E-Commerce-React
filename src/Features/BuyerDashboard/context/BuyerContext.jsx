@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * BuyerContext.jsx
  *
@@ -155,19 +156,22 @@ export function BuyerProvider({ children }) {
   const deleteAddressMut      = useDeleteAddress();
 
   // ── Actions (TODO: Move wallet/ai mutations to DB) ─────────────────────────
-  const fundWallet = useCallback(async (amount) => {
-    addToast('Wallet funding requires backend mutation hook!');
-    return { success: false };
+  const fundWallet = useCallback(async () => {
+    const error = 'Wallet funding is not available yet.';
+    addToast(error, 'info');
+    return { success: false, error };
   }, [addToast]);
 
-  const withdrawWallet = useCallback(async (amount, password) => {
-    addToast('Wallet withdraw requires backend mutation hook!');
-    return { success: false };
+  const withdrawWallet = useCallback(async () => {
+    const error = 'Wallet withdrawals are not available yet.';
+    addToast(error, 'info');
+    return { success: false, error };
   }, [addToast]);
 
-  const buyCredits = useCallback(async (tier) => {
-    addToast('Credit purchase requires backend mutation hook!');
-    return { success: false };
+  const buyCredits = useCallback(async () => {
+    const error = 'AI credit purchases are not available yet.';
+    addToast(error, 'info');
+    return { success: false, error };
   }, [addToast]);
 
   const cartTotal = totals.total;

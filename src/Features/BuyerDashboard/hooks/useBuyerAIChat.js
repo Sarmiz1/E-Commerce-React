@@ -1,50 +1,72 @@
-import { useState, useRef, useEffect } from 'react';
-import { useBuyer } from '../context/BuyerContext';
+import { useEffect, useRef, useState } from "react";
+import { useBuyer } from "../context/BuyerContext";
 
 const TYPING_MSGS = [
-  '✦ Analyzing your style preferences…',
-  '✦ Checking your size profile…',
-  '✦ Filtering by your budget range…',
-  '✦ Applying purchase history…',
-  '✦ Finding best matches…',
+  "Analyzing available products...",
+  "Checking matching categories...",
+  "Filtering search results...",
+  "Comparing recommendations...",
+  "Finding best matches...",
 ];
 
 export function useBuyerAIChat() {
-  const { recommendations: RECOMMENDATIONS } = useBuyer();
+  const { profile, recommendations = [] } = useBuyer();
+  const firstName = profile?.firstName ? ` ${profile.firstName}` : "";
 
-  const AI_RESPONSES = {
+  const responses = {
     default: {
-      text: "I found some great matches for you! Here are my top picks based on your preferences and budget.",
-      products: RECOMMENDATIONS || [],
+      text: "I found some products that match your search. Here are the current recommendations.",
+      products: recommendations,
     },
     sneakers: {
-      text: "Based on your EU 42 size and past Nike purchases, here are the best sneakers under your budget:",
-      products: (RECOMMENDATIONS || []).filter(r => r.category === 'Footwear'),
+      text: "Here are the footwear recommendations matching your search:",
+      products: recommendations.filter((item) => item.category === "Footwear"),
     },
     shirts: {
-      text: "You prefer M-size shirts and have bought similar items before. Here are the best work shirts:",
-      products: (RECOMMENDATIONS || []).filter(r => r.category === 'Fashion'),
+      text: "Here are the fashion recommendations matching your search:",
+      products: recommendations.filter((item) => item.category === "Fashion"),
     },
     tech: {
-      text: "Based on your Wireless Earbuds purchase, here are compatible tech products you'll love:",
-      products: (RECOMMENDATIONS || []).filter(r => r.category === 'Tech'),
+      text: "Here are the tech recommendations matching your search:",
+      products: recommendations.filter((item) => item.category === "Tech"),
     },
   };
 
-  const getAIResponse = (query) => {
-    const q = query.toLowerCase();
-    if (q.includes('sneaker') || q.includes('shoe') || q.includes('footwear')) return AI_RESPONSES.sneakers;
-    if (q.includes('shirt') || q.includes('fashion') || q.includes('cloth')) return AI_RESPONSES.shirts;
-    if (q.includes('tech') || q.includes('gadget') || q.includes('earbu')) return AI_RESPONSES.tech;
-    return AI_RESPONSES.default;
+  const getResponse = (query) => {
+    const normalizedQuery = query.toLowerCase();
+    if (
+      normalizedQuery.includes("sneaker") ||
+      normalizedQuery.includes("shoe") ||
+      normalizedQuery.includes("footwear")
+    ) {
+      return responses.sneakers;
+    }
+    if (
+      normalizedQuery.includes("shirt") ||
+      normalizedQuery.includes("fashion") ||
+      normalizedQuery.includes("cloth")
+    ) {
+      return responses.shirts;
+    }
+    if (
+      normalizedQuery.includes("tech") ||
+      normalizedQuery.includes("gadget") ||
+      normalizedQuery.includes("earbu")
+    ) {
+      return responses.tech;
+    }
+    return responses.default;
   };
 
   const [messages, setMessages] = useState([
-    { role: 'ai', text: "Hi Samuel! I'm your personal shopping AI. Tell me what you're looking for — I already know your size, budget preferences, and what you love. 🎯" },
+    {
+      role: "ai",
+      text: `Hi${firstName}! Tell me what you are looking for and I will search the available recommendations.`,
+    },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [typingMsg, setTypingMsg] = useState('');
+  const [typingMsg, setTypingMsg] = useState("");
   const [results, setResults] = useState(null);
   const chatRef = useRef(null);
 
@@ -53,31 +75,36 @@ export function useBuyerAIChat() {
   }, [messages, loading]);
 
   const sendMessage = async (text) => {
-    const msg = text || input.trim();
-    if (!msg) return;
-    setInput('');
+    const message = text || input.trim();
+    if (!message) return;
+    setInput("");
 
-    setMessages(prev => [...prev, { role: 'user', text: msg }]);
+    setMessages((previous) => [...previous, { role: "user", text: message }]);
     setLoading(true);
     setResults(null);
 
-    for (let i = 0; i < TYPING_MSGS.length; i++) {
-      await new Promise(r => setTimeout(r, 380));
-      setTypingMsg(TYPING_MSGS[i]);
+    for (const typingMessage of TYPING_MSGS) {
+      await new Promise((resolve) => setTimeout(resolve, 380));
+      setTypingMsg(typingMessage);
     }
 
-    const response = getAIResponse(msg);
-    await new Promise(r => setTimeout(r, 400));
+    const response = getResponse(message);
+    await new Promise((resolve) => setTimeout(resolve, 400));
 
     setLoading(false);
-    setTypingMsg('');
-    setMessages(prev => [...prev, { role: 'ai', text: response.text }]);
+    setTypingMsg("");
+    setMessages((previous) => [...previous, { role: "ai", text: response.text }]);
     setResults(response.products);
   };
 
   return {
-    messages, input, setInput,
-    loading, typingMsg, results,
-    chatRef, sendMessage
+    messages,
+    input,
+    setInput,
+    loading,
+    typingMsg,
+    results,
+    chatRef,
+    sendMessage,
   };
 }

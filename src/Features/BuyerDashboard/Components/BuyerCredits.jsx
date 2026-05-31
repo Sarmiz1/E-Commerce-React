@@ -4,7 +4,7 @@ import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer } from '../context/BuyerContext';
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
-import { AI_CREDIT_TIERS } from '../data/buyerData';
+import { AI_CREDIT_TIERS } from '../data/buyerConstants';
 
 function CreditTierCard({ tier, delay, onBuy, buying }) {
   const { colors, isDark } = useTheme();

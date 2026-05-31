@@ -4,7 +4,7 @@ import { useTheme } from "../../../Store/useThemeStore";
 import { BIcon } from './BuyerIcon';
 import { ProductResult } from './ProductResult';
 import { useBuyerAIChat } from '../hooks/useBuyerAIChat';
-import { AI_CHAT_SUGGESTIONS } from '../data/buyerData';
+import { AI_CHAT_SUGGESTIONS } from '../data/buyerConstants';
 
 function ChatHeader({ colors }) {
   return (
@@ -18,7 +18,7 @@ function ChatHeader({ colors }) {
         <div className="flex items-center gap-1.5 mt-0.5">
           <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 1.8 }}
             className="w-1.5 h-1.5 rounded-full bg-green-400" />
-          <p className="text-xs font-semibold" style={{ color: colors.text.tertiary }}>Active · Knows your preferences</p>
+          <p className="text-xs font-semibold" style={{ color: colors.text.tertiary }}>Active · Uses live recommendations</p>
         </div>
       </div>
     </div>

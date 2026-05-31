@@ -22,25 +22,42 @@ function FundModal({ open, onClose, onFund }) {
   const [amount, setAmount] = useState('');
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
   const ref = useRef(null);
   const parsed = parseInt(amount.replace(/\D/g, '')) || 0;
 
-  useEffect(() => { if (open) { setAmount(''); setProcessing(false); setSuccess(false); setTimeout(() => ref.current?.focus(), 200); } }, [open]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const focusTimer = setTimeout(() => ref.current?.focus(), 200);
+    return () => clearTimeout(focusTimer);
+  }, [open]);
+
+  const close = useCallback(() => {
+    setAmount('');
+    setProcessing(false);
+    setSuccess(false);
+    setError('');
+    onClose();
+  }, [onClose]);
 
   const submit = useCallback(async () => {
     if (parsed < 500) return;
-    setProcessing(true);
-    await onFund(parsed);
+    setProcessing(true); setError('');
+    const result = await onFund(parsed);
+    if (result.success) {
+      setSuccess(true);
+      setTimeout(close, 1800);
+    } else {
+      setError(result.error || 'Wallet funding is not available yet.');
+    }
     setProcessing(false);
-    setSuccess(true);
-    setTimeout(() => { onClose(); }, 1800);
-  }, [parsed, onFund, onClose]);
+  }, [parsed, onFund, close]);
 
   if (!open) return null;
   return createPortal(
     <AnimatePresence>
       {open && (<>
-        <motion.div key="fb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md" onClick={() => !processing && onClose()} />
+        <motion.div key="fb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md" onClick={() => !processing && close()} />
         <motion.div key="fm" initial={{ opacity: 0, scale: 0.88, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 30 }}
           transition={{ type: 'spring', damping: 22, stiffness: 300 }} className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="w-[95vw] max-w-md rounded-3xl shadow-2xl overflow-hidden pointer-events-auto" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }} onClick={e => e.stopPropagation()}>
@@ -49,7 +66,7 @@ function FundModal({ open, onClose, onFund }) {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(5,150,105,0.1)' }}><BIcon name="plus" size={18} style={{ color: '#059669' }} /></div>
                 <div><h3 className="font-black text-base" style={{ color: colors.text.primary }}>Fund Wallet</h3><p className="text-[11px]" style={{ color: colors.text.tertiary }}>Add money to your wallet</p></div>
               </div>
-              {!processing && <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.tertiary }}><BIcon name="x" size={15} /></button>}
+              {!processing && <button onClick={close} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.tertiary }}><BIcon name="x" size={15} /></button>}
             </div>
             <div className="px-6 py-6">
               {success ? (
@@ -62,7 +79,7 @@ function FundModal({ open, onClose, onFund }) {
                 <p className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: colors.text.tertiary }}>Enter Amount</p>
                 <div className="relative mb-4">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black" style={{ color: colors.text.tertiary }}>₦</span>
-                  <input ref={ref} type="text" value={parsed > 0 ? parsed.toLocaleString() : ''} onChange={e => setAmount(e.target.value)} placeholder="0"
+                  <input ref={ref} type="text" value={parsed > 0 ? parsed.toLocaleString() : ''} onChange={e => { setAmount(e.target.value); setError(''); }} placeholder="0"
                     className="w-full pl-12 pr-4 py-4 rounded-2xl text-2xl font-black outline-none" style={{ background: isDark ? colors.surface.tertiary : '#F5F6FA', border: `2px solid ${colors.border.default}`, color: colors.text.primary }} />
                 </div>
                 <div className="flex gap-2 mb-5 flex-wrap">
@@ -75,8 +92,9 @@ function FundModal({ open, onClose, onFund }) {
                 </div>
                 <div className="flex items-start gap-2 mb-4 p-3 rounded-xl" style={{ background: isDark ? 'rgba(102,126,234,0.05)' : 'rgba(102,126,234,0.03)', border: `1px solid ${isDark ? 'rgba(102,126,234,0.1)' : 'rgba(102,126,234,0.08)'}` }}>
                   <BIcon name="shield" size={14} style={{ color: '#667eea', marginTop: 1 }} />
-                  <p className="text-[11px] leading-relaxed" style={{ color: colors.text.tertiary }}>Secured by Paystack. Funds are instantly available.</p>
+                  <p className="text-[11px] leading-relaxed" style={{ color: colors.text.tertiary }}>Wallet funding will be enabled after the payment backend is connected.</p>
                 </div>
+                {error && <p className="text-xs font-bold mb-3 flex items-center gap-1.5" style={{ color: '#ef4444' }}><BIcon name="alert-circle" size={13} /> {error}</p>}
                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={submit} disabled={parsed < 500 || processing}
                   className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
                   style={{ background: parsed >= 500 ? 'linear-gradient(135deg, #667eea, #764ba2)' : (isDark ? colors.surface.tertiary : '#E5E7EB'), color: parsed >= 500 ? '#fff' : colors.text.tertiary }}>
@@ -100,14 +118,27 @@ function WithdrawModal({ open, onClose, balance, onWithdraw }) {
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
   const ref = useRef(null);
   const passRef = useRef(null);
   const parsed = parseInt(amount.replace(/\D/g, '')) || 0;
   const fee = Math.round(parsed * 0.10);
   const net = parsed - fee;
 
-  useEffect(() => { if (open) { setStep(1); setAmount(''); setPassword(''); setProcessing(false); setSuccess(false); setError(''); setResult(null); setTimeout(() => ref.current?.focus(), 200); } }, [open]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const focusTimer = setTimeout(() => ref.current?.focus(), 200);
+    return () => clearTimeout(focusTimer);
+  }, [open]);
+
+  const close = useCallback(() => {
+    setStep(1);
+    setAmount('');
+    setPassword('');
+    setProcessing(false);
+    setSuccess(false);
+    setError('');
+    onClose();
+  }, [onClose]);
 
   const goStep2 = () => { if (parsed < 1000) { setError('Minimum ₦1,000'); return; } if (parsed > balance) { setError('Exceeds balance'); return; } setStep(2); setTimeout(() => passRef.current?.focus(), 200); };
 
@@ -115,7 +146,7 @@ function WithdrawModal({ open, onClose, balance, onWithdraw }) {
     if (!password || password.length < 6) { setError('Password must be 6+ chars'); return; }
     setProcessing(true); setError('');
     const res = await onWithdraw(parsed, password);
-    if (res.success) { setResult(res); setSuccess(true); setStep(3); } else { setError(res.error || 'Failed'); }
+    if (res.success) { setSuccess(true); setStep(3); } else { setError(res.error || 'Failed'); }
     setProcessing(false);
   }, [parsed, password, onWithdraw]);
 
@@ -123,7 +154,7 @@ function WithdrawModal({ open, onClose, balance, onWithdraw }) {
   return createPortal(
     <AnimatePresence>
       {open && (<>
-        <motion.div key="wb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md" onClick={() => !processing && onClose()} />
+        <motion.div key="wb" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md" onClick={() => !processing && close()} />
         <motion.div key="wm" initial={{ opacity: 0, scale: 0.88, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.88, y: 30 }}
           transition={{ type: 'spring', damping: 22, stiffness: 300 }} className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="w-[95vw] max-w-md rounded-3xl shadow-2xl overflow-hidden pointer-events-auto" style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }} onClick={e => e.stopPropagation()}>
@@ -132,7 +163,7 @@ function WithdrawModal({ open, onClose, balance, onWithdraw }) {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.08)' }}><BIcon name="arrow-up" size={18} style={{ color: '#ef4444' }} /></div>
                 <div><h3 className="font-black text-base" style={{ color: colors.text.primary }}>Withdraw Funds</h3><p className="text-[11px]" style={{ color: colors.text.tertiary }}>Balance: {fmtFull(balance)}</p></div>
               </div>
-              {!processing && <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.tertiary }}><BIcon name="x" size={15} /></button>}
+              {!processing && <button onClick={close} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isDark ? colors.surface.tertiary : '#F3F4F6', color: colors.text.tertiary }}><BIcon name="x" size={15} /></button>}
             </div>
             <div className="px-6 py-6">
               {/* Step indicators */}
@@ -191,7 +222,7 @@ function WithdrawModal({ open, onClose, balance, onWithdraw }) {
                     <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(5,150,105,0.1)' }}><BIcon name="check" size={28} style={{ color: '#059669' }} /></div>
                     <h4 className="font-black text-xl mb-1" style={{ color: colors.text.primary }}>Withdrawal Submitted!</h4>
                     <p className="text-sm mb-4" style={{ color: colors.text.tertiary }}>{fmtFull(net)} is on its way to your bank.</p>
-                    <motion.button whileTap={{ scale: 0.97 }} onClick={onClose} className="w-full py-3.5 rounded-xl font-bold text-sm" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff' }}>Done</motion.button>
+                    <motion.button whileTap={{ scale: 0.97 }} onClick={close} className="w-full py-3.5 rounded-xl font-bold text-sm" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff' }}>Done</motion.button>
                   </motion.div>
                 )}
               </AnimatePresence>

@@ -26,7 +26,7 @@ export function useBuyerDashboard() {
   return useQuery({
     queryKey: buyerKeys.dashboard(user?.id),
     queryFn: async () => {
-      const { data, error } = await buyerApi.getDashboard(user.id);
+      const { data, error } = await buyerApi.getDashboard();
       if (error) throw error;
       return data;
     },
