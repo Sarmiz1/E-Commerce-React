@@ -1,343 +1,361 @@
-import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-  Brain,
-  TrendingUp,
-  Search,
-  Zap,
   ArrowRight,
-  BarChart3,
-  Users,
+  Brain,
+  CheckCircle2,
+  Database,
   RefreshCcw,
-  DollarSign,
-  ShoppingCart,
 } from "lucide-react";
-import { useTheme } from "../../Store/useThemeStore";
 import ModernNavbar from "../../Components/ModernNavbar";
+import SEO from "../../Components/SEO";
+import LeadCaptureForm from "../Marketting/Components/LeadCaptureForm";
+import { useMarketplaceSnapshot } from "./Hooks/useMarketplaceSnapshot";
+import {
+  ANALYTICS_NAV_LINKS,
+  ANALYTICS_SEO,
+  DISCOVERY_CAPABILITIES,
+  INTELLIGENCE_FLOW,
+  SIGNAL_METRICS,
+  SNAPSHOT_METRICS,
+} from "./utils/analyticsData";
 
-gsap.registerPlugin(ScrollTrigger);
+const numberFormatter = new Intl.NumberFormat("en-US");
 
-export default function AnalyticsPage() {
-  const mainRef = useRef(null);
-  const { isDark } = useTheme();
+function formatMetric(value, status) {
+  if (status === "loading") return "...";
+  if (status === "unavailable") return "Unavailable";
+  return numberFormatter.format(value);
+}
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.utils.toArray(".reveal-up").forEach((el) => {
-        gsap.fromTo(
-          el,
-          { y: 50, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            ease: "expo.out",
-            scrollTrigger: { trigger: el, start: "top 85%" },
-          },
-        );
-      });
-      gsap.fromTo(
-        ".stat-card",
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "expo.out",
-          stagger: 0.1,
-          scrollTrigger: { trigger: "#ai-metrics", start: "top 80%" },
-        },
-      );
-    }, mainRef);
-    return () => ctx.revert();
-  }, []);
+function getMetricStatus(metric, isLoading, unavailableSources) {
+  if (isLoading) return "loading";
+  if (metric.source === "Curation feed" && unavailableSources.curations) {
+    return "unavailable";
+  }
+  if (metric.source === "Live catalog" && unavailableSources.catalog) {
+    return "unavailable";
+  }
+  return "ready";
+}
 
-  const bg = isDark ? "#050505" : "#f8fafc";
-  const textPrimary = isDark ? "#fff" : "#0f172a";
-  const textMuted = isDark ? "#6b7280" : "#64748b";
-  const cardBg = isDark ? "rgba(39,39,42,0.5)" : "rgba(255,255,255,0.8)";
-  const cardBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)";
-  const sectionBorder = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.07)";
+function MetricCard({ metric, snapshot, isLoading, unavailableSources }) {
+  const status = getMetricStatus(metric, isLoading, unavailableSources);
 
   return (
-    <div
-      ref={mainRef}
-      className="min-h-screen selection:bg-blue-600/30"
-      style={{
-        fontFamily: "'Inter', sans-serif",
-        background: bg,
-        color: textPrimary,
-      }}
+    <motion.article
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-lg dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none"
     >
-      <ModernNavbar
-        navLinks={[
-          { label: "Shop", href: "/products" },
-          { label: "Brands", href: "/brands" },
-          { label: "Sellers", href: "/seller" },
-          { label: "Infrastructure", href: "/analytics" },
-        ]}
-      />
-
-      {/* 1. HERO SECTION */}
-      <section className="relative pt-40 pb-20 px-6 min-h-[60vh] flex flex-col items-center justify-center text-center overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-blue-500 font-semibold text-sm mb-8"
-          >
-            <Brain size={16} /> Woosho Intelligence API
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-8"
-          >
-            Commerce Optimized by <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">
-              Intelligence.
-            </span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed"
-          >
-            Woosho leverages AI to improve product discovery, conversion rates,
-            and marketplace performance. We are building the intelligence layer
-            for African commerce.
-          </motion.p>
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+          <metric.icon className="h-5 w-5" />
         </div>
-      </section>
-
-      {/* 2. AI IMPACT METRICS */}
-      <section
-        id="ai-metrics"
-        className="py-24 px-6 md:px-12 max-w-7xl mx-auto border-t border-white/5"
+        <span className="rounded-full border border-slate-200 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 dark:border-white/10 dark:text-slate-400">
+          {metric.source}
+        </span>
+      </div>
+      <p
+        className={`font-black tracking-tight text-slate-950 dark:text-white ${
+          status === "unavailable" ? "text-xl" : "text-4xl"
+        }`}
       >
-        <div className="mb-16">
-          <h2 className="text-sm font-bold text-blue-500 uppercase tracking-widest mb-4">
-            The AI Advantage
-          </h2>
-          <h3 className="text-3xl md:text-5xl font-bold tracking-tight text-white max-w-2xl">
-            Measurable improvements across the entire funnel.
-          </h3>
-        </div>
+        {formatMetric(snapshot[metric.key], status)}
+      </p>
+      <h3 className="mt-2 text-sm font-black uppercase tracking-[0.12em] text-slate-700 dark:text-slate-200">
+        {metric.label}
+      </h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+        {metric.description}
+      </p>
+    </motion.article>
+  );
+}
+function DataNote({ isFetching, unavailableSources, onRefresh }) {
+  const hasUnavailableSource =
+    unavailableSources.catalog || unavailableSources.curations;
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              icon: TrendingUp,
-              label: "Conversion Rate",
-              value: "+27%",
-              sub: "AI-assisted vs standard sessions",
-            },
-            {
-              icon: Search,
-              label: "Product Search Time",
-              value: "-32%",
-              sub: "Faster discovery through NLP",
-            },
-            {
-              icon: DollarSign,
-              label: "Average Order Value",
-              value: "+18%",
-              sub: "Driven by smart cross-selling",
-            },
-            {
-              icon: Zap,
-              label: "AI Search Engagement",
-              value: "42%",
-              sub: "Users actively utilizing AI filters",
-            },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              className="stat-card bg-zinc-900/50 border border-white/5 p-8 rounded-3xl hover:bg-zinc-900 transition-colors"
-            >
-              <stat.icon size={24} className="text-blue-500 mb-6" />
-              <div className="text-5xl font-bold text-white mb-2">
-                {stat.value}
-              </div>
-              <div className="font-semibold text-gray-300 mb-1">
-                {stat.label}
-              </div>
-              <div className="text-sm text-gray-500">{stat.sub}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. DISCOVERY EFFICIENCY */}
-      <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="reveal-up bg-gradient-to-br from-blue-900/40 to-black border border-blue-500/20 rounded-[3rem] p-10 md:p-20 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/20 via-transparent to-transparent pointer-events-none" />
-
-          <div className="grid lg:grid-cols-2 gap-16 relative z-10">
-            <div>
-              <h2 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4">
-                Frictionless Discovery
-              </h2>
-              <h3 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6">
-                Less searching.
-                <br />
-                More purchasing.
-              </h3>
-              <p className="text-gray-400 text-lg leading-relaxed mb-8">
-                Traditional marketplaces rely on endless scrolling and rigid
-                catalog filters. Our Neural Engine anticipates intent,
-                drastically reducing the friction between desire and checkout.
-              </p>
-            </div>
-
-            <div className="flex flex-col justify-center gap-8">
-              <div className="bg-black/40 backdrop-blur-md border border-white/10 p-6 rounded-2xl">
-                <div className="text-sm text-gray-400 mb-2 font-medium">
-                  Before Woosho AI
-                </div>
-                <div className="flex items-end gap-4">
-                  <div className="text-5xl font-bold text-gray-500">14</div>
-                  <div className="text-gray-500 pb-1">
-                    product views before purchase
-                  </div>
-                </div>
-              </div>
-              <div className="bg-blue-600/10 backdrop-blur-md border border-blue-500/30 p-6 rounded-2xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
-                <div className="text-sm text-blue-400 mb-2 font-medium">
-                  With Woosho AI
-                </div>
-                <div className="flex items-end gap-4">
-                  <div className="text-5xl font-bold text-white">6</div>
-                  <div className="text-gray-300 pb-1">
-                    product views before purchase
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. CORE PLATFORM METRICS */}
-      <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto border-t border-white/5">
-        <div className="reveal-up mb-16 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
-            Platform Growth
-          </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Strong underlying marketplace fundamentals powered by our
-            intelligent infrastructure.
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
+      <div className="flex items-start gap-3">
+        <Database className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-300" />
+        <div>
+          <p className="text-sm font-bold text-slate-900 dark:text-white">
+            {hasUnavailableSource
+              ? "Some live sources are temporarily unavailable."
+              : "Snapshot generated from live marketplace records."}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-400">
+            Empty and unavailable sources stay visible as-is. The page does not
+            substitute marketing estimates.
           </p>
         </div>
+      </div>
+      <button
+        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-slate-700 transition hover:border-blue-600 hover:text-blue-700 disabled:cursor-wait disabled:opacity-60 dark:border-white/15 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:text-blue-300"
+        disabled={isFetching}
+        onClick={onRefresh}
+        type="button"
+      >
+        <RefreshCcw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+        {isFetching ? "Refreshing" : "Refresh data"}
+      </button>
+    </div>
+  );
+}
 
-        <div className="reveal-up grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12">
-          {[
-            {
-              icon: Users,
-              label: "Monthly Active Users",
-              val: "1.2M",
-              growth: "+14% MoM",
-            },
-            {
-              icon: BarChart3,
-              label: "Annualized GMV",
-              val: "$45M",
-              growth: "+22% MoM",
-            },
-            {
-              icon: ShoppingCart,
-              label: "Orders / Month",
-              val: "320k",
-              growth: "+18% MoM",
-            },
-            {
-              icon: RefreshCcw,
-              label: "Repeat Purchase Rate",
-              val: "68%",
-              growth: "+5% MoM",
-            },
-          ].map((m, i) => (
-            <div
-              key={i}
-              className="text-center border-l border-white/10 pl-6 first:border-0 md:first:pl-0"
+function getAnalyticsPageSchema(canonical) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "WooSho Commerce Intelligence",
+    description: ANALYTICS_SEO.description,
+    ...(canonical ? { url: canonical } : {}),
+    about: {
+      "@type": "Thing",
+      name: "WooSho marketplace analytics and commerce infrastructure",
+    },
+  };
+}
+
+function scrollToSection(sectionId) {
+  document.getElementById(sectionId)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
+export default function AnalyticsPage() {
+  const {
+    snapshot,
+    isLoading,
+    isFetching,
+    unavailableSources,
+    refresh,
+  } = useMarketplaceSnapshot();
+  const canonical =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/analytics`
+      : undefined;
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-950 selection:bg-blue-600/20 dark:bg-[#0e0e10] dark:text-white">
+      <SEO
+        canonical={canonical}
+        description={ANALYTICS_SEO.description}
+        keywords={ANALYTICS_SEO.keywords}
+        schema={getAnalyticsPageSchema(canonical)}
+        title={ANALYTICS_SEO.title}
+      />
+      <ModernNavbar navLinks={ANALYTICS_NAV_LINKS} />
+
+      <main>
+        <section className="relative overflow-hidden border-b border-slate-200 px-5 pb-12 pt-32 dark:border-white/10 sm:px-6 sm:pb-16 sm:pt-36">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(37,99,235,0.12),_transparent_46%)] dark:bg-[radial-gradient(circle_at_top_right,_rgba(37,99,235,0.16),_transparent_42%)]" />
+          <div className="relative mx-auto max-w-7xl">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-blue-700 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-200"
             >
-              <div className="flex justify-center mb-4">
-                <m.icon size={24} className="text-gray-500" />
-              </div>
-              <div className="text-4xl font-bold text-white mb-2">{m.val}</div>
-              <div className="text-sm font-semibold text-gray-300 mb-1">
-                {m.label}
-              </div>
-              <div className="text-xs text-green-400 font-medium">
-                {m.growth}
+              <Brain className="h-4 w-4" /> WooSho intelligence
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="mt-5 max-w-4xl text-4xl font-black tracking-[-0.055em] text-slate-950 dark:text-white sm:text-5xl lg:text-7xl"
+            >
+              Live marketplace data.
+              <span className="block text-blue-700 dark:text-blue-300">
+                Clear commerce signals.
+              </span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.16 }}
+              className="mt-5 max-w-2xl text-base font-medium leading-7 text-slate-700 dark:text-slate-300 sm:text-lg"
+            >
+              This page reads WooSho&apos;s active catalog and curation feeds to
+              show the public marketplace footprint behind product discovery.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.24 }}
+              className="mt-7 flex flex-col gap-3 sm:flex-row"
+            >
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-800"
+                onClick={() => scrollToSection("live-snapshot")}
+                type="button"
+              >
+                Explore live snapshot <ArrowRight className="h-4 w-4" />
+              </button>
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:border-blue-600 hover:text-blue-700 dark:border-white/15 dark:bg-white/[0.04] dark:text-white dark:hover:border-blue-400 dark:hover:text-blue-300"
+                onClick={() => scrollToSection("partner-form")}
+                type="button"
+              >
+                Partner with WooSho
+              </button>
+            </motion.div>
+          </div>
+        </section>
+
+        <section
+          className="scroll-mt-24 px-5 py-10 sm:px-6 sm:py-14"
+          id="live-snapshot"
+        >
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-6 max-w-2xl">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-700 dark:text-blue-300">
+                Live marketplace snapshot
+              </p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">
+                Real records, compact view.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400 sm:text-base">
+                These counters are derived in the browser from the public
+                sellable catalog and active curation feed.
+              </p>
+            </div>
+            <DataNote
+              isFetching={isFetching}
+              onRefresh={refresh}
+              unavailableSources={unavailableSources}
+            />
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {SNAPSHOT_METRICS.map((metric) => (
+                <MetricCard
+                  isLoading={isLoading}
+                  key={metric.key}
+                  metric={metric}
+                  snapshot={snapshot}
+                  unavailableSources={unavailableSources}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-slate-200 bg-white px-5 py-10 dark:border-white/10 dark:bg-[#131315] sm:px-6 sm:py-14">
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-700 dark:text-blue-300">
+                Discovery infrastructure
+              </p>
+              <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">
+                Product context flows through the marketplace.
+              </h2>
+              <div className="mt-6 grid gap-3">
+                {DISCOVERY_CAPABILITIES.map((capability, index) => (
+                  <motion.article
+                    initial={{ opacity: 0, y: 12 }}
+                    key={capability.title}
+                    transition={{ delay: index * 0.06 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.035]"
+                  >
+                    <div className="flex gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-700 dark:text-blue-300" />
+                      <div>
+                        <h3 className="font-black text-slate-900 dark:text-white">
+                          {capability.title}
+                        </h3>
+                        <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                          {capability.description}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.article>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* 5. MARKET POSITIONING & SCALABILITY */}
-      <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto border-t border-white/5">
-        <div className="grid lg:grid-cols-2 gap-16">
-          <div className="reveal-up">
-            <h3 className="text-2xl font-bold text-white mb-6">
-              The Infrastructure Evolution
-            </h3>
-            <p className="text-gray-400 leading-relaxed text-lg mb-6">
-              E-commerce in Nigeria remains largely catalog-based. Woosho
-              introduces intelligent filtering and decision assistance to reduce
-              friction in high-choice environments.
-            </p>
-            <p className="text-gray-400 leading-relaxed text-lg">
-              We are not just building a storefront. We are deploying a
-              proprietary technology layer that powers smarter commerce
-              decisions at scale.
-            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {SIGNAL_METRICS.map((metric) => (
+                <MetricCard
+                  isLoading={isLoading}
+                  key={metric.key}
+                  metric={metric}
+                  snapshot={snapshot}
+                  unavailableSources={unavailableSources}
+                />
+              ))}
+            </div>
           </div>
+        </section>
 
-          <div className="reveal-up bg-zinc-900/50 border border-white/5 p-10 rounded-3xl">
-            <h3 className="text-2xl font-bold text-white mb-6">
-              The Intelligence Flywheel
-            </h3>
-            <ul className="space-y-6">
-              {[
-                "1. Vendor onboarding increases data density.",
-                "2. AI model improves with broader marketplace data.",
-                "3. Personalization accuracy rises, driving up conversion.",
-                "4. Higher GMV attracts more premium brands.",
-              ].map((step, i) => (
-                <li key={i} className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 font-bold text-sm">
-                    {i + 1}
-                  </div>
-                  <div className="text-gray-300 font-medium pt-1">
-                    {step.split(". ")[1]}
-                  </div>
+        <section className="px-5 py-10 sm:px-6 sm:py-14">
+          <div className="mx-auto grid max-w-7xl gap-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none sm:p-7 lg:grid-cols-[0.85fr_1.15fr]">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-700 dark:text-blue-300">
+                Data flow
+              </p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+                One catalog, multiple discovery surfaces.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                The public snapshot is deliberately narrow. Private revenue,
+                customer, and order analytics remain inside role-protected
+                dashboards.
+              </p>
+            </div>
+            <ol className="grid gap-3 sm:grid-cols-2">
+              {INTELLIGENCE_FLOW.map((step, index) => (
+                <li
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-black/15"
+                  key={step}
+                >
+                  <span className="text-xs font-black uppercase tracking-[0.18em] text-blue-700 dark:text-blue-300">
+                    0{index + 1}
+                  </span>
+                  <p className="mt-2 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
+                    {step}
+                  </p>
                 </li>
               ))}
-            </ul>
+            </ol>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA */}
-      <section className="py-32 px-6 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
-          Build on the future of commerce.
-        </h2>
-        <button className="px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-blue-500/20">
-          Partner With Woosho
-        </button>
-      </section>
+        <section
+          className="scroll-mt-24 border-t border-slate-200 bg-slate-950 px-5 py-12 text-white dark:border-white/10 sm:px-6 sm:py-16"
+          id="partner-form"
+        >
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-300">
+                Partnerships
+              </p>
+              <h2 className="mt-3 max-w-xl text-3xl font-black tracking-tight sm:text-4xl">
+                Build useful commerce infrastructure with WooSho.
+              </h2>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
+                Share your company and collaboration idea. The partnership form
+                stores the request locally first and submits it to the
+                configured marketing lead table when available.
+              </p>
+              <a
+                className="mt-5 inline-flex items-center gap-2 text-sm font-black text-blue-300 transition hover:text-blue-200"
+                href="mailto:partners@woosho.com"
+              >
+                partners@woosho.com <ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+            <LeadCaptureForm
+              audience="partner"
+              cta="Send partnership request"
+              dark
+              description="Tell us who you are and the kind of partnership you want to explore."
+              title="Partner with WooSho"
+            />
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

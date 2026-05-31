@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminSession } from "../../Store/useAdminSession";
 import { useAuth } from "../../Store/useAuthStore";
 import { useCartStore } from "../../Store/useCartStore";
 import { CartAPI } from "../../api/cartApi";
@@ -32,8 +33,11 @@ function removeProductId(productIds, productId) {
  */
 export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
   const { user } = useAuth();
+  const { isAdminSession, isCheckingAdmin } = useAdminSession();
   const queryClient = useQueryClient();
   const store = useCartStore;
+  const customerCartBlocked =
+    Boolean(user?.id) && (isCheckingAdmin || isAdminSession);
 
   const [success, setSuccess] = useState(false);
 
@@ -230,9 +234,19 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
         overrideProductId = eOrProductId;
       }
 
+      if (customerCartBlocked) {
+        toast(
+          isAdminSession
+            ? "Admin mode cannot add products to a customer cart. Sign in with a separate buyer account to shop."
+            : "Checking account access. Please try again in a moment.",
+          "info",
+        );
+        return;
+      }
+
       mutate({ overrideProductId, overrideOpts });
     },
-    [mutate]
+    [customerCartBlocked, isAdminSession, mutate]
   );
 
   return {
@@ -244,5 +258,6 @@ export function useAddToCart(productId, { variantId, quantity = 1 } = {}) {
     isSuccess: success,
     error,
     reset,
+    disabled: customerCartBlocked,
   };
 }

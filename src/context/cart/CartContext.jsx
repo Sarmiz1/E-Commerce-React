@@ -2,6 +2,7 @@
 import { createContext, useContext, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "../../Store/useAuthStore";
+import { useAdminSession } from "../../Store/useAdminSession";
 import { CartAPI } from "../../api/cartApi";
 import { CartEngine } from "../../Cart/cartEngine";
 import { queryClient } from "../../queries/queryClient";
@@ -13,6 +14,20 @@ import {
 
 const toast = (msg, type = "success") =>
   useToastStore.getState().addToast(msg, type);
+
+const ADMIN_MODE_CART_MESSAGE =
+  "Admin mode cannot use customer carts. Sign in with a separate buyer account to shop.";
+const createEmptyCart = () => ({
+  cartId: null,
+  items: [],
+  totals: {
+    subtotal: 0,
+    discount: 0,
+    shipping: 0,
+    total: 0,
+    applied_promo: null,
+  },
+});
 
 const normalizeCartAddition = (item) => {
   const product = item?.product ?? item?.products ?? null;
@@ -41,7 +56,25 @@ const CartActionsContext = createContext(null);
 
 export function CartProvider({ children }) {
   const { user } = useAuth();
+  const { isAdminSession, isCheckingAdmin } = useAdminSession();
   const store = useCartStore;
+  const customerCartBlocked =
+    Boolean(user?.id) && (isCheckingAdmin || isAdminSession);
+  const ensureCustomerCartAction = useCallback(() => {
+    if (!customerCartBlocked) return true;
+
+    toast(
+      isAdminSession
+        ? ADMIN_MODE_CART_MESSAGE
+        : "Checking account access. Please try again in a moment.",
+      "info",
+    );
+    return false;
+  }, [customerCartBlocked, isAdminSession]);
+  const getBlockedCartError = useCallback(
+    () => new Error(ADMIN_MODE_CART_MESSAGE),
+    [],
+  );
 
   // ─── 1. TanStack Query — fetch cart & hydrate Zustand ─────────────────────
   const { data, isLoading, isFetching, error } = useQuery({
@@ -58,8 +91,14 @@ export function CartProvider({ children }) {
       );
       return mergedCount ? CartAPI.load(user.id) : serverCart;
     },
-    enabled: true,
+    enabled: !isAdminSession && (!user?.id || !isCheckingAdmin),
   });
+
+  useEffect(() => {
+    if (isAdminSession) {
+      store.getState().hydrate(createEmptyCart());
+    }
+  }, [isAdminSession, store]);
 
   // Sync server data into Zustand
   useEffect(() => {
@@ -376,33 +415,68 @@ export function CartProvider({ children }) {
   // ─── Stable action callbacks ──────────────────────────────────────────────
 
   const addItem = useCallback(
-    (productId, variantId, quantity = 1) =>
-      addItemMutate({ productId, variantId, quantity }),
-    [addItemMutate],
+    (productId, variantId, quantity = 1) => {
+      if (!ensureCustomerCartAction()) return;
+      addItemMutate({ productId, variantId, quantity });
+    },
+    [addItemMutate, ensureCustomerCartAction],
   );
   const addItemAsync = useCallback(
-    (productId, variantId, quantity = 1) =>
-      addItemMutateAsync({ productId, variantId, quantity }),
-    [addItemMutateAsync],
+    (productId, variantId, quantity = 1) => {
+      if (!ensureCustomerCartAction()) {
+        return Promise.reject(getBlockedCartError());
+      }
+      return addItemMutateAsync({ productId, variantId, quantity });
+    },
+    [addItemMutateAsync, ensureCustomerCartAction, getBlockedCartError],
   );
-  const removeItem = useCallback((id) => removeItemMutate(id), [removeItemMutate]);
-  const removeItemAsync = useCallback((id) => removeItemMutateAsync(id), [removeItemMutateAsync]);
+  const removeItem = useCallback((id) => {
+    if (!ensureCustomerCartAction()) return;
+    removeItemMutate(id);
+  }, [ensureCustomerCartAction, removeItemMutate]);
+  const removeItemAsync = useCallback((id) => {
+    if (!ensureCustomerCartAction()) {
+      return Promise.reject(getBlockedCartError());
+    }
+    return removeItemMutateAsync(id);
+  }, [ensureCustomerCartAction, getBlockedCartError, removeItemMutateAsync]);
   const updateQuantity = useCallback(
-    (itemId, quantity) => updateQuantityMutate({ itemId, quantity }),
-    [updateQuantityMutate],
+    (itemId, quantity) => {
+      if (!ensureCustomerCartAction()) return;
+      updateQuantityMutate({ itemId, quantity });
+    },
+    [ensureCustomerCartAction, updateQuantityMutate],
   );
   const updateQuantityAsync = useCallback(
-    (itemId, quantity) => updateQuantityMutateAsync({ itemId, quantity }),
-    [updateQuantityMutateAsync],
+    (itemId, quantity) => {
+      if (!ensureCustomerCartAction()) {
+        return Promise.reject(getBlockedCartError());
+      }
+      return updateQuantityMutateAsync({ itemId, quantity });
+    },
+    [ensureCustomerCartAction, getBlockedCartError, updateQuantityMutateAsync],
   );
-  const clearCart = useCallback(() => clearCartMutate(), [clearCartMutate]);
+  const clearCart = useCallback(() => {
+    if (!ensureCustomerCartAction()) return;
+    clearCartMutate();
+  }, [clearCartMutate, ensureCustomerCartAction]);
   const addItems = useCallback(
-    (items) => addItemsMutateAsync(items),
-    [addItemsMutateAsync],
+    (items) => {
+      if (!ensureCustomerCartAction()) {
+        return Promise.reject(getBlockedCartError());
+      }
+      return addItemsMutateAsync(items);
+    },
+    [addItemsMutateAsync, ensureCustomerCartAction, getBlockedCartError],
   );
   const applyPromo = useCallback(
-    (promoCode) => applyPromoMutateAsync(promoCode),
-    [applyPromoMutateAsync],
+    (promoCode) => {
+      if (!ensureCustomerCartAction()) {
+        return Promise.reject(getBlockedCartError());
+      }
+      return applyPromoMutateAsync(promoCode);
+    },
+    [applyPromoMutateAsync, ensureCustomerCartAction, getBlockedCartError],
   );
 
   // ─── Derived IDs for "which item is being mutated" ────────────────────────

@@ -21,10 +21,17 @@ const RoleSelector = ({ role, setValue, colors, isDark, cta }) => {
           { val: "buyer", label: "Shop & Buy", Icon: ShoppingBag },
           { val: "seller", label: "Sell Products", Icon: Store },
         ].map(({ val, label, Icon }) => (
-          <div
+          <button
             key={val}
             className="role-card"
-            onClick={() => setValue("role", val)}
+            onClick={() =>
+              setValue("role", val, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              })
+            }
+            type="button"
             style={{
               flex: 1,
               padding: "13px 12px",
@@ -58,7 +65,7 @@ const RoleSelector = ({ role, setValue, colors, isDark, cta }) => {
             {role === val && (
               <Check size={12} color={cta} style={{ marginLeft: "auto" }} />
             )}
-          </div>
+          </button>
         ))}
       </div>
     </div>

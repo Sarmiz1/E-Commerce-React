@@ -7,7 +7,6 @@ import {
 // Loaders
 import { fetchProductsLoader } from "../loaders/fetchProductsLoader";
 import { productDetailsLoader } from "../loaders/productDetailsLoader";
-import { fetchOrdersLoader } from "../loaders/fetchOrdersLoader";
 
 // Layouts
 import RootLayout from "../Layout/RootLayout";
@@ -62,6 +61,7 @@ import {
 import { GuestRoute } from "./Guards/GuestRoute";
 import { ProtectedRoute } from "./Guards/ProtectedRoute";
 import { AdminRoute } from "./Guards/AdminRoute";
+import { CustomerOnlyRoute } from "./Guards/CustomerOnlyRoute";
 import { HomeRoute } from "./Guards/HomeRoute";
 import { HomeIndexRoute } from "./Guards/HomeIndexRoute";
 import { AccountPage } from "./Guards/AccountPage";
@@ -136,17 +136,17 @@ const router = createBrowserRouter(
             }))
           }
           hydrateFallbackElement={<GenericPageSkeleton />}
-        >
-          <Route
-            path=":brandId"
-            lazy={() =>
-              import("../Features/Brands/BrandDetail").then((m) => ({
-                Component: m.default,
-              }))
-            }
-            hydrateFallbackElement={<GenericPageSkeleton />}
-          />
-        </Route>
+        />
+
+        <Route
+          path="brands/:brandId"
+          lazy={() =>
+            import("../Features/Brands/BrandDetail").then((m) => ({
+              Component: m.default,
+            }))
+          }
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
 
         <Route
           path="sell"
@@ -171,16 +171,18 @@ const router = createBrowserRouter(
 
       {/* Default Layout Pages */}
       <Route element={<DefaultLayout />}>
-        <Route element={<ProtectedRoute />}>
-          <Route
-            path="ai-shop"
-            lazy={() =>
-              import("../Features/AiShopping/AiShop").then((m) => ({
-                Component: m.default,
-              }))
-            }
-            hydrateFallbackElement={<GenericPageSkeleton />}
-          />
+        <Route element={<CustomerOnlyRoute />}>
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="ai-shop"
+              lazy={() =>
+                import("../Features/AiShopping/AiShop").then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              hydrateFallbackElement={<GenericPageSkeleton />}
+            />
+          </Route>
         </Route>
 
         <Route
@@ -277,67 +279,67 @@ const router = createBrowserRouter(
         </Route>
 
         {/* User Account Protection */}
-        <Route element={<ProtectedRoute />}>
-          <Route
-            path="account"
-            element={<AccountPage />}
-            hydrateFallbackElement={<DashboardSkeleton />}
-          />
+        <Route element={<CustomerOnlyRoute />}>
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="account"
+              element={<AccountPage />}
+              hydrateFallbackElement={<DashboardSkeleton />}
+            />
+          </Route>
         </Route>
 
         {/* Trade Layout */}
         <Route element={<TradeLayout />}>
           {/* Protected Trade Pages */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<CustomerOnlyRoute />}>
+            <Route element={<ProtectedRoute />}>
+              <Route
+                path="onboarding"
+                lazy={() =>
+                  import(
+                    "../Features/Onboarding/OnboardingPage"
+                  ).then((m) => ({
+                    Component: m.default,
+                  }))
+                }
+                hydrateFallbackElement={<GenericPageSkeleton />}
+              />
+
+              <Route
+                path="checkout"
+                element={<CheckoutPage />}
+                hydrateFallbackElement={<CartSkeleton />}
+              />
+
+              <Route
+                path="orders"
+                element={<OrdersPage />}
+                hydrateFallbackElement={<OrdersSkeleton />}
+              />
+
+              <Route
+                path="track-order"
+                element={<TrackingPage />}
+                hydrateFallbackElement={<TrackingSkeleton />}
+              />
+            </Route>
 
             <Route
-              path="onboarding"
-              lazy={() =>
-                import(
-                  "../Features/Onboarding/OnboardingPage"
-                ).then((m) => ({
-                  Component: m.default,
-                }))
-              }
-              hydrateFallbackElement={<GenericPageSkeleton />}
-            />
-
-            <Route
-              path="checkout"
-              element={<CheckoutPage />}
+              path="cart"
+              element={<CartPage />}
               hydrateFallbackElement={<CartSkeleton />}
             />
 
             <Route
-              path="orders"
-              element={<OrdersPage />}
-              loader={fetchOrdersLoader}
-              hydrateFallbackElement={<OrdersSkeleton />}
+              path="wishlist"
+              element={<WishlistPage />}
+              loader={fetchProductsLoader}
+              hydrateFallbackElement={<ProductsSkeleton />}
             />
-
-            <Route
-              path="track-order"
-              element={<TrackingPage />}
-              loader={fetchOrdersLoader}
-              hydrateFallbackElement={<TrackingSkeleton />}
-            />
-
           </Route>
 
           {/* Public Trade Pages */}
-          <Route
-            path="cart"
-            element={<CartPage />}
-            hydrateFallbackElement={<CartSkeleton />}
-          />
-
-          <Route
-            path="wishlist"
-            element={<WishlistPage />}
-            loader={fetchProductsLoader}
-            hydrateFallbackElement={<ProductsSkeleton />}
-          />
-
           {/* Products Layout */}
           <Route path="products" element={<ProductsLayout />}>
             <Route

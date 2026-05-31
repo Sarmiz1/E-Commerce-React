@@ -1,11 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useId, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Store/useThemeStore";
 
-export default function PremiumDropdown({ value, options, onChange, label, className = "" }) {
-  const { colors, isDark } = useTheme();
+export default function PremiumDropdown({
+  value,
+  options,
+  onChange,
+  label,
+  ariaLabel = label || "Select an option",
+  className = "",
+  buttonClassName = "",
+  dark,
+}) {
+  const {
+    colors: themeColors,
+    isDark: themeIsDark,
+    PALETTE,
+  } = useTheme();
+  const isDark = dark ?? themeIsDark;
+  const colors = dark === undefined ? themeColors : isDark ? PALETTE.dark : PALETTE.light;
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const menuId = useId();
 
   const selectedOption = options.find((o) => o.value === value) || options[0];
 
@@ -13,17 +29,30 @@ export default function PremiumDropdown({ value, options, onChange, label, class
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
     };
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       {label && <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: colors.text.tertiary }}>{label}</p>}
       <button
+        aria-controls={menuId}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-label={ariaLabel}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer transition-all duration-300 border"
+        className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer transition-all duration-300 border ${buttonClassName}`}
         style={{
           background: colors.surface.primary,
           borderColor: isOpen ? colors.brand.electricBlue : colors.border.default,
@@ -51,6 +80,8 @@ export default function PremiumDropdown({ value, options, onChange, label, class
             exit={{ opacity: 0, y: 8, scale: 0.96 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="absolute z-[100] left-0 right-0 rounded-xl overflow-hidden shadow-2xl border backdrop-blur-xl"
+            id={menuId}
+            role="listbox"
             style={{
               background: isDark ? "rgba(25, 25, 28, 0.92)" : "rgba(255, 255, 255, 0.92)",
               borderColor: colors.border.default,
@@ -59,7 +90,9 @@ export default function PremiumDropdown({ value, options, onChange, label, class
             <div className="py-1.5 max-h-64 overflow-y-auto pg-slim">
               {options.map((option) => (
                 <button
+                  aria-selected={value === option.value}
                   key={option.value}
+                  role="option"
                   type="button"
                   onClick={() => {
                     onChange(option.value);

@@ -20,6 +20,14 @@ export const ABOUT_NAV_LINKS = [
   { label: "About", href: "/about" },
 ];
 
+export const ABOUT_SEO = {
+  title: "About WooSho | AI-Powered Commerce Platform",
+  description:
+    "Learn how WooSho uses AI to improve product discovery, comparison, and shopping confidence while connecting buyers with trusted sellers.",
+  keywords:
+    "about WooSho, AI-powered commerce platform, smart online shopping, product discovery, product comparison, trusted sellers",
+};
+
 export const HOW_IT_WORKS_STEPS = [
   {
     step: "01",

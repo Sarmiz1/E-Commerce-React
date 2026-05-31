@@ -1,170 +1,187 @@
-import React, { useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
 import ModernNavbar from "../../Components/ModernNavbar";
+import SEO from "../../Components/SEO";
+import { BRANDS_NAV_LINKS } from "./data/brandsData";
+import {
+  buildBrandCatalogHref,
+  buildBrandHref,
+  buildBrandsDirectoryHref,
+  getBrandById,
+  getRelatedBrands,
+} from "./utils/brandUtils";
 
-gsap.registerPlugin(ScrollTrigger);
-
-// Mock products for the brand
-const PRODUCTS = [
-  {
-    id: 1,
-    name: "Air Zoom Alpha",
-    price: "₦125,000",
-    img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: 2,
-    name: "Phantom V",
-    price: "₦145,000",
-    img: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: 3,
-    name: "React Element",
-    price: "₦89,000",
-    img: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: 4,
-    name: "Air Force 1 SP",
-    price: "₦110,000",
-    img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=800",
-  },
-];
+const getCanonicalUrl = (brandId) =>
+  typeof window !== "undefined"
+    ? `${window.location.origin}${buildBrandHref(brandId)}`
+    : undefined;
 
 export default function BrandDetail() {
-  const { brandId } = useParams();
-  const mainRef = useRef(null);
+  const { brandId = "" } = useParams();
+  const reduceMotion = useReducedMotion();
+  const brand = getBrandById(brandId);
+  const canonical = getCanonicalUrl(brandId);
+  const relatedBrands = getRelatedBrands(brand);
 
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-    document.body.style.backgroundColor = "#050505";
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".product-card",
-        { y: 50, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "expo.out",
-          stagger: 0.1,
-          scrollTrigger: { trigger: "#products-grid", start: "top 85%" },
-        },
-      );
-    }, mainRef);
-
-    return () => {
-      ctx.revert();
-      document.body.style.backgroundColor = "";
-    };
-  }, []);
+  const schema = brand
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Brand",
+        name: brand.name,
+        description: brand.description,
+        image: brand.heroImage || brand.image,
+        url: canonical,
+      }
+    : undefined;
 
   return (
-    <div
-      ref={mainRef}
-      className="bg-[#050505] text-white min-h-screen selection:bg-blue-600/30"
-      style={{ fontFamily: "'Inter', sans-serif" }}
-    >
-      <ModernNavbar
-        navLinks={[
-          { label: "All Brands", href: "/brands" },
-          { label: "Shop", href: "/products" },
-        ]}
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-blue-600/30">
+      <SEO
+        canonical={canonical}
+        description={
+          brand?.description ||
+          "This WooSho brand profile is not available. Browse the brand directory to find another label."
+        }
+        image={brand?.heroImage || brand?.image}
+        keywords={
+          brand ? `${brand.name}, ${brand.category}, WooSho brand profile` : undefined
+        }
+        noIndex={!brand}
+        schema={schema}
+        title={brand ? `${brand.name} brand profile | WooSho` : "Brand not found | WooSho"}
       />
+      <ModernNavbar navLinks={BRANDS_NAV_LINKS} />
 
-      {/* BACK BUTTON */}
-      <div className="fixed top-24 left-6 z-50">
-        <Link
-          to="/brands"
-          className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </Link>
-      </div>
-
-      {/* FULL-SCREEN HERO */}
-      <section className="relative h-[90vh] min-h-[700px] w-full flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=2000"
-            alt="Brand Cover"
-            className="w-full h-full object-cover opacity-60"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
-        </div>
-
-        <div className="relative z-10 flex flex-col items-center mt-32">
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "expo.out" }}
-            className="text-[12vw] font-black uppercase tracking-tighter leading-none text-white text-center"
+      {!brand ? (
+        <main className="mx-auto max-w-lg px-6 py-40 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-red-400">
+            Brand not found
+          </p>
+          <h1 className="mt-3 text-4xl font-black uppercase tracking-tighter">
+            This label is not in the directory.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-gray-400">
+            Browse the WooSho brand directory to find an available profile.
+          </p>
+          <Link
+            className="mt-6 inline-flex items-center gap-2 bg-white px-5 py-3 text-xs font-black uppercase tracking-wider text-black transition-colors hover:bg-blue-600 hover:text-white"
+            to={buildBrandsDirectoryHref()}
           >
-            {brandId || "NIKE"}
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-xl md:text-3xl font-medium text-gray-300 mt-6 uppercase tracking-widest text-center"
-          >
-            Performance meets culture.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* PRODUCTS GRID */}
-      <section
-        id="products-grid"
-        className="py-24 px-6 md:px-12 max-w-[1600px] mx-auto min-h-screen"
-      >
-        <div className="flex justify-between items-end mb-16">
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">
-            Latest Releases
-          </h2>
-          <span className="text-gray-400 font-bold uppercase tracking-widest text-sm">
-            {PRODUCTS.length} Items
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {PRODUCTS.map((product) => (
-            <div key={product.id} className="product-card group cursor-pointer">
-              {/* Image Container */}
-              <div className="relative aspect-[4/5] bg-zinc-900 overflow-hidden mb-6">
-                <img
-                  src={product.img}
-                  alt={product.name}
-                  className="w-full h-full object-cover mix-blend-luminosity opacity-80 group-hover:mix-blend-normal group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
-                />
-
-                {/* Hover Add to Cart */}
-                <div className="absolute inset-x-0 bottom-0 p-6 translate-y-full group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out flex justify-center">
-                  <button className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 hover:bg-blue-600 hover:text-white transition-colors">
-                    Add To Cart <ShoppingCart size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Product Info */}
-              <div className="flex justify-between items-start">
-                <h3 className="text-2xl font-black uppercase tracking-tighter text-white">
-                  {product.name}
-                </h3>
-                <span className="text-lg font-bold text-gray-400">
-                  {product.price}
-                </span>
-              </div>
+            <ArrowLeft size={15} />
+            Back to brands
+          </Link>
+        </main>
+      ) : (
+        <>
+          <header className="relative min-h-[680px] overflow-hidden pt-20">
+            <div className="absolute inset-0">
+              <img
+                alt={`${brand.name} brand profile`}
+                className="h-full w-full object-cover opacity-60"
+                fetchPriority="high"
+                src={brand.heroImage || brand.image}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-black/40" />
             </div>
-          ))}
-        </div>
-      </section>
+
+            <div className="relative mx-auto flex min-h-[600px] max-w-[1600px] flex-col justify-end px-6 pb-16 md:px-12">
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: reduceMotion ? 0 : 24 }}
+                transition={{ duration: reduceMotion ? 0 : 0.7 }}
+              >
+                <Link
+                  className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-gray-300 transition-colors hover:text-white"
+                  to={buildBrandsDirectoryHref()}
+                >
+                  <ArrowLeft size={15} />
+                  All brands
+                </Link>
+                <p className="mt-10 text-xs font-black uppercase tracking-[0.3em] text-blue-400">
+                  {brand.category}
+                </p>
+                <h1 className="mt-3 text-7xl font-black uppercase leading-none tracking-tighter sm:text-8xl lg:text-9xl">
+                  {brand.name}
+                </h1>
+                <p className="mt-5 max-w-xl text-xl font-medium text-gray-300 md:text-2xl">
+                  {brand.tagline}
+                </p>
+              </motion.div>
+            </div>
+          </header>
+
+          <main className="mx-auto max-w-[1600px] px-6 pb-24 pt-10 md:px-12">
+            <div className="grid gap-16 border-b border-white/10 pb-20 lg:grid-cols-[1fr_360px]">
+              <section>
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-blue-400">
+                  Brand profile
+                </p>
+                <h2 className="mt-4 text-5xl font-black uppercase tracking-tighter md:text-6xl">
+                  About {brand.name}
+                </h2>
+                <p className="mt-6 max-w-3xl text-xl font-medium leading-relaxed text-gray-400">
+                  {brand.description}
+                </p>
+              </section>
+
+              <aside className="border-l border-white/10 pl-6 lg:pl-8">
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-blue-400">
+                  Shop the label
+                </p>
+                <p className="mt-4 text-sm leading-6 text-gray-400">
+                  Product browsing and cart actions live in the dedicated
+                  shop-by-brand marketplace experience.
+                </p>
+                <Link
+                  className="mt-6 inline-flex items-center gap-3 bg-white px-5 py-3 text-xs font-black uppercase tracking-wider text-black transition-colors hover:bg-blue-600 hover:text-white"
+                  to={buildBrandCatalogHref(brand.id)}
+                >
+                  Shop {brand.name}
+                  <ArrowRight size={15} />
+                </Link>
+              </aside>
+            </div>
+
+            <section className="pt-16">
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-blue-400">
+                Related labels
+              </p>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {relatedBrands.length ? (
+                  relatedBrands.map((relatedBrand) => (
+                    <Link
+                      className="group relative min-h-56 overflow-hidden bg-zinc-900"
+                      key={relatedBrand.id}
+                      to={buildBrandHref(relatedBrand.id)}
+                    >
+                      <img
+                        alt={relatedBrand.name}
+                        className="absolute inset-0 h-full w-full object-cover opacity-50 transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                        src={relatedBrand.image}
+                      />
+                      <div className="absolute inset-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/90 to-transparent p-5">
+                        <span className="text-2xl font-black uppercase tracking-tighter">
+                          {relatedBrand.name}
+                        </span>
+                        <ArrowRight
+                          className="transition-transform group-hover:translate-x-1"
+                          size={18}
+                        />
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-sm leading-6 text-gray-400">
+                    More profiles in this category are coming soon.
+                  </p>
+                )}
+              </div>
+            </section>
+          </main>
+        </>
+      )}
     </div>
   );
 }

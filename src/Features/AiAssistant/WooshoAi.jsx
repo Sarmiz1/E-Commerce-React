@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "../../Store/useThemeStore";
+import { useAdminSession } from "../../Store/useAdminSession";
 import { useWooshoChat } from "./hooks/useWooshoChat";
 
 import { TypingWave } from "./Components/TypingWave";
@@ -59,10 +60,20 @@ const QUICK_PROMPTS = [
   { label: "Show my cart", icon: "🛒" },
 ];
 
-const HIDDEN_PATHS = ["/cart", "/checkout", "/account", "/admin", "/ai-shop"];
+const HIDDEN_PATHS = [
+  "/cart",
+  "/checkout",
+  "/account",
+  "/admin",
+  "/ai-shop",
+  "/auth",
+  "/login",
+  "/signup",
+];
 
 export default function WooshoAI() {
   const { colors, isDark } = useTheme();
+  const { isAdminSession } = useAdminSession();
   const location = useLocation();
   const cta = colors.cta.primary;
   const ctaText = colors.cta.primaryText;
@@ -94,7 +105,11 @@ export default function WooshoAI() {
   const bubbleBg = isDark ? colors.surface.elevated : "#fff";
   const bubbleBorder = colors.border.default;
 
-  const shouldHide = isHiddenPath || modalOpen;
+  const shouldHide = isAdminSession || isHiddenPath || modalOpen;
+
+  useEffect(() => {
+    if (isAdminSession || isHiddenPath) setIsOpen(false);
+  }, [isAdminSession, isHiddenPath, setIsOpen]);
 
   return (
     <>
@@ -131,7 +146,7 @@ export default function WooshoAI() {
 
       {/* Chat Panel */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && !shouldHide && (
           <motion.div
             initial={{ opacity: 0, y: 60, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

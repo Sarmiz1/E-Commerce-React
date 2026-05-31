@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAdminSession } from "../Store/useAdminSession";
 import { useAuth } from "../Store/useAuthStore";
 import { WishlistAPI } from "../api/wishlistApi";
 import { trackEvent } from "../api/track_events";
@@ -21,11 +22,14 @@ function applyWishlistChange(productIds, productId, nextLiked) {
 
 export function useWishlist(productId, { initialLiked = false } = {}) {
   const { user } = useAuth();
+  const { isAdminSession, isCheckingAdmin } = useAdminSession();
   const queryClient = useQueryClient();
   const queryKey = wishlistKey(user?.id);
+  const customerWishlistBlocked =
+    Boolean(user?.id) && (isCheckingAdmin || isAdminSession);
 
   const {
-    data: productIds = [],
+    data: loadedProductIds = [],
     isLoading,
     error: queryError,
   } = useQuery({
@@ -44,7 +48,9 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
       if (user?.id) return undefined;
       return WishlistAPI.getGuestWishlist();
     },
+    enabled: !isAdminSession && (!user?.id || !isCheckingAdmin),
   });
+  const productIds = isAdminSession ? [] : loadedProductIds;
 
   const isWishlisted = productId
     ? productIds.includes(productId)
@@ -57,6 +63,9 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
   } = useMutation({
     mutationFn: async ({ nextLiked }) => {
       if (!productId) return productIds;
+      if (isAdminSession) {
+        throw new Error("Admin mode cannot modify customer wishlists.");
+      }
 
       if (user?.id) {
         if (nextLiked) await WishlistAPI.add(productId);
@@ -116,9 +125,18 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
   const setWishlisted = useCallback(
     (nextLiked) => {
       if (!productId) return;
+      if (customerWishlistBlocked) {
+        toast(
+          isAdminSession
+            ? "Admin mode cannot modify customer wishlists. Sign in with a separate buyer account to shop."
+            : "Checking account access. Please try again in a moment.",
+          "info",
+        );
+        return;
+      }
       mutate({ nextLiked: Boolean(nextLiked) });
     },
-    [mutate, productId],
+    [customerWishlistBlocked, isAdminSession, mutate, productId],
   );
 
   const toggleWishlist = useCallback(() => {
@@ -134,5 +152,6 @@ export function useWishlist(productId, { initialLiked = false } = {}) {
     isLoading,
     isPending,
     error: mutationError || queryError,
+    disabled: customerWishlistBlocked,
   };
 }

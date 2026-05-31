@@ -117,7 +117,7 @@ export default function OnboardingPage() {
 
       if (profileRole) {
         setDbRole(profileRole);
-        if (!state.role) {
+        if (state.role !== profileRole) {
           handleRoleSelect(profileRole);
         }
       }

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAdminSession } from "../../Store/useAdminSession";
 import { useAuth } from "../../Store/useAuthStore";
 import { useCartStore } from "../../Store/useCartStore";
 import { CartAPI } from "../../api/cartApi";
@@ -24,8 +25,11 @@ const toast = (msg, type = "success") =>
  */
 export function useDeleteFromCart(productId, { variantId } = {}) {
   const { user } = useAuth();
+  const { isAdminSession, isCheckingAdmin } = useAdminSession();
   const queryClient = useQueryClient();
   const store = useCartStore;
+  const customerCartBlocked =
+    Boolean(user?.id) && (isCheckingAdmin || isAdminSession);
 
   const [success, setSuccess] = useState(false);
 
@@ -152,9 +156,20 @@ export function useDeleteFromCart(productId, { variantId } = {}) {
         overrideProductId = eOrProductId;
         overrideOpts = opts;
       }
+
+      if (customerCartBlocked) {
+        toast(
+          isAdminSession
+            ? "Admin mode cannot modify a customer cart. Sign in with a separate buyer account to shop."
+            : "Checking account access. Please try again in a moment.",
+          "info",
+        );
+        return;
+      }
+
       mutate({ overrideProductId, overrideOpts });
     },
-    [mutate],
+    [customerCartBlocked, isAdminSession, mutate],
   );
 
   return {
@@ -166,5 +181,6 @@ export function useDeleteFromCart(productId, { variantId } = {}) {
     isSuccess: success,
     error,
     reset,
+    disabled: customerCartBlocked,
   };
 }

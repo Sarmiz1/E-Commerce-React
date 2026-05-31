@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronRight, ChevronLeft, Check } from "lucide-react";
+import { ArrowRight, ChevronLeft, Check } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthForm } from "../hooks/useAuthForm";
 import { useAuthMutation } from "../hooks/useAuthMutation";
@@ -16,19 +16,6 @@ import glassLogo from "../../../assets/logos/glass_logo.png";
 import logoDark from "../../../assets/logos/logo-darkmode.png";
 import { adminApi } from "../../../api/adminApi";
 import { getSafeAuthReturnTo } from "../utils/authRedirect";
-
-const CATEGORIES = [
-  { value: "electronics", label: "Electronics & Gadgets" },
-  { value: "fashion", label: "Fashion & Clothing" },
-  { value: "home", label: "Home & Living" },
-  { value: "beauty", label: "Beauty & Health" },
-  { value: "food", label: "Food & Beverages" },
-  { value: "sports", label: "Sports & Fitness" },
-  { value: "auto", label: "Auto Parts & Accessories" },
-  { value: "books", label: "Books & Stationery" },
-  { value: "other", label: "Other" },
-];
-
 
 export default function AuthForm({
   colors,
@@ -81,29 +68,7 @@ export default function AuthForm({
       email: "",
       password: "",
       confirm_password: "",
-      full_name: "",
-      username: "",
-      store_name: "",
-      store_type: "electronics",
-      phone: "",
-      business_description: "",
       agree_to_terms: true,
-      same_as_home: true,
-      same_as_store: false,
-      home_address: {
-        street: "",
-        city: "",
-        state: "",
-        zip_code: "",
-        country: "Nigeria",
-      },
-      store_address: {
-        street: "",
-        city: "",
-        state: "",
-        zip_code: "",
-        country: "Nigeria",
-      },
     });
   }, [getValues, mode, reset, resetMutation]);
 
@@ -243,13 +208,14 @@ export default function AuthForm({
 
         <SocialAuth
           mode={mode}
+          role={role}
           colors={colors}
           isDark={isDark}
         />
 
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${mode}-${role}`}
+            key={mode}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}

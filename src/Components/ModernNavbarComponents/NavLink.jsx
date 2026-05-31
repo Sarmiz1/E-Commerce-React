@@ -10,7 +10,7 @@ export default function NavLink({ link, onClick }) {
     return (
       <button
         onClick={onClick}
-        className="relative text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
+        className="relative text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
       >
         {link.label}
         <motion.span

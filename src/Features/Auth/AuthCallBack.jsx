@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
-import { consumeAuthReturnTo } from "./utils/authRedirect";
+import {
+  consumeAuthReturnTo,
+  consumeRequestedAccountRole,
+} from "./utils/authRedirect";
 
 const steps = [
   { id: "session",  label: "Verifying your session"   },
@@ -42,7 +45,9 @@ export default function AuthCallback() {
       /* ── Step 1 : load / create profile ─────────────── */
       setCurrent(1);
       const user         = session.user;
+      const requestedRole = consumeRequestedAccountRole();
       let selectedRole =
+        requestedRole ||
         user.user_metadata?.requested_account_role ||
         user.user_metadata?.role ||
         "buyer";
@@ -57,7 +62,9 @@ export default function AuthCallback() {
         selectedRole = profile.role;
       }
 
-      if (!profile) {
+      const isNewProfile = !profile;
+
+      if (isNewProfile) {
         const { data: createdProfile, error: profileError } = await supabase
           .from("profiles")
           .insert({
@@ -91,7 +98,7 @@ export default function AuthCallback() {
       const returnTo = consumeAuthReturnTo();
       if (returnTo) {
         navigate(returnTo, { replace: true });
-      } else if (selectedRole === "seller") {
+      } else if (isNewProfile) {
         navigate("/onboarding", { replace: true });
       } else {
         navigate("/account", { replace: true });

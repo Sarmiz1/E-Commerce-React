@@ -5,9 +5,33 @@ import { supabase } from "../../../lib/supabaseClient";
 import { trackEvent } from "../../../api/track_events";
 import { useExperiment } from "../../../hooks/useExperiment";
 import { useTheme } from "../../../Store/useThemeStore";
+import PremiumDropdown from "../../../Components/Ui/PremiumDropdown";
 import { getLeadCaptureExperiments } from "../Data/leadCaptureExperiments";
 
 const LEAD_STORE_KEY = "woosho.marketing.leads";
+const BUSINESS_TYPE_OPTIONS = [
+  { value: "Fashion seller", label: "Fashion seller" },
+  { value: "Beauty seller", label: "Beauty seller" },
+  { value: "Home goods seller", label: "Home goods seller" },
+  { value: "Smart shopper", label: "Smart shopper" },
+  { value: "Creator / affiliate", label: "Creator / affiliate" },
+];
+const PARTNER_TYPE_OPTIONS = [
+  { value: "Brand partnership", label: "Brand partnership" },
+  { value: "Logistics partnership", label: "Logistics partnership" },
+  { value: "Technology partnership", label: "Technology partnership" },
+  { value: "Creator / affiliate", label: "Creator / affiliate" },
+];
+
+function getDefaultBusinessType(audience) {
+  if (audience === "seller") return "Fashion seller";
+  if (audience === "partner") return "Brand partnership";
+  return "Smart shopper";
+}
+
+function getBusinessTypeOptions(audience) {
+  return audience === "partner" ? PARTNER_TYPE_OPTIONS : BUSINESS_TYPE_OPTIONS;
+}
 
 function persistLeadLocally(lead) {
   try {
@@ -34,7 +58,7 @@ export default function LeadCaptureForm({
   const [form, setForm] = useState({
     email: "",
     name: "",
-    businessType: audience === "seller" ? "Fashion seller" : "Smart shopper",
+    businessType: getDefaultBusinessType(audience),
     monthlyVolume: "",
   });
   const [status, setStatus] = useState("idle");
@@ -117,22 +141,27 @@ export default function LeadCaptureForm({
             type="email"
             required
           />
-          <select
+          <PremiumDropdown
+            ariaLabel="Business type"
+            buttonClassName="h-12 rounded-xl px-4"
+            dark={useDark}
+            onChange={(businessType) =>
+              setForm((current) => ({ ...current, businessType }))
+            }
+            options={getBusinessTypeOptions(audience)}
             value={form.businessType}
-            onChange={update("businessType")}
-            className={`${input} ${inputTheme}`}
-          >
-            <option>Fashion seller</option>
-            <option>Beauty seller</option>
-            <option>Home goods seller</option>
-            <option>Smart shopper</option>
-            <option>Creator / affiliate</option>
-          </select>
+          />
           <input
             value={form.monthlyVolume}
             onChange={update("monthlyVolume")}
             className={`${input} ${inputTheme}`}
-            placeholder={audience === "seller" ? "Monthly orders" : "Favorite category"}
+            placeholder={
+              audience === "seller"
+                ? "Monthly orders"
+                : audience === "partner"
+                  ? "Company or collaboration type"
+                  : "Favorite category"
+            }
           />
           <button
             className="mt-2 flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black text-white transition hover:bg-blue-700 md:col-span-2"

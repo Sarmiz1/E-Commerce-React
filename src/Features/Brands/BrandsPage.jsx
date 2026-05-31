@@ -1,108 +1,66 @@
-import React, { useRef, useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import ModernNavbar from "../../Components/ModernNavbar";
+import SEO from "../../Components/SEO";
+import {
+  BRAND_DIRECTORY_ACTIONS,
+  BRAND_FILTERS,
+  BRANDS,
+  BRANDS_HERO,
+  BRANDS_NAV_LINKS,
+  BRANDS_SEO,
+  FEATURED_BRAND,
+} from "./data/brandsData";
+import { buildBrandHref, getBrandsByCategory } from "./utils/brandUtils";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FILTERS = [
-  "All",
-  "Streetwear",
-  "Sneakers",
-  "Luxury",
-  "Tech",
-  "Essentials",
-  "Emerging Brands",
-];
-
-const BRANDS = [
-  {
-    id: "nike",
-    name: "NIKE",
-    type: "large",
-    category: "Sneakers",
-    tagline: "Just Do It.",
-    img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1200",
-  },
-  {
-    id: "offwhite",
-    name: "OFF-WHITE",
-    type: "medium",
-    category: "Luxury",
-    tagline: "Defining the grey area.",
-    img: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: "supreme",
-    name: "SUPREME",
-    type: "medium",
-    category: "Streetwear",
-    tagline: "New York skate culture.",
-    img: "https://images.unsplash.com/photo-1552346154-21d8212001bb?auto=format&fit=crop&q=80&w=800",
-  },
-  {
-    id: "sony",
-    name: "SONY",
-    type: "small",
-    category: "Tech",
-    tagline: "Be Moved.",
-    img: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&q=80&w=600",
-  },
-  {
-    id: "arcteryx",
-    name: "ARC'TERYX",
-    type: "small",
-    category: "Streetwear",
-    tagline: "Evolution in action.",
-    img: "https://images.unsplash.com/photo-1517404215738-15263e9f9178?auto=format&fit=crop&q=80&w=600",
-  },
-  {
-    id: "dior",
-    name: "DIOR",
-    type: "small",
-    category: "Luxury",
-    tagline: "Haute couture forever.",
-    img: "https://images.unsplash.com/photo-1563214532-6e2730fb5eec?auto=format&fit=crop&q=80&w=600",
-  },
-  {
-    id: "kith",
-    name: "KITH",
-    type: "small",
-    category: "Emerging Brands",
-    tagline: "Just us.",
-    img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=600",
-  },
-];
+const getCanonicalUrl = () =>
+  typeof window !== "undefined" ? `${window.location.origin}/brands` : undefined;
 
 export default function BrandsPage() {
   const mainRef = useRef(null);
+  const reduceMotion = useReducedMotion();
   const [activeFilter, setActiveFilter] = useState("All");
+  const filteredBrands = useMemo(
+    () => getBrandsByCategory(activeFilter),
+    [activeFilter],
+  );
+  const canonical = getCanonicalUrl();
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: BRANDS_SEO.title,
+    description: BRANDS_SEO.description,
+    url: canonical,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: BRANDS.length,
+      itemListElement: BRANDS.map((brand, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: brand.name,
+        url: canonical
+          ? `${canonical}/${encodeURIComponent(brand.id)}`
+          : buildBrandHref(brand.id),
+      })),
+    },
+  };
 
   useEffect(() => {
-    document.documentElement.classList.add("dark");
     document.body.style.backgroundColor = "#050505";
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".reveal-up",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "power4.out",
-          stagger: 0.1,
-          scrollTrigger: {
-            trigger: "#brand-grid",
-            start: "top 80%",
-            toggleActions: "play none none reverse",
-          },
-        },
-      );
+    if (reduceMotion) {
+      return () => {
+        document.body.style.backgroundColor = "";
+      };
+    }
 
+    const ctx = gsap.context(() => {
       gsap.fromTo(
         ".featured-brand-text",
         { x: -50, opacity: 0 },
@@ -133,127 +91,137 @@ export default function BrandsPage() {
       ctx.revert();
       document.body.style.backgroundColor = "";
     };
-  }, []);
-
-  const filteredBrands =
-    activeFilter === "All"
-      ? BRANDS
-      : BRANDS.filter((b) => b.category === activeFilter);
+  }, [reduceMotion]);
 
   return (
     <div
+      className="min-h-screen bg-[#050505] text-white selection:bg-blue-600/30"
       ref={mainRef}
-      className="bg-[#050505] text-white min-h-screen selection:bg-blue-600/30"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
+      <SEO
+        canonical={canonical}
+        description={BRANDS_SEO.description}
+        image={BRANDS_HERO.image}
+        keywords={BRANDS_SEO.keywords}
+        schema={schema}
+        title={BRANDS_SEO.title}
+      />
       <ModernNavbar
-        navLinks={[
-          { label: "Shop", href: "/products" },
-          { label: "Brands", href: "/brands" },
-          { label: "Sellers", href: "/seller" },
-          { label: "Features", href: "/#platform" },
-        ]}
+        navLinks={BRANDS_NAV_LINKS}
       />
 
-      {/* 1. HERO SECTION */}
-      <section className="relative h-[80vh] min-h-[600px] w-full flex items-center justify-center overflow-hidden pt-20">
+      <section className="relative flex min-h-[600px] w-full items-center justify-center overflow-hidden pb-[2rem] pt-[4rem]">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-black/60 z-10" />
+          <div className="absolute inset-0 z-10 bg-black/60" />
           <img
-            src="https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80&w=2000"
-            alt="Brands Background"
-            className="w-full h-full object-cover scale-105"
+            alt="Brands background"
+            className="h-full w-full scale-105 object-cover"
+            fetchPriority="high"
+            src={BRANDS_HERO.image}
           />
         </div>
 
-        <div className="relative z-20 text-center px-6 max-w-5xl mx-auto flex flex-col items-center">
+        <div className="relative z-20 mx-auto flex max-w-5xl flex-col items-center px-6 text-center">
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter text-white mb-6 leading-[0.9]"
+            className="mb-5 text-6xl font-black uppercase leading-[0.9] tracking-tighter text-white md:text-8xl lg:text-9xl"
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 30 }}
+            transition={{ duration: reduceMotion ? 0 : 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            The Brands <br /> That Define <br /> Culture.
+            {BRANDS_HERO.titleLines.map((line) => (
+              <span className="block" key={line}>
+                {line}
+              </span>
+            ))}
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl text-gray-300 font-medium mb-10 max-w-2xl uppercase tracking-widest"
+            className="mb-6 max-w-2xl text-xl font-medium uppercase tracking-widest text-gray-300 md:text-2xl"
+            initial={{ opacity: 0 }}
+            transition={{ delay: reduceMotion ? 0 : 0.2, duration: reduceMotion ? 0 : 0.8 }}
           >
-            Curated labels. Premium standards. No noise.
+            {BRANDS_HERO.description}
           </motion.p>
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="px-10 py-5 bg-white text-black text-lg font-bold uppercase tracking-widest rounded-none hover:bg-blue-600 hover:text-white transition-colors duration-300"
-            onClick={() =>
-              document
-                .getElementById("brand-grid")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 20 }}
+            transition={{ delay: reduceMotion ? 0 : 0.3, duration: reduceMotion ? 0 : 0.8 }}
           >
-            Explore All Brands
-          </motion.button>
+            <Link
+              className="inline-flex bg-white px-10 py-5 text-lg font-bold uppercase tracking-widest text-black transition-colors duration-300 hover:bg-blue-600 hover:text-white"
+              to={BRAND_DIRECTORY_ACTIONS.browseHref}
+            >
+              {BRAND_DIRECTORY_ACTIONS.browseLabel}
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* 2. FEATURED BRAND (Statement Section) */}
       <section
+        className="mx-auto max-w-[1600px] border-b border-white/10 px-6 py-32 md:px-12"
         id="featured-brand"
-        className="py-32 px-6 md:px-12 max-w-[1600px] mx-auto border-b border-white/10"
       >
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid items-center gap-16 lg:grid-cols-2">
           <div className="featured-brand-text">
-            <h3 className="text-sm font-bold text-blue-600 uppercase tracking-[0.3em] mb-6">
-              Featured Label
+            <h3 className="mb-6 text-sm font-bold uppercase tracking-[0.3em] text-blue-600">
+              {FEATURED_BRAND.eyebrow}
             </h3>
-            <h2 className="text-7xl md:text-9xl font-black uppercase tracking-tighter mb-8 leading-none">
-              PRADA <br /> LINEA <br /> ROSSA
+            <h2 className="mb-8 text-7xl font-black uppercase leading-none tracking-tighter md:text-9xl">
+              {FEATURED_BRAND.titleLines.map((line) => (
+                <span className="block" key={line}>
+                  {line}
+                </span>
+              ))}
             </h2>
-            <p className="text-2xl text-gray-400 max-w-md mb-12 font-medium leading-relaxed">
-              Technical precision meets avant-garde luxury. The definitive
-              uniform for the modern metropolis.
+            <p className="mb-12 max-w-md text-2xl font-medium leading-relaxed text-gray-400">
+              {FEATURED_BRAND.description}
             </p>
             <Link
-              to="/brands/prada"
-              className="inline-flex items-center gap-3 text-xl font-bold uppercase tracking-widest hover:text-blue-500 transition-colors group"
+              className="group inline-flex items-center gap-3 text-xl font-bold uppercase tracking-widest transition-colors hover:text-blue-500"
+              to={FEATURED_BRAND.shopHref}
             >
               Shop This Brand
               <ArrowRight
+                className="transition-transform group-hover:translate-x-2"
                 size={24}
-                className="group-hover:translate-x-2 transition-transform"
               />
             </Link>
           </div>
-          <div className="featured-brand-img relative h-[600px] lg:h-[800px] w-full bg-zinc-900 group overflow-hidden">
+          <div className="featured-brand-img group relative h-[600px] w-full overflow-hidden bg-zinc-900 lg:h-[800px]">
             <img
-              src="https://images.unsplash.com/photo-1520256862855-398228c41684?auto=format&fit=crop&q=80&w=1200"
-              alt="Prada"
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-80"
+              alt={FEATURED_BRAND.title}
+              className="h-full w-full object-cover opacity-80 transition-transform duration-1000 group-hover:scale-105"
+              loading="lazy"
+              src={FEATURED_BRAND.image}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-10">
-              <span className="text-white font-black text-5xl uppercase tracking-tighter">
-                FW26 Collection
+            <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 to-transparent p-10">
+              <span className="text-5xl font-black uppercase tracking-tighter text-white">
+                {FEATURED_BRAND.collectionLabel}
               </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. CATEGORY FILTER BAR */}
-      <section className="sticky top-20 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/10 py-6">
-        <div className="max-w-[1600px] mx-auto px-6 overflow-x-auto scrollbar-hide flex gap-4">
-          {FILTERS.map((filter) => (
+      <section className="sticky top-20 z-40 border-b border-white/10 bg-[#050505]/90 py-6 backdrop-blur-xl">
+        <div
+          aria-label="Filter brands by category"
+          className="scrollbar-hide mx-auto flex max-w-[1600px] gap-4 overflow-x-auto px-6"
+          role="tablist"
+        >
+          {BRAND_FILTERS.map((filter) => (
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`whitespace-nowrap px-8 py-3 rounded-full text-sm font-bold uppercase tracking-widest transition-all ${
+              aria-selected={activeFilter === filter}
+              className={`whitespace-nowrap rounded-full px-8 py-3 text-sm font-bold uppercase tracking-widest transition-all ${
                 activeFilter === filter
                   ? "bg-white text-black"
-                  : "bg-transparent text-gray-400 border border-white/20 hover:border-white hover:text-white"
+                  : "border border-white/20 bg-transparent text-gray-400 hover:border-white hover:text-white"
               }`}
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              role="tab"
+              type="button"
             >
               {filter}
             </button>
@@ -261,52 +229,63 @@ export default function BrandsPage() {
         </div>
       </section>
 
-      {/* 3. BRAND GRID (Dynamic Layout) */}
       <section
+        className="mx-auto max-w-[1600px] px-6 py-24 md:px-12"
         id="brand-grid"
-        className="py-24 px-6 md:px-12 max-w-[1600px] mx-auto"
       >
-        <div className="grid grid-cols-1 md:grid-cols-4 auto-rows-[400px] gap-6">
-          {filteredBrands.map((brand) => (
-            <Link
-              to={`/brands/${brand.id}`}
-              key={brand.id}
-              className={`reveal-up group relative overflow-hidden bg-zinc-900 block ${
-                brand.type === "large"
-                  ? "md:col-span-4 row-span-2"
-                  : brand.type === "medium"
-                    ? "md:col-span-2"
-                    : "md:col-span-1"
-              }`}
-            >
-              <img
-                src={brand.img}
-                alt={brand.name}
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70 group-hover:opacity-40"
-              />
-              <div className="absolute inset-0 p-10 flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <span className="px-4 py-1.5 bg-white text-black text-[10px] font-bold uppercase tracking-widest">
-                    {brand.category}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-5xl md:text-6xl font-black uppercase tracking-tighter text-white mb-2">
-                    {brand.name}
-                  </h3>
-                  <p className="text-lg text-gray-300 font-medium mb-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
-                    {brand.tagline}
-                  </p>
-                  <div className="flex items-center gap-2 text-white font-bold uppercase tracking-widest text-sm opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 delay-100">
-                    Shop Brand <ArrowRight size={16} />
+        <motion.div
+          className="grid auto-rows-[400px] grid-cols-1 gap-6 md:grid-cols-4"
+          layout={!reduceMotion}
+        >
+          <AnimatePresence initial={false} mode="popLayout">
+            {filteredBrands.map((brand) => (
+              <motion.article
+                animate={{ opacity: 1, scale: 1 }}
+                className={
+                  brand.type === "large"
+                    ? "row-span-2 md:col-span-4"
+                    : brand.type === "medium"
+                      ? "md:col-span-2"
+                      : "md:col-span-1"
+                }
+                exit={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
+                initial={{ opacity: 0, scale: reduceMotion ? 1 : 0.96 }}
+                key={brand.id}
+                layout={!reduceMotion}
+                transition={{ duration: reduceMotion ? 0 : 0.28 }}
+              >
+                <Link
+                  className="group relative block h-full overflow-hidden bg-zinc-900"
+                  to={buildBrandHref(brand.id)}
+                >
+                  <img
+                    alt={brand.name}
+                    className="h-full w-full object-cover opacity-70 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40"
+                    loading="lazy"
+                    src={brand.image}
+                  />
+                  <div className="absolute inset-0 flex flex-col justify-between p-10">
+                    <span className="self-start bg-white px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-black">
+                      {brand.category}
+                    </span>
+                    <div>
+                      <h3 className="mb-2 text-5xl font-black uppercase tracking-tighter text-white md:text-6xl">
+                        {brand.name}
+                      </h3>
+                      <p className="mb-6 translate-y-4 text-lg font-medium text-gray-300 opacity-0 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100">
+                        {brand.tagline}
+                      </p>
+                      <div className="-translate-x-4 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-white opacity-0 transition-all delay-100 duration-500 group-hover:translate-x-0 group-hover:opacity-100">
+                        View Brand <ArrowRight size={16} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                </Link>
+              </motion.article>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       </section>
-
     </div>
   );
 }

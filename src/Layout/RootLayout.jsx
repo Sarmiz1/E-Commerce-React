@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, useLocation, useNavigation } from "react-router-dom";
 import { CartAnimationProvider } from "../context/cart/CartAnimationContext"; 
-import AiFloatingWidget from "../Features/AiAssistant/AiFloatingWidget";
 import WooshoAI from "../Features/AiAssistant/WooshoAi";
 import { useAuth } from "../Store/useAuthStore";
 import { trackEvent } from "../api/track_events";

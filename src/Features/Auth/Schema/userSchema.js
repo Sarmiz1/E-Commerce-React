@@ -175,9 +175,29 @@ export const sellerSchema = baseUserSchema
 // ─── DISCRIMINATED UNION ──────────────────────────────────────────────────────
 
 export const userSchema = z.discriminatedUnion('role', [
-  buyerSchema,
-  sellerSchema,
-]);
+  z.object({
+    role: z.literal('buyer'),
+    email: baseUserSchema.shape.email,
+    password: baseUserSchema.shape.password,
+    confirm_password: baseUserSchema.shape.confirm_password,
+    agree_to_terms: baseUserSchema.shape.agree_to_terms,
+  }),
+  z.object({
+    role: z.literal('seller'),
+    email: baseUserSchema.shape.email,
+    password: baseUserSchema.shape.password,
+    confirm_password: baseUserSchema.shape.confirm_password,
+    agree_to_terms: baseUserSchema.shape.agree_to_terms,
+  }),
+]).superRefine((data, ctx) => {
+  if (data.password !== data.confirm_password) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Passwords do not match',
+      path: ['confirm_password'],
+    });
+  }
+});
 
 // ─── LOGIN SCHEMA ─────────────────────────────────────────────────────────────
 

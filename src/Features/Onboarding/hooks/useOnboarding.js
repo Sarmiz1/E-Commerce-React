@@ -12,31 +12,33 @@ const DEFAULT_STATE = {
   },
 };
 
-const loadState = () => {
+const getStorageKey = (userId) => `${STORAGE_KEY}:${userId || "guest"}`;
+
+const loadState = (userId) => {
   try {
-    const r = localStorage.getItem(STORAGE_KEY);
+    const r = localStorage.getItem(getStorageKey(userId));
     return r ? { ...DEFAULT_STATE, ...JSON.parse(r) } : DEFAULT_STATE;
   } catch {
     return DEFAULT_STATE;
   }
 };
 
-const persistState = (s) => {
+const persistState = (userId, s) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    localStorage.setItem(getStorageKey(userId), JSON.stringify(s));
   } catch {
     // Onboarding can continue if storage is unavailable.
   }
 };
 
 export function useOnboarding(user, onComplete) {
-  const [state, setState] = useState(loadState);
+  const [state, setState] = useState(() => loadState(user?.id));
   const [isDone, setIsDone] = useState(false);
 
   // Sync state to localStorage on every change
   useEffect(() => {
-    persistState(state);
-  }, [state]);
+    persistState(user?.id, state);
+  }, [state, user?.id]);
 
   const handleRoleSelect = useCallback((role) => {
     setState((s) => ({ ...s, role, currentStep: 1, completedSteps: [] }));
