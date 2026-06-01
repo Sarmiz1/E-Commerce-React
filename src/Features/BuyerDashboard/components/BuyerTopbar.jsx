@@ -243,7 +243,7 @@ export default function BuyerTopbar() {
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.default}` }}>
                 <div className="px-4 py-3" style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
                   <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{profile?.full_name || profile?.name || 'Buyer'}</p>
-                  <p className="text-xs" style={{ color: colors.text.tertiary }}>{profile?.email || 'buyer@example.com'}</p>
+                  <p className="text-xs" style={{ color: colors.text.tertiary }}>{profile?.email || 'No email available'}</p>
                 </div>
                 {[
                   ['user',    'My Account',   'settings'],

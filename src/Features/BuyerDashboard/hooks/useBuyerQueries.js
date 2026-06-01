@@ -13,6 +13,11 @@ export const buyerKeys = {
   orders: (userId, page, status, pageSize) => ['buyer', 'orders', userId, page, status, pageSize],
   spending: (userId) => ['buyer', 'spending', userId],
   reorders: (userId) => ['buyer', 'reorders', userId],
+  addresses: (userId) => ['buyer', 'addresses', userId],
+  phoneNumbers: (userId) => ['buyer', 'phone-numbers', userId],
+  paymentMethods: (userId) => ['buyer', 'payment-methods', userId],
+  reviews: (userId) => ['buyer', 'reviews', userId],
+  accountSettings: (userId) => ['buyer', 'account-settings', userId],
   wishlistAlerts: (userId) => ['buyer', 'wishlist-alerts', userId],
 };
 
@@ -70,6 +75,56 @@ export function useBuyerReorders() {
   });
 }
 
+export function useBuyerAddresses() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.addresses(user?.id),
+    queryFn: () => buyerApi.getAddresses(),
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useBuyerPaymentMethods() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.paymentMethods(user?.id),
+    queryFn: () => buyerApi.getPaymentMethods(),
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useBuyerPhoneNumbers() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.phoneNumbers(user?.id),
+    queryFn: () => buyerApi.getPhoneNumbers(),
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useBuyerReviews() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.reviews(user?.id),
+    queryFn: () => buyerApi.getReviewItems(),
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useBuyerAccountSettings() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.accountSettings(user?.id),
+    queryFn: () => buyerApi.getAccountSettings(),
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
 export function useWishlistAlerts() {
   const { user } = useAuth();
   return useQuery({
@@ -119,9 +174,10 @@ export function useSubmitReview() {
   const { addToast } = useToast();
   return useMutation({
     mutationFn: ({ orderId, productId, rating, comment }) =>
-      buyerApi.submitReview(user.id, orderId, productId, rating, comment),
+      buyerApi.submitReview({ orderId, productId, rating, reviewText: comment }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.reviews(user?.id) });
       addToast('Review submitted!');
     },
     onError: (err) => addToast(err.message || 'Failed to submit review', 'error'),
@@ -187,9 +243,10 @@ export function useAddAddress() {
   const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
-    mutationFn: (addr) => buyerApi.addAddress(user.id, addr),
+    mutationFn: (addr) => buyerApi.addAddress(addr),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.addresses(user?.id) });
       addToast('Address saved!');
     },
     onError: (err) => addToast(err.message || 'Failed to save address', 'error'),
@@ -204,8 +261,161 @@ export function useDeleteAddress() {
     mutationFn: (id) => buyerApi.deleteAddress(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.addresses(user?.id) });
       addToast('Address removed', 'info');
     },
     onError: (err) => addToast(err.message || 'Failed to remove address', 'error'),
+  });
+}
+
+export function useSetDefaultAddress() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (id) => buyerApi.setDefaultAddress(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.addresses(user?.id) });
+      addToast('Default address updated.', 'info');
+    },
+    onError: (err) => addToast(err.message || 'Failed to update default address', 'error'),
+  });
+}
+
+export function useAddPhoneNumber() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (phone) => buyerApi.addPhoneNumber(phone),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Phone number saved.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to save phone number', 'error'),
+  });
+}
+
+export function useUpdatePhoneNumber() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (phone) => buyerApi.updatePhoneNumber(phone),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Phone number updated.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to update phone number', 'error'),
+  });
+}
+
+export function useSetDefaultPhoneNumber() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (phone) => buyerApi.setDefaultPhoneNumber(phone),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Default phone number updated.', 'info');
+    },
+    onError: (err) => addToast(err.message || 'Failed to update phone number', 'error'),
+  });
+}
+
+export function useDeletePhoneNumber() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (phone) => buyerApi.deletePhoneNumber(phone),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Phone number removed.', 'info');
+    },
+    onError: (err) => addToast(err.message || 'Failed to remove phone number', 'error'),
+  });
+}
+
+export function useAddPaymentMethod() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (method) => buyerApi.addPaymentMethod(method),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.paymentMethods(user?.id) });
+      addToast('Payment method saved.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to save payment method', 'error'),
+  });
+}
+
+export function useSetDefaultPaymentMethod() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (id) => buyerApi.setDefaultPaymentMethod(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.paymentMethods(user?.id) });
+      addToast('Default payment method updated.', 'info');
+    },
+    onError: (err) => addToast(err.message || 'Failed to update payment method', 'error'),
+  });
+}
+
+export function useDeletePaymentMethod() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (id) => buyerApi.deletePaymentMethod(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.paymentMethods(user?.id) });
+      addToast('Payment method removed.', 'info');
+    },
+    onError: (err) => addToast(err.message || 'Failed to remove payment method', 'error'),
+  });
+}
+
+export function useSaveBuyerAccountSettings() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (settings) => buyerApi.saveAccountSettings(settings),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast(
+        result.emailChangeRequested
+          ? 'Settings saved. Check your new email address to confirm the change.'
+          : 'Account settings saved.',
+      );
+    },
+    onError: (err) => addToast(err.message || 'Failed to save account settings', 'error'),
+  });
+}
+
+export function useDeleteBuyerAccount() {
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (confirmation) => buyerApi.deleteAccount(confirmation),
+    onSuccess: () => {
+      qc.clear();
+      addToast('Your account has been deleted.', 'info');
+    },
+    onError: (err) => addToast(err.message || 'Failed to delete account', 'error'),
   });
 }

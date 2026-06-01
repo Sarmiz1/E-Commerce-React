@@ -5,6 +5,7 @@ import { useBuyer } from '../context/BuyerContext';
 import { formatMoneyMinor } from '../../../utils/formatMoneyMinor';
 import { BIcon } from './BuyerIcon';
 import { useNavigate } from 'react-router-dom';
+import { ReorderSuggestionCard } from './ReorderSuggestionCard';
 
 const AI_TAG_COLORS = {
   'Best Time Soon':  { bg: 'rgba(102,126,234,0.1)', color: '#667eea' },
@@ -81,7 +82,7 @@ export default function BuyerWishlist() {
           <span className="text-[10px] font-black px-2 py-0.5 rounded-full ml-auto"
             style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff' }}>Predictive</span>
         </div>
-        <div className="p-4 flex flex-col sm:flex-row gap-3">
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
           {reordersLoading ? (
             <p className="flex-1 py-4 text-center text-sm font-semibold" style={{ color: colors.text.tertiary }}>
               Loading available data...
@@ -100,23 +101,14 @@ export default function BuyerWishlist() {
                 Refresh suggestions
               </button>
             </div>
-          ) : REORDER_SUGGESTIONS.map((s, i) => (
-            <motion.div key={s.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-              className="flex-1 rounded-xl p-4 flex flex-col gap-2"
-              style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
-              <p className="text-sm font-bold" style={{ color: colors.text.primary }}>{s.name}</p>
-              <p className="text-[11px]" style={{ color: '#667eea' }}>{s.reason}</p>
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-base font-black" style={{ color: colors.text.primary }}>{formatMoneyMinor(s.price)}</span>
-                <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
-                  onClick={() => addToCart(s)}
-                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg"
-                  style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff' }}>
-                  <BIcon name="repeat" size={12} /> Reorder
-                </motion.button>
-              </div>
-            </motion.div>
+          ) : REORDER_SUGGESTIONS.map((suggestion, index) => (
+            <ReorderSuggestionCard
+              key={suggestion.id}
+              item={suggestion}
+              index={index}
+              status={added[suggestion.id]}
+              onReorder={addToCart}
+            />
           ))}
         </div>
       </div>

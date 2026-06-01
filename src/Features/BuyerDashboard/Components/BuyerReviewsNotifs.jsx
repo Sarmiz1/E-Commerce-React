@@ -7,7 +7,13 @@ import { BIcon } from './BuyerIcon';
 // ─── Reviews ─────────────────────────────────────────────────────────────────
 export function BuyerReviews() {
   const { colors, isDark } = useTheme();
-  const { reviews: liveReviews, submitReview } = useBuyer();
+  const {
+    reviews: liveReviews,
+    reviewsLoading,
+    reviewsError,
+    refreshReviews,
+    submitReview,
+  } = useBuyer();
   const [localReviews, setLocalReviews] = useState(null);
   const reviews = localReviews ?? liveReviews ?? [];
   const [drafts, setDrafts] = useState({});
@@ -18,13 +24,16 @@ export function BuyerReviews() {
     if (!ratings[id] || !drafts[id]?.trim()) return;
     setSubmitted(s => ({ ...s, [id]: 'loading' }));
     const review = reviews.find(r => r.id === id);
-    const result = await submitReview(id, review?.product || '', ratings[id], drafts[id]);
-    if (result?.success !== false) {
+    try {
+      await submitReview(review?.orderId, review?.productId, ratings[id], drafts[id]);
       setLocalReviews(prev => (prev ?? liveReviews ?? []).map(r =>
-        r.id === id ? { ...r, submitted: true, rating: ratings[id], review_text: drafts[id] } : r
+        r.id === id ? { ...r, submitted: true, review_id: r.review_id || id, rating: ratings[id], review_text: drafts[id] } : r
       ));
+      await refreshReviews?.();
+      setSubmitted(s => ({ ...s, [id]: 'done' }));
+    } catch {
+      setSubmitted(s => ({ ...s, [id]: null }));
     }
-    setSubmitted(s => ({ ...s, [id]: 'done' }));
   };
 
   return (
@@ -32,7 +41,22 @@ export function BuyerReviews() {
       <h2 className="text-xl font-black" style={{ color: colors.text.primary }}>My Reviews</h2>
 
       <div className="space-y-4">
-        {reviews.map((r, i) => {
+        {reviewsLoading ? (
+          <div className="rounded-2xl border border-dashed px-5 py-8 text-center" style={{ borderColor: colors.border.default }}>
+            <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>Loading available data...</p>
+          </div>
+        ) : reviewsError ? (
+          <div className="rounded-2xl border border-dashed px-5 py-8 text-center" style={{ borderColor: colors.border.default }}>
+            <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>No available data</p>
+            <button type="button" onClick={() => refreshReviews?.()} className="mt-2 text-xs font-bold" style={{ color: '#667eea' }}>
+              Try again
+            </button>
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="rounded-2xl border border-dashed px-5 py-8 text-center" style={{ borderColor: colors.border.default }}>
+            <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>No available data</p>
+          </div>
+        ) : reviews.map((r, i) => {
           const isLoading = submitted[r.id] === 'loading';
           const isDone = r.submitted;
 
@@ -43,7 +67,7 @@ export function BuyerReviews() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="font-bold text-sm" style={{ color: colors.text.primary }}>{r.product}</p>
-                  <p className="text-xs mt-0.5 font-mono" style={{ color: colors.text.tertiary }}>{r.orderId}</p>
+                  <p className="text-xs mt-0.5 font-mono" style={{ color: colors.text.tertiary }}>{r.order_number || r.orderId}</p>
                 </div>
                 {isDone
                   ? <span className="text-[10px] font-black px-2.5 py-1 rounded-full" style={{ background: 'rgba(5,150,105,0.1)', color: '#059669' }}>✓ Review Posted</span>

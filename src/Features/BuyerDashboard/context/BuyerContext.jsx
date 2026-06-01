@@ -16,7 +16,12 @@ import { useAuth } from '../../../Store/useAuthStore';
 import { useBuyerUIStore } from '../store/useBuyerUIStore';
 import {
   useBuyerDashboard,
+  useBuyerAddresses,
+  useBuyerAccountSettings,
+  useBuyerPhoneNumbers,
+  useBuyerPaymentMethods,
   useBuyerReorders,
+  useBuyerReviews,
   useBuyerSpending,
   useWishlistAlerts,
   useRemoveFromWishlist,
@@ -27,7 +32,17 @@ import {
   useDismissNotif,
   useSetWishlistAlert,
   useAddAddress,
+  useSetDefaultAddress,
   useDeleteAddress,
+  useAddPhoneNumber,
+  useUpdatePhoneNumber,
+  useSetDefaultPhoneNumber,
+  useDeletePhoneNumber,
+  useAddPaymentMethod,
+  useSetDefaultPaymentMethod,
+  useDeletePaymentMethod,
+  useSaveBuyerAccountSettings,
+  useDeleteBuyerAccount,
 } from '../hooks/useBuyerQueries';
 import { buyerApi } from '../api/buyerApi';
 import { useCart } from '../../../Store/cartContext';
@@ -83,11 +98,23 @@ const getSellableVariant = (item) => {
 const withSelectedVariantPrice = (item) => {
   const variant = getSellableVariant(item);
   const product = asRecord(item?.products || item?.product || item);
+  const price = getSellablePriceMinor(product, variant)
+    || asNumber(item?.price_minor ?? item?.price);
 
   return {
     ...item,
+    products: product,
     variant,
-    price: getSellablePriceMinor(product, variant) || asNumber(item?.price_minor ?? item?.price),
+    name: product.name || item?.name || 'Available product',
+    image: product.image || item?.image || '',
+    description: product.short_description
+      || product.full_description
+      || item?.description
+      || item?.reason
+      || 'Available now from the live catalog.',
+    price,
+    priceMinor: asNumber(product.price_minor ?? item?.price_minor ?? item?.price),
+    salePriceMinor: asNumber(product.sale_price_minor),
     originalPrice: getSaleOriginalPriceMinor(product),
   };
 };
@@ -162,6 +189,36 @@ export function BuyerProvider({ children }) {
     error: reordersError,
     refetch: refreshReorders,
   } = useBuyerReorders();
+  const {
+    data: addressData,
+    isLoading: addressesLoading,
+    error: addressesError,
+    refetch: refreshAddresses,
+  } = useBuyerAddresses();
+  const {
+    data: paymentMethodData,
+    isLoading: paymentsLoading,
+    error: paymentsError,
+    refetch: refreshPayments,
+  } = useBuyerPaymentMethods();
+  const {
+    data: phoneNumberData,
+    isLoading: phoneNumbersLoading,
+    error: phoneNumbersError,
+    refetch: refreshPhoneNumbers,
+  } = useBuyerPhoneNumbers();
+  const {
+    data: reviewData,
+    isLoading: reviewsLoading,
+    error: reviewsError,
+    refetch: refreshReviews,
+  } = useBuyerReviews();
+  const {
+    data: accountSettingsData,
+    isLoading: accountSettingsLoading,
+    error: accountSettingsError,
+    refetch: refreshAccountSettings,
+  } = useBuyerAccountSettings();
   const { data: wishlistAlertData } = useWishlistAlerts();
   
   const data = asRecord(dbData);
@@ -173,7 +230,17 @@ export function BuyerProvider({ children }) {
       date: formatOrderDate(safeOrder.created_at),
     };
   });
-  const reviews = asArray(data.reviews).map(asRecord);
+  const reviews = asArray(reviewData || data.reviews).map(review => {
+    const safeReview = asRecord(review);
+    return {
+      ...safeReview,
+      id: safeReview.id || safeReview.product_id,
+      product: safeReview.product || safeReview.products?.name || 'Purchased product',
+      productId: safeReview.product_id || safeReview.products?.id,
+      orderId: safeReview.order_id || safeReview.orderId,
+      submitted: Boolean(safeReview.submitted || safeReview.review_id),
+    };
+  });
   const notifs = asArray(data.notifications).map(notification => {
     const safeNotification = asRecord(notification);
     return {
@@ -183,8 +250,30 @@ export function BuyerProvider({ children }) {
       time: safeNotification.time || formatOrderDate(safeNotification.created_at),
     };
   });
-  const addresses = asArray(data.addresses).map(asRecord);
-  const payments = asArray(data.payment_methods).map(asRecord);
+  const addresses = asArray(addressData || data.addresses).map(address => {
+    const safeAddress = asRecord(address);
+    return {
+      ...safeAddress,
+      label: safeAddress.label || safeAddress.address_type || 'Address',
+      name: safeAddress.name || safeAddress.full_name || 'Buyer',
+      isDefault: Boolean(safeAddress.isDefault ?? safeAddress.is_default_shipping),
+      postalCode: safeAddress.postalCode || safeAddress.postal_code || '',
+    };
+  });
+  const payments = asArray(paymentMethodData || data.payment_methods).map(method => {
+    const safeMethod = asRecord(method);
+    return {
+      ...safeMethod,
+      isDefault: Boolean(safeMethod.isDefault ?? safeMethod.is_default),
+    };
+  });
+  const phoneNumbers = asArray(phoneNumberData).map(phone => {
+    const safePhone = asRecord(phone);
+    return {
+      ...safePhone,
+      isDefault: Boolean(safePhone.isDefault ?? safePhone.is_default),
+    };
+  });
   const backendInsights = asArray(data.insights).map(insight => {
     const safeInsight = asRecord(insight);
     return {
@@ -272,7 +361,12 @@ export function BuyerProvider({ children }) {
   })();
   
   const dataProfile = asRecord(data.profile);
-  const nameCandidate = user?.user_metadata?.full_name || dataProfile.full_name || user?.user_metadata?.name;
+  const accountSettings = asRecord(accountSettingsData);
+  const accountProfile = asRecord(accountSettings.profile);
+  const nameCandidate = accountProfile.full_name
+    || user?.user_metadata?.full_name
+    || dataProfile.full_name
+    || user?.user_metadata?.name;
   const rawName = typeof nameCandidate === 'string' && nameCandidate.trim()
     ? nameCandidate.trim()
     : 'Buyer';
@@ -281,10 +375,12 @@ export function BuyerProvider({ children }) {
 
   const profile = {
     ...dataProfile,
+    ...accountProfile,
     full_name: rawName,
     firstName: firstName,
-    email: user?.email || dataProfile.email || '',
-    phone: user?.phone || dataProfile.phone || '',
+    email: accountProfile.email || user?.email || dataProfile.email || '',
+    phone: accountProfile.phone || user?.phone || dataProfile.phone || '',
+    avatar_url: accountProfile.avatar_url || dataProfile.avatar_url || user?.user_metadata?.avatar_url || '',
   };
   const walletData = asRecord(data.wallet);
   const wallet = {
@@ -394,7 +490,17 @@ export function BuyerProvider({ children }) {
   const dismissNotifMut       = useDismissNotif();
   const setWishlistAlertMut   = useSetWishlistAlert();
   const addAddressMut         = useAddAddress();
+  const setDefaultAddressMut  = useSetDefaultAddress();
   const deleteAddressMut      = useDeleteAddress();
+  const addPhoneNumberMut     = useAddPhoneNumber();
+  const updatePhoneNumberMut  = useUpdatePhoneNumber();
+  const setDefaultPhoneMut    = useSetDefaultPhoneNumber();
+  const deletePhoneNumberMut  = useDeletePhoneNumber();
+  const addPaymentMethodMut   = useAddPaymentMethod();
+  const setDefaultPaymentMut  = useSetDefaultPaymentMethod();
+  const deletePaymentMethodMut = useDeletePaymentMethod();
+  const saveBuyerAccountSettingsMut = useSaveBuyerAccountSettings();
+  const deleteBuyerAccountMut = useDeleteBuyerAccount();
 
   // ── Actions (TODO: Move wallet/ai mutations to DB) ─────────────────────────
   const fundWallet = useCallback(async () => {
@@ -470,7 +576,7 @@ export function BuyerProvider({ children }) {
     // Mutations
     addToWishlist: (product) => product?.id && addToWishlistMut.mutate(product.id),
     removeFromWishlist: (id) => removeFromWishlistMut.mutate(id),
-    submitReview: (orderId, productName, rating, comment, productId) =>
+    submitReview: (orderId, productId, rating, comment) =>
       submitReviewMut.mutateAsync({ orderId, productId, rating, comment }),
     markAllNotifsRead: () => markNotifsReadMut.mutate(),
     markNotifRead: (id) => markNotifReadMut.mutate(id),
@@ -478,7 +584,34 @@ export function BuyerProvider({ children }) {
     setWishlistAlert: (variables) => setWishlistAlertMut.mutateAsync(variables),
     wishlistAlerts,
     addAddress: (addr) => addAddressMut.mutateAsync(addr),
-    deleteAddress: (id) => deleteAddressMut.mutate(id),
+    setDefaultAddress: (id) => setDefaultAddressMut.mutateAsync(id),
+    deleteAddress: (id) => deleteAddressMut.mutateAsync(id),
+    addressesLoading,
+    addressesError,
+    refreshAddresses,
+    phoneNumbers,
+    addPhoneNumber: (phone) => addPhoneNumberMut.mutateAsync(phone),
+    updatePhoneNumber: (phone) => updatePhoneNumberMut.mutateAsync(phone),
+    setDefaultPhoneNumber: (phone) => setDefaultPhoneMut.mutateAsync(phone),
+    deletePhoneNumber: (phone) => deletePhoneNumberMut.mutateAsync(phone),
+    phoneNumbersLoading,
+    phoneNumbersError,
+    refreshPhoneNumbers,
+    addPaymentMethod: (method) => addPaymentMethodMut.mutateAsync(method),
+    setDefaultPaymentMethod: (id) => setDefaultPaymentMut.mutateAsync(id),
+    deletePaymentMethod: (id) => deletePaymentMethodMut.mutateAsync(id),
+    paymentsLoading,
+    paymentsError,
+    refreshPayments,
+    reviewsLoading,
+    reviewsError,
+    refreshReviews,
+    accountSettings,
+    accountSettingsLoading,
+    accountSettingsError,
+    refreshAccountSettings,
+    saveAccountSettings: (settings) => saveBuyerAccountSettingsMut.mutateAsync(settings),
+    deleteAccount: (confirmation) => deleteBuyerAccountMut.mutateAsync(confirmation),
     
     // Wallet mapping
     walletBalance: wallet.balance,
