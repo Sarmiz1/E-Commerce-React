@@ -130,49 +130,51 @@ function EmailUpdateModal({ colors, currentEmail, onClose, onConfirm }) {
         className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      <motion.form
-        key="email-update-modal"
-        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 12, scale: 0.98 }}
-        onSubmit={handleSubmit(onConfirm)}
-        className="fixed inset-x-3 top-1/2 -translate-y-1/2 z-50 max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl p-4 shadow-xl space-y-4 sm:left-1/2 sm:right-auto sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:p-6"
-        style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}
-      >
-        <div>
-          <p className="text-lg font-black" style={{ color: colors.text.primary }}>Update email address</p>
-          <p className="text-sm mt-2" style={{ color: colors.text.tertiary }}>
-            Enter a new address and your password. We will send a code to your current account email first.
-          </p>
-        </div>
-        <Field
-          label="New Email Address"
-          type="email"
-          autoComplete="email"
-          error={errors.email}
-          {...register('email')}
-        />
-        <Field
-          label="Account Password"
-          type="password"
-          autoComplete="current-password"
-          error={errors.password}
-          {...register('password')}
-        />
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onClose} className="w-full px-4 py-2 rounded-xl text-sm font-bold sm:w-auto" style={{ color: colors.text.secondary }}>
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full px-4 py-2 rounded-xl text-sm font-bold text-white sm:w-auto"
-            style={{ background: '#667eea', opacity: isSubmitting ? 0.65 : 1 }}
-          >
-            {isSubmitting ? 'Sending...' : 'Send Confirmation Code'}
-          </button>
-        </div>
-      </motion.form>
+      <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-6">
+        <motion.form
+          key="email-update-modal"
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12, scale: 0.98 }}
+          onSubmit={handleSubmit(onConfirm)}
+          className="pointer-events-auto w-full max-w-md max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl p-4 shadow-xl space-y-4 sm:max-h-[calc(100dvh-3rem)] sm:p-6"
+          style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}
+        >
+          <div>
+            <p className="text-lg font-black" style={{ color: colors.text.primary }}>Update email address</p>
+            <p className="text-sm mt-2" style={{ color: colors.text.tertiary }}>
+              Enter a new address and your password. We will send a code to your current account email first.
+            </p>
+          </div>
+          <Field
+            label="New Email Address"
+            type="email"
+            autoComplete="email"
+            error={errors.email}
+            {...register('email')}
+          />
+          <Field
+            label="Account Password"
+            type="password"
+            autoComplete="current-password"
+            error={errors.password}
+            {...register('password')}
+          />
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" onClick={onClose} className="w-full px-4 py-2 rounded-xl text-sm font-bold sm:w-auto" style={{ color: colors.text.secondary }}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full px-4 py-2 rounded-xl text-sm font-bold text-white sm:w-auto"
+              style={{ background: '#667eea', opacity: isSubmitting ? 0.65 : 1 }}
+            >
+              {isSubmitting ? 'Sending...' : 'Send Confirmation Code'}
+            </button>
+          </div>
+        </motion.form>
+      </div>
     </>
   );
 }
