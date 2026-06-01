@@ -400,16 +400,38 @@ export function useSaveBuyerAccountSettings() {
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (settings) => buyerApi.saveAccountSettings(settings),
-    onSuccess: (result) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
       qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
-      addToast(
-        result.emailChangeRequested
-          ? 'Settings saved. Check your new email address to confirm the change.'
-          : 'Account settings saved.',
-      );
+      addToast('Account settings saved.');
     },
     onError: (err) => addToast(err.message || 'Failed to save account settings', 'error'),
+  });
+}
+
+export function useRequestBuyerEmailChange() {
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (details) => buyerApi.requestEmailChange(details),
+    onSuccess: () => {
+      addToast('Confirmation code sent to your current account email.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to start email change', 'error'),
+  });
+}
+
+export function useApproveBuyerEmailChange() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (confirmation) => buyerApi.approveEmailChange(confirmation),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Identity confirmed. Check your new email address to finish the change.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to confirm email change', 'error'),
   });
 }
 

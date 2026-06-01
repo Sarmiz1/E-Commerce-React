@@ -6,6 +6,7 @@ import { useTheme } from '../../../Store/useThemeStore';
 import { useBuyer } from '../context/BuyerContext';
 import {
   buyerAccountSchema,
+  buyerEmailUpdateSchema,
   deleteBuyerAccountSchema,
   toBuyerAccountFormValues,
   toBuyerAccountPayload,
@@ -109,6 +110,73 @@ function LoadingState({ onRetry, error }) {
   );
 }
 
+function EmailUpdateModal({ colors, currentEmail, onClose, onConfirm }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(buyerEmailUpdateSchema),
+    defaultValues: { email: currentEmail || '', password: '' },
+  });
+
+  return (
+    <>
+      <motion.div
+        key="email-update-bg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.form
+        key="email-update-modal"
+        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.98 }}
+        onSubmit={handleSubmit(onConfirm)}
+        className="fixed inset-x-3 top-1/2 -translate-y-1/2 z-50 max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl p-4 shadow-xl space-y-4 sm:left-1/2 sm:right-auto sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:p-6"
+        style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}
+      >
+        <div>
+          <p className="text-lg font-black" style={{ color: colors.text.primary }}>Update email address</p>
+          <p className="text-sm mt-2" style={{ color: colors.text.tertiary }}>
+            Enter a new address and your password. We will send a code to your current account email first.
+          </p>
+        </div>
+        <Field
+          label="New Email Address"
+          type="email"
+          autoComplete="email"
+          error={errors.email}
+          {...register('email')}
+        />
+        <Field
+          label="Account Password"
+          type="password"
+          autoComplete="current-password"
+          error={errors.password}
+          {...register('password')}
+        />
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onClose} className="w-full px-4 py-2 rounded-xl text-sm font-bold sm:w-auto" style={{ color: colors.text.secondary }}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full px-4 py-2 rounded-xl text-sm font-bold text-white sm:w-auto"
+            style={{ background: '#667eea', opacity: isSubmitting ? 0.65 : 1 }}
+          >
+            {isSubmitting ? 'Sending...' : 'Send Confirmation Code'}
+          </button>
+        </div>
+      </motion.form>
+    </>
+  );
+}
+
 export default function BuyerSettings() {
   const { colors } = useTheme();
   const {
@@ -118,11 +186,16 @@ export default function BuyerSettings() {
     accountSettingsError,
     refreshAccountSettings,
     saveAccountSettings,
+    requestEmailChange,
+    approveEmailChange,
     deleteAccount,
     approveSensitiveAction,
   } = useBuyer();
   const [saved, setSaved] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [emailUpdateOpen, setEmailUpdateOpen] = useState(false);
+  const [pendingEmailApproval, setPendingEmailApproval] = useState(null);
+  const [emailApprovalProcessing, setEmailApprovalProcessing] = useState(false);
   const [pendingDeleteApproval, setPendingDeleteApproval] = useState(null);
   const [failedAvatar, setFailedAvatar] = useState('');
   const photoInputRef = useRef(null);
@@ -190,6 +263,32 @@ export default function BuyerSettings() {
       // The mutation hook reports the backend error as a toast.
     }
   });
+
+  const startEmailChange = async (details) => {
+    try {
+      const approval = await requestEmailChange(details);
+      setPendingEmailApproval(approval);
+      setEmailUpdateOpen(false);
+    } catch {
+      // The mutation hook reports the backend error as a toast.
+    }
+  };
+
+  const approveEmailUpdate = async (confirmationCode) => {
+    if (!pendingEmailApproval) return;
+    setEmailApprovalProcessing(true);
+    try {
+      await approveEmailChange({
+        requestId: pendingEmailApproval.requestId,
+        confirmationCode,
+      });
+      setPendingEmailApproval(null);
+    } catch {
+      // The mutation hook reports the backend error as a toast.
+    } finally {
+      setEmailApprovalProcessing(false);
+    }
+  };
 
   const approveDelete = async (confirmationCode) => {
     if (!pendingDeleteApproval) return;
@@ -280,13 +379,27 @@ export default function BuyerSettings() {
 
         <Section title="Personal Information" icon="user" delay={0.05}>
           <Field label="Full Name" error={errors.fullName} {...register('fullName')} />
-          <Field
-            label="Email Address"
-            type="email"
-            helper="Changing your email may require confirmation from the new address."
-            error={errors.email}
-            {...register('email')}
-          />
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="flex-1">
+              <Field
+                label="Email Address"
+                type="email"
+                readOnly
+                aria-readonly="true"
+                helper="Locked by default. Updating it requires your password, a code sent to your current email, and confirmation from the new address."
+                error={errors.email}
+                {...register('email')}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setEmailUpdateOpen(true)}
+              className="px-4 py-2.5 rounded-xl text-sm font-bold flex-shrink-0"
+              style={{ background: 'rgba(102,126,234,0.1)', color: '#667eea' }}
+            >
+              Update Email
+            </button>
+          </div>
         </Section>
 
         <Section title="Preferences & AI" icon="sparkle" delay={0.12}>
@@ -422,6 +535,28 @@ export default function BuyerSettings() {
         </button>
       </motion.div>
 
+      <AnimatePresence>
+        {emailUpdateOpen && (
+          <EmailUpdateModal
+            colors={colors}
+            currentEmail={profile.email}
+            onClose={() => setEmailUpdateOpen(false)}
+            onConfirm={startEmailChange}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {pendingEmailApproval && (
+          <EmailConfirmationModal
+            colors={colors}
+            approval={pendingEmailApproval}
+            processing={emailApprovalProcessing}
+            title="Confirm email update"
+            onClose={() => setPendingEmailApproval(null)}
+            onConfirm={approveEmailUpdate}
+          />
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {deleteConfirm && (
           <motion.div

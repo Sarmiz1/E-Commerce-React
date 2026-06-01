@@ -69,7 +69,7 @@ create table if not exists public.buyer_sensitive_actions (
   resource_type text not null
     check (resource_type in ('phone', 'address', 'payment', 'account')),
   action_type text not null
-    check (action_type in ('add', 'update', 'delete', 'set_default')),
+    check (action_type in ('add', 'update', 'delete', 'set_default', 'update_email')),
   resource_id uuid,
   payload jsonb not null default '{}'::jsonb,
   confirmation_code_hash text not null,
@@ -78,6 +78,12 @@ create table if not exists public.buyer_sensitive_actions (
   created_at timestamptz not null default now(),
   expires_at timestamptz not null default (now() + interval '10 minutes')
 );
+
+alter table public.buyer_sensitive_actions
+  drop constraint if exists buyer_sensitive_actions_action_type_check;
+alter table public.buyer_sensitive_actions
+  add constraint buyer_sensitive_actions_action_type_check
+    check (action_type in ('add', 'update', 'delete', 'set_default', 'update_email'));
 
 create index if not exists buyer_sensitive_actions_user_expires_at_idx
   on public.buyer_sensitive_actions(user_id, expires_at desc);
@@ -131,6 +137,7 @@ declare
   normalized_country_code text;
   normalized_phone_number text;
   normalized_country text;
+  normalized_email text;
   existing_method_id uuid;
 begin
   if not exists (
@@ -248,13 +255,39 @@ begin
       );
     end if;
   elsif p_resource_type = 'account' then
-    if p_action_type <> 'delete' then
+    if p_action_type = 'delete' then
+      if normalized_payload->>'confirmation' <> 'DELETE' then
+        raise exception 'Type DELETE to confirm account deletion.';
+      end if;
+      normalized_payload := jsonb_build_object('confirmation', 'DELETE');
+    elsif p_action_type = 'update_email' then
+      normalized_email := lower(trim(coalesce(normalized_payload->>'email', '')));
+
+      if length(normalized_email) > 254
+        or normalized_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' then
+        raise exception 'Enter a valid email address.';
+      end if;
+      if exists (
+        select 1
+        from auth.users auth_user
+        where auth_user.id = p_user_id
+          and lower(auth_user.email) = normalized_email
+      ) then
+        raise exception 'Enter a different email address.';
+      end if;
+      if exists (
+        select 1
+        from auth.users auth_user
+        where auth_user.id <> p_user_id
+          and lower(auth_user.email) = normalized_email
+      ) then
+        raise exception 'That email address is already in use.';
+      end if;
+
+      normalized_payload := jsonb_build_object('email', normalized_email);
+    else
       raise exception 'Unsupported account action.';
     end if;
-    if normalized_payload->>'confirmation' <> 'DELETE' then
-      raise exception 'Type DELETE to confirm account deletion.';
-    end if;
-    normalized_payload := jsonb_build_object('confirmation', 'DELETE');
   else
     raise exception 'Unsupported secured account action.';
   end if;
@@ -544,7 +577,16 @@ begin
     end if;
 
     result := public.get_buyer_payment_methods();
-  else
+  elsif requested_action.resource_type = 'account'
+    and requested_action.action_type = 'update_email' then
+    return jsonb_build_object(
+      'success', true,
+      'resourceType', requested_action.resource_type,
+      'actionType', requested_action.action_type,
+      'data', jsonb_build_object('email', requested_action.payload->>'email')
+    );
+  elsif requested_action.resource_type = 'account'
+    and requested_action.action_type = 'delete' then
     perform set_config('woosho.allow_buyer_phone_cleanup', buyer_id::text, true);
 
     delete from auth.users
@@ -560,6 +602,8 @@ begin
       'actionType', requested_action.action_type,
       'data', jsonb_build_object('deleted', true)
     );
+  else
+    raise exception 'Unsupported secured account action.';
   end if;
 
   return jsonb_build_object(

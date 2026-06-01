@@ -56,9 +56,10 @@ as `8034157476` alongside country code `234`.
 
 Then apply
 `supabase/migrations/20260601030000_secure_buyer_account_actions.sql`.
-It routes address, masked payment-method, default-phone, and account-deletion
-changes through the same two-step security boundary. Direct browser execution
-of the older mutation RPCs is revoked so the approval step cannot be skipped.
+It routes address, masked payment-method, default-phone, account-email, and
+account-deletion changes through the same two-step security boundary. Direct
+browser execution of the older mutation RPCs is revoked so the approval step
+cannot be skipped.
 Authenticated browser sessions also keep read-only table access to addresses
 and masked payment methods; direct table writes are revoked.
 
@@ -68,7 +69,8 @@ Sensitive account requests use two steps:
    creates a ten-minute pending action, and sends a six-digit code with Resend
    for phone-number add, edit, and delete requests. The
    `buyer-account-confirmation` Edge Function does the same for addresses,
-   masked payment methods, default-phone selection, and account deletion.
+   masked payment methods, default-phone selection, account-email updates, and
+   account deletion.
 2. `approve_buyer_phone_number_action` validates the code and applies the
    pending phone-number change. `approve_buyer_sensitive_action` applies the
    remaining secured changes. Codes are hashed at rest and limited to five
@@ -125,11 +127,13 @@ sessions cannot use buyer activity endpoints.
   persisted by a verified-purchase RPC, and empty sources render
   `No available data`.
 - **Account:** React Hook Form and Zod validate profile edits, preferences,
-  optional avatar uploads, password rotations, and typed account deletion.
-  Profile data and preferences persist through customer-scoped RPCs. Email and
-  password updates stay with Supabase Auth, avatar files use a per-user
-  Supabase Storage path, and account deletion requires password and email-code
-  approval.
+  optional avatar uploads, password rotations, locked-email updates, and typed
+  account deletion. Profile data and preferences persist through
+  customer-scoped RPCs. Email starts read-only and uses its own update form:
+  password verification, a code sent to the current account email, then
+  Supabase Auth confirmation from the new address. Password updates stay with
+  Supabase Auth, avatar files use a per-user Supabase Storage path, and account
+  deletion requires password and email-code approval.
 
 ## Failure Handling
 

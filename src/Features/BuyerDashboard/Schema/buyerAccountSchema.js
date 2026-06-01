@@ -92,6 +92,16 @@ export const deleteBuyerAccountSchema = z.object({
   password: z.string().min(1, 'Enter your account password'),
 });
 
+export const buyerEmailUpdateSchema = z.object({
+  email: z
+    .string({ message: 'Email address is required' })
+    .trim()
+    .toLowerCase()
+    .email('Enter a valid email address')
+    .max(254, 'Email must be under 254 characters'),
+  password: z.string().min(1, 'Enter your account password'),
+});
+
 export const EMPTY_BUYER_ACCOUNT_FORM = {
   fullName: '',
   email: '',
@@ -125,7 +135,6 @@ export function toBuyerAccountFormValues(settings, fallbackProfile = {}) {
 export function toBuyerAccountPayload(values) {
   return {
     fullName: values.fullName,
-    email: values.email,
     avatarUrl: values.avatarUrl,
     avatarFile: values.avatarFile,
     preferences: {

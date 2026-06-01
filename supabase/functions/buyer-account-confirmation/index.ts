@@ -22,6 +22,7 @@ const ACTION_LABELS: Record<string, string> = {
   "payment:add": "add a saved payment method",
   "payment:delete": "delete a saved payment method",
   "payment:set_default": "set your default payment method",
+  "account:update_email": "change your WooSho account email address",
   "account:delete": "delete your WooSho account",
 };
 

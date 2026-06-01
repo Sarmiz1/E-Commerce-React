@@ -45,6 +45,8 @@ import {
   useDeletePaymentMethod,
   useApproveSensitiveAction,
   useSaveBuyerAccountSettings,
+  useRequestBuyerEmailChange,
+  useApproveBuyerEmailChange,
   useDeleteBuyerAccount,
 } from '../hooks/useBuyerQueries';
 import { buyerApi } from '../api/buyerApi';
@@ -509,6 +511,8 @@ export function BuyerProvider({ children }) {
   const deletePaymentMethodMut = useDeletePaymentMethod();
   const approveSensitiveActionMut = useApproveSensitiveAction();
   const saveBuyerAccountSettingsMut = useSaveBuyerAccountSettings();
+  const requestBuyerEmailChangeMut = useRequestBuyerEmailChange();
+  const approveBuyerEmailChangeMut = useApproveBuyerEmailChange();
   const deleteBuyerAccountMut = useDeleteBuyerAccount();
 
   // ── Actions (TODO: Move wallet/ai mutations to DB) ─────────────────────────
@@ -623,6 +627,8 @@ export function BuyerProvider({ children }) {
     accountSettingsError,
     refreshAccountSettings,
     saveAccountSettings: (settings) => saveBuyerAccountSettingsMut.mutateAsync(settings),
+    requestEmailChange: (details) => requestBuyerEmailChangeMut.mutateAsync(details),
+    approveEmailChange: (confirmation) => approveBuyerEmailChangeMut.mutateAsync(confirmation),
     deleteAccount: (confirmation) => deleteBuyerAccountMut.mutateAsync(confirmation),
     
     // Wallet mapping

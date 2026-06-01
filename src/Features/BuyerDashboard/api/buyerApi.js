@@ -54,6 +54,20 @@ const requestBuyerSensitiveAction = ({
   password,
 });
 
+async function approveBuyerSensitiveAction({ requestId, confirmationCode }) {
+  const result = await unwrap(supabase.rpc('approve_buyer_sensitive_action', {
+    p_request_id: requestId,
+    p_confirmation_code: confirmationCode,
+  }));
+  if (!result?.success) {
+    throw new Error(result?.error || 'Unable to confirm the secured account change');
+  }
+  if (result.resourceType === 'account' && result.actionType === 'delete') {
+    await supabase.auth.signOut();
+  }
+  return result;
+}
+
 async function uploadBuyerAvatar(userId, file) {
   const extension = AVATAR_EXTENSION_BY_TYPE[file.type];
   if (!extension) throw new Error('Photo must be a JPG, PNG, or WEBP image');
@@ -230,19 +244,7 @@ export const buyerApi = {
     }
     return result.phoneNumbers;
   },
-  approveSensitiveAction: async ({ requestId, confirmationCode }) => {
-    const result = await unwrap(supabase.rpc('approve_buyer_sensitive_action', {
-      p_request_id: requestId,
-      p_confirmation_code: confirmationCode,
-    }));
-    if (!result?.success) {
-      throw new Error(result?.error || 'Unable to confirm the secured account change');
-    }
-    if (result.resourceType === 'account' && result.actionType === 'delete') {
-      await supabase.auth.signOut();
-    }
-    return result;
-  },
+  approveSensitiveAction: approveBuyerSensitiveAction,
   addPaymentMethod: (method) => requestBuyerSensitiveAction({
     resourceType: 'payment',
     actionType: 'add',
@@ -297,20 +299,33 @@ export const buyerApi = {
       p_promotions_deals: settings.preferences.promotionsDeals,
     }));
 
-    const normalizedEmail = settings.email.trim().toLowerCase();
-    const emailChanged = normalizedEmail !== user.email?.toLowerCase();
     const authUpdate = {
       data: {
         full_name: settings.fullName,
         avatar_url: avatarUrl,
       },
     };
-    if (emailChanged) authUpdate.email = normalizedEmail;
 
     const { error: authError } = await supabase.auth.updateUser(authUpdate);
     if (authError) throw authError;
 
-    return { settings: savedSettings, emailChangeRequested: emailChanged };
+    return { settings: savedSettings };
+  },
+  requestEmailChange: ({ email, password }) => requestBuyerSensitiveAction({
+    resourceType: 'account',
+    actionType: 'update_email',
+    password,
+    payload: { email },
+  }),
+  approveEmailChange: async (confirmation) => {
+    const result = await approveBuyerSensitiveAction(confirmation);
+    const email = result.data?.email;
+    if (!email) throw new Error('The approved email address was not returned');
+
+    const { error } = await supabase.auth.updateUser({ email });
+    if (error) throw error;
+
+    return result;
   },
   deleteAccount: ({ confirmation, password }) => requestBuyerSensitiveAction({
     resourceType: 'account',

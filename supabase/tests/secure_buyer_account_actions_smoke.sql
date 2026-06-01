@@ -13,6 +13,7 @@ declare
   smoke_transaction_id uuid;
   smoke_coupon_id uuid;
   smoke_redemption_id uuid;
+  smoke_email text;
   bypass_route text;
 begin
   if has_table_privilege('authenticated', 'public.addresses', 'insert')
@@ -146,6 +147,25 @@ begin
     if payment_count_after <> payment_count_before + 1 then
       raise exception 'Secured payment approval did not create exactly one method.';
     end if;
+  end if;
+
+  smoke_email := 'rollback-' || replace(extensions.gen_random_uuid()::text, '-', '') || '@example.com';
+  staged_action := public.begin_buyer_sensitive_action(
+    buyer_id,
+    'account',
+    'update_email',
+    null,
+    jsonb_build_object('email', smoke_email)
+  );
+
+  approved_action := public.approve_buyer_sensitive_action(
+    (staged_action->>'requestId')::uuid,
+    staged_action->>'confirmationCode'
+  );
+
+  if not coalesce((approved_action->>'success')::boolean, false)
+    or approved_action#>>'{data,email}' <> smoke_email then
+    raise exception 'Secured email-update approval failed: %', approved_action;
   end if;
 
   insert into public.orders (
