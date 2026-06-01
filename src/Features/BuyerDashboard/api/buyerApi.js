@@ -10,6 +10,23 @@ const unwrap = async (request) => {
   return data;
 };
 
+const invokeEdgeFunction = async (name, body) => {
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (!error) return data;
+
+  let message = data?.error || error.message;
+  if (error.context) {
+    try {
+      const details = await error.context.json();
+      message = details?.error || message;
+    } catch {
+      // Keep the Edge Function error when its response body is not JSON.
+    }
+  }
+
+  throw new Error(message);
+};
+
 const AVATAR_EXTENSION_BY_TYPE = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -146,27 +163,39 @@ export const buyerApi = {
     unwrap(supabase.rpc('set_buyer_default_address', { p_address_id: id })),
   deleteAddress: (id) =>
     unwrap(supabase.rpc('delete_buyer_address', { p_address_id: id })),
-  addPhoneNumber: async (phone) => {
-    await reauthenticateBuyer(phone.password);
-    return unwrap(supabase.rpc('add_buyer_phone_number', {
-      p_phone_number: phone.phoneNumber,
-      p_make_default: phone.isDefault || false,
-    }));
-  },
-  updatePhoneNumber: async (phone) => {
-    await reauthenticateBuyer(phone.password);
-    return unwrap(supabase.rpc('update_buyer_phone_number', {
-      p_phone_id: phone.id,
-      p_phone_number: phone.phoneNumber,
-    }));
-  },
+  addPhoneNumber: (phone) => invokeEdgeFunction('buyer-phone-confirmation', {
+    actionType: 'add',
+    countryCode: phone.countryCode,
+    phoneNumber: phone.phoneNumber,
+    password: phone.password,
+    isDefault: phone.isDefault || false,
+  }),
+  updatePhoneNumber: (phone) => invokeEdgeFunction('buyer-phone-confirmation', {
+    actionType: 'update',
+    phoneId: phone.id,
+    countryCode: phone.countryCode,
+    phoneNumber: phone.phoneNumber,
+    password: phone.password,
+  }),
   setDefaultPhoneNumber: async ({ id, password }) => {
     await reauthenticateBuyer(password);
     return unwrap(supabase.rpc('set_buyer_default_phone_number', { p_phone_id: id }));
   },
-  deletePhoneNumber: async ({ id, password }) => {
-    await reauthenticateBuyer(password);
-    return unwrap(supabase.rpc('delete_buyer_phone_number', { p_phone_id: id }));
+  deletePhoneNumber: ({ id, password }) =>
+    invokeEdgeFunction('buyer-phone-confirmation', {
+      actionType: 'delete',
+      phoneId: id,
+      password,
+    }),
+  approvePhoneNumberAction: async ({ requestId, confirmationCode }) => {
+    const result = await unwrap(supabase.rpc('approve_buyer_phone_number_action', {
+      p_request_id: requestId,
+      p_confirmation_code: confirmationCode,
+    }));
+    if (!result?.success) {
+      throw new Error(result?.error || 'Unable to confirm the phone-number change');
+    }
+    return result.phoneNumbers;
   },
   addPaymentMethod: async (method) => {
     await reauthenticateBuyer(method.password);

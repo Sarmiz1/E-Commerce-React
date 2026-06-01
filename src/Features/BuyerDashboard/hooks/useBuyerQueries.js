@@ -284,30 +284,22 @@ export function useSetDefaultAddress() {
 }
 
 export function useAddPhoneNumber() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (phone) => buyerApi.addPhoneNumber(phone),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
-      addToast('Phone number saved.');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to save phone number', 'error'),
   });
 }
 
 export function useUpdatePhoneNumber() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (phone) => buyerApi.updatePhoneNumber(phone),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
-      addToast('Phone number updated.');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to update phone number', 'error'),
   });
@@ -329,17 +321,28 @@ export function useSetDefaultPhoneNumber() {
 }
 
 export function useDeletePhoneNumber() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (phone) => buyerApi.deletePhoneNumber(phone),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
-      addToast('Phone number removed.', 'info');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to remove phone number', 'error'),
+  });
+}
+
+export function useApprovePhoneNumberAction() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (confirmation) => buyerApi.approvePhoneNumberAction(confirmation),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Phone-number change confirmed.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to confirm phone-number change', 'error'),
   });
 }
 

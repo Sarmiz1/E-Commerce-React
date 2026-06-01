@@ -45,6 +45,29 @@ backend-owned account settings. It also separates buyer phone numbers from
 addresses, enforces at most two unique numbers per buyer, and limits saved
 masked cards to two per buyer.
 
+Then apply
+`supabase/migrations/20260601020000_strict_buyer_phone_numbers.sql`.
+It stores buyer numbers as required `country_code` and local `phone_number`
+columns, derives globally unique E.164 values such as `+2348034157476`, and
+prevents buyers from deleting their final saved number. Legacy accounts
+without a number must add one; the migration does not invent contact data. The
+backend accepts a local leading zero, so `08034157476` is normalized and stored
+as `8034157476` alongside country code `234`.
+
+Phone-number add, edit, and delete requests use two steps:
+
+1. The `buyer-phone-confirmation` Edge Function validates the buyer password,
+   creates a ten-minute pending action, and sends a six-digit code with Resend.
+2. `approve_buyer_phone_number_action` validates the code and applies the
+   pending change. Codes are hashed at rest and limited to five attempts.
+
+Configure and deploy the Edge Function with:
+
+```powershell
+npx supabase secrets set RESEND_API_KEY=... RESEND_FROM_EMAIL="WooSho Security <security@your-verified-domain>"
+npx supabase functions deploy buyer-phone-confirmation --no-verify-jwt
+```
+
 The RPC functions call `private.assert_customer_session()`, so admin-only
 sessions cannot use buyer activity endpoints.
 
@@ -71,7 +94,8 @@ sessions cannot use buyer activity endpoints.
   failed sources render visible fallback cards.
 - **Addresses:** Create, set-default, and remove actions persist through
   customer-scoped backend RPCs. Phone numbers are managed separately with
-  add, edit, set-default, and delete actions.
+  add, edit, set-default, and delete actions. Phone changes require a password
+  first and an email confirmation code before the backend applies them.
 - **Payment Methods:** Buyers enter cardholder name, card number, expiry, CVV,
   and account password. The dashboard re-authenticates through Supabase Auth
   and persists only cardholder name, brand, last four digits, and expiry.

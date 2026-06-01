@@ -38,6 +38,7 @@ import {
   useUpdatePhoneNumber,
   useSetDefaultPhoneNumber,
   useDeletePhoneNumber,
+  useApprovePhoneNumberAction,
   useAddPaymentMethod,
   useSetDefaultPaymentMethod,
   useDeletePaymentMethod,
@@ -497,6 +498,7 @@ export function BuyerProvider({ children }) {
   const updatePhoneNumberMut  = useUpdatePhoneNumber();
   const setDefaultPhoneMut    = useSetDefaultPhoneNumber();
   const deletePhoneNumberMut  = useDeletePhoneNumber();
+  const approvePhoneActionMut = useApprovePhoneNumberAction();
   const addPaymentMethodMut   = useAddPaymentMethod();
   const setDefaultPaymentMut  = useSetDefaultPaymentMethod();
   const deletePaymentMethodMut = useDeletePaymentMethod();
@@ -595,6 +597,7 @@ export function BuyerProvider({ children }) {
     updatePhoneNumber: (phone) => updatePhoneNumberMut.mutateAsync(phone),
     setDefaultPhoneNumber: (phone) => setDefaultPhoneMut.mutateAsync(phone),
     deletePhoneNumber: (phone) => deletePhoneNumberMut.mutateAsync(phone),
+    approvePhoneNumberAction: (confirmation) => approvePhoneActionMut.mutateAsync(confirmation),
     phoneNumbersLoading,
     phoneNumbersError,
     refreshPhoneNumbers,

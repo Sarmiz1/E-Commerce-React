@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 
 import { OrderAPI } from "../../api/orderApi";
+import { buyerApi } from "../BuyerDashboard/api/buyerApi";
 import { useAuth } from "../../Store/useAuthStore";
 import { useCartState, useCartActions } from "../../Store/cartContext";
 import { useToastStore } from "../../Store/useToastStore";
@@ -25,6 +26,7 @@ import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
 
 export default function CheckoutPage() {
   const { user } = useAuth();
+  const userMetadataPhone = user?.user_metadata?.phone || "";
   const {
     cart: cartData,
     error: cartError,
@@ -51,7 +53,7 @@ export default function CheckoutPage() {
         ...baseForm,
         name: user.user_metadata?.full_name || user.user_metadata?.name || "",
         email: user.email || "",
-        phone: user.user_metadata?.phone || "",
+        phone: "",
       };
     }
     return baseForm;
@@ -74,6 +76,33 @@ export default function CheckoutPage() {
       { y: 0, opacity: 1, duration: 0.8, ease: "expo.out", clearProps: "all" },
     );
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let cancelled = false;
+    buyerApi.getAccountSettings()
+      .then((settings) => {
+        const defaultPhone = settings?.profile?.phone || userMetadataPhone;
+        if (!cancelled && defaultPhone) {
+          setForm((previous) => previous.phone
+            ? previous
+            : { ...previous, phone: defaultPhone });
+        }
+      })
+      .catch(() => {
+        const fallbackPhone = userMetadataPhone;
+        if (!cancelled && fallbackPhone) {
+          setForm((previous) => previous.phone
+            ? previous
+            : { ...previous, phone: fallbackPhone });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, userMetadataPhone]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
