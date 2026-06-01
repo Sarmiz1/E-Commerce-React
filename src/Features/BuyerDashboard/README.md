@@ -54,19 +54,38 @@ without a number must add one; the migration does not invent contact data. The
 backend accepts a local leading zero, so `08034157476` is normalized and stored
 as `8034157476` alongside country code `234`.
 
-Phone-number add, edit, and delete requests use two steps:
+Then apply
+`supabase/migrations/20260601030000_secure_buyer_account_actions.sql`.
+It routes address, masked payment-method, default-phone, and account-deletion
+changes through the same two-step security boundary. Direct browser execution
+of the older mutation RPCs is revoked so the approval step cannot be skipped.
+Authenticated browser sessions also keep read-only table access to addresses
+and masked payment methods; direct table writes are revoked.
+
+Sensitive account requests use two steps:
 
 1. The `buyer-phone-confirmation` Edge Function validates the buyer password,
-   creates a ten-minute pending action, and sends a six-digit code with Resend.
+   creates a ten-minute pending action, and sends a six-digit code with Resend
+   for phone-number add, edit, and delete requests. The
+   `buyer-account-confirmation` Edge Function does the same for addresses,
+   masked payment methods, default-phone selection, and account deletion.
 2. `approve_buyer_phone_number_action` validates the code and applies the
-   pending change. Codes are hashed at rest and limited to five attempts.
+   pending phone-number change. `approve_buyer_sensitive_action` applies the
+   remaining secured changes. Codes are hashed at rest and limited to five
+   attempts.
 
 Configure and deploy the Edge Function with:
 
 ```powershell
 npx supabase secrets set RESEND_API_KEY=... RESEND_FROM_EMAIL="WooSho Security <security@your-verified-domain>"
 npx supabase functions deploy buyer-phone-confirmation --no-verify-jwt
+npx supabase functions deploy buyer-account-confirmation --no-verify-jwt
 ```
+
+For development without a verified domain, Resend's
+`WooSho Security <onboarding@resend.dev>` sender can be used temporarily. It
+only sends to the email address associated with the Resend account. Configure a
+verified domain sender before opening secured actions to production users.
 
 The RPC functions call `private.assert_customer_session()`, so admin-only
 sessions cannot use buyer activity endpoints.
@@ -92,22 +111,25 @@ sessions cannot use buyer activity endpoints.
 - **Spending:** Category totals and selectable daily, weekly, monthly, and
   yearly charts are calculated from paid, non-cancelled orders. Empty and
   failed sources render visible fallback cards.
-- **Addresses:** Create, set-default, and remove actions persist through
-  customer-scoped backend RPCs. Phone numbers are managed separately with
-  add, edit, set-default, and delete actions. Phone changes require a password
-  first and an email confirmation code before the backend applies them.
+- **Addresses:** React Hook Form and Zod validate add and edit forms. A custom
+  animated dropdown selects the delivery country and normalizes legacy country
+  labels to ISO codes. Create, edit, set-default, and remove actions require a
+  password first and an email confirmation code before the backend applies
+  them. Phone numbers are managed separately with the same secured behavior.
 - **Payment Methods:** Buyers enter cardholder name, card number, expiry, CVV,
-  and account password. The dashboard re-authenticates through Supabase Auth
-  and persists only cardholder name, brand, last four digits, and expiry.
-  Raw card numbers and CVVs are never stored by the dashboard.
+  and account password through a React Hook Form and Zod form. Saved-card
+  mutations require email-code approval and persist only cardholder name,
+  brand, last four digits, and expiry. Raw card numbers and CVVs are never
+  stored by the dashboard.
 - **Reviews:** Paid purchases become review opportunities. Posted reviews are
   persisted by a verified-purchase RPC, and empty sources render
   `No available data`.
 - **Account:** React Hook Form and Zod validate profile edits, preferences,
   optional avatar uploads, password rotations, and typed account deletion.
   Profile data and preferences persist through customer-scoped RPCs. Email and
-  password updates stay with Supabase Auth, and avatar files use a per-user
-  Supabase Storage path.
+  password updates stay with Supabase Auth, avatar files use a per-user
+  Supabase Storage path, and account deletion requires password and email-code
+  approval.
 
 ## Failure Handling
 

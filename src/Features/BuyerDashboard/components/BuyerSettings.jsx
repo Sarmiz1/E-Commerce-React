@@ -11,6 +11,7 @@ import {
   toBuyerAccountPayload,
 } from '../Schema/buyerAccountSchema';
 import { BIcon } from './BuyerIcon';
+import { EmailConfirmationModal } from './BuyerSecurityModals';
 
 function Field({ label, error, helper, ...inputProps }) {
   const { colors, isDark } = useTheme();
@@ -118,9 +119,11 @@ export default function BuyerSettings() {
     refreshAccountSettings,
     saveAccountSettings,
     deleteAccount,
+    approveSensitiveAction,
   } = useBuyer();
   const [saved, setSaved] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [pendingDeleteApproval, setPendingDeleteApproval] = useState(null);
   const [failedAvatar, setFailedAvatar] = useState('');
   const photoInputRef = useRef(null);
 
@@ -180,12 +183,26 @@ export default function BuyerSettings() {
 
   const confirmDelete = handleDeleteSubmit(async ({ confirmation, password }) => {
     try {
-      await deleteAccount({ confirmation, password });
-      window.location.assign('/');
+      const approval = await deleteAccount({ confirmation, password });
+      setPendingDeleteApproval(approval);
+      closeDeleteDialog();
     } catch {
       // The mutation hook reports the backend error as a toast.
     }
   });
+
+  const approveDelete = async (confirmationCode) => {
+    if (!pendingDeleteApproval) return;
+    try {
+      await approveSensitiveAction({
+        requestId: pendingDeleteApproval.requestId,
+        confirmationCode,
+      });
+      window.location.assign('/');
+    } catch {
+      // The mutation hook reports the backend error as a toast.
+    }
+  };
 
   const closeDeleteDialog = () => {
     setDeleteConfirm(false);
@@ -457,6 +474,18 @@ export default function BuyerSettings() {
               </div>
             </motion.form>
           </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {pendingDeleteApproval && (
+          <EmailConfirmationModal
+            colors={colors}
+            approval={pendingDeleteApproval}
+            processing={false}
+            title="Confirm account deletion"
+            onClose={() => setPendingDeleteApproval(null)}
+            onConfirm={approveDelete}
+          />
         )}
       </AnimatePresence>
     </div>

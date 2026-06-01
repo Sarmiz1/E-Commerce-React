@@ -40,16 +40,19 @@ async function getAuthenticatedUser() {
   return data.user;
 }
 
-async function reauthenticateBuyer(password) {
-  if (!password) throw new Error('Enter your account password to continue');
-
-  const user = await getAuthenticatedUser();
-  const { error } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password,
-  });
-  if (error) throw new Error('Account password is incorrect');
-}
+const requestBuyerSensitiveAction = ({
+  resourceType,
+  actionType,
+  resourceId = null,
+  payload = {},
+  password,
+}) => invokeEdgeFunction('buyer-account-confirmation', {
+  resourceType,
+  actionType,
+  resourceId,
+  payload,
+  password,
+});
 
 async function uploadBuyerAvatar(userId, file) {
   const extension = AVATAR_EXTENSION_BY_TYPE[file.type];
@@ -147,22 +150,50 @@ export const buyerApi = {
         )
   ),
 
-  addAddress: (addr) => unwrap(supabase.rpc('add_buyer_address', {
-    p_label: addr.label,
-    p_full_name: addr.name,
-    p_line1: addr.line1,
-    p_line2: addr.line2 || null,
-    p_city: addr.city,
-    p_state: addr.state || null,
-    p_postal_code: addr.postalCode || null,
-    p_country: addr.country || 'NG',
-    p_phone: null,
-    p_make_default: addr.isDefault || false,
-  })),
-  setDefaultAddress: (id) =>
-    unwrap(supabase.rpc('set_buyer_default_address', { p_address_id: id })),
-  deleteAddress: (id) =>
-    unwrap(supabase.rpc('delete_buyer_address', { p_address_id: id })),
+  addAddress: (addr) => requestBuyerSensitiveAction({
+    resourceType: 'address',
+    actionType: 'add',
+    password: addr.password,
+    payload: {
+      label: addr.label,
+      fullName: addr.name,
+      line1: addr.line1,
+      line2: addr.line2 || null,
+      city: addr.city,
+      state: addr.state || null,
+      postalCode: addr.postalCode || null,
+      country: addr.country || 'NG',
+      makeDefault: addr.isDefault || false,
+    },
+  }),
+  updateAddress: (addr) => requestBuyerSensitiveAction({
+    resourceType: 'address',
+    actionType: 'update',
+    resourceId: addr.id,
+    password: addr.password,
+    payload: {
+      label: addr.label,
+      fullName: addr.name,
+      line1: addr.line1,
+      line2: addr.line2 || null,
+      city: addr.city,
+      state: addr.state || null,
+      postalCode: addr.postalCode || null,
+      country: addr.country || 'NG',
+    },
+  }),
+  setDefaultAddress: ({ id, password }) => requestBuyerSensitiveAction({
+    resourceType: 'address',
+    actionType: 'set_default',
+    resourceId: id,
+    password,
+  }),
+  deleteAddress: ({ id, password }) => requestBuyerSensitiveAction({
+    resourceType: 'address',
+    actionType: 'delete',
+    resourceId: id,
+    password,
+  }),
   addPhoneNumber: (phone) => invokeEdgeFunction('buyer-phone-confirmation', {
     actionType: 'add',
     countryCode: phone.countryCode,
@@ -177,10 +208,12 @@ export const buyerApi = {
     phoneNumber: phone.phoneNumber,
     password: phone.password,
   }),
-  setDefaultPhoneNumber: async ({ id, password }) => {
-    await reauthenticateBuyer(password);
-    return unwrap(supabase.rpc('set_buyer_default_phone_number', { p_phone_id: id }));
-  },
+  setDefaultPhoneNumber: ({ id, password }) => requestBuyerSensitiveAction({
+    resourceType: 'phone',
+    actionType: 'set_default',
+    resourceId: id,
+    password,
+  }),
   deletePhoneNumber: ({ id, password }) =>
     invokeEdgeFunction('buyer-phone-confirmation', {
       actionType: 'delete',
@@ -197,26 +230,43 @@ export const buyerApi = {
     }
     return result.phoneNumbers;
   },
-  addPaymentMethod: async (method) => {
-    await reauthenticateBuyer(method.password);
-    const last4 = method.cardNumber.replace(/\D/g, '').slice(-4);
-    return unwrap(supabase.rpc('add_buyer_payment_method', {
-      p_cardholder_name: method.cardholderName,
-      p_brand: method.brand,
-      p_last4: last4,
-      p_expiry: method.expiry,
-      p_type: 'card',
-      p_make_default: method.isDefault || false,
+  approveSensitiveAction: async ({ requestId, confirmationCode }) => {
+    const result = await unwrap(supabase.rpc('approve_buyer_sensitive_action', {
+      p_request_id: requestId,
+      p_confirmation_code: confirmationCode,
     }));
+    if (!result?.success) {
+      throw new Error(result?.error || 'Unable to confirm the secured account change');
+    }
+    if (result.resourceType === 'account' && result.actionType === 'delete') {
+      await supabase.auth.signOut();
+    }
+    return result;
   },
-  setDefaultPaymentMethod: async ({ id, password }) => {
-    await reauthenticateBuyer(password);
-    return unwrap(supabase.rpc('set_buyer_default_payment_method', { p_method_id: id }));
-  },
-  deletePaymentMethod: async ({ id, password }) => {
-    await reauthenticateBuyer(password);
-    return unwrap(supabase.rpc('delete_buyer_payment_method', { p_method_id: id }));
-  },
+  addPaymentMethod: (method) => requestBuyerSensitiveAction({
+    resourceType: 'payment',
+    actionType: 'add',
+    password: method.password,
+    payload: {
+      cardholderName: method.cardholderName,
+      brand: method.brand,
+      last4: method.cardNumber.replace(/\D/g, '').slice(-4),
+      expiry: method.expiry,
+      makeDefault: method.isDefault || false,
+    },
+  }),
+  setDefaultPaymentMethod: ({ id, password }) => requestBuyerSensitiveAction({
+    resourceType: 'payment',
+    actionType: 'set_default',
+    resourceId: id,
+    password,
+  }),
+  deletePaymentMethod: ({ id, password }) => requestBuyerSensitiveAction({
+    resourceType: 'payment',
+    actionType: 'delete',
+    resourceId: id,
+    password,
+  }),
   saveAccountSettings: async (settings) => {
     const user = await getAuthenticatedUser();
     let avatarUrl = settings.avatarUrl || null;
@@ -262,12 +312,10 @@ export const buyerApi = {
 
     return { settings: savedSettings, emailChangeRequested: emailChanged };
   },
-  deleteAccount: async ({ confirmation, password }) => {
-    await reauthenticateBuyer(password);
-    const result = await unwrap(supabase.rpc('delete_buyer_account', {
-      p_confirmation: confirmation,
-    }));
-    await supabase.auth.signOut();
-    return result;
-  },
+  deleteAccount: ({ confirmation, password }) => requestBuyerSensitiveAction({
+    resourceType: 'account',
+    actionType: 'delete',
+    password,
+    payload: { confirmation },
+  }),
 };

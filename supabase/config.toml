@@ -389,6 +389,9 @@ verify_jwt = false
 [functions.buyer-phone-confirmation]
 verify_jwt = false
 
+[functions.buyer-account-confirmation]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

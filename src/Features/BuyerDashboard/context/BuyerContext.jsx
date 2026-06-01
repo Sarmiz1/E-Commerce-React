@@ -32,6 +32,7 @@ import {
   useDismissNotif,
   useSetWishlistAlert,
   useAddAddress,
+  useUpdateAddress,
   useSetDefaultAddress,
   useDeleteAddress,
   useAddPhoneNumber,
@@ -42,6 +43,7 @@ import {
   useAddPaymentMethod,
   useSetDefaultPaymentMethod,
   useDeletePaymentMethod,
+  useApproveSensitiveAction,
   useSaveBuyerAccountSettings,
   useDeleteBuyerAccount,
 } from '../hooks/useBuyerQueries';
@@ -53,6 +55,7 @@ import {
   getSaleOriginalPriceMinor,
   getSellablePriceMinor,
 } from '../../../utils/productPricing';
+import { normalizeAddressCountryCode } from '../../../utils/addressCountries';
 
 const BuyerCtx = createContext(null);
 const EMPTY_WALLET = {
@@ -259,6 +262,7 @@ export function BuyerProvider({ children }) {
       name: safeAddress.name || safeAddress.full_name || 'Buyer',
       isDefault: Boolean(safeAddress.isDefault ?? safeAddress.is_default_shipping),
       postalCode: safeAddress.postalCode || safeAddress.postal_code || '',
+      country: normalizeAddressCountryCode(safeAddress.country || 'NG'),
     };
   });
   const payments = asArray(paymentMethodData || data.payment_methods).map(method => {
@@ -492,6 +496,7 @@ export function BuyerProvider({ children }) {
   const dismissNotifMut       = useDismissNotif();
   const setWishlistAlertMut   = useSetWishlistAlert();
   const addAddressMut         = useAddAddress();
+  const updateAddressMut      = useUpdateAddress();
   const setDefaultAddressMut  = useSetDefaultAddress();
   const deleteAddressMut      = useDeleteAddress();
   const addPhoneNumberMut     = useAddPhoneNumber();
@@ -502,6 +507,7 @@ export function BuyerProvider({ children }) {
   const addPaymentMethodMut   = useAddPaymentMethod();
   const setDefaultPaymentMut  = useSetDefaultPaymentMethod();
   const deletePaymentMethodMut = useDeletePaymentMethod();
+  const approveSensitiveActionMut = useApproveSensitiveAction();
   const saveBuyerAccountSettingsMut = useSaveBuyerAccountSettings();
   const deleteBuyerAccountMut = useDeleteBuyerAccount();
 
@@ -587,8 +593,9 @@ export function BuyerProvider({ children }) {
     setWishlistAlert: (variables) => setWishlistAlertMut.mutateAsync(variables),
     wishlistAlerts,
     addAddress: (addr) => addAddressMut.mutateAsync(addr),
-    setDefaultAddress: (id) => setDefaultAddressMut.mutateAsync(id),
-    deleteAddress: (id) => deleteAddressMut.mutateAsync(id),
+    updateAddress: (addr) => updateAddressMut.mutateAsync(addr),
+    setDefaultAddress: (address) => setDefaultAddressMut.mutateAsync(address),
+    deleteAddress: (address) => deleteAddressMut.mutateAsync(address),
     addressesLoading,
     addressesError,
     refreshAddresses,
@@ -604,6 +611,7 @@ export function BuyerProvider({ children }) {
     addPaymentMethod: (method) => addPaymentMethodMut.mutateAsync(method),
     setDefaultPaymentMethod: (id) => setDefaultPaymentMut.mutateAsync(id),
     deletePaymentMethod: (id) => deletePaymentMethodMut.mutateAsync(id),
+    approveSensitiveAction: (confirmation) => approveSensitiveActionMut.mutateAsync(confirmation),
     paymentsLoading,
     paymentsError,
     refreshPayments,

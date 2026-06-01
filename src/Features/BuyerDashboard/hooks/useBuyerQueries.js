@@ -239,45 +239,44 @@ export function useSetWishlistAlert() {
 }
 
 export function useAddAddress() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (addr) => buyerApi.addAddress(addr),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.addresses(user?.id) });
-      addToast('Address saved!');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to save address', 'error'),
   });
 }
 
-export function useDeleteAddress() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
+export function useUpdateAddress() {
   const { addToast } = useToast();
   return useMutation({
-    mutationFn: (id) => buyerApi.deleteAddress(id),
+    mutationFn: (addr) => buyerApi.updateAddress(addr),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.addresses(user?.id) });
-      addToast('Address removed', 'info');
+      addToast('Confirmation code sent to your account email.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to update address', 'error'),
+  });
+}
+
+export function useDeleteAddress() {
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (address) => buyerApi.deleteAddress(address),
+    onSuccess: () => {
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to remove address', 'error'),
   });
 }
 
 export function useSetDefaultAddress() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
-    mutationFn: (id) => buyerApi.setDefaultAddress(id),
+    mutationFn: (address) => buyerApi.setDefaultAddress(address),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.addresses(user?.id) });
-      addToast('Default address updated.', 'info');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to update default address', 'error'),
   });
@@ -306,15 +305,11 @@ export function useUpdatePhoneNumber() {
 }
 
 export function useSetDefaultPhoneNumber() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (phone) => buyerApi.setDefaultPhoneNumber(phone),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
-      addToast('Default phone number updated.', 'info');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to update phone number', 'error'),
   });
@@ -347,47 +342,55 @@ export function useApprovePhoneNumberAction() {
 }
 
 export function useAddPaymentMethod() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (method) => buyerApi.addPaymentMethod(method),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.paymentMethods(user?.id) });
-      addToast('Payment method saved.');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to save payment method', 'error'),
   });
 }
 
 export function useSetDefaultPaymentMethod() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
-    mutationFn: (id) => buyerApi.setDefaultPaymentMethod(id),
+    mutationFn: (method) => buyerApi.setDefaultPaymentMethod(method),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
-      qc.invalidateQueries({ queryKey: buyerKeys.paymentMethods(user?.id) });
-      addToast('Default payment method updated.', 'info');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to update payment method', 'error'),
   });
 }
 
 export function useDeletePaymentMethod() {
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (method) => buyerApi.deletePaymentMethod(method),
+    onSuccess: () => {
+      addToast('Confirmation code sent to your account email.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to remove payment method', 'error'),
+  });
+}
+
+export function useApproveSensitiveAction() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
-    mutationFn: (id) => buyerApi.deletePaymentMethod(id),
-    onSuccess: () => {
+    mutationFn: (confirmation) => buyerApi.approveSensitiveAction(confirmation),
+    onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.addresses(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.phoneNumbers(user?.id) });
       qc.invalidateQueries({ queryKey: buyerKeys.paymentMethods(user?.id) });
-      addToast('Payment method removed.', 'info');
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      if (result.resourceType !== 'account') {
+        addToast('Secured account change confirmed.');
+      }
     },
-    onError: (err) => addToast(err.message || 'Failed to remove payment method', 'error'),
+    onError: (err) => addToast(err.message || 'Failed to confirm secured account change', 'error'),
   });
 }
 
@@ -411,13 +414,11 @@ export function useSaveBuyerAccountSettings() {
 }
 
 export function useDeleteBuyerAccount() {
-  const qc = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: (confirmation) => buyerApi.deleteAccount(confirmation),
     onSuccess: () => {
-      qc.clear();
-      addToast('Your account has been deleted.', 'info');
+      addToast('Confirmation code sent to your account email.');
     },
     onError: (err) => addToast(err.message || 'Failed to delete account', 'error'),
   });
