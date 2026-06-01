@@ -7,7 +7,9 @@ import { useBuyer } from '../context/BuyerContext';
 import {
   buyerAccountSchema,
   buyerEmailUpdateSchema,
-  deleteBuyerAccountSchema,
+  buyerPasswordUpdateSchema,
+  BUYER_DEACTIVATION_REASONS,
+  deactivateBuyerAccountSchema,
   toBuyerAccountFormValues,
   toBuyerAccountPayload,
 } from '../Schema/buyerAccountSchema';
@@ -179,6 +181,59 @@ function EmailUpdateModal({ colors, currentEmail, onClose, onConfirm }) {
   );
 }
 
+function PasswordUpdateModal({ colors, onClose, onConfirm }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(buyerPasswordUpdateSchema),
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+  });
+
+  return (
+    <>
+      <motion.div
+        key="password-update-bg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-6">
+        <motion.form
+          key="password-update-modal"
+          initial={{ opacity: 0, y: 12, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12, scale: 0.98 }}
+          onSubmit={handleSubmit(onConfirm)}
+          className="pointer-events-auto w-full max-w-md max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl p-4 shadow-xl space-y-4 sm:max-h-[calc(100dvh-3rem)] sm:p-6"
+          style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}
+        >
+          <div>
+            <p className="text-lg font-black" style={{ color: colors.text.primary }}>Update account password</p>
+            <p className="text-sm mt-2" style={{ color: colors.text.tertiary }}>
+              Enter your current password and choose a new one. We will email a confirmation code before applying the change.
+            </p>
+          </div>
+          <Field label="Current Password" type="password" autoComplete="current-password" error={errors.currentPassword} {...register('currentPassword')} />
+          <Field label="New Password" type="password" autoComplete="new-password" error={errors.newPassword} {...register('newPassword')} />
+          <Field label="Confirm New Password" type="password" autoComplete="new-password" error={errors.confirmPassword} {...register('confirmPassword')} />
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" onClick={onClose} className="w-full px-4 py-2 rounded-xl text-sm font-bold sm:w-auto" style={{ color: colors.text.secondary }}>
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting} className="w-full px-4 py-2 rounded-xl text-sm font-bold text-white sm:w-auto" style={{ background: '#667eea', opacity: isSubmitting ? 0.65 : 1 }}>
+              {isSubmitting ? 'Sending...' : 'Send Confirmation Code'}
+            </button>
+          </div>
+        </motion.form>
+      </div>
+    </>
+  );
+}
+
 export default function BuyerSettings() {
   const { colors } = useTheme();
   const {
@@ -188,17 +243,24 @@ export default function BuyerSettings() {
     accountSettingsError,
     refreshAccountSettings,
     saveAccountSettings,
+    saveAccountPreference,
     requestEmailChange,
     approveEmailChange,
-    deleteAccount,
+    requestPasswordChange,
+    approvePasswordChange,
+    deactivateAccount,
     approveSensitiveAction,
   } = useBuyer();
   const [saved, setSaved] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deactivateConfirm, setDeactivateConfirm] = useState(false);
   const [emailUpdateOpen, setEmailUpdateOpen] = useState(false);
   const [pendingEmailApproval, setPendingEmailApproval] = useState(null);
   const [emailApprovalProcessing, setEmailApprovalProcessing] = useState(false);
-  const [pendingDeleteApproval, setPendingDeleteApproval] = useState(null);
+  const [passwordUpdateOpen, setPasswordUpdateOpen] = useState(false);
+  const [pendingPasswordApproval, setPendingPasswordApproval] = useState(null);
+  const [pendingNewPassword, setPendingNewPassword] = useState('');
+  const [passwordApprovalProcessing, setPasswordApprovalProcessing] = useState(false);
+  const [pendingDeactivateApproval, setPendingDeactivateApproval] = useState(null);
   const [failedAvatar, setFailedAvatar] = useState('');
   const photoInputRef = useRef(null);
 
@@ -211,6 +273,7 @@ export default function BuyerSettings() {
     control,
     handleSubmit,
     reset,
+    getValues,
     setValue,
     formState: { errors, isDirty, isSubmitting },
   } = useForm({
@@ -218,18 +281,20 @@ export default function BuyerSettings() {
     defaultValues: initialValues,
   });
   const {
-    register: registerDelete,
-    handleSubmit: handleDeleteSubmit,
-    reset: resetDelete,
-    formState: { errors: deleteErrors, isSubmitting: isDeleting },
+    register: registerDeactivate,
+    control: deactivateControl,
+    handleSubmit: handleDeactivateSubmit,
+    reset: resetDeactivate,
+    formState: { errors: deactivateErrors, isSubmitting: isDeactivating },
   } = useForm({
-    resolver: zodResolver(deleteBuyerAccountSchema),
-    defaultValues: { confirmation: '', password: '' },
+    resolver: zodResolver(deactivateBuyerAccountSchema),
+    defaultValues: { confirmation: '', reason: undefined, otherReason: '', password: '' },
   });
 
   const avatarFile = useWatch({ control, name: 'avatarFile' });
   const avatarUrl = useWatch({ control, name: 'avatarUrl' });
   const fullName = useWatch({ control, name: 'fullName' });
+  const deactivateReason = useWatch({ control: deactivateControl, name: 'reason' });
   const avatarPreview = useMemo(
     () => (avatarFile ? URL.createObjectURL(avatarFile) : ''),
     [avatarFile],
@@ -256,15 +321,25 @@ export default function BuyerSettings() {
     }
   });
 
-  const confirmDelete = handleDeleteSubmit(async ({ confirmation, password }) => {
+  const confirmDeactivation = handleDeactivateSubmit(async (details) => {
     try {
-      const approval = await deleteAccount({ confirmation, password });
-      setPendingDeleteApproval(approval);
-      closeDeleteDialog();
+      const approval = await deactivateAccount(details);
+      setPendingDeactivateApproval(approval);
+      closeDeactivateDialog();
     } catch {
       // The mutation hook reports the backend error as a toast.
     }
   });
+
+  const updatePreference = async (name, onChange, enabled) => {
+    const previous = getValues(name);
+    onChange(enabled);
+    try {
+      await saveAccountPreference({ name, enabled });
+    } catch {
+      onChange(previous);
+    }
+  };
 
   const startEmailChange = async (details) => {
     try {
@@ -292,11 +367,40 @@ export default function BuyerSettings() {
     }
   };
 
-  const approveDelete = async (confirmationCode) => {
-    if (!pendingDeleteApproval) return;
+  const startPasswordChange = async ({ currentPassword, newPassword }) => {
+    try {
+      const approval = await requestPasswordChange({ currentPassword });
+      setPendingNewPassword(newPassword);
+      setPendingPasswordApproval(approval);
+      setPasswordUpdateOpen(false);
+    } catch {
+      // The mutation hook reports the backend error as a toast.
+    }
+  };
+
+  const approvePasswordUpdate = async (confirmationCode) => {
+    if (!pendingPasswordApproval || !pendingNewPassword) return;
+    setPasswordApprovalProcessing(true);
+    try {
+      await approvePasswordChange({
+        requestId: pendingPasswordApproval.requestId,
+        confirmationCode,
+        newPassword: pendingNewPassword,
+      });
+      setPendingPasswordApproval(null);
+      setPendingNewPassword('');
+    } catch {
+      // The mutation hook reports the backend error as a toast.
+    } finally {
+      setPasswordApprovalProcessing(false);
+    }
+  };
+
+  const approveDeactivation = async (confirmationCode) => {
+    if (!pendingDeactivateApproval) return;
     try {
       await approveSensitiveAction({
-        requestId: pendingDeleteApproval.requestId,
+        requestId: pendingDeactivateApproval.requestId,
         confirmationCode,
       });
       window.location.assign('/');
@@ -305,9 +409,9 @@ export default function BuyerSettings() {
     }
   };
 
-  const closeDeleteDialog = () => {
-    setDeleteConfirm(false);
-    resetDelete();
+  const closeDeactivateDialog = () => {
+    setDeactivateConfirm(false);
+    resetDeactivate();
   };
 
   if (accountSettingsLoading) return <LoadingState />;
@@ -413,7 +517,7 @@ export default function BuyerSettings() {
                 label="AI Shopping Suggestions"
                 desc="Let AI recommend products based on your taste"
                 enabled={field.value}
-                onChange={field.onChange}
+                onChange={(enabled) => updatePreference('aiSuggestions', field.onChange, enabled)}
               />
             )}
           />
@@ -425,7 +529,7 @@ export default function BuyerSettings() {
                 label="Price Drop Alerts"
                 desc="Notify me when wishlist items drop in price"
                 enabled={field.value}
-                onChange={field.onChange}
+                onChange={(enabled) => updatePreference('priceDropAlerts', field.onChange, enabled)}
               />
             )}
           />
@@ -437,7 +541,7 @@ export default function BuyerSettings() {
                 label="Order Status Updates"
                 desc="Receive notifications for delivery activity"
                 enabled={field.value}
-                onChange={field.onChange}
+                onChange={(enabled) => updatePreference('orderStatusUpdates', field.onChange, enabled)}
               />
             )}
           />
@@ -449,7 +553,7 @@ export default function BuyerSettings() {
                 label="Promotions & Deals"
                 desc="Receive offers tailored to your account"
                 enabled={field.value}
-                onChange={field.onChange}
+                onChange={(enabled) => updatePreference('promotionsDeals', field.onChange, enabled)}
               />
             )}
           />
@@ -457,29 +561,16 @@ export default function BuyerSettings() {
 
         <Section title="Security" icon="lock" delay={0.18}>
           <p className="text-xs" style={{ color: colors.text.tertiary }}>
-            Leave these fields empty unless you want to change your password.
+            Password changes require your current password and a confirmation code sent to your account email.
           </p>
-          <Field
-            label="Current Password"
-            type="password"
-            autoComplete="current-password"
-            error={errors.currentPassword}
-            {...register('currentPassword')}
-          />
-          <Field
-            label="New Password"
-            type="password"
-            autoComplete="new-password"
-            error={errors.newPassword}
-            {...register('newPassword')}
-          />
-          <Field
-            label="Confirm New Password"
-            type="password"
-            autoComplete="new-password"
-            error={errors.confirmPassword}
-            {...register('confirmPassword')}
-          />
+          <button
+            type="button"
+            onClick={() => setPasswordUpdateOpen(true)}
+            className="px-4 py-2.5 rounded-xl text-sm font-bold"
+            style={{ background: 'rgba(102,126,234,0.1)', color: '#667eea' }}
+          >
+            Update Password
+          </button>
         </Section>
 
         <motion.button
@@ -525,18 +616,42 @@ export default function BuyerSettings() {
       >
         <p className="font-bold text-sm mb-1" style={{ color: '#ef4444' }}>Danger Zone</p>
         <p className="text-xs mb-4" style={{ color: colors.text.tertiary }}>
-          Permanently delete your account and associated buyer data. This cannot be undone.
+          Deactivate your buyer account and sign out. Your data is retained until an admin reviews any future reactivation request or permanently deletes the account.
         </p>
         <button
           type="button"
-          onClick={() => setDeleteConfirm(true)}
+          onClick={() => setDeactivateConfirm(true)}
           className="text-sm font-bold px-4 py-2 rounded-xl border"
           style={{ borderColor: '#ef4444', color: '#ef4444' }}
         >
-          Delete Account
+          Deactivate Account
         </button>
       </motion.div>
 
+      <AnimatePresence>
+        {passwordUpdateOpen && (
+          <PasswordUpdateModal
+            colors={colors}
+            onClose={() => setPasswordUpdateOpen(false)}
+            onConfirm={startPasswordChange}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {pendingPasswordApproval && (
+          <EmailConfirmationModal
+            colors={colors}
+            approval={pendingPasswordApproval}
+            processing={passwordApprovalProcessing}
+            title="Confirm password update"
+            onClose={() => {
+              setPendingPasswordApproval(null);
+              setPendingNewPassword('');
+            }}
+            onConfirm={approvePasswordUpdate}
+          />
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {emailUpdateOpen && (
           <EmailUpdateModal
@@ -560,7 +675,7 @@ export default function BuyerSettings() {
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {deleteConfirm && (
+        {deactivateConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -572,41 +687,76 @@ export default function BuyerSettings() {
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              onSubmit={confirmDelete}
-              className="w-full max-w-md rounded-2xl p-6 shadow-xl space-y-4"
+              onSubmit={confirmDeactivation}
+              className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl p-6 shadow-xl space-y-4"
               style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}
             >
               <div>
-                <p className="text-lg font-black" style={{ color: colors.text.primary }}>Delete your account?</p>
+                <p className="text-lg font-black" style={{ color: colors.text.primary }}>Deactivate your account?</p>
                 <p className="text-sm mt-2" style={{ color: colors.text.tertiary }}>
-                  This permanently removes your account. Type <strong>DELETE</strong> to continue.
+                  Your account becomes inaccessible until an admin approves a reactivation request. Type <strong>DEACTIVATE</strong> to continue.
                 </p>
               </div>
+              <Controller
+                name="reason"
+                control={deactivateControl}
+                render={({ field }) => (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.text.tertiary }}>Reason</p>
+                    <div className="grid gap-2">
+                      {BUYER_DEACTIVATION_REASONS.map((reason) => (
+                        <button
+                          key={reason.id}
+                          type="button"
+                          onClick={() => field.onChange(reason.id)}
+                          className="rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-all"
+                          style={{
+                            background: field.value === reason.id ? 'rgba(239,68,68,0.1)' : colors.surface.tertiary,
+                            border: `1px solid ${field.value === reason.id ? '#ef4444' : colors.border.default}`,
+                            color: field.value === reason.id ? '#ef4444' : colors.text.secondary,
+                          }}
+                        >
+                          {reason.label}
+                        </button>
+                      ))}
+                    </div>
+                    {deactivateErrors.reason && <p className="text-xs" style={{ color: '#ef4444' }}>{deactivateErrors.reason.message}</p>}
+                  </div>
+                )}
+              />
+              {deactivateReason === 'other' && (
+                <Field
+                  label="Tell us more"
+                  placeholder="Your reason"
+                  error={deactivateErrors.otherReason}
+                  {...registerDeactivate('otherReason')}
+                />
+              )}
               <Field
                 label="Confirmation"
-                placeholder="DELETE"
+                placeholder="DEACTIVATE"
                 autoComplete="off"
-                error={deleteErrors.confirmation}
-                {...registerDelete('confirmation')}
+                error={deactivateErrors.confirmation}
+                {...registerDeactivate('confirmation')}
               />
               <Field
                 label="Account Password"
                 type="password"
                 autoComplete="current-password"
-                error={deleteErrors.password}
-                {...registerDelete('password')}
+                error={deactivateErrors.password}
+                {...registerDeactivate('password')}
               />
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={closeDeleteDialog} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ color: colors.text.secondary }}>
+                <button type="button" onClick={closeDeactivateDialog} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ color: colors.text.secondary }}>
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isDeleting}
+                  disabled={isDeactivating}
                   className="px-4 py-2 rounded-xl text-sm font-bold text-white"
-                  style={{ background: '#ef4444', opacity: isDeleting ? 0.65 : 1 }}
+                  style={{ background: '#ef4444', opacity: isDeactivating ? 0.65 : 1 }}
                 >
-                  {isDeleting ? 'Deleting...' : 'Delete Account'}
+                  {isDeactivating ? 'Preparing...' : 'Deactivate Account'}
                 </button>
               </div>
             </motion.form>
@@ -614,14 +764,14 @@ export default function BuyerSettings() {
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {pendingDeleteApproval && (
+        {pendingDeactivateApproval && (
           <EmailConfirmationModal
             colors={colors}
-            approval={pendingDeleteApproval}
+            approval={pendingDeactivateApproval}
             processing={false}
-            title="Confirm account deletion"
-            onClose={() => setPendingDeleteApproval(null)}
-            onConfirm={approveDelete}
+            title="Confirm account deactivation"
+            onClose={() => setPendingDeactivateApproval(null)}
+            onConfirm={approveDeactivation}
           />
         )}
       </AnimatePresence>

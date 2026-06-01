@@ -20,8 +20,7 @@ const optionalAvatarFile = z
   .optional()
   .nullable();
 
-export const buyerAccountSchema = z
-  .object({
+export const buyerAccountSchema = z.object({
     fullName: z
       .string({ message: 'Full name is required' })
       .trim()
@@ -39,33 +38,15 @@ export const buyerAccountSchema = z
     priceDropAlerts: z.boolean(),
     orderStatusUpdates: z.boolean(),
     promotionsDeals: z.boolean(),
-    currentPassword: z.string().max(128, 'Current password is too long'),
-    newPassword: z.string().max(128, 'New password is too long'),
+  });
+
+export const buyerPasswordUpdateSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Enter your current password').max(128, 'Current password is too long'),
+    newPassword: z.string().min(8, 'New password must be at least 8 characters').max(128, 'New password is too long'),
     confirmPassword: z.string().max(128, 'Password confirmation is too long'),
   })
   .superRefine((values, context) => {
-    const changingPassword = Boolean(
-      values.currentPassword || values.newPassword || values.confirmPassword,
-    );
-
-    if (!changingPassword) return;
-
-    if (!values.currentPassword) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['currentPassword'],
-        message: 'Enter your current password',
-      });
-    }
-
-    if (values.newPassword.length < 8) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['newPassword'],
-        message: 'New password must be at least 8 characters',
-      });
-    }
-
     PASSWORD_RULES.forEach(([rule, message]) => {
       if (!rule.test(values.newPassword)) {
         context.addIssue({
@@ -85,12 +66,34 @@ export const buyerAccountSchema = z
     }
   });
 
-export const deleteBuyerAccountSchema = z.object({
-  confirmation: z.literal('DELETE', {
-    message: 'Type DELETE to confirm account deletion',
-  }),
-  password: z.string().min(1, 'Enter your account password'),
-});
+export const BUYER_DEACTIVATION_REASONS = [
+  { id: 'taking_a_break', label: 'I am taking a break' },
+  { id: 'not_using_account', label: 'I am not using my account' },
+  { id: 'privacy_concerns', label: 'I have privacy concerns' },
+  { id: 'shopping_experience', label: 'I am unhappy with the shopping experience' },
+  { id: 'other', label: 'Other reason' },
+];
+
+export const deactivateBuyerAccountSchema = z
+  .object({
+    confirmation: z.literal('DEACTIVATE', {
+      message: 'Type DEACTIVATE to confirm account deactivation',
+    }),
+    reason: z.enum(BUYER_DEACTIVATION_REASONS.map(({ id }) => id), {
+      message: 'Choose a reason for deactivating your account',
+    }),
+    otherReason: z.string().trim().max(500, 'Reason must be under 500 characters'),
+    password: z.string().min(1, 'Enter your account password'),
+  })
+  .superRefine((values, context) => {
+    if (values.reason === 'other' && values.otherReason.length < 3) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['otherReason'],
+        message: 'Tell us why you are deactivating your account',
+      });
+    }
+  });
 
 export const buyerEmailUpdateSchema = z.object({
   email: z
@@ -111,9 +114,6 @@ export const EMPTY_BUYER_ACCOUNT_FORM = {
   priceDropAlerts: true,
   orderStatusUpdates: true,
   promotionsDeals: false,
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: '',
 };
 
 export function toBuyerAccountFormValues(settings, fallbackProfile = {}) {
@@ -143,11 +143,5 @@ export function toBuyerAccountPayload(values) {
       orderStatusUpdates: values.orderStatusUpdates,
       promotionsDeals: values.promotionsDeals,
     },
-    password: values.newPassword
-      ? {
-          current: values.currentPassword,
-          next: values.newPassword,
-        }
-      : null,
   };
 }

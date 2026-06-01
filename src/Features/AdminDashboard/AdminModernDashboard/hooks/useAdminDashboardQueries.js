@@ -6,6 +6,7 @@ const adminOrderStatusMutationKey = [...adminDashboardKey, "order-status"];
 const adminProductActiveMutationKey = [...adminDashboardKey, "product-active"];
 const adminProductModerationMutationKey = [...adminDashboardKey, "product-moderation"];
 const adminSellerStatusMutationKey = [...adminDashboardKey, "seller-status"];
+const adminBuyerLifecycleMutationKey = [...adminDashboardKey, "buyer-lifecycle"];
 const adminSupportTicketMutationKey = [...adminDashboardKey, "support-ticket"];
 
 export function useAdminDashboard() {
@@ -39,6 +40,15 @@ export function useAdminBuyers(enabled = true) {
   return useQuery({
     queryKey: [...adminDashboardKey, "buyers"],
     queryFn: adminDashboardApi.getBuyers,
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminDeactivatedBuyers(enabled = true) {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "deactivated-buyers"],
+    queryFn: adminDashboardApi.getDeactivatedBuyers,
     enabled,
     staleTime: 30_000,
   });
@@ -189,6 +199,18 @@ export const useSetAdminSellerStatus = () => {
 
   return { ...mutation, pendingUpdates };
 };
+
+export const useReviewBuyerReactivation = () =>
+  useDashboardMutation(
+    ({ id, approve, note }) => adminDashboardApi.reviewBuyerReactivation(id, approve, note),
+    { mutationKey: adminBuyerLifecycleMutationKey },
+  );
+
+export const usePermanentlyDeleteBuyerAccount = () =>
+  useDashboardMutation(
+    (id) => adminDashboardApi.permanentlyDeleteBuyerAccount(id),
+    { mutationKey: adminBuyerLifecycleMutationKey },
+  );
 
 export const useSetAdminSupportTicketStatus = () => {
   const mutation = useDashboardMutation(

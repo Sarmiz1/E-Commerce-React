@@ -62,7 +62,7 @@ async function approveBuyerSensitiveAction({ requestId, confirmationCode }) {
   if (!result?.success) {
     throw new Error(result?.error || 'Unable to confirm the secured account change');
   }
-  if (result.resourceType === 'account' && result.actionType === 'delete') {
+  if (result.resourceType === 'account' && result.actionType === 'deactivate') {
     await supabase.auth.signOut();
   }
   return result;
@@ -273,19 +273,6 @@ export const buyerApi = {
     const user = await getAuthenticatedUser();
     let avatarUrl = settings.avatarUrl || null;
 
-    if (settings.password) {
-      const { error: reauthError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: settings.password.current,
-      });
-      if (reauthError) throw new Error('Current password is incorrect');
-
-      const { error: passwordError } = await supabase.auth.updateUser({
-        password: settings.password.next,
-      });
-      if (passwordError) throw passwordError;
-    }
-
     if (settings.avatarFile) {
       avatarUrl = await uploadBuyerAvatar(user.id, settings.avatarFile);
     }
@@ -311,6 +298,10 @@ export const buyerApi = {
 
     return { settings: savedSettings };
   },
+  saveAccountPreference: ({ name, enabled }) => unwrap(supabase.rpc('save_buyer_account_preference', {
+    p_preference: name,
+    p_enabled: enabled,
+  })),
   requestEmailChange: ({ email, password }) => requestBuyerSensitiveAction({
     resourceType: 'account',
     actionType: 'update_email',
@@ -327,10 +318,22 @@ export const buyerApi = {
 
     return result;
   },
-  deleteAccount: ({ confirmation, password }) => requestBuyerSensitiveAction({
+  requestPasswordChange: ({ currentPassword }) => requestBuyerSensitiveAction({
     resourceType: 'account',
-    actionType: 'delete',
+    actionType: 'update_password',
+    password: currentPassword,
+  }),
+  approvePasswordChange: async ({ newPassword, ...confirmation }) => {
+    const result = await approveBuyerSensitiveAction(confirmation);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+
+    return result;
+  },
+  deactivateAccount: ({ confirmation, password, reason, otherReason }) => requestBuyerSensitiveAction({
+    resourceType: 'account',
+    actionType: 'deactivate',
     password,
-    payload: { confirmation },
+    payload: { confirmation, reason, otherReason },
   }),
 };

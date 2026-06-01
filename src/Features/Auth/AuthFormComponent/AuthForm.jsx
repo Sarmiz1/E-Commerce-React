@@ -76,6 +76,12 @@ export default function AuthForm({
     setFormError("");
   }, [role]);
 
+  useEffect(() => {
+    if (location.state?.accountMessage) {
+      setFormError(location.state.accountMessage);
+    }
+  }, [location.state]);
+
   // ✅ Swift navigation upon success
   useEffect(() => {
     if (!isSuccess) return;

@@ -409,6 +409,20 @@ export function useSaveBuyerAccountSettings() {
   });
 }
 
+export function useSaveBuyerAccountPreference() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (preference) => buyerApi.saveAccountPreference(preference),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Preference updated.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to update preference', 'error'),
+  });
+}
+
 export function useRequestBuyerEmailChange() {
   const { addToast } = useToast();
   return useMutation({
@@ -435,13 +449,35 @@ export function useApproveBuyerEmailChange() {
   });
 }
 
-export function useDeleteBuyerAccount() {
+export function useRequestBuyerPasswordChange() {
   const { addToast } = useToast();
   return useMutation({
-    mutationFn: (confirmation) => buyerApi.deleteAccount(confirmation),
+    mutationFn: (details) => buyerApi.requestPasswordChange(details),
     onSuccess: () => {
       addToast('Confirmation code sent to your account email.');
     },
-    onError: (err) => addToast(err.message || 'Failed to delete account', 'error'),
+    onError: (err) => addToast(err.message || 'Failed to start password change', 'error'),
+  });
+}
+
+export function useApproveBuyerPasswordChange() {
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (confirmation) => buyerApi.approvePasswordChange(confirmation),
+    onSuccess: () => {
+      addToast('Password updated.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to confirm password change', 'error'),
+  });
+}
+
+export function useDeactivateBuyerAccount() {
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (confirmation) => buyerApi.deactivateAccount(confirmation),
+    onSuccess: () => {
+      addToast('Confirmation code sent to your account email.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to deactivate account', 'error'),
   });
 }

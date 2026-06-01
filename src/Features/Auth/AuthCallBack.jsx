@@ -5,6 +5,7 @@ import {
   consumeAuthReturnTo,
   consumeRequestedAccountRole,
 } from "./utils/authRedirect";
+import { accountApi } from "../../api/accountApi";
 
 const steps = [
   { id: "session",  label: "Verifying your session"   },
@@ -45,6 +46,15 @@ export default function AuthCallback() {
       /* ── Step 1 : load / create profile ─────────────── */
       setCurrent(1);
       const user         = session.user;
+      try {
+        await accountApi.rejectInactiveBuyerSession();
+      } catch (inactiveError) {
+        const message = inactiveError.message || "This account is inactive. Contact support to request reactivation.";
+        setError(message);
+        setTimeout(() => navigate("/login", { replace: true, state: { accountMessage: message } }), 2200);
+        return;
+      }
+
       const requestedRole = consumeRequestedAccountRole();
       let selectedRole =
         requestedRole ||

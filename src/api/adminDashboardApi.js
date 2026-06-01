@@ -9,6 +9,7 @@ async function runRpc(name, args) {
 export const adminDashboardApi = {
   getDashboard: () => runRpc("get_admin_dashboard_optimized"),
   getBuyers: () => runRpc("get_admin_buyers"),
+  getDeactivatedBuyers: () => runRpc("get_admin_deactivated_buyer_accounts"),
   getPageActivity: async () => {
     try {
       return await runRpc("get_admin_page_activity");
@@ -51,6 +52,14 @@ export const adminDashboardApi = {
     runRpc("admin_set_product_moderation_status", { product_id: productId, next_status: status }),
   setSellerStatus: (sellerId, status) =>
     runRpc("admin_set_seller_status", { seller_id: sellerId, next_status: status }),
+  reviewBuyerReactivation: (buyerId, approve, note = null) =>
+    runRpc("admin_review_buyer_reactivation", {
+      target_user_id: buyerId,
+      approve,
+      p_review_note: note,
+    }),
+  permanentlyDeleteBuyerAccount: (buyerId) =>
+    runRpc("admin_permanently_delete_buyer_account", { target_user_id: buyerId }),
   setSupportTicketStatus: (ticketId, status, escalate = false) =>
     runRpc("admin_set_support_ticket_status", {
       ticket_id: ticketId,

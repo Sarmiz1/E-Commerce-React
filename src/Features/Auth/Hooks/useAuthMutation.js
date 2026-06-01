@@ -8,6 +8,7 @@ import {
   rememberAuthReturnTo,
   rememberRequestedAccountRole,
 } from "../utils/authRedirect";
+import { accountApi } from "../../../api/accountApi";
 
 
 // This function translates raw error messages from Supabase into more user-friendly messages that can be displayed in the UI. It checks for specific keywords in the error message and returns a more understandable message for the user. If no specific case matches, it returns the original message or a generic fallback message. 
@@ -94,6 +95,8 @@ export const useAuthMutation = (mode, setFormError) => {
         });
 
         if (error) throw new Error(getFriendlyError(error.message));
+
+        await accountApi.rejectInactiveBuyerSession();
 
         return { message: "Signed in successfully.", userId: data.user?.id };
       }

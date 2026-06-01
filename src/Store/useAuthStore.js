@@ -17,6 +17,7 @@ import {
   supabaseConfigError,
 } from "../lib/supabaseClient";
 import { useToastStore } from "./useToastStore";
+import { accountApi } from "../api/accountApi";
 
 const toast = (msg, type = "success") =>
   useToastStore.getState().addToast(msg, type);
@@ -43,6 +44,14 @@ export const useAuthStore = create(
     }
 
     const result = await supabase.auth.signInWithPassword({ email, password });
+    if (!result.error) {
+      try {
+        await accountApi.rejectInactiveBuyerSession();
+      } catch (error) {
+        toast(error.message || "This account is inactive.", "error");
+        return { data: null, error };
+      }
+    }
     if (result.error) {
       toast(result.error.message || "Sign-in failed. Please try again.", "error");
     } else {

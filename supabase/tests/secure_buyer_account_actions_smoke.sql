@@ -3,6 +3,7 @@ begin;
 do $$
 declare
   buyer_id uuid;
+  admin_id uuid;
   staged_action jsonb;
   approved_action jsonb;
   address_count_before integer;
@@ -50,6 +51,7 @@ begin
   into buyer_id
   from public.profiles profile
   where profile.role = 'buyer'
+    and profile.account_status = 'active'
     and not exists (
       select 1
       from public.admin_users admin_user
@@ -61,6 +63,18 @@ begin
 
   if buyer_id is null then
     raise exception 'A buyer profile is required for the secured-action smoke test.';
+  end if;
+
+  select admin_user.id
+  into admin_id
+  from public.admin_users admin_user
+  where admin_user.role = 'super_admin'
+    and admin_user.is_active = true
+  order by admin_user.created_at, admin_user.id
+  limit 1;
+
+  if admin_id is null then
+    raise exception 'An active super admin is required for the secured-action smoke test.';
   end if;
 
   select count(*)
@@ -108,6 +122,17 @@ begin
 
   if address_count_after <> address_count_before + 1 then
     raise exception 'Secured address approval did not create exactly one address.';
+  end if;
+
+  perform public.save_buyer_account_preference('aiSuggestions', false);
+
+  if not exists (
+    select 1
+    from public.buyer_account_preferences preferences
+    where preferences.user_id = buyer_id
+      and preferences.ai_suggestions = false
+  ) then
+    raise exception 'Buyer preference RPC did not persist the toggle value.';
   end if;
 
   select count(*)
@@ -168,6 +193,22 @@ begin
     raise exception 'Secured email-update approval failed: %', approved_action;
   end if;
 
+  staged_action := public.begin_buyer_sensitive_action(
+    buyer_id,
+    'account',
+    'update_password'
+  );
+
+  approved_action := public.approve_buyer_sensitive_action(
+    (staged_action->>'requestId')::uuid,
+    staged_action->>'confirmationCode'
+  );
+
+  if not coalesce((approved_action->>'success')::boolean, false)
+    or not coalesce((approved_action#>>'{data,authorized}')::boolean, false) then
+    raise exception 'Secured password-update approval failed: %', approved_action;
+  end if;
+
   insert into public.orders (
     order_number,
     user_id,
@@ -225,9 +266,13 @@ begin
   staged_action := public.begin_buyer_sensitive_action(
     buyer_id,
     'account',
-    'delete',
+    'deactivate',
     null,
-    jsonb_build_object('confirmation', 'DELETE')
+    jsonb_build_object(
+      'confirmation', 'DEACTIVATE',
+      'reason', 'other',
+      'otherReason', 'Rollback smoke test'
+    )
   );
 
   approved_action := public.approve_buyer_sensitive_action(
@@ -236,11 +281,91 @@ begin
   );
 
   if not coalesce((approved_action->>'success')::boolean, false) then
-    raise exception 'Secured account-deletion approval failed: %', approved_action;
+    raise exception 'Secured account-deactivation approval failed: %', approved_action;
   end if;
 
-  if exists (select 1 from auth.users auth_user where auth_user.id = buyer_id) then
-    raise exception 'Secured account-deletion approval did not remove the auth user.';
+  if not exists (
+    select 1
+    from auth.users auth_user
+    join public.profiles profile on profile.id = auth_user.id
+    join public.buyer_account_deactivations deactivation on deactivation.user_id = profile.id
+    where auth_user.id = buyer_id
+      and profile.account_status = 'inactive'
+      and deactivation.reason_code = 'other'
+  ) then
+    raise exception 'Secured account deactivation did not retain and mark the buyer inactive.';
+  end if;
+
+  begin
+    perform private.assert_customer_session();
+    raise exception 'Inactive buyer account retained customer self-service access.';
+  exception
+    when sqlstate '42501' then
+      null;
+  end;
+
+  approved_action := public.request_buyer_account_reactivation();
+
+  if not coalesce((approved_action->>'success')::boolean, false)
+    or approved_action->>'reactivationStatus' <> 'pending' then
+    raise exception 'Buyer reactivation request failed: %', approved_action;
+  end if;
+
+  perform set_config(
+    'request.jwt.claims',
+    jsonb_build_object('sub', admin_id, 'role', 'authenticated')::text,
+    true
+  );
+
+  approved_action := public.admin_review_buyer_reactivation(
+    buyer_id,
+    true,
+    'Rollback smoke approval'
+  );
+
+  if not coalesce((approved_action->>'success')::boolean, false)
+    or not exists (
+      select 1
+      from public.profiles profile
+      where profile.id = buyer_id
+        and profile.account_status = 'active'
+    ) then
+    raise exception 'Admin buyer reactivation approval failed: %', approved_action;
+  end if;
+
+  perform set_config(
+    'request.jwt.claims',
+    jsonb_build_object('sub', buyer_id, 'role', 'authenticated')::text,
+    true
+  );
+
+  staged_action := public.begin_buyer_sensitive_action(
+    buyer_id,
+    'account',
+    'deactivate',
+    null,
+    jsonb_build_object(
+      'confirmation', 'DEACTIVATE',
+      'reason', 'taking_a_break'
+    )
+  );
+
+  perform public.approve_buyer_sensitive_action(
+    (staged_action->>'requestId')::uuid,
+    staged_action->>'confirmationCode'
+  );
+
+  perform set_config(
+    'request.jwt.claims',
+    jsonb_build_object('sub', admin_id, 'role', 'authenticated')::text,
+    true
+  );
+
+  approved_action := public.admin_permanently_delete_buyer_account(buyer_id);
+
+  if not coalesce((approved_action->>'success')::boolean, false)
+    or exists (select 1 from auth.users auth_user where auth_user.id = buyer_id) then
+    raise exception 'Admin permanent buyer deletion failed: %', approved_action;
   end if;
 
   if not exists (

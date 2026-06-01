@@ -45,9 +45,12 @@ import {
   useDeletePaymentMethod,
   useApproveSensitiveAction,
   useSaveBuyerAccountSettings,
+  useSaveBuyerAccountPreference,
   useRequestBuyerEmailChange,
   useApproveBuyerEmailChange,
-  useDeleteBuyerAccount,
+  useRequestBuyerPasswordChange,
+  useApproveBuyerPasswordChange,
+  useDeactivateBuyerAccount,
 } from '../hooks/useBuyerQueries';
 import { buyerApi } from '../api/buyerApi';
 import { useCart } from '../../../Store/cartContext';
@@ -511,9 +514,12 @@ export function BuyerProvider({ children }) {
   const deletePaymentMethodMut = useDeletePaymentMethod();
   const approveSensitiveActionMut = useApproveSensitiveAction();
   const saveBuyerAccountSettingsMut = useSaveBuyerAccountSettings();
+  const saveBuyerAccountPreferenceMut = useSaveBuyerAccountPreference();
   const requestBuyerEmailChangeMut = useRequestBuyerEmailChange();
   const approveBuyerEmailChangeMut = useApproveBuyerEmailChange();
-  const deleteBuyerAccountMut = useDeleteBuyerAccount();
+  const requestBuyerPasswordChangeMut = useRequestBuyerPasswordChange();
+  const approveBuyerPasswordChangeMut = useApproveBuyerPasswordChange();
+  const deactivateBuyerAccountMut = useDeactivateBuyerAccount();
 
   // ── Actions (TODO: Move wallet/ai mutations to DB) ─────────────────────────
   const fundWallet = useCallback(async () => {
@@ -627,9 +633,12 @@ export function BuyerProvider({ children }) {
     accountSettingsError,
     refreshAccountSettings,
     saveAccountSettings: (settings) => saveBuyerAccountSettingsMut.mutateAsync(settings),
+    saveAccountPreference: (preference) => saveBuyerAccountPreferenceMut.mutateAsync(preference),
     requestEmailChange: (details) => requestBuyerEmailChangeMut.mutateAsync(details),
     approveEmailChange: (confirmation) => approveBuyerEmailChangeMut.mutateAsync(confirmation),
-    deleteAccount: (confirmation) => deleteBuyerAccountMut.mutateAsync(confirmation),
+    requestPasswordChange: (details) => requestBuyerPasswordChangeMut.mutateAsync(details),
+    approvePasswordChange: (confirmation) => approveBuyerPasswordChangeMut.mutateAsync(confirmation),
+    deactivateAccount: (confirmation) => deactivateBuyerAccountMut.mutateAsync(confirmation),
     
     // Wallet mapping
     walletBalance: wallet.balance,

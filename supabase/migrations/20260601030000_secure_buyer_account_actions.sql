@@ -3,6 +3,93 @@
 
 create extension if not exists pgcrypto;
 
+alter table public.profiles
+  add column if not exists account_status text not null default 'active'
+    check (account_status in ('active', 'inactive'));
+alter table public.profiles
+  add column if not exists deactivated_at timestamptz;
+
+create table if not exists public.buyer_account_deactivations (
+  user_id uuid primary key references public.profiles(id) on delete cascade,
+  reason_code text not null
+    check (reason_code in (
+      'taking_a_break',
+      'not_using_account',
+      'privacy_concerns',
+      'shopping_experience',
+      'other'
+    )),
+  reason_detail text,
+  deactivated_at timestamptz not null default now(),
+  reactivation_status text not null default 'not_requested'
+    check (reactivation_status in ('not_requested', 'pending', 'approved', 'rejected')),
+  reactivation_requested_at timestamptz,
+  reviewed_at timestamptz,
+  reviewed_by uuid references auth.users(id) on delete set null,
+  review_note text,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists buyer_account_deactivations_status_idx
+  on public.buyer_account_deactivations(reactivation_status, deactivated_at desc);
+
+alter table public.buyer_account_deactivations enable row level security;
+revoke all on table public.buyer_account_deactivations from anon, authenticated;
+grant all on table public.buyer_account_deactivations to service_role;
+
+create or replace function private.is_customer_session()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select (select auth.uid()) is not null
+    and not (select private.is_active_admin())
+    and not exists (
+      select 1
+      from public.profiles profile
+      where profile.id = (select auth.uid())
+        and profile.account_status = 'inactive'
+    );
+$$;
+
+revoke all on function private.is_customer_session() from public;
+grant execute on function private.is_customer_session() to authenticated;
+
+create or replace function private.assert_customer_session()
+returns void
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if (select auth.uid()) is null then
+    raise exception 'Authentication required'
+      using errcode = '42501';
+  end if;
+
+  if (select private.is_active_admin()) then
+    raise exception 'Active admin accounts cannot use public marketplace self-service flows'
+      using errcode = '42501';
+  end if;
+
+  if exists (
+    select 1
+    from public.profiles profile
+    where profile.id = (select auth.uid())
+      and profile.account_status = 'inactive'
+  ) then
+    raise exception 'This account is inactive. Submit a reactivation request for admin review.'
+      using errcode = '42501';
+  end if;
+end;
+$$;
+
+revoke all on function private.assert_customer_session() from public;
+grant execute on function private.assert_customer_session() to authenticated;
+
 alter table public.product_reviews
   drop constraint if exists product_reviews_user_id_fkey;
 alter table public.product_reviews
@@ -69,7 +156,7 @@ create table if not exists public.buyer_sensitive_actions (
   resource_type text not null
     check (resource_type in ('phone', 'address', 'payment', 'account')),
   action_type text not null
-    check (action_type in ('add', 'update', 'delete', 'set_default', 'update_email')),
+    check (action_type in ('add', 'update', 'delete', 'set_default', 'update_email', 'update_password', 'deactivate')),
   resource_id uuid,
   payload jsonb not null default '{}'::jsonb,
   confirmation_code_hash text not null,
@@ -83,7 +170,7 @@ alter table public.buyer_sensitive_actions
   drop constraint if exists buyer_sensitive_actions_action_type_check;
 alter table public.buyer_sensitive_actions
   add constraint buyer_sensitive_actions_action_type_check
-    check (action_type in ('add', 'update', 'delete', 'set_default', 'update_email'));
+    check (action_type in ('add', 'update', 'delete', 'set_default', 'update_email', 'update_password', 'deactivate'));
 
 create index if not exists buyer_sensitive_actions_user_expires_at_idx
   on public.buyer_sensitive_actions(user_id, expires_at desc);
@@ -138,6 +225,8 @@ declare
   normalized_phone_number text;
   normalized_country text;
   normalized_email text;
+  deactivation_reason text;
+  deactivation_detail text;
   existing_method_id uuid;
 begin
   if not exists (
@@ -255,11 +344,34 @@ begin
       );
     end if;
   elsif p_resource_type = 'account' then
-    if p_action_type = 'delete' then
-      if normalized_payload->>'confirmation' <> 'DELETE' then
-        raise exception 'Type DELETE to confirm account deletion.';
+    if p_action_type = 'deactivate' then
+      if normalized_payload->>'confirmation' <> 'DEACTIVATE' then
+        raise exception 'Type DEACTIVATE to confirm account deactivation.';
       end if;
-      normalized_payload := jsonb_build_object('confirmation', 'DELETE');
+      deactivation_reason := trim(coalesce(normalized_payload->>'reason', ''));
+      deactivation_detail := nullif(trim(normalized_payload->>'otherReason'), '');
+
+      if deactivation_reason not in (
+        'taking_a_break',
+        'not_using_account',
+        'privacy_concerns',
+        'shopping_experience',
+        'other'
+      ) then
+        raise exception 'Choose a reason for deactivating your account.';
+      end if;
+      if deactivation_reason = 'other' and length(coalesce(deactivation_detail, '')) < 3 then
+        raise exception 'Tell us why you are deactivating your account.';
+      end if;
+      if length(coalesce(deactivation_detail, '')) > 500 then
+        raise exception 'Reason must be under 500 characters.';
+      end if;
+
+      normalized_payload := jsonb_build_object(
+        'confirmation', 'DEACTIVATE',
+        'reason', deactivation_reason,
+        'otherReason', deactivation_detail
+      );
     elsif p_action_type = 'update_email' then
       normalized_email := lower(trim(coalesce(normalized_payload->>'email', '')));
 
@@ -285,6 +397,8 @@ begin
       end if;
 
       normalized_payload := jsonb_build_object('email', normalized_email);
+    elsif p_action_type = 'update_password' then
+      normalized_payload := '{}'::jsonb;
     else
       raise exception 'Unsupported account action.';
     end if;
@@ -586,21 +700,65 @@ begin
       'data', jsonb_build_object('email', requested_action.payload->>'email')
     );
   elsif requested_action.resource_type = 'account'
-    and requested_action.action_type = 'delete' then
-    perform set_config('woosho.allow_buyer_phone_cleanup', buyer_id::text, true);
-
-    delete from auth.users
+    and requested_action.action_type = 'update_password' then
+    return jsonb_build_object(
+      'success', true,
+      'resourceType', requested_action.resource_type,
+      'actionType', requested_action.action_type,
+      'data', jsonb_build_object('authorized', true)
+    );
+  elsif requested_action.resource_type = 'account'
+    and requested_action.action_type = 'deactivate' then
+    update public.profiles
+    set account_status = 'inactive',
+      deactivated_at = now(),
+      updated_at = now()
     where id = buyer_id;
 
     if not found then
       raise exception 'Account not found.';
     end if;
 
+    insert into public.buyer_account_deactivations (
+      user_id,
+      reason_code,
+      reason_detail,
+      deactivated_at,
+      reactivation_status,
+      reactivation_requested_at,
+      reviewed_at,
+      reviewed_by,
+      review_note,
+      updated_at
+    )
+    values (
+      buyer_id,
+      requested_action.payload->>'reason',
+      requested_action.payload->>'otherReason',
+      now(),
+      'not_requested',
+      null,
+      null,
+      null,
+      null,
+      now()
+    )
+    on conflict (user_id) do update
+    set reason_code = excluded.reason_code,
+      reason_detail = excluded.reason_detail,
+      deactivated_at = excluded.deactivated_at,
+      reactivation_status = 'not_requested',
+      reactivation_requested_at = null,
+      reviewed_at = null,
+      reviewed_by = null,
+      review_note = null,
+      updated_at = now();
+
     return jsonb_build_object(
       'success', true,
       'resourceType', requested_action.resource_type,
       'actionType', requested_action.action_type,
-      'data', jsonb_build_object('deleted', true)
+      'data', jsonb_build_object('deactivated', true)
     );
   else
     raise exception 'Unsupported secured account action.';
@@ -639,3 +797,326 @@ revoke execute on function public.delete_buyer_payment_method(uuid)
   from authenticated;
 revoke execute on function public.delete_buyer_account(text)
   from authenticated;
+
+create or replace function public.save_buyer_account_preference(
+  p_preference text,
+  p_enabled boolean
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  buyer_id uuid := auth.uid();
+begin
+  perform private.assert_customer_session();
+
+  if p_preference not in (
+    'aiSuggestions',
+    'priceDropAlerts',
+    'orderStatusUpdates',
+    'promotionsDeals'
+  ) then
+    raise exception 'Unsupported account preference.';
+  end if;
+
+  insert into public.buyer_account_preferences (user_id, updated_at)
+  values (buyer_id, now())
+  on conflict (user_id) do nothing;
+
+  update public.buyer_account_preferences
+  set ai_suggestions = case when p_preference = 'aiSuggestions' then p_enabled else ai_suggestions end,
+    price_drop_alerts = case when p_preference = 'priceDropAlerts' then p_enabled else price_drop_alerts end,
+    order_status_updates = case when p_preference = 'orderStatusUpdates' then p_enabled else order_status_updates end,
+    promotions_deals = case when p_preference = 'promotionsDeals' then p_enabled else promotions_deals end,
+    updated_at = now()
+  where user_id = buyer_id;
+
+  return jsonb_build_object(
+    'preference', p_preference,
+    'enabled', p_enabled
+  );
+end;
+$$;
+
+revoke all on function public.save_buyer_account_preference(text, boolean)
+  from public;
+grant execute on function public.save_buyer_account_preference(text, boolean)
+  to authenticated;
+
+create or replace function public.get_customer_account_status()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  customer_id uuid := auth.uid();
+begin
+  if customer_id is null then
+    raise exception 'Authentication required'
+      using errcode = '42501';
+  end if;
+
+  return (
+    select jsonb_build_object(
+      'role', profile.role,
+      'accountStatus', profile.account_status,
+      'canAccess', profile.account_status = 'active',
+      'isAdmin', exists (
+        select 1
+        from public.admin_users admin_user
+        where admin_user.id = customer_id
+          and admin_user.is_active = true
+      ),
+      'reactivationStatus', deactivation.reactivation_status
+    )
+    from public.profiles profile
+    left join public.buyer_account_deactivations deactivation
+      on deactivation.user_id = profile.id
+    where profile.id = customer_id
+  );
+end;
+$$;
+
+revoke all on function public.get_customer_account_status() from public;
+grant execute on function public.get_customer_account_status() to authenticated;
+
+create or replace function public.request_buyer_account_reactivation()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  buyer_id uuid := auth.uid();
+  request_status text;
+begin
+  if buyer_id is null then
+    raise exception 'Authentication required'
+      using errcode = '42501';
+  end if;
+
+  if not exists (
+    select 1
+    from public.profiles profile
+    where profile.id = buyer_id
+      and profile.role = 'buyer'
+      and profile.account_status = 'inactive'
+  ) then
+    raise exception 'Only inactive buyer accounts can request reactivation.';
+  end if;
+
+  update public.buyer_account_deactivations
+  set reactivation_status = 'pending',
+    reactivation_requested_at = coalesce(reactivation_requested_at, now()),
+    reviewed_at = null,
+    reviewed_by = null,
+    review_note = null,
+    updated_at = now()
+  where user_id = buyer_id
+  returning reactivation_status into request_status;
+
+  if not found then
+    raise exception 'Account deactivation record not found.';
+  end if;
+
+  return jsonb_build_object(
+    'success', true,
+    'reactivationStatus', request_status
+  );
+end;
+$$;
+
+revoke all on function public.request_buyer_account_reactivation() from public;
+grant execute on function public.request_buyer_account_reactivation()
+  to authenticated;
+
+create or replace function public.get_admin_deactivated_buyer_accounts()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.assert_admin_role(array['super_admin', 'support_lead']);
+
+  return coalesce((
+    select jsonb_agg(to_jsonb(account_record) order by account_record.deactivated_at desc)
+    from (
+      select profile.id,
+        coalesce(profile.full_name, auth_user.email, 'Unknown buyer') name,
+        auth_user.email,
+        deactivation.reason_code,
+        deactivation.reason_detail,
+        deactivation.deactivated_at,
+        deactivation.reactivation_status,
+        deactivation.reactivation_requested_at,
+        deactivation.reviewed_at,
+        deactivation.review_note
+      from public.buyer_account_deactivations deactivation
+      join public.profiles profile on profile.id = deactivation.user_id
+      left join auth.users auth_user on auth_user.id = profile.id
+      where profile.role = 'buyer'
+        and profile.account_status = 'inactive'
+    ) account_record
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function public.get_admin_deactivated_buyer_accounts() from public;
+grant execute on function public.get_admin_deactivated_buyer_accounts()
+  to authenticated;
+
+drop function if exists public.admin_review_buyer_reactivation(uuid, boolean, text);
+
+create function public.admin_review_buyer_reactivation(
+  target_user_id uuid,
+  approve boolean,
+  p_review_note text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.assert_admin_role(array['super_admin']);
+
+  if length(coalesce(trim(p_review_note), '')) > 500 then
+    raise exception 'Review note must be under 500 characters.';
+  end if;
+
+  if approve then
+    update public.profiles
+    set account_status = 'active',
+      deactivated_at = null,
+      updated_at = now()
+    where id = target_user_id
+      and role = 'buyer'
+      and account_status = 'inactive';
+
+    if not found then
+      raise exception 'Inactive buyer account not found.';
+    end if;
+  elsif not exists (
+    select 1
+    from public.profiles profile
+    where profile.id = target_user_id
+      and profile.role = 'buyer'
+      and profile.account_status = 'inactive'
+  ) then
+    raise exception 'Inactive buyer account not found.';
+  end if;
+
+  update public.buyer_account_deactivations
+  set reactivation_status = case when approve then 'approved' else 'rejected' end,
+    reviewed_at = now(),
+    reviewed_by = auth.uid(),
+    review_note = nullif(trim(p_review_note), ''),
+    updated_at = now()
+  where user_id = target_user_id;
+
+  if not found then
+    raise exception 'Account deactivation record not found.';
+  end if;
+
+  return jsonb_build_object(
+    'success', true,
+    'approved', approve
+  );
+end;
+$$;
+
+revoke all on function public.admin_review_buyer_reactivation(uuid, boolean, text)
+  from public;
+grant execute on function public.admin_review_buyer_reactivation(uuid, boolean, text)
+  to authenticated;
+
+create or replace function public.admin_permanently_delete_buyer_account(
+  target_user_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.assert_admin_role(array['super_admin']);
+
+  if not exists (
+    select 1
+    from public.profiles profile
+    where profile.id = target_user_id
+      and profile.role = 'buyer'
+      and profile.account_status = 'inactive'
+  ) then
+    raise exception 'Only inactive buyer accounts can be permanently deleted.';
+  end if;
+
+  perform set_config('woosho.allow_buyer_phone_cleanup', target_user_id::text, true);
+
+  delete from auth.users
+  where id = target_user_id;
+
+  if not found then
+    raise exception 'Buyer Auth account not found.';
+  end if;
+
+  return jsonb_build_object(
+    'success', true,
+    'deleted', true
+  );
+end;
+$$;
+
+revoke all on function public.admin_permanently_delete_buyer_account(uuid)
+  from public;
+grant execute on function public.admin_permanently_delete_buyer_account(uuid)
+  to authenticated;
+
+create or replace function public.get_admin_buyers()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.assert_admin_role(array['super_admin', 'support_lead']);
+
+  return (
+    select coalesce(jsonb_agg(to_jsonb(row_data) order by row_data.created_at desc), '[]'::jsonb)
+    from (
+      select profile.id,
+        coalesce(profile.full_name, auth_user.email, 'Unknown buyer') name,
+        auth_user.email,
+        profile.created_at,
+        count(distinct customer_order.id) filter (
+          where customer_order.payment_status = 'paid'
+            and customer_order.status <> 'cancelled'
+        ) orders,
+        coalesce(sum(customer_order.total_minor) filter (
+          where customer_order.payment_status = 'paid'
+            and customer_order.status <> 'cancelled'
+        ), 0) lifetime_value_minor
+      from public.profiles profile
+      left join auth.users auth_user on auth_user.id = profile.id
+      left join public.orders customer_order on customer_order.user_id = profile.id
+      where profile.role = 'buyer'
+        and profile.account_status = 'active'
+        and not exists (
+          select 1
+          from public.admin_users admin_user
+          where admin_user.id = profile.id
+        )
+      group by profile.id, profile.full_name, auth_user.email, profile.created_at
+    ) row_data
+  );
+end;
+$$;
+
+revoke all on function public.get_admin_buyers() from public;
+grant execute on function public.get_admin_buyers() to authenticated;

@@ -143,7 +143,7 @@ and access-denied states consistently.
 | Dashboard | Summary metrics, paid revenue, pending unpaid value, seven-day paid revenue, category merchandise sales, recent activity. | Read-only overview. |
 | Orders | Orders and status details. | Ship or cancel an order. |
 | Products | Paged product catalog records, moderation state, stock-first inventory state, creation date, and last update date. | Search, filter, approve, reject, activate, or deactivate products. Rows are virtualized. |
-| Users | Buyer and seller records. Privileged admin identities are excluded from the buyer list. | Switch between buyer and seller views. |
+| Users | Active buyer, seller, and deactivated-buyer records. Privileged admin identities are excluded from the buyer list. | Switch views. Super admins can restore, reject, or permanently delete deactivated buyer accounts. |
 | Sellers | Seller profiles, approval state, and product counts. | Filter sellers by product availability or suspension state, then activate, suspend, or reset seller state. |
 | Analytics | Revenue, order, user, product, day/month/year growth, funnel, and page-activity metrics. | Open a searchable modal with views and event counts for every tracked page. |
 | Support | Filterable admin support tickets. | Resolve or escalate a ticket. |
@@ -166,6 +166,7 @@ TanStack Query to handle.
 | --- | --- |
 | `getDashboard()` | `get_admin_dashboard_optimized` |
 | `getBuyers()` | `get_admin_buyers` |
+| `getDeactivatedBuyers()` | `get_admin_deactivated_buyer_accounts` |
 | `getPageActivity()` | `get_admin_page_activity` |
 | `getProducts(params)` | `get_admin_products_page` |
 | `getUserGrowth(range)` | `get_admin_user_growth` |
@@ -174,6 +175,8 @@ TanStack Query to handle.
 | `setProductActive(productId, active)` | `admin_set_product_active` |
 | `setProductModerationStatus(productId, status)` | `admin_set_product_moderation_status` |
 | `setSellerStatus(sellerId, status)` | `admin_set_seller_status` |
+| `reviewBuyerReactivation(buyerId, approve, note)` | `admin_review_buyer_reactivation` |
+| `permanentlyDeleteBuyerAccount(buyerId)` | `admin_permanently_delete_buyer_account` |
 | `setSupportTicketStatus(ticketId, status, escalate)` | `admin_set_support_ticket_status` |
 | `moveHiringCandidate(candidateId, stage)` | `admin_move_hiring_candidate` |
 | `getHiring()` | `get_admin_hiring` |

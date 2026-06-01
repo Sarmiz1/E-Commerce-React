@@ -54,6 +54,7 @@ import {
 import {
   useAdminDashboard,
   useAdminBuyers,
+  useAdminDeactivatedBuyers,
   useAdminHiring,
   useAdminPageActivity,
   useAdminPaidSalesChart,
@@ -66,6 +67,8 @@ import {
   useMoveAdminHiringCandidate,
   usePromoteAdmin,
   useQueueAdminAiQuery,
+  usePermanentlyDeleteBuyerAccount,
+  useReviewBuyerReactivation,
   useSaveAdminIntegration,
   useSaveAdminSetting,
   useSetAdminJobOpeningStatus,
@@ -804,34 +807,67 @@ function ProductsModule({ moderationMutation, mutation, toast }) {
   );
 }
 
-function UsersModule({ buyersQuery, data }) {
+function UsersModule({ buyersQuery, canManageDeactivatedAccounts, data, deactivatedBuyersQuery, deleteBuyerMutation, reviewBuyerMutation, toast }) {
   const [tab, setTab] = useState("buyers");
-  if (buyersQuery.isLoading) return <ModuleLoader/>;
+  if (buyersQuery.isLoading || deactivatedBuyersQuery.isLoading) return <ModuleLoader/>;
   if (buyersQuery.isError) return <PanelMessage>{buyersQuery.error.message}</PanelMessage>;
+  if (deactivatedBuyersQuery.isError) return <PanelMessage>{deactivatedBuyersQuery.error.message}</PanelMessage>;
 
   const buyers = asArray(buyersQuery.data);
   const sellers = asArray(data.sellers);
-  const records = tab === "buyers" ? buyers : sellers;
+  const deactivatedBuyers = asArray(deactivatedBuyersQuery.data);
+  const records = tab === "buyers" ? buyers : tab === "sellers" ? sellers : deactivatedBuyers;
+  const review = async (id, approve) => {
+    try {
+      await reviewBuyerMutation.mutateAsync({ id, approve });
+      toast(approve ? "Buyer account reactivated" : "Reactivation request rejected", approve ? C.green : C.amber);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const permanentlyDelete = async (id) => {
+    if (!window.confirm("Permanently delete this inactive buyer account and its retained personal data? This cannot be undone.")) return;
+    try {
+      await deleteBuyerMutation.mutateAsync(id);
+      toast("Buyer account permanently deleted", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
       <Stats>
         <Stat icon={Users} label="Buyers" value={buyers.length}/>
         <Stat icon={Store} label="Sellers" value={sellers.length} color={C.purple}/>
+        <Stat icon={AlertTriangle} label="Deactivated Buyers" value={deactivatedBuyers.length} color={C.red}/>
       </Stats>
       <div style={{display:'flex',gap:7}}>
-        {["buyers","sellers"].map((name) => <Btn key={name} variant={tab===name?"cyan":"ghost"} onClick={()=>setTab(name)}>{titleCase(name)}</Btn>)}
+        {["buyers","sellers","deactivated_buyers"].map((name) => <Btn key={name} variant={tab===name?"cyan":"ghost"} onClick={()=>setTab(name)}>{titleCase(name)}</Btn>)}
       </div>
       <Card title={titleCase(tab)}>
         {tab === "buyers" ? (
           <Table columns={["Name","Email","Paid Orders","Paid Lifetime Value","Joined"]} emptyMessage="No buyers found in the backend."
             rows={records.map((buyer) => <tr key={buyer.id}><Td>{buyer.name}</Td><Td>{buyer.email}</Td>
               <Td>{buyer.orders}</Td><Td>{formatMoney(buyer.lifetime_value_minor)}</Td><Td>{formatDate(buyer.created_at)}</Td></tr>)}/>
-        ) : (
+        ) : tab === "sellers" ? (
           <Table columns={["Store","Status","Merchandise Sales","Products","Paid Orders","Joined"]} emptyMessage="No sellers found in the backend."
             rows={records.map((seller) => <tr key={seller.id}><Td>{seller.name}</Td><Td><Badge type={seller.status}/></Td>
               <Td>{formatMoney(seller.revenue_minor)}</Td><Td>{seller.products}</Td><Td>{seller.orders}</Td><Td>{formatDate(seller.created_at)}</Td></tr>)}/>
+        ) : (
+          <Table columns={["Name","Email","Reason","Recovery Request","Deactivated","Actions"]} emptyMessage="No deactivated buyer accounts found."
+            rows={records.map((buyer) => <tr key={buyer.id}><Td>{buyer.name}</Td><Td>{buyer.email}</Td>
+              <Td><span style={{display:'block',maxWidth:240,whiteSpace:'normal'}}>{titleCase(buyer.reason_code)}{buyer.reason_detail ? `: ${buyer.reason_detail}` : ""}</span></Td>
+              <Td><Badge type={buyer.reactivation_status}/></Td><Td>{formatDate(buyer.deactivated_at)}</Td>
+              <Td><div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                <Btn disabled={!canManageDeactivatedAccounts || reviewBuyerMutation.isPending} icon={RotateCcw} variant="success" onClick={()=>review(buyer.id,true)}>Restore</Btn>
+                <Btn disabled={!canManageDeactivatedAccounts || reviewBuyerMutation.isPending} icon={XCircle} onClick={()=>review(buyer.id,false)}>Reject</Btn>
+                <Btn disabled={!canManageDeactivatedAccounts || deleteBuyerMutation.isPending} icon={Trash2} variant="danger" onClick={()=>permanentlyDelete(buyer.id)}>Delete Permanently</Btn>
+              </div></Td></tr>)}/>
         )}
       </Card>
+      {!canManageDeactivatedAccounts && tab === "deactivated_buyers" && (
+        <PanelMessage>Support leads can review deactivated accounts. Only super admins can restore, reject, or permanently delete them.</PanelMessage>
+      )}
     </div>
   );
 }
@@ -1427,11 +1463,14 @@ function AdminPromotionModule({ configurePasscodeMutation, mutation, toast }) {
 export function AdminDashboardModules({ addToast, moduleId, user }) {
   const dashboard = useAdminDashboard();
   const buyersQuery = useAdminBuyers(moduleId === "users");
+  const deactivatedBuyersQuery = useAdminDeactivatedBuyers(moduleId === "users");
   const hiringQuery = useAdminHiring(moduleId === "hiring");
   const orderMutation = useSetAdminOrderStatus();
   const productMutation = useSetAdminProductActive();
   const productModerationMutation = useSetAdminProductModerationStatus();
   const sellerMutation = useSetAdminSellerStatus();
+  const reviewBuyerMutation = useReviewBuyerReactivation();
+  const deleteBuyerMutation = usePermanentlyDeleteBuyerAccount();
   const supportMutation = useSetAdminSupportTicketStatus();
   const hiringMutation = useMoveAdminHiringCandidate();
   const jobMutation = useCreateAdminJobOpening();
@@ -1453,7 +1492,9 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
     dashboard: <DashboardModule data={data}/>,
     orders: <OrdersModule {...shared} mutation={orderMutation}/>,
     products: <ProductsModule {...shared} moderationMutation={productModerationMutation} mutation={productMutation}/>,
-    users: <UsersModule buyersQuery={buyersQuery} data={data}/>,
+    users: <UsersModule buyersQuery={buyersQuery} canManageDeactivatedAccounts={user.role.canSuspend}
+      data={data} deactivatedBuyersQuery={deactivatedBuyersQuery} deleteBuyerMutation={deleteBuyerMutation}
+      reviewBuyerMutation={reviewBuyerMutation} toast={addToast}/>,
     sellers: <SellersModule {...shared} mutation={sellerMutation}/>,
     analytics: <AnalyticsModule data={data}/>,
     support: <SupportModule {...shared} mutation={supportMutation}/>,

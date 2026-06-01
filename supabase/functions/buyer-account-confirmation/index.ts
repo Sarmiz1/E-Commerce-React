@@ -23,7 +23,8 @@ const ACTION_LABELS: Record<string, string> = {
   "payment:delete": "delete a saved payment method",
   "payment:set_default": "set your default payment method",
   "account:update_email": "change your WooSho account email address",
-  "account:delete": "delete your WooSho account",
+  "account:update_password": "change your WooSho account password",
+  "account:deactivate": "deactivate your WooSho account",
 };
 
 function json(body: Record<string, unknown>, status = 200) {
