@@ -371,7 +371,7 @@ export function BuyerProvider({ children }) {
     ? nameCandidate.trim()
     : 'Buyer';
   // Strip numbers and pick first word for the greeting
-  const firstName = rawName.split(' ')[0].replace(/[0-9]/g, '') || 'Buyer';
+  const firstName = rawName.trim().split(/\s+/)[0].replace(/[0-9]/g, '') || 'Buyer';
 
   const profile = {
     ...dataProfile,
