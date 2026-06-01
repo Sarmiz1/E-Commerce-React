@@ -1,5 +1,6 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { nairaToMinor } from '../../../utils/currency';
+import { createProductSlug, refreshProductSlug } from '../../../utils/productSlug';
 
 // ── helper: upload a file to Supabase Storage ─────────────────────────────────
 async function uploadImage(file, folder = 'products') {
@@ -122,10 +123,7 @@ export const sellerApi = {
       .eq('name', productData.category)
       .single();
 
-    const slug =
-      productData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') +
-      '-' +
-      Date.now();
+    const slug = createProductSlug(productData.name);
 
     // 2. Upload thumbnail (required field in products.image)
     let thumbnailUrl = null;
@@ -199,9 +197,7 @@ export const sellerApi = {
         color: v.color || null,
         size: v.size || null,
         // variant can override the base price, otherwise inherit it
-        price_minor: v.price_override
-          ? nairaToMinor(v.price_override)
-          : nairaToMinor(productData.price),
+        price_minor: v.price_override ? nairaToMinor(v.price_override) : null,
         stock_quantity: v.stock || 0,
       }));
 
@@ -221,6 +217,13 @@ export const sellerApi = {
       .select('id')
       .eq('name', productData.category)
       .single();
+
+    const { data: currentProduct, error: currentProductError } = await supabase
+      .from('products')
+      .select('slug')
+      .eq('id', productId)
+      .single();
+    if (currentProductError) throw currentProductError;
 
     // 2. Upload thumbnail if new
     let thumbnailUrl = productData.image; // Keep existing if not provided
@@ -242,6 +245,7 @@ export const sellerApi = {
       .update({
         category_id: catData?.id ?? null,
         name: productData.name,
+        slug: refreshProductSlug(productData.name, currentProduct.slug),
         brand: productData.brand || null,
         short_description: productData.shortDescription || null,
         full_description: productData.fullDescription || null,
@@ -271,9 +275,7 @@ export const sellerApi = {
         sku: v.sku || `SKU-${product.id.slice(0, 8).toUpperCase()}-${idx + 1}`,
         color: v.color || null,
         size: v.size || null,
-        price_minor: v.price_override
-          ? nairaToMinor(v.price_override)
-          : nairaToMinor(productData.price),
+        price_minor: v.price_override ? nairaToMinor(v.price_override) : null,
         stock_quantity: v.stock || 0,
       }));
       const { error: vErr } = await supabase.from('product_variants').insert(variantRows);

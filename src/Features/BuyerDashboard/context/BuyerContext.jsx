@@ -33,6 +33,10 @@ import { buyerApi } from '../api/buyerApi';
 import { useCart } from '../../../Store/cartContext';
 import { useWishlist } from '../../../hooks/useWishlist';
 import { useAllProducts } from '../../../hooks/product/useProducts';
+import {
+  getSaleOriginalPriceMinor,
+  getSellablePriceMinor,
+} from '../../../utils/productPricing';
 
 const BuyerCtx = createContext(null);
 const EMPTY_WALLET = {
@@ -75,6 +79,17 @@ const getSellableVariant = (item) => {
   return getProductVariants(item).find(variant =>
     variant?.id && variant?.is_active !== false && asNumber(variant?.stock_quantity) > 0
   );
+};
+const withSelectedVariantPrice = (item) => {
+  const variant = getSellableVariant(item);
+  const product = asRecord(item?.products || item?.product || item);
+
+  return {
+    ...item,
+    variant,
+    price: getSellablePriceMinor(product, variant) || asNumber(item?.price_minor ?? item?.price),
+    originalPrice: getSaleOriginalPriceMinor(product),
+  };
 };
 const toCartAddition = (item) => {
   const safeItem = asRecord(item);
@@ -135,8 +150,18 @@ export function BuyerProvider({ children }) {
     error: dashboardError,
     refetch,
   } = useBuyerDashboard();
-  const { data: spendingData } = useBuyerSpending();
-  const { data: reorderData } = useBuyerReorders();
+  const {
+    data: spendingData,
+    isLoading: spendingLoading,
+    error: spendingError,
+    refetch: refreshSpending,
+  } = useBuyerSpending();
+  const {
+    data: reorderData,
+    isLoading: reordersLoading,
+    error: reordersError,
+    refetch: refreshReorders,
+  } = useBuyerReorders();
   const { data: wishlistAlertData } = useWishlistAlerts();
   
   const data = asRecord(dbData);
@@ -197,26 +222,26 @@ export function BuyerProvider({ children }) {
       const catalogProduct = productsById.get(
         recommendation.products?.id || recommendation.product_id || recommendation.id,
       ) || {};
-      return {
+      return withSelectedVariantPrice({
         ...recommendation,
         ...catalogProduct,
         products: { ...recommendation.products, ...catalogProduct },
         name: catalogProduct.name || recommendation.name,
-        price: asNumber(catalogProduct.sale_price_minor ?? catalogProduct.price_minor ?? recommendation.price),
         budgetFit: recommendation.budgetFit ?? recommendation.budget_fit ?? false,
-      };
+      });
     })
-    .filter(recommendation => getSellableVariant(recommendation));
-  const catalogRecommendations = safeProducts.slice(0, 5).map(product => ({
-    ...product,
-    products: product,
-    name: product.name || 'Available product',
-    category: product.category?.name || product.category || 'Other',
-    price: asNumber(product.sale_price_minor ?? product.price_minor),
-    image: product.image || '',
-    reason: product.ai_summary || 'Available now from the live catalog.',
-    budgetFit: false,
-  }));
+    .filter(recommendation => recommendation.variant?.id);
+  const catalogRecommendations = safeProducts.slice(0, 5).map(product => (
+    withSelectedVariantPrice({
+      ...product,
+      products: product,
+      name: product.name || 'Available product',
+      category: product.category?.name || product.category || 'Other',
+      image: product.image || '',
+      reason: product.ai_summary || 'Available now from the live catalog.',
+      budgetFit: false,
+    })
+  ));
   const liveRecommendations = personalizedRecommendations.length
     ? personalizedRecommendations
     : catalogRecommendations;
@@ -234,8 +259,8 @@ export function BuyerProvider({ children }) {
           id: p.id,
           products: p, // Compatibility
           ...p,
-          price: asNumber(p.sale_price_minor ?? p.price_minor),
-          originalPrice: asNumber(p.price_minor),
+          price: getSellablePriceMinor(p),
+          originalPrice: getSaleOriginalPriceMinor(p),
           image: p.image,
           tag: stock > 0 ? 'Price Drop' : 'Out of Stock',
           aiNote: p.ai_summary || 'Saved product from your wishlist.',
@@ -327,12 +352,21 @@ export function BuyerProvider({ children }) {
   ].filter(Boolean);
   const liveInsights = backendInsights.length ? backendInsights : activityInsights;
 
-  const spendingCategories = asArray(asRecord(spendingData).categories);
+  const rawSpending = asRecord(spendingData);
+  const rawSpendingTrends = asRecord(rawSpending.trends);
+  const normalizeSpendingPeriods = periods => asArray(periods).map(period => ({
+    ...asRecord(period),
+    label: period?.label || period?.month || '',
+    spend: asNumber(period?.spend),
+  }));
+  const spendingCategories = asArray(rawSpending.categories);
   const totalCategorySpend = spendingCategories.reduce(
     (sum, category) => sum + asNumber(category.spend),
     0,
   );
+  const monthlySpending = normalizeSpendingPeriods(rawSpendingTrends.monthly || rawSpending.monthly);
   const spending = {
+    totalSpend: asNumber(rawSpending.lifetimeSpend ?? rawSpending.lifetime_spend, totalCategorySpend),
     categories: spendingCategories.map(category => ({
       ...category,
       spend: asNumber(category.spend),
@@ -340,17 +374,15 @@ export function BuyerProvider({ children }) {
         ? Math.round((asNumber(category.spend) / totalCategorySpend) * 100)
         : 0,
     })),
-    monthly: asArray(asRecord(spendingData).monthly).map(month => ({
-      ...month,
-      spend: asNumber(month.spend),
-    })),
+    trends: {
+      daily: normalizeSpendingPeriods(rawSpendingTrends.daily),
+      weekly: normalizeSpendingPeriods(rawSpendingTrends.weekly),
+      monthly: monthlySpending,
+      yearly: normalizeSpendingPeriods(rawSpendingTrends.yearly),
+    },
+    monthly: monthlySpending,
   };
-  const reorders = asArray(reorderData).map(reorder => ({
-    ...asRecord(reorder),
-    products: asRecord(reorder?.products),
-    variant: asRecord(reorder?.variant),
-    price: asNumber(reorder?.price),
-  }));
+  const reorders = asArray(reorderData).map(withSelectedVariantPrice);
   const wishlistAlerts = asArray(wishlistAlertData).map(asRecord);
 
   // ── Mutation hooks ───────────────────────────────────────────────────────────
@@ -473,7 +505,13 @@ export function BuyerProvider({ children }) {
     insights: liveInsights,
     recommendationsLoading: isLoading || productsLoading,
     reorders,
+    reordersLoading,
+    reordersError,
+    refreshReorders,
     spending,
+    spendingLoading,
+    spendingError,
+    refreshSpending,
     payments,
     refresh: refetch,
   };

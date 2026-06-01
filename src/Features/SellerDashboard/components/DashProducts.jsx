@@ -296,7 +296,7 @@ function InputField({ register, name, errors, colors, isDark, ...rest }) {
 
 export default function DashProducts() {
   const { colors, isDark } = useTheme();
-  const { products: liveProducts, deleteProduct, addProduct, updateProduct, loading } = useDashboard();
+  const { products: liveProducts, deleteProduct, addProduct, updateProduct } = useDashboard();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState(null);
@@ -304,7 +304,7 @@ export default function DashProducts() {
   const [addOpen, setAddOpen] = useState(false);
   const [sortBy, setSortBy] = useState('name');
   const [sortDir, setSortDir] = useState(1);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  const [, setIsLoadingProduct] = useState(false);
 
   // Thumbnail & gallery state (outside RHF for File objects)
   const [thumbnailFile, setThumbnailFile] = useState(null);
@@ -360,7 +360,9 @@ export default function DashProducts() {
               size: v.size || '',
               sku: v.sku || '',
               stock: v.stock_quantity || 0,
-              price_override: v.price_minor ? v.price_minor / 100 : 0,
+              price_override: v.price_minor && v.price_minor !== productData.price_minor
+                ? v.price_minor / 100
+                : '',
             }))
           : [emptyVariant]
       });

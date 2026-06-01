@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
-import { fmtFull } from '../utils/fmt';
+import { formatMoneyMinor } from '../../../utils/formatMoneyMinor';
 import { BIcon } from './BuyerIcon';
 import { useBuyer } from '../context/BuyerContext';
 
@@ -23,7 +23,14 @@ export function ProductResult({ item, delay }) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold truncate" style={{ color: colors.text.primary }}>{item.name}</p>
         <p className="text-[10px] mt-0.5 truncate" style={{ color: colors.text.tertiary }}>{item.reason}</p>
-        <p className="text-sm font-black mt-0.5" style={{ color: '#667eea' }}>{fmtFull(item.price)}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <p className="text-sm font-black" style={{ color: '#667eea' }}>{formatMoneyMinor(item.price)}</p>
+          {item.originalPrice > item.price && (
+            <p className="text-[10px] line-through" style={{ color: colors.text.tertiary }}>
+              {formatMoneyMinor(item.originalPrice)}
+            </p>
+          )}
+        </div>
       </div>
       <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.9 }}
         onClick={async () => {

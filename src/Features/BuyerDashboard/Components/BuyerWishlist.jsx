@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer } from '../context/BuyerContext';
-import { fmtFull } from '../utils/fmt';
+import { formatMoneyMinor } from '../../../utils/formatMoneyMinor';
 import { BIcon } from './BuyerIcon';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +20,9 @@ export default function BuyerWishlist() {
   const {
     wishlist: liveWishlist,
     reorders: REORDER_SUGGESTIONS,
+    reordersLoading,
+    reordersError,
+    refreshReorders,
     removeFromWishlist,
     addProductsToCart,
     wishlistAlerts,
@@ -79,7 +82,25 @@ export default function BuyerWishlist() {
             style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff' }}>Predictive</span>
         </div>
         <div className="p-4 flex flex-col sm:flex-row gap-3">
-          {REORDER_SUGGESTIONS.map((s, i) => (
+          {reordersLoading ? (
+            <p className="flex-1 py-4 text-center text-sm font-semibold" style={{ color: colors.text.tertiary }}>
+              Loading available data...
+            </p>
+          ) : reordersError ? (
+            <div className="flex-1 py-4 text-center">
+              <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>No available data</p>
+              <button type="button" onClick={() => refreshReorders?.()} className="mt-2 text-xs font-bold" style={{ color: '#667eea' }}>
+                Try again
+              </button>
+            </div>
+          ) : REORDER_SUGGESTIONS.length === 0 ? (
+            <div className="flex-1 py-4 text-center">
+              <p className="text-sm font-semibold" style={{ color: colors.text.tertiary }}>No available data</p>
+              <button type="button" onClick={() => refreshReorders?.()} className="mt-2 text-xs font-bold" style={{ color: '#667eea' }}>
+                Refresh suggestions
+              </button>
+            </div>
+          ) : REORDER_SUGGESTIONS.map((s, i) => (
             <motion.div key={s.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
               whileHover={{ scale: 1.02 }}
               className="flex-1 rounded-xl p-4 flex flex-col gap-2"
@@ -87,7 +108,7 @@ export default function BuyerWishlist() {
               <p className="text-sm font-bold" style={{ color: colors.text.primary }}>{s.name}</p>
               <p className="text-[11px]" style={{ color: '#667eea' }}>{s.reason}</p>
               <div className="flex items-center justify-between mt-1">
-                <span className="text-base font-black" style={{ color: colors.text.primary }}>{fmtFull(s.price)}</span>
+                <span className="text-base font-black" style={{ color: colors.text.primary }}>{formatMoneyMinor(s.price)}</span>
                 <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                   onClick={() => addToCart(s)}
                   className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg"
@@ -156,9 +177,9 @@ export default function BuyerWishlist() {
 
                   {/* Price */}
                   <div className="flex items-center gap-2">
-                    <span className="font-black text-base" style={{ color: colors.text.primary }}>{fmtFull(item.price)}</span>
+                    <span className="font-black text-base" style={{ color: colors.text.primary }}>{formatMoneyMinor(item.price)}</span>
                     {item.originalPrice > item.price && (
-                      <span className="text-xs line-through" style={{ color: colors.text.tertiary }}>{fmtFull(item.originalPrice)}</span>
+                      <span className="text-xs line-through" style={{ color: colors.text.tertiary }}>{formatMoneyMinor(item.originalPrice)}</span>
                     )}
                   </div>
 

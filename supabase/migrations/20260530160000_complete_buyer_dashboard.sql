@@ -297,10 +297,10 @@ begin
     from (
       select product.id,
         product.name,
-        product.price_minor price,
+        variant.price_minor price,
         'Purchased before. Add it again in one tap.' reason,
         variant.id variant_id,
-        to_jsonb(product) products,
+        to_jsonb(product) || jsonb_build_object('price_minor', variant.price_minor) products,
         to_jsonb(variant) variant,
         max(customer_order.created_at) last_ordered_at
       from public.orders customer_order

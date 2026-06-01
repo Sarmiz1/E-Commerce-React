@@ -4,7 +4,7 @@ import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { useLogout } from '../../../hooks/auth/useLogout';
 import { BIcon } from './BuyerIcon';
-import { fmtFull } from '../utils/fmt';
+import { formatMoneyMinor } from '../../../utils/formatMoneyMinor';
 import { useNavigate } from 'react-router-dom';
 
 export default function BuyerTopbar() {
@@ -124,7 +124,7 @@ export default function BuyerTopbar() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold truncate" style={{ color: colors.text.primary }}>{item.name}</p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs font-bold" style={{ color: '#667eea' }}>{fmtFull(item.price)}</span>
+                              <span className="text-xs font-bold" style={{ color: '#667eea' }}>{formatMoneyMinor(item.price)}</span>
                               {item.size && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: isDark ? 'rgba(102,126,234,0.1)' : '#EEF2FF', color: '#667eea' }}>{item.size}</span>}
                               <button type="button" onClick={() => item.quantity > 1 && updateCartQty(item.id, item.quantity - 1)}
                                 className="w-5 h-5 rounded flex items-center justify-center text-xs font-black"
@@ -151,7 +151,7 @@ export default function BuyerTopbar() {
                   <div className="px-4 py-3" style={{ borderTop: `1px solid ${colors.border.subtle}` }}>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-semibold" style={{ color: colors.text.tertiary }}>Subtotal</span>
-                      <span className="text-base font-black" style={{ color: colors.text.primary }}>{fmtFull(cartTotal)}</span>
+                      <span className="text-base font-black" style={{ color: colors.text.primary }}>{formatMoneyMinor(cartTotal)}</span>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => navigate('/cart')}

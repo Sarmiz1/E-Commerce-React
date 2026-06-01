@@ -3,6 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { ProductsAPI } from "../../../api/productsApi";
 import { useDebounce } from "../../../Hooks/useDebounce";
+import {
+  getEffectivePriceMinor,
+  hasActiveSalePrice,
+} from "../../../utils/productPricing";
+
+export { getEffectivePriceMinor } from "../../../utils/productPricing";
 
 const PRODUCT_SEARCH_LIMIT = 1000;
 const PRODUCT_SEARCH_DEBOUNCE_MS = 250;
@@ -42,24 +48,6 @@ const getProductCategoryValues = (product) => {
     product?.category_name,
   ].filter(Boolean);
 };
-
-const hasActiveSalePrice = (product) => {
-  const price = Number(product?.price_minor) || 0;
-  const salePrice = Number(product?.sale_price_minor) || 0;
-  const now = Date.now();
-  const saleStartsAt = product?.sale_starts_at ? new Date(product.sale_starts_at).getTime() : null;
-  const saleEndsAt = product?.sale_ends_at ? new Date(product.sale_ends_at).getTime() : null;
-  const saleWindowIsActive =
-    (!saleStartsAt || saleStartsAt <= now) &&
-    (!saleEndsAt || saleEndsAt >= now);
-
-  return saleWindowIsActive && salePrice > 0 && salePrice < price;
-};
-
-export const getEffectivePriceMinor = (product) =>
-  hasActiveSalePrice(product)
-    ? Number(product.sale_price_minor)
-    : Number(product?.price_minor) || 0;
 
 export const isSaleProduct = (product) => {
   const price = Number(product?.price_minor) || 0;

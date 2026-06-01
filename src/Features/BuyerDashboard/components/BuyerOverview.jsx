@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, animate, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer } from '../context/BuyerContext';
-import { fmtFull, getGreeting } from '../utils/fmt';
+import { getGreeting } from '../utils/fmt';
+import { formatMoneyMinor } from '../../../utils/formatMoneyMinor';
 import { BIcon } from './BuyerIcon';
 
 // ─── CountUp ──────────────────────────────────────────────────────────────────
@@ -178,7 +179,14 @@ function RecCard({ item, index }) {
           </span>
         )}
         <div className="flex items-center justify-between mt-auto pt-2">
-          <p className="font-black text-base" style={{ color: colors.text.primary }}>{fmtFull(item.price)}</p>
+          <div>
+            <p className="font-black text-base" style={{ color: colors.text.primary }}>{formatMoneyMinor(item.price)}</p>
+            {item.originalPrice > item.price && (
+              <p className="text-[11px] line-through" style={{ color: colors.text.tertiary }}>
+                {formatMoneyMinor(item.originalPrice)}
+              </p>
+            )}
+          </div>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.92 }}
             onClick={addToCart}
             disabled={adding}

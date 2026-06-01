@@ -12,6 +12,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+import { getSellablePriceMinor } from "../utils/productPricing";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,7 @@ export const useCartStore = create(
           if (idx >= 0) {
             s.cart[idx].quantity = (s.cart[idx].quantity || 0) + quantity;
           } else {
-            const price = variant?.price_minor ?? product?.price_minor ?? 0;
+            const price = getSellablePriceMinor(product, variant);
             s.cart.push({
               id: `optimistic_${variantId || productId}_${Date.now()}`,
               product_id: productId,
@@ -96,6 +97,10 @@ export const useCartStore = create(
                 slug: product?.slug,
                 image: product?.image,
                 price_minor: price,
+                base_price_minor: product?.price_minor,
+                sale_price_minor: product?.sale_price_minor,
+                sale_starts_at: product?.sale_starts_at,
+                sale_ends_at: product?.sale_ends_at,
                 rating_stars: product?.rating_stars,
                 rating_count: product?.rating_count,
               },

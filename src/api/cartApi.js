@@ -2,12 +2,19 @@
 import { supabase } from "../lib/supabaseClient";
 import { getAnalyticsSessionId, getStoredAnalyticsEvents } from "./track_events";
 import { WishlistAPI } from "./wishlistApi";
+import {
+  getEffectivePriceMinor,
+  getSellablePriceMinor,
+} from "../utils/productPricing";
 
 const RECOMMENDATION_PRODUCT_SELECT = `
   id,
   name,
   slug,
   price_minor,
+  sale_price_minor,
+  sale_starts_at,
+  sale_ends_at,
   category_id,
   brand,
   keywords,
@@ -123,7 +130,7 @@ const logScore = (value = 0, weight = 1) => Math.log(Number(value) + 1) * weight
 
 const getAveragePrice = (products = []) => {
   const prices = products
-    .map((product) => Number(product?.price_minor))
+    .map(getEffectivePriceMinor)
     .filter((price) => Number.isFinite(price) && price > 0);
 
   if (!prices.length) return null;
@@ -133,7 +140,7 @@ const getAveragePrice = (products = []) => {
 const getPriceAffinityScore = (product, averagePrice) => {
   if (!averagePrice) return 0;
 
-  const price = Number(product?.price_minor);
+  const price = getEffectivePriceMinor(product);
   if (!Number.isFinite(price) || price <= 0) return 0;
 
   const distance = Math.abs(price - averagePrice) / averagePrice;
@@ -435,6 +442,9 @@ export const CartAPI = {
           slug,
           image,
           price_minor,
+          sale_price_minor,
+          sale_starts_at,
+          sale_ends_at,
           rating_stars,
           rating_count
         )
@@ -454,7 +464,7 @@ export const CartAPI = {
     const normalized = (items || []).map((row) => {
       const variant = row.product_variants || {};
       const product = variant.products || {};
-      const unitPriceMinor = variant.price_minor ?? product.price_minor ?? 0;
+      const unitPriceMinor = getSellablePriceMinor(product, variant);
       const quantity = Math.max(Number(row.quantity) || 1, 1);
 
       return {
@@ -473,6 +483,10 @@ export const CartAPI = {
           slug: product.slug,
           image: product.image,
           price_minor: unitPriceMinor,
+          base_price_minor: product.price_minor,
+          sale_price_minor: product.sale_price_minor,
+          sale_starts_at: product.sale_starts_at,
+          sale_ends_at: product.sale_ends_at,
           rating_stars: product.rating_stars,
           rating_count: product.rating_count,
         },
@@ -544,7 +558,10 @@ export const CartAPI = {
         .from("product_variants")
         .select(`
           id, color, size, price_minor, stock_quantity,
-          products!product_variants_product_id_fkey ( id, name, slug, image, price_minor, rating_stars, rating_count )
+          products!product_variants_product_id_fkey (
+            id, name, slug, image, price_minor, sale_price_minor, sale_starts_at, sale_ends_at,
+            rating_stars, rating_count
+          )
         `)
         .in("id", variantIds)
         .eq("is_active", true)
@@ -557,7 +574,7 @@ export const CartAPI = {
     if (productIds.length > 0) {
       const { data, error } = await supabase
         .from("products")
-        .select(`id, name, slug, image, price_minor, rating_stars, rating_count`)
+        .select(`id, name, slug, image, price_minor, sale_price_minor, sale_starts_at, sale_ends_at, rating_stars, rating_count`)
         .in("id", productIds)
         .eq("is_active", true);
       if (error) throw error;
@@ -574,7 +591,7 @@ export const CartAPI = {
       } else if (item.product_id) {
         product = productsData.find((d) => d.id === item.product_id) || {};
       }
-      const unitPriceMinor = v?.price_minor ?? product.price_minor ?? 0;
+      const unitPriceMinor = getSellablePriceMinor(product, v);
       const quantity = Math.max(Number(item.quantity) || 1, 1);
       
       return {
@@ -591,6 +608,10 @@ export const CartAPI = {
           slug: product.slug,
           image: product.image,
           price_minor: unitPriceMinor,
+          base_price_minor: product.price_minor,
+          sale_price_minor: product.sale_price_minor,
+          sale_starts_at: product.sale_starts_at,
+          sale_ends_at: product.sale_ends_at,
           rating_stars: product.rating_stars,
           rating_count: product.rating_count,
         },

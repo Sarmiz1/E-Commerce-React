@@ -3,9 +3,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer } from "../context/BuyerContext";
 import { useBuyerOrders } from "../hooks/useBuyerQueries";
-import { fmtFull } from "../utils/fmt";
+import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
 import { BIcon } from "./BuyerIcon";
 import { OrderStatusBadge, OrderTimeline } from "./BuyerOverview";
+import BuyerReorderSuggestions from "./BuyerReorderSuggestions";
 
 const FILTERS = ["all", "pending", "shipped", "delivered", "cancelled"];
 
@@ -15,13 +16,13 @@ const makeReceiptText = (receipt) => [
   `Paid: ${new Date(receipt.paidAt).toLocaleString()}`,
   "",
   ...(receipt.items || []).map((item) =>
-    `${item.name}${item.variant ? ` (${item.variant})` : ""} x${item.quantity} - ${fmtFull(item.totalMinor)}`,
+    `${item.name}${item.variant ? ` (${item.variant})` : ""} x${item.quantity} - ${formatMoneyMinor(item.totalMinor)}`,
   ),
   "",
-  `Subtotal: ${fmtFull(receipt.subtotalMinor)}`,
-  `Discount: ${fmtFull(receipt.discountMinor)}`,
-  `Shipping: ${fmtFull(receipt.shippingMinor)}`,
-  `Total: ${fmtFull(receipt.totalMinor)}`,
+  `Subtotal: ${formatMoneyMinor(receipt.subtotalMinor)}`,
+  `Discount: ${formatMoneyMinor(receipt.discountMinor)}`,
+  `Shipping: ${formatMoneyMinor(receipt.shippingMinor)}`,
+  `Total: ${formatMoneyMinor(receipt.totalMinor)}`,
 ].join("\n");
 
 export default function BuyerOrders() {
@@ -69,6 +70,8 @@ export default function BuyerOrders() {
         <h2 className="text-xl font-black" style={{ color: colors.text.primary }}>My Orders</h2>
         <span className="text-xs font-bold" style={{ color: colors.text.tertiary }}>{total} orders</span>
       </div>
+
+      <BuyerReorderSuggestions />
 
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {FILTERS.map((status) => (
@@ -118,7 +121,7 @@ export default function BuyerOrders() {
                       </div>
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
                         <span className="text-xs font-mono" style={{ color: colors.text.tertiary }}>{order.order_number || order.id}</span>
-                        <span className="text-sm font-black" style={{ color: colors.text.primary }}>{fmtFull(order.total_minor)}</span>
+                        <span className="text-sm font-black" style={{ color: colors.text.primary }}>{formatMoneyMinor(order.total_minor)}</span>
                       </div>
                     </div>
                     <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
