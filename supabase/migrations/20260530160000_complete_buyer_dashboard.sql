@@ -124,7 +124,7 @@ declare
   safe_page integer := greatest(coalesce(p_page, 1), 1);
   safe_page_size integer := least(greatest(coalesce(p_page_size, 10), 1), 50);
   total_rows integer;
-  rows jsonb;
+  order_rows jsonb;
 begin
   perform private.assert_customer_session();
 
@@ -135,7 +135,7 @@ begin
     and (p_status is null or p_status = 'all' or customer_order.status = p_status);
 
   select coalesce(jsonb_agg(to_jsonb(order_row) order by order_row.created_at desc), '[]'::jsonb)
-  into rows
+  into order_rows
   from (
     select customer_order.*,
       coalesce((
@@ -161,7 +161,7 @@ begin
   ) order_row;
 
   return jsonb_build_object(
-    'items', rows,
+    'items', order_rows,
     'page', safe_page,
     'pageSize', safe_page_size,
     'total', total_rows,
@@ -254,10 +254,17 @@ begin
       ) category_row
     ), '[]'::jsonb),
     'monthly', coalesce((
-      select jsonb_agg(to_jsonb(month_row) order by month_row.month_start)
+      select jsonb_agg(
+        jsonb_build_object(
+          'monthStart', month_row.month_start,
+          'month', month_row.month_label,
+          'spend', month_row.spend
+        )
+        order by month_row.month_start
+      )
       from (
         select date_trunc('month', customer_order.created_at)::date month_start,
-          to_char(date_trunc('month', customer_order.created_at), 'Mon') month,
+          to_char(date_trunc('month', customer_order.created_at), 'Mon') month_label,
           sum(customer_order.total_minor)::integer spend
         from public.orders customer_order
         where customer_order.user_id = buyer_id
