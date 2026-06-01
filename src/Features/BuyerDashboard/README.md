@@ -22,7 +22,9 @@ sessions cannot use buyer activity endpoints.
 ## Functional Tabs
 
 - **Dashboard:** "Picked For You" recommendations add sellable variants through
-  the shared cart mutation layer.
+  the shared cart mutation layer. When personalized rows are empty, the section
+  falls back to current sellable catalog products. Smart insights fall back to
+  real account activity. Empty sources render `No available data`.
 - **Orders:** Orders are loaded ten at a time. Buy-again uses snapshotted order
   items. Receipt downloads are available only when the backend reports a paid
   order.

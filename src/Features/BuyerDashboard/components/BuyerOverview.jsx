@@ -118,6 +118,20 @@ function InsightCard({ insight, index }) {
   );
 }
 
+function NoAvailableData({ loading = false }) {
+  const { colors } = useTheme();
+  return (
+    <div
+      className="col-span-full rounded-2xl border border-dashed px-5 py-8 text-center"
+      style={{ borderColor: colors.border.default, background: colors.surface.elevated }}
+    >
+      <p className="text-sm font-bold" style={{ color: colors.text.tertiary }}>
+        {loading ? 'Loading available data...' : 'No available data'}
+      </p>
+    </div>
+  );
+}
+
 // ─── Recommendation Card ─────────────────────────────────────────────────────
 function RecCard({ item, index }) {
   const { colors, isDark } = useTheme();
@@ -184,7 +198,7 @@ function RecCard({ item, index }) {
 // ─── Overview ─────────────────────────────────────────────────────────────────
 export default function BuyerOverview() {
   const { colors, isDark } = useTheme();
-  const { profile, setPage, stats, snapshot, orders, recommendations, insights } = useBuyer();
+  const { profile, setPage, stats, snapshot, orders, recommendations, insights, recommendationsLoading } = useBuyer();
   const activeOrders = (orders || []).filter(o => o.status === 'shipped' || o.status === 'pending');
 
   return (
@@ -267,7 +281,9 @@ export default function BuyerOverview() {
           <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: colors.text.tertiary }}>Smart Insights</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {(insights || []).map((ins, i) => <InsightCard key={i} insight={ins} index={i} />)}
+          {(insights || []).length > 0
+            ? insights.map((ins, i) => <InsightCard key={ins.id || i} insight={ins} index={i} />)
+            : <NoAvailableData loading={recommendationsLoading} />}
         </div>
       </div>
 
@@ -324,7 +340,9 @@ export default function BuyerOverview() {
           <button className="text-xs font-semibold" style={{ color: '#667eea' }}>Based on your taste & size →</button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {(recommendations || []).map((r, i) => <RecCard key={r.id} item={r} index={i} />)}
+          {(recommendations || []).length > 0
+            ? recommendations.map((r, i) => <RecCard key={r.id || i} item={r} index={i} />)
+            : <NoAvailableData loading={recommendationsLoading} />}
         </div>
       </div>
     </div>

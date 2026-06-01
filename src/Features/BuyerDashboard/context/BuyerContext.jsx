@@ -160,7 +160,7 @@ export function BuyerProvider({ children }) {
   });
   const addresses = asArray(data.addresses).map(asRecord);
   const payments = asArray(data.payment_methods).map(asRecord);
-  const insights = asArray(data.insights).map(insight => {
+  const backendInsights = asArray(data.insights).map(insight => {
     const safeInsight = asRecord(insight);
     return {
       ...safeInsight,
@@ -188,20 +188,38 @@ export function BuyerProvider({ children }) {
 
   // ── Global Wishlist Sync ───────────────────────────────────────────────────
   const { productIds, wishlistCount } = useWishlist();
-  const { data: allProducts = [] } = useAllProducts();
+  const { data: allProducts = [], isLoading: productsLoading } = useAllProducts();
   const safeProductIds = asArray(productIds);
   const safeProducts = asArray(allProducts).map(asRecord);
   const productsById = new Map(safeProducts.map(product => [product.id, product]));
-  const liveRecommendations = recommendations.map(recommendation => {
-    const catalogProduct = productsById.get(recommendation.id) || {};
-    return {
-      ...recommendation,
-      ...catalogProduct,
-      products: { ...recommendation.products, ...catalogProduct },
-      name: catalogProduct.name || recommendation.name,
-      price: asNumber(catalogProduct.sale_price_minor ?? catalogProduct.price_minor ?? recommendation.price),
-    };
-  });
+  const personalizedRecommendations = recommendations
+    .map(recommendation => {
+      const catalogProduct = productsById.get(
+        recommendation.products?.id || recommendation.product_id || recommendation.id,
+      ) || {};
+      return {
+        ...recommendation,
+        ...catalogProduct,
+        products: { ...recommendation.products, ...catalogProduct },
+        name: catalogProduct.name || recommendation.name,
+        price: asNumber(catalogProduct.sale_price_minor ?? catalogProduct.price_minor ?? recommendation.price),
+        budgetFit: recommendation.budgetFit ?? recommendation.budget_fit ?? false,
+      };
+    })
+    .filter(recommendation => getSellableVariant(recommendation));
+  const catalogRecommendations = safeProducts.slice(0, 5).map(product => ({
+    ...product,
+    products: product,
+    name: product.name || 'Available product',
+    category: product.category?.name || product.category || 'Other',
+    price: asNumber(product.sale_price_minor ?? product.price_minor),
+    image: product.image || '',
+    reason: product.ai_summary || 'Available now from the live catalog.',
+    budgetFit: false,
+  }));
+  const liveRecommendations = personalizedRecommendations.length
+    ? personalizedRecommendations
+    : catalogRecommendations;
 
   const liveWishlist = (() => {
     const positionById = new Map(safeProductIds.map((id, index) => [id, index]));
@@ -281,6 +299,33 @@ export function BuyerProvider({ children }) {
     savedAmount: asNumber(totals?.discount),
   };
   const snapshot = { processing, shipped, delivered, cancelled };
+  const activityInsights = [
+    delivered > 0 && {
+      color: '#059669',
+      icon: 'check',
+      text: `${delivered} delivered ${delivered === 1 ? 'order' : 'orders'}`,
+      sub: 'Based on your order history',
+    },
+    asNumber(wishlistCount) > 0 && {
+      color: '#ec4899',
+      icon: 'heart',
+      text: `${asNumber(wishlistCount)} saved ${asNumber(wishlistCount) === 1 ? 'product' : 'products'}`,
+      sub: 'From your current wishlist',
+    },
+    unreadCount > 0 && {
+      color: '#f59e0b',
+      icon: 'bell',
+      text: `${unreadCount} unread ${unreadCount === 1 ? 'notification' : 'notifications'}`,
+      sub: 'Review your latest updates',
+    },
+    liveRecommendations.length > 0 && {
+      color: '#667eea',
+      icon: 'sparkle',
+      text: `${liveRecommendations.length} available ${liveRecommendations.length === 1 ? 'pick' : 'picks'} for you`,
+      sub: 'From the live sellable catalog',
+    },
+  ].filter(Boolean);
+  const liveInsights = backendInsights.length ? backendInsights : activityInsights;
 
   const spendingCategories = asArray(asRecord(spendingData).categories);
   const totalCategorySpend = spendingCategories.reduce(
@@ -425,7 +470,8 @@ export function BuyerProvider({ children }) {
     
     // Misc dynamic data
     recommendations: liveRecommendations,
-    insights,
+    insights: liveInsights,
+    recommendationsLoading: isLoading || productsLoading,
     reorders,
     spending,
     payments,
