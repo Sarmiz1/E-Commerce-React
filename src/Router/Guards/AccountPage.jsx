@@ -1,8 +1,11 @@
 import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { ErrorBoundary } from "react-error-boundary";
 import { useAuth } from "../../Store/useAuthStore";
 import { DashboardSkeleton } from "../../Components/Fallback";
+import PageErrorFallback from "../../Components/PageErrorFallback";
+import BuyerDashboardFallback from "../../Features/BuyerDashboard/Components/BuyerDashboardFallback";
 import { accountApi } from "../../api/accountApi";
 
 // React.lazy expects the promise to resolve to an object with a "default" property
@@ -11,7 +14,7 @@ const SellerDashboard = lazy(() => import("../../Features/SellerDashboard/Seller
 
 export const AccountPage = () => {
   const { user } = useAuth();
-  const { data: role, isLoading } = useQuery({
+  const { data: role, isLoading, error, refetch } = useQuery({
     queryKey: ["account-role", user?.id],
     queryFn: () => accountApi.getRole(user.id),
     enabled: Boolean(user?.id),
@@ -23,6 +26,17 @@ export const AccountPage = () => {
 
   if (isLoading) {
     return <DashboardSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <PageErrorFallback
+        error={error}
+        onRetry={() => refetch()}
+        title="Account details unavailable"
+        message="We could not confirm your account details. Check your connection and try again."
+      />
+    );
   }
 
   if (!role) {
@@ -39,9 +53,14 @@ export const AccountPage = () => {
 
   if (role === "buyer") {
     return (
-      <Suspense fallback={<DashboardSkeleton />}>
-        <BuyerDashboard />
-      </Suspense>
+      <ErrorBoundary
+        FallbackComponent={BuyerDashboardFallback}
+        onReset={() => window.location.reload()}
+      >
+        <Suspense fallback={<DashboardSkeleton />}>
+          <BuyerDashboard />
+        </Suspense>
+      </ErrorBoundary>
     );
   }
 

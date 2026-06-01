@@ -1,7 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useTheme } from "../../Store/useThemeStore";
 import { BuyerProvider, useBuyer } from './context/BuyerContext';
+import PageErrorFallback from '../../Components/PageErrorFallback';
+import BuyerDashboardFallback from './Components/BuyerDashboardFallback';
 import BuyerSidebar from './Components/BuyerSidebar';
 import BuyerTopbar from './Components/BuyerTopbar';
 import BuyerOverview from './Components/BuyerOverview';
@@ -96,7 +99,7 @@ function FloatingAI() {
 // ─── Inner shell ──────────────────────────────────────────────────────────────
 function BuyerDashboardInner() {
   const { colors } = useTheme();
-  const { page, sidebarOpen, setSidebarOpen } = useBuyer();
+  const { page, sidebarOpen, setSidebarOpen, loadError, refresh, refreshing } = useBuyer();
   const renderPage = PAGES[page] ?? PAGES.overview;
 
   return (
@@ -107,6 +110,25 @@ function BuyerDashboardInner() {
         <BuyerTopbar />
 
         <main className="flex-1 p-5 lg:p-8 overflow-y-auto">
+          {loadError && (
+            <div
+              className="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              role="status"
+            >
+              <p className="text-sm font-semibold text-amber-900">
+                Some dashboard data could not be loaded. You can keep browsing or retry the sync.
+              </p>
+              <button
+                type="button"
+                onClick={() => refresh()}
+                disabled={refreshing}
+                className="self-start rounded-xl bg-amber-900 px-3 py-2 text-xs font-bold text-white transition hover:bg-amber-800 disabled:cursor-wait disabled:opacity-60 sm:self-auto"
+              >
+                {refreshing ? 'Retrying...' : 'Retry sync'}
+              </button>
+            </div>
+          )}
+
           <AnimatePresence mode="wait">
             <motion.div
               key={page}
@@ -114,7 +136,20 @@ function BuyerDashboardInner() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}>
-              {renderPage()}
+              <ErrorBoundary
+                FallbackComponent={(props) => (
+                  <PageErrorFallback
+                    {...props}
+                    compact
+                    showHome={false}
+                    title="This dashboard section could not load"
+                    message="The rest of your dashboard is still available. Try this section again or choose another one from the menu."
+                  />
+                )}
+                resetKeys={[page]}
+              >
+                {renderPage()}
+              </ErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </main>
@@ -160,8 +195,13 @@ function BuyerDashboardInner() {
 // ─── Root export ──────────────────────────────────────────────────────────────
 export default function BuyerDashboard() {
   return (
-    <BuyerProvider>
-      <BuyerDashboardInner />
-    </BuyerProvider>
+    <ErrorBoundary
+      FallbackComponent={BuyerDashboardFallback}
+      onReset={() => window.location.reload()}
+    >
+      <BuyerProvider>
+        <BuyerDashboardInner />
+      </BuyerProvider>
+    </ErrorBoundary>
   );
 }

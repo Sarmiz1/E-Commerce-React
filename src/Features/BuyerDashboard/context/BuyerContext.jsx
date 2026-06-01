@@ -10,8 +10,9 @@
  * via a single useBuyer() hook for backward-compatibility with
  * all existing child components.
  */
-import { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext, useCallback, useMemo } from 'react';
 import { useToast } from '../../../Store/useToastStore';
+import { useAuth } from '../../../Store/useAuthStore';
 import { useBuyerUIStore } from '../store/useBuyerUIStore';
 import {
   useBuyerDashboard,
@@ -23,12 +24,38 @@ import {
   useDeleteAddress,
 } from '../hooks/useBuyerQueries';
 import { useCart } from '../../../Store/cartContext';
-import { useAuth } from '../../../context/auth/AuthContext';
 import { useWishlist } from '../../../hooks/useWishlist';
 import { useAllProducts } from '../../../hooks/product/useProducts';
-import { useMemo } from 'react';
 
 const BuyerCtx = createContext(null);
+const EMPTY_WALLET = {
+  balance: 0,
+  totalFunded: 0,
+  totalWithdrawn: 0,
+  totalSpent: 0,
+  transactions: [],
+};
+const EMPTY_AI_CREDITS = {
+  balance: 0,
+  totalPurchased: 0,
+  totalUsed: 0,
+  history: [],
+};
+
+const asArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
+const asRecord = (value) => (
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+);
+const asNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+};
+const formatOrderDate = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? ''
+    : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
 
 export const BUYER_NAV = [
   { id: 'overview',     label: 'Dashboard',       icon: 'layout' },
@@ -64,33 +91,62 @@ export function BuyerProvider({ children }) {
   } = useCart();
 
   // ── Server data from TanStack Query (BFF Pattern) ───────────────────────────
-  const { data: dbData, isLoading } = useBuyerDashboard();
+  const {
+    data: dbData,
+    isLoading,
+    isFetching,
+    error: dashboardError,
+    refetch,
+  } = useBuyerDashboard();
   
-  const data = dbData || {};
-  const orders = (data.orders || []).map(o => ({
-    ...o,
-    amount: o.total_minor || 0,
-    date: new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }));
-  const reviews = data.reviews || [];
-  const notifs = data.notifications || [];
-  const addresses = data.addresses || [];
-  const payments = data.payment_methods || [];
-  const insights = data.insights || [];
-  const recommendations = (data.recommendations || []).map(r => ({
-    ...r,
-    ...r.products,
-    price: r.products?.price_minor || 0,
-    image: r.products?.image || r.image
-  }));
+  const data = asRecord(dbData);
+  const orders = asArray(data.orders).map(order => {
+    const safeOrder = asRecord(order);
+    return {
+      ...safeOrder,
+      amount: asNumber(safeOrder.total_minor),
+      date: formatOrderDate(safeOrder.created_at),
+    };
+  });
+  const reviews = asArray(data.reviews).map(asRecord);
+  const notifs = asArray(data.notifications).map(asRecord);
+  const addresses = asArray(data.addresses).map(asRecord);
+  const payments = asArray(data.payment_methods).map(asRecord);
+  const insights = asArray(data.insights).map(insight => {
+    const safeInsight = asRecord(insight);
+    return {
+      ...safeInsight,
+      color: safeInsight.color || '#667eea',
+      icon: safeInsight.icon || 'sparkle',
+      text: safeInsight.text || 'New shopping insight',
+      sub: safeInsight.sub || '',
+    };
+  });
+
+  const recommendations = asArray(data.recommendations).map(recommendation => {
+    const safeRecommendation = asRecord(recommendation);
+    const product = asRecord(safeRecommendation.products);
+
+    return {
+      ...safeRecommendation,
+      ...product,
+      products: product,
+      name: product.name || safeRecommendation.name || 'Recommended product',
+      category: product.category || safeRecommendation.category || 'Other',
+      price: asNumber(product.price_minor ?? safeRecommendation.price_minor ?? safeRecommendation.price),
+      image: product.image || safeRecommendation.image || '',
+    }}
+  );
 
   // ── Global Wishlist Sync ───────────────────────────────────────────────────
   const { productIds, wishlistCount } = useWishlist();
   const { data: allProducts = [] } = useAllProducts();
+  const safeProductIds = asArray(productIds);
+  const safeProducts = asArray(allProducts).map(asRecord);
 
   const liveWishlist = useMemo(() => {
-    const positionById = new Map(productIds.map((id, index) => [id, index]));
-    return allProducts
+    const positionById = new Map(safeProductIds.map((id, index) => [id, index]));
+    return safeProducts
       .filter(p => positionById.has(p.id))
       .map(p => ({
         id: p.id,
@@ -105,27 +161,45 @@ export function BuyerProvider({ children }) {
         stock: p.stock_quantity || 0
       }))
       .sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
-  }, [allProducts, productIds]);
+  }, [safeProducts, safeProductIds]);
   
-  const rawName = user?.user_metadata?.full_name || data.profile?.full_name || user?.user_metadata?.name || 'Buyer';
+  const dataProfile = asRecord(data.profile);
+  const nameCandidate = user?.user_metadata?.full_name || dataProfile.full_name || user?.user_metadata?.name;
+  const rawName = typeof nameCandidate === 'string' && nameCandidate.trim()
+    ? nameCandidate.trim()
+    : 'Buyer';
   // Strip numbers and pick first word for the greeting
   const firstName = rawName.split(' ')[0].replace(/[0-9]/g, '') || 'Buyer';
 
   const profile = {
-    ...data.profile,
+    ...dataProfile,
     full_name: rawName,
     firstName: firstName,
-    email: user?.email || data.profile?.email,
-    phone: user?.phone || data.profile?.phone
+    email: user?.email || dataProfile.email || '',
+    phone: user?.phone || dataProfile.phone || '',
   };
-  const wallet = data.wallet || { balance: 0, totalFunded: 0, totalWithdrawn: 0, totalSpent: 0, transactions: [] };
-  const aiCredits = data.ai_credits || { balance: 0, totalPurchased: 0, totalUsed: 0, history: [] };
+  const walletData = asRecord(data.wallet);
+  const wallet = {
+    ...EMPTY_WALLET,
+    ...walletData,
+    balance: asNumber(walletData.balance),
+    transactions: asArray(walletData.transactions).map(asRecord),
+  };
+  const aiCreditsData = asRecord(data.ai_credits);
+  const aiCredits = {
+    ...EMPTY_AI_CREDITS,
+    ...aiCreditsData,
+    balance: asNumber(aiCreditsData.balance),
+    totalPurchased: asNumber(aiCreditsData.totalPurchased),
+    totalUsed: asNumber(aiCreditsData.totalUsed),
+    history: asArray(aiCreditsData.history).map(asRecord),
+  };
 
   // Use global cart from useCart hook
   const activeCart = cart;
 
   // Compute stats on the fly
-  const totalSpentCents = orders.reduce((s, o) => s + (o.total_minor || 0), 0);
+  const totalSpentCents = orders.reduce((s, o) => s + asNumber(o.total_minor), 0);
   const delivered  = orders.filter((o) => o.status === 'delivered').length;
   const processing = orders.filter((o) => ['processing', 'pending'].includes(o.status)).length;
   const shipped    = orders.filter((o) => o.status === 'shipped').length;
@@ -134,10 +208,10 @@ export function BuyerProvider({ children }) {
 
   const stats = {
     totalOrders: orders.length,
-    wishlistItems: wishlistCount,
+    wishlistItems: asNumber(wishlistCount),
     totalSpent: totalSpentCents,
-    rewardPoints: profile.reward_points || 0,
-    savedAmount: totals.discount || 0,
+    rewardPoints: asNumber(profile.reward_points),
+    savedAmount: asNumber(totals?.discount),
   };
   const snapshot = { processing, shipped, delivered, cancelled };
 
@@ -174,7 +248,16 @@ export function BuyerProvider({ children }) {
     return { success: false, error };
   }, [addToast]);
 
-  const cartTotal = totals.total;
+  const cartTotal = asNumber(totals?.total);
+  const safeCart = asArray(activeCart).map(item => {
+    const safeItem = asRecord(item);
+    const product = asRecord(safeItem.product || safeItem.products);
+    return {
+      ...safeItem,
+      name: safeItem.name || product.name || 'Cart item',
+      price: asNumber(safeItem.price ?? product.price_minor),
+    };
+  });
 
   const value = {
     // UI
@@ -182,6 +265,8 @@ export function BuyerProvider({ children }) {
     sidebarOpen, setSidebarOpen, toggleSidebar,
     collapsed, setCollapsed, toggleCollapsed,
     loading: isLoading,
+    refreshing: isFetching,
+    loadError: dashboardError,
     
     // Server data mapping
     profile,
@@ -189,7 +274,7 @@ export function BuyerProvider({ children }) {
     stats, snapshot, unreadCount,
     
     // Mutations
-    addToWishlist: (product) => addToWishlistMut.mutate(product.id),
+    addToWishlist: (product) => product?.id && addToWishlistMut.mutate(product.id),
     removeFromWishlist: (id) => removeFromWishlistMut.mutate(id),
     submitReview: (orderId, productName, rating, comment, productId) =>
       submitReviewMut.mutateAsync({ orderId, productId, rating, comment }),
@@ -210,8 +295,8 @@ export function BuyerProvider({ children }) {
     buyCredits,
     
     // Cart
-    cart: (activeCart || []).map(i => ({ ...i, price: i.price || 0 })), 
-    cartTotal: cartTotal || 0,
+    cart: safeCart,
+    cartTotal,
     removeFromCart, 
     updateCartQty,
     
@@ -221,7 +306,7 @@ export function BuyerProvider({ children }) {
     reorders: [], // Computed from orders if needed
     spending,
     payments,
-    refresh: () => {}, // no-op
+    refresh: refetch,
   };
 
   return <BuyerCtx.Provider value={value}>{children}</BuyerCtx.Provider>;
