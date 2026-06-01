@@ -370,8 +370,9 @@ export function BuyerProvider({ children }) {
   const rawName = typeof nameCandidate === 'string' && nameCandidate.trim()
     ? nameCandidate.trim()
     : 'Buyer';
-  // Strip numbers and pick first word for the greeting
-  const firstName = rawName.trim().split(/\s+/)[0].replace(/[0-9]/g, '') || 'Buyer';
+  // Prefer the canonical first name returned by the account RPC. Fall back for legacy payloads.
+  const firstNameCandidate = accountProfile.first_name || rawName;
+  const firstName = firstNameCandidate.trim().split(/\s+/)[0].replace(/[0-9]/g, '') || 'Buyer';
 
   const profile = {
     ...dataProfile,

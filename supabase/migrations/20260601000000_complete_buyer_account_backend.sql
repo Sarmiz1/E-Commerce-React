@@ -1362,7 +1362,12 @@ begin
   return (
     select jsonb_build_object(
       'profile', jsonb_build_object(
-        'full_name', coalesce(buyer_profile.full_name, profile.full_name, ''),
+        'full_name', coalesce(nullif(trim(profile.full_name), ''), nullif(trim(buyer_profile.full_name), ''), ''),
+        'first_name', split_part(
+          coalesce(nullif(trim(profile.full_name), ''), nullif(trim(buyer_profile.full_name), ''), 'Buyer'),
+          ' ',
+          1
+        ),
         'email', coalesce(auth_user.email, ''),
         'phone', coalesce((
           select phone.phone_number
