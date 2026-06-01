@@ -15,7 +15,7 @@ function AnimBar({ pct, color, delay = 0 }) {
   );
 }
 
-const CAT_COLORS = ['#667eea', '#ec4899', '#f59e0b', '#10b981'];
+const CAT_COLORS = ['#667eea', '#ec4899', '#f59e0b', '#10b981', '#8b5cf6', '#06b6d4'];
 
 export default function BuyerAnalytics() {
   const { colors, isDark } = useTheme();
@@ -27,6 +27,8 @@ export default function BuyerAnalytics() {
   const monthly    = SPENDING_DATA.monthly    || [];
   const totalSpend = categories.reduce((s, c) => s + c.spend, 0);
   const barMax     = monthly.length ? Math.max(...monthly.map(m => m.spend)) : 1;
+  const topCategory = categories[0]?.label;
+  const peakMonth = monthly.reduce((peak, month) => month.spend > (peak?.spend || 0) ? month : peak, null);
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -34,7 +36,9 @@ export default function BuyerAnalytics() {
         <h2 className="text-xl font-black" style={{ color: colors.text.primary }}>Spending Analytics</h2>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-sm">✦</span>
-          <p className="text-sm" style={{ color: '#667eea' }}>You spend mostly on fashion & footwear</p>
+          <p className="text-sm" style={{ color: '#667eea' }}>
+            {topCategory ? `Your highest spend is currently ${topCategory}.` : 'Paid orders will appear here as spending data.'}
+          </p>
         </div>
       </div>
 
@@ -58,19 +62,19 @@ export default function BuyerAnalytics() {
               className="cursor-pointer" onClick={() => setActive(active === c.label ? null : c.label)}>
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: CAT_COLORS[i] }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: CAT_COLORS[i % CAT_COLORS.length] }} />
                   <span className="text-sm font-semibold" style={{ color: colors.text.primary }}>{c.label}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-black" style={{ color: CAT_COLORS[i] }}>{c.pct}%</span>
+                  <span className="text-sm font-black" style={{ color: CAT_COLORS[i % CAT_COLORS.length] }}>{c.pct}%</span>
                   <span className="text-xs" style={{ color: colors.text.tertiary }}>{fmtFull(c.spend)}</span>
                 </div>
               </div>
-              <AnimBar pct={c.pct} color={CAT_COLORS[i]} delay={i * 0.1 + 0.1} />
+              <AnimBar pct={c.pct} color={CAT_COLORS[i % CAT_COLORS.length]} delay={i * 0.1 + 0.1} />
               <AnimatePresence>
                 {active === c.label && (
                   <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                    className="text-xs mt-1.5 font-semibold" style={{ color: CAT_COLORS[i] }}>
+                    className="text-xs mt-1.5 font-semibold" style={{ color: CAT_COLORS[i % CAT_COLORS.length] }}>
                     {fmtFull(c.spend)} spent on {c.label.toLowerCase()} items total.
                   </motion.p>
                 )}
@@ -105,7 +109,7 @@ export default function BuyerAnalytics() {
           })}
         </div>
         <p className="text-xs mt-4 text-center font-semibold" style={{ color: '#667eea' }}>
-          ✦ AI: Your spending peaked in December. You're on a healthy trend this month.
+          {peakMonth ? `Your highest recorded month is ${peakMonth.month} at ${fmtFull(peakMonth.spend)}.` : 'Complete a paid order to start your spending history.'}
         </p>
       </motion.div>
     </div>

@@ -33,7 +33,6 @@ export function BuyerReviews() {
 
       <div className="space-y-4">
         {reviews.map((r, i) => {
-          const hovered = ratings[r.id] || r.rating;
           const isLoading = submitted[r.id] === 'loading';
           const isDone = r.submitted;
 
@@ -107,7 +106,7 @@ const NOTIF_META = {
 
 export function BuyerNotifications() {
   const { colors, isDark } = useTheme();
-  const { notifs: liveNotifs, markAllNotifsRead } = useBuyer();
+  const { notifs: liveNotifs, markAllNotifsRead, markNotifRead, dismissNotif } = useBuyer();
   const [notifs, setNotifs] = useState(null);
   const allNotifs = notifs ?? liveNotifs ?? [];
 
@@ -115,8 +114,14 @@ export function BuyerNotifications() {
     setNotifs(n => (n ?? liveNotifs ?? []).map(no => ({ ...no, unread: false })));
     await markAllNotifsRead();
   };
-  const dismiss = (id) => setNotifs(n => (n ?? liveNotifs ?? []).filter(no => no.id !== id));
-  const markRead = (id) => setNotifs(n => (n ?? liveNotifs ?? []).map(no => no.id === id ? { ...no, unread: false } : no));
+  const dismiss = async (id) => {
+    setNotifs(n => (n ?? liveNotifs ?? []).filter(no => no.id !== id));
+    await dismissNotif(id);
+  };
+  const markRead = async (id) => {
+    setNotifs(n => (n ?? liveNotifs ?? []).map(no => no.id === id ? { ...no, unread: false } : no));
+    await markNotifRead(id);
+  };
 
   const unread = allNotifs.filter(n => n.unread).length;
 

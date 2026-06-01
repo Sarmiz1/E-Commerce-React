@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, animate, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer } from '../context/BuyerContext';
-import { fmtFull, fmtNaira, getGreeting } from '../utils/fmt';
+import { fmtFull, getGreeting } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
 
 // ─── CountUp ──────────────────────────────────────────────────────────────────
@@ -15,13 +15,12 @@ function CountUp({ to, duration = 1.2, prefix = '', suffix = '' }) {
       onUpdate(v) { if (ref.current) ref.current.textContent = prefix + Math.round(v).toLocaleString() + suffix; },
     });
     return () => ctrl.stop();
-  }, [to]);
+  }, [duration, prefix, suffix, to]);
   return <span ref={ref}>{prefix}0{suffix}</span>;
 }
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 export function OrderStatusBadge({ status }) {
-  const { colors } = useTheme();
   const MAP = {
     pending:   { label: 'Pending',   bg: 'rgba(245,158,11,0.1)',  color: '#f59e0b' },
     shipped:   { label: 'Shipped',   bg: 'rgba(102,126,234,0.1)', color: '#667eea' },
@@ -81,7 +80,7 @@ export function OrderTimeline({ steps = [], currentStep }) {
 
 // ─── Quick stat card ─────────────────────────────────────────────────────────
 function StatCard({ label, value, icon, suffix = '', prefix = '', color, delay = 0 }) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.45 }}
       whileHover={{ y: -3 }}
@@ -122,8 +121,18 @@ function InsightCard({ insight, index }) {
 // ─── Recommendation Card ─────────────────────────────────────────────────────
 function RecCard({ item, index }) {
   const { colors, isDark } = useTheme();
+  const { addProductsToCart } = useBuyer();
   const [added, setAdded] = useState(false);
+  const [adding, setAdding] = useState(false);
   const hue = item.name.charCodeAt(0) * 7 % 360;
+  const addToCart = async () => {
+    setAdding(true);
+    const result = await addProductsToCart(item);
+    setAdding(false);
+    if (!result?.success) return;
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + index * 0.08 }}
@@ -157,13 +166,14 @@ function RecCard({ item, index }) {
         <div className="flex items-center justify-between mt-auto pt-2">
           <p className="font-black text-base" style={{ color: colors.text.primary }}>{fmtFull(item.price)}</p>
           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.92 }}
-            onClick={() => { setAdded(true); setTimeout(() => setAdded(false), 1800); }}
+            onClick={addToCart}
+            disabled={adding}
             className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl"
             style={{
               background: added ? 'rgba(5,150,105,0.12)' : 'linear-gradient(135deg, #667eea, #764ba2)',
               color: added ? '#059669' : '#fff',
             }}>
-            {added ? <><BIcon name="check" size={12} /> Added!</> : <><BIcon name="cart" size={12} /> Quick Add</>}
+            {adding ? 'Adding...' : added ? <><BIcon name="check" size={12} /> Added!</> : <><BIcon name="cart" size={12} /> Quick Add</>}
           </motion.button>
         </div>
       </div>

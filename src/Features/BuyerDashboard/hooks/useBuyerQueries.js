@@ -10,6 +10,10 @@ import { buyerApi } from '../api/buyerApi';
 // ── Query key factory ─────────────────────────────────────────────────────────
 export const buyerKeys = {
   dashboard: (userId) => ['buyer', 'dashboard', userId],
+  orders: (userId, page, status, pageSize) => ['buyer', 'orders', userId, page, status, pageSize],
+  spending: (userId) => ['buyer', 'spending', userId],
+  reorders: (userId) => ['buyer', 'reorders', userId],
+  wishlistAlerts: (userId) => ['buyer', 'wishlist-alerts', userId],
 };
 
 const QUERY_DEFAULTS = {
@@ -30,6 +34,47 @@ export function useBuyerDashboard() {
       if (error) throw error;
       return data;
     },
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useBuyerOrders(page, status = 'all', pageSize = 10) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.orders(user?.id, page, status, pageSize),
+    queryFn: () => buyerApi.getOrders({ page, pageSize, status }),
+    enabled: !!user?.id,
+    placeholderData: (previousData) => previousData,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useBuyerSpending() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.spending(user?.id),
+    queryFn: () => buyerApi.getSpending(),
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useBuyerReorders() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.reorders(user?.id),
+    queryFn: () => buyerApi.getReorders(),
+    enabled: !!user?.id,
+    ...QUERY_DEFAULTS,
+  });
+}
+
+export function useWishlistAlerts() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: buyerKeys.wishlistAlerts(user?.id),
+    queryFn: () => buyerApi.getWishlistAlerts(user.id),
     enabled: !!user?.id,
     ...QUERY_DEFAULTS,
   });
@@ -90,6 +135,50 @@ export function useMarkNotifsRead() {
     mutationFn: () => buyerApi.markAllNotifsRead(user.id),
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) }),
+  });
+}
+
+export function useMarkNotifRead() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => buyerApi.markNotificationRead(id),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) }),
+  });
+}
+
+export function useDismissNotif() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => buyerApi.dismissNotification(id),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) }),
+  });
+}
+
+export function useSetWishlistAlert() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: ({ productId, alertType, enabled, targetPriceMinor }) =>
+      buyerApi.setWishlistAlert({
+        userId: user.id,
+        productId,
+        alertType,
+        enabled,
+        targetPriceMinor,
+      }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: buyerKeys.wishlistAlerts(user?.id) });
+      addToast(
+        variables.enabled ? 'Product alert enabled.' : 'Product alert disabled.',
+        'info',
+      );
+    },
+    onError: (err) => addToast(err.message || 'Failed to update alert', 'error'),
   });
 }
 

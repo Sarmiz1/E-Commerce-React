@@ -36,7 +36,6 @@ const PAGES = {
 
 // ─── Floating AI Button ────────────────────────────────────────────────────────
 function FloatingAI() {
-  const { colors } = useTheme();
   const { page, setPage } = useBuyer();
   const [tooltip, setTooltip] = useState(false);
 
@@ -96,6 +95,18 @@ function FloatingAI() {
   );
 }
 
+function BuyerSectionFallback(props) {
+  return (
+    <PageErrorFallback
+      {...props}
+      compact
+      showHome={false}
+      title="This dashboard section could not load"
+      message="The rest of your dashboard is still available. Try this section again or choose another one from the menu."
+    />
+  );
+}
+
 // ─── Inner shell ──────────────────────────────────────────────────────────────
 function BuyerDashboardInner() {
   const { colors } = useTheme();
@@ -137,15 +148,7 @@ function BuyerDashboardInner() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}>
               <ErrorBoundary
-                FallbackComponent={(props) => (
-                  <PageErrorFallback
-                    {...props}
-                    compact
-                    showHome={false}
-                    title="This dashboard section could not load"
-                    message="The rest of your dashboard is still available. Try this section again or choose another one from the menu."
-                  />
-                )}
+                FallbackComponent={BuyerSectionFallback}
                 resetKeys={[page]}
               >
                 {renderPage()}

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
-import { useAuth } from '../../../Store/useAuthStore';
 import { useLogout } from '../../../hooks/auth/useLogout';
 import { BIcon } from './BuyerIcon';
 import { fmtFull } from '../utils/fmt';
@@ -10,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function BuyerTopbar() {
   const { colors, isDark, toggle } = useTheme();
-  const { page, setPage, setSidebarOpen, notifs, unreadCount, cart, cartTotal, removeFromCart, profile } = useBuyer();
+  const { page, setPage, setSidebarOpen, notifs, unreadCount, cart, cartTotal, removeFromCart, updateCartQty, markNotifRead, profile } = useBuyer();
 
   const navigate = useNavigate();
 
@@ -127,7 +126,13 @@ export default function BuyerTopbar() {
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-xs font-bold" style={{ color: '#667eea' }}>{fmtFull(item.price)}</span>
                               {item.size && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: isDark ? 'rgba(102,126,234,0.1)' : '#EEF2FF', color: '#667eea' }}>{item.size}</span>}
-                              <span className="text-[10px]" style={{ color: colors.text.tertiary }}>×{item.qty}</span>
+                              <button type="button" onClick={() => item.quantity > 1 && updateCartQty(item.id, item.quantity - 1)}
+                                className="w-5 h-5 rounded flex items-center justify-center text-xs font-black"
+                                style={{ background: colors.surface.tertiary, color: colors.text.secondary }}>-</button>
+                              <span className="text-[10px] font-bold" style={{ color: colors.text.tertiary }}>{item.quantity}</span>
+                              <button type="button" onClick={() => updateCartQty(item.id, item.quantity + 1)}
+                                className="w-5 h-5 rounded flex items-center justify-center text-xs font-black"
+                                style={{ background: colors.surface.tertiary, color: colors.text.secondary }}>+</button>
                             </div>
                           </div>
                           <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
@@ -199,12 +204,16 @@ export default function BuyerTopbar() {
                   <span className="font-bold text-sm" style={{ color: colors.text.primary }}>Notifications</span>
                   <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>{unread} new</span>
                 </div>
-                {BUYER_NOTIFICATIONS.slice(0, 4).map(n => (
-                  <div key={n.id} className="px-4 py-3 flex items-start gap-3 hover:opacity-80 transition-opacity"
+                {BUYER_NOTIFICATIONS.slice(0, 4).map(n => {
+                  const notificationColor = NOTIF_COLOR[n.type] || '#667eea';
+                  return (
+                  <button type="button" key={n.id}
+                    onClick={() => { markNotifRead(n.id); setNotifOpen(false); setPage('notifs'); }}
+                    className="w-full text-left px-4 py-3 flex items-start gap-3 hover:opacity-80 transition-opacity"
                     style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ background: `${NOTIF_COLOR[n.type]}15` }}>
-                      <BIcon name={n.type === 'shipping' ? 'truck' : n.type === 'deal' ? 'save' : n.type === 'stock' ? 'bell' : n.type === 'delivered' ? 'check' : 'sparkle'} size={14} style={{ color: NOTIF_COLOR[n.type] }} />
+                      style={{ background: `${notificationColor}15` }}>
+                      <BIcon name={n.type === 'shipping' ? 'truck' : n.type === 'deal' ? 'save' : n.type === 'stock' ? 'bell' : n.type === 'delivered' ? 'check' : 'sparkle'} size={14} style={{ color: notificationColor }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm leading-tight" style={{ color: colors.text.primary, fontWeight: n.unread ? 600 : 400 }}>{n.title}</p>
@@ -212,8 +221,8 @@ export default function BuyerTopbar() {
                       <p className="text-[10px] mt-0.5" style={{ color: colors.text.tertiary }}>{n.time}</p>
                     </div>
                     {n.unread && <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: '#667eea' }} />}
-                  </div>
-                ))}
+                  </button>
+                )})}
               </motion.div>
             )}
           </AnimatePresence>

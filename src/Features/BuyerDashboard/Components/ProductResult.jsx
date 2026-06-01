@@ -3,10 +3,13 @@ import { motion } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
+import { useBuyer } from '../context/BuyerContext';
 
 export function ProductResult({ item, delay }) {
   const { colors, isDark } = useTheme();
+  const { addProductsToCart } = useBuyer();
   const [added, setAdded] = useState(false);
+  const [adding, setAdding] = useState(false);
   const hue = item.name.charCodeAt(0) * 7 % 360;
 
   return (
@@ -23,10 +26,18 @@ export function ProductResult({ item, delay }) {
         <p className="text-sm font-black mt-0.5" style={{ color: '#667eea' }}>{fmtFull(item.price)}</p>
       </div>
       <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.9 }}
-        onClick={() => { setAdded(true); setTimeout(() => setAdded(false), 1600); }}
+        onClick={async () => {
+          setAdding(true);
+          const result = await addProductsToCart(item);
+          setAdding(false);
+          if (!result?.success) return;
+          setAdded(true);
+          setTimeout(() => setAdded(false), 1600);
+        }}
+        disabled={adding}
         className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{ background: added ? 'rgba(5,150,105,0.12)' : 'linear-gradient(135deg,#667eea,#764ba2)', color: added ? '#059669' : '#fff' }}>
-        <BIcon name={added ? 'check' : 'plus'} size={14} />
+        {adding ? <span className="text-xs">...</span> : <BIcon name={added ? 'check' : 'plus'} size={14} />}
       </motion.button>
     </motion.div>
   );

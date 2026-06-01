@@ -10,19 +10,26 @@
  * via a single useBuyer() hook for backward-compatibility with
  * all existing child components.
  */
-import { createContext, useContext, useCallback, useMemo } from 'react';
+import { createContext, useContext, useCallback } from 'react';
 import { useToast } from '../../../Store/useToastStore';
 import { useAuth } from '../../../Store/useAuthStore';
 import { useBuyerUIStore } from '../store/useBuyerUIStore';
 import {
   useBuyerDashboard,
+  useBuyerReorders,
+  useBuyerSpending,
+  useWishlistAlerts,
   useRemoveFromWishlist,
   useAddToWishlist,
   useSubmitReview,
   useMarkNotifsRead,
+  useMarkNotifRead,
+  useDismissNotif,
+  useSetWishlistAlert,
   useAddAddress,
   useDeleteAddress,
 } from '../hooks/useBuyerQueries';
+import { buyerApi } from '../api/buyerApi';
 import { useCart } from '../../../Store/cartContext';
 import { useWishlist } from '../../../hooks/useWishlist';
 import { useAllProducts } from '../../../hooks/product/useProducts';
@@ -56,6 +63,35 @@ const formatOrderDate = (value) => {
     ? ''
     : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
+const getProductVariants = (item) => {
+  const product = asRecord(item?.products || item?.product || item);
+  return asArray(product.product_variants || item?.product_variants);
+};
+const getSellableVariant = (item) => {
+  const explicitVariant = asRecord(item?.variant || item?.product_variants);
+  if (explicitVariant.id && asNumber(explicitVariant.stock_quantity, 1) > 0) {
+    return explicitVariant;
+  }
+  return getProductVariants(item).find(variant =>
+    variant?.id && variant?.is_active !== false && asNumber(variant?.stock_quantity) > 0
+  );
+};
+const toCartAddition = (item) => {
+  const safeItem = asRecord(item);
+  const product = asRecord(safeItem.products || safeItem.product || safeItem);
+  const variant = getSellableVariant(safeItem);
+  const productId = safeItem.product_id || safeItem.productId || product.id;
+  const variantId = safeItem.variant_id || safeItem.variantId || variant?.id;
+
+  if (!productId || !variantId) return null;
+  return {
+    productId,
+    variantId,
+    quantity: Math.max(asNumber(safeItem.quantity, 1), 1),
+    product,
+    variant,
+  };
+};
 
 export const BUYER_NAV = [
   { id: 'overview',     label: 'Dashboard',       icon: 'layout' },
@@ -87,7 +123,8 @@ export function BuyerProvider({ children }) {
     cart, 
     totals, 
     removeItem: removeFromCart, 
-    updateQuantity: updateCartQty 
+    updateQuantity: updateCartQty,
+    addItems: addCartItems,
   } = useCart();
 
   // ── Server data from TanStack Query (BFF Pattern) ───────────────────────────
@@ -98,6 +135,9 @@ export function BuyerProvider({ children }) {
     error: dashboardError,
     refetch,
   } = useBuyerDashboard();
+  const { data: spendingData } = useBuyerSpending();
+  const { data: reorderData } = useBuyerReorders();
+  const { data: wishlistAlertData } = useWishlistAlerts();
   
   const data = asRecord(dbData);
   const orders = asArray(data.orders).map(order => {
@@ -109,7 +149,15 @@ export function BuyerProvider({ children }) {
     };
   });
   const reviews = asArray(data.reviews).map(asRecord);
-  const notifs = asArray(data.notifications).map(asRecord);
+  const notifs = asArray(data.notifications).map(notification => {
+    const safeNotification = asRecord(notification);
+    return {
+      ...safeNotification,
+      title: safeNotification.title || 'Account update',
+      sub: safeNotification.sub || '',
+      time: safeNotification.time || formatOrderDate(safeNotification.created_at),
+    };
+  });
   const addresses = asArray(data.addresses).map(asRecord);
   const payments = asArray(data.payment_methods).map(asRecord);
   const insights = asArray(data.insights).map(insight => {
@@ -135,33 +183,50 @@ export function BuyerProvider({ children }) {
       category: product.category || safeRecommendation.category || 'Other',
       price: asNumber(product.price_minor ?? safeRecommendation.price_minor ?? safeRecommendation.price),
       image: product.image || safeRecommendation.image || '',
-    }}
-  );
+    };
+  });
 
   // ── Global Wishlist Sync ───────────────────────────────────────────────────
   const { productIds, wishlistCount } = useWishlist();
   const { data: allProducts = [] } = useAllProducts();
   const safeProductIds = asArray(productIds);
   const safeProducts = asArray(allProducts).map(asRecord);
+  const productsById = new Map(safeProducts.map(product => [product.id, product]));
+  const liveRecommendations = recommendations.map(recommendation => {
+    const catalogProduct = productsById.get(recommendation.id) || {};
+    return {
+      ...recommendation,
+      ...catalogProduct,
+      products: { ...recommendation.products, ...catalogProduct },
+      name: catalogProduct.name || recommendation.name,
+      price: asNumber(catalogProduct.sale_price_minor ?? catalogProduct.price_minor ?? recommendation.price),
+    };
+  });
 
-  const liveWishlist = useMemo(() => {
+  const liveWishlist = (() => {
     const positionById = new Map(safeProductIds.map((id, index) => [id, index]));
     return safeProducts
       .filter(p => positionById.has(p.id))
-      .map(p => ({
-        id: p.id,
-        products: p, // Compatibility
-        ...p,
-        price: p.price_minor || 0,
-        originalPrice: p.sale_price_minor || p.price_minor || 0,
-        image: p.image,
-        tag: p.ai_tags?.[0] || 'Price Drop',
-        aiNote: p.ai_summary || 'Top rated pick based on your style.',
-        inStock: (p.stock_quantity || 0) > 0,
-        stock: p.stock_quantity || 0
-      }))
+      .map(p => {
+        const stock = getProductVariants(p).reduce(
+          (total, variant) => total + asNumber(variant.stock_quantity),
+          0,
+        );
+        return {
+          id: p.id,
+          products: p, // Compatibility
+          ...p,
+          price: asNumber(p.sale_price_minor ?? p.price_minor),
+          originalPrice: asNumber(p.price_minor),
+          image: p.image,
+          tag: stock > 0 ? 'Price Drop' : 'Out of Stock',
+          aiNote: p.ai_summary || 'Saved product from your wishlist.',
+          inStock: stock > 0,
+          stock,
+        };
+      })
       .sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
-  }, [safeProducts, safeProductIds]);
+  })();
   
   const dataProfile = asRecord(data.profile);
   const nameCandidate = user?.user_metadata?.full_name || dataProfile.full_name || user?.user_metadata?.name;
@@ -199,7 +264,9 @@ export function BuyerProvider({ children }) {
   const activeCart = cart;
 
   // Compute stats on the fly
-  const totalSpentCents = orders.reduce((s, o) => s + asNumber(o.total_minor), 0);
+  const totalSpentCents = orders
+    .filter(order => order.payment_status === 'paid' && order.status !== 'cancelled')
+    .reduce((s, o) => s + asNumber(o.total_minor), 0);
   const delivered  = orders.filter((o) => o.status === 'delivered').length;
   const processing = orders.filter((o) => ['processing', 'pending'].includes(o.status)).length;
   const shipped    = orders.filter((o) => o.status === 'shipped').length;
@@ -215,17 +282,40 @@ export function BuyerProvider({ children }) {
   };
   const snapshot = { processing, shipped, delivered, cancelled };
 
-  // Spending structure for BuyerAnalytics
+  const spendingCategories = asArray(asRecord(spendingData).categories);
+  const totalCategorySpend = spendingCategories.reduce(
+    (sum, category) => sum + asNumber(category.spend),
+    0,
+  );
   const spending = {
-    categories: [], // Compute or pull from DB
-    monthly: []
+    categories: spendingCategories.map(category => ({
+      ...category,
+      spend: asNumber(category.spend),
+      pct: totalCategorySpend > 0
+        ? Math.round((asNumber(category.spend) / totalCategorySpend) * 100)
+        : 0,
+    })),
+    monthly: asArray(asRecord(spendingData).monthly).map(month => ({
+      ...month,
+      spend: asNumber(month.spend),
+    })),
   };
+  const reorders = asArray(reorderData).map(reorder => ({
+    ...asRecord(reorder),
+    products: asRecord(reorder?.products),
+    variant: asRecord(reorder?.variant),
+    price: asNumber(reorder?.price),
+  }));
+  const wishlistAlerts = asArray(wishlistAlertData).map(asRecord);
 
   // ── Mutation hooks ───────────────────────────────────────────────────────────
   const removeFromWishlistMut = useRemoveFromWishlist();
   const addToWishlistMut      = useAddToWishlist();
   const submitReviewMut       = useSubmitReview();
   const markNotifsReadMut     = useMarkNotifsRead();
+  const markNotifReadMut      = useMarkNotifRead();
+  const dismissNotifMut       = useDismissNotif();
+  const setWishlistAlertMut   = useSetWishlistAlert();
   const addAddressMut         = useAddAddress();
   const deleteAddressMut      = useDeleteAddress();
 
@@ -256,8 +346,35 @@ export function BuyerProvider({ children }) {
       ...safeItem,
       name: safeItem.name || product.name || 'Cart item',
       price: asNumber(safeItem.price ?? product.price_minor),
+      quantity: Math.max(asNumber(safeItem.quantity ?? safeItem.qty, 1), 1),
     };
   });
+  const addProductsToCart = useCallback(async (items) => {
+    const additions = asArray(Array.isArray(items) ? items : [items])
+      .map(toCartAddition)
+      .filter(Boolean);
+
+    if (!additions.length) {
+      const error = 'This product is currently unavailable.';
+      addToast(error, 'info');
+      return { success: false, error };
+    }
+
+    try {
+      await addCartItems(additions);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error };
+    }
+  }, [addCartItems, addToast]);
+  const getReceipt = useCallback(async (orderId) => {
+    try {
+      return await buyerApi.getReceipt(orderId);
+    } catch (error) {
+      addToast(error.message || 'Receipt could not be generated.', 'error');
+      throw error;
+    }
+  }, [addToast]);
 
   const value = {
     // UI
@@ -279,6 +396,10 @@ export function BuyerProvider({ children }) {
     submitReview: (orderId, productName, rating, comment, productId) =>
       submitReviewMut.mutateAsync({ orderId, productId, rating, comment }),
     markAllNotifsRead: () => markNotifsReadMut.mutate(),
+    markNotifRead: (id) => markNotifReadMut.mutate(id),
+    dismissNotif: (id) => dismissNotifMut.mutate(id),
+    setWishlistAlert: (variables) => setWishlistAlertMut.mutateAsync(variables),
+    wishlistAlerts,
     addAddress: (addr) => addAddressMut.mutateAsync(addr),
     deleteAddress: (id) => deleteAddressMut.mutate(id),
     
@@ -299,11 +420,13 @@ export function BuyerProvider({ children }) {
     cartTotal,
     removeFromCart, 
     updateCartQty,
+    addProductsToCart,
+    getReceipt,
     
     // Misc dynamic data
-    recommendations,
+    recommendations: liveRecommendations,
     insights,
-    reorders: [], // Computed from orders if needed
+    reorders,
     spending,
     payments,
     refresh: refetch,

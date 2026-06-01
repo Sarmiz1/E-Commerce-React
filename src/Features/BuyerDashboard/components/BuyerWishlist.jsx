@@ -4,6 +4,7 @@ import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer } from '../context/BuyerContext';
 import { fmtFull } from '../utils/fmt';
 import { BIcon } from './BuyerIcon';
+import { useNavigate } from 'react-router-dom';
 
 const AI_TAG_COLORS = {
   'Best Time Soon':  { bg: 'rgba(102,126,234,0.1)', color: '#667eea' },
@@ -15,23 +16,51 @@ const AI_TAG_COLORS = {
 
 export default function BuyerWishlist() {
   const { colors, isDark } = useTheme();
-  const { wishlist: liveWishlist, reorders: REORDER_SUGGESTIONS, removeFromWishlist } = useBuyer();
+  const navigate = useNavigate();
+  const {
+    wishlist: liveWishlist,
+    reorders: REORDER_SUGGESTIONS,
+    removeFromWishlist,
+    addProductsToCart,
+    wishlistAlerts,
+    setWishlistAlert,
+  } = useBuyer();
   const WISHLIST = liveWishlist ?? [];
   const [localWishlist, setLocalWishlist] = useState(null);
   const wishlist = localWishlist ?? WISHLIST;
-  const [alerts, setAlerts] = useState({});
   const [added, setAdded] = useState({});
+  const [alertUpdating, setAlertUpdating] = useState({});
+  const hasAlert = (productId, alertType) =>
+    wishlistAlerts.some(alert => alert.product_id === productId && alert.alert_type === alertType);
 
   const remove = async (id) => {
     setLocalWishlist(w => (w ?? WISHLIST).filter(i => i.id !== id));
     await removeFromWishlist(id);
   };
 
-  const addToCart = async (id) => {
-    setAdded(a => ({ ...a, [id]: 'loading' }));
-    await new Promise(r => setTimeout(r, 800));
-    setAdded(a => ({ ...a, [id]: 'done' }));
-    setTimeout(() => setAdded(a => ({ ...a, [id]: null })), 1800);
+  const addToCart = async (item) => {
+    setAdded(a => ({ ...a, [item.id]: 'loading' }));
+    const result = await addProductsToCart(item);
+    setAdded(a => ({ ...a, [item.id]: result?.success ? 'done' : null }));
+    if (result?.success) {
+      setTimeout(() => setAdded(a => ({ ...a, [item.id]: null })), 1800);
+    }
+  };
+  const updateAlert = async (item, alertType, enabled) => {
+    const key = `${item.id}:${alertType}`;
+    setAlertUpdating(current => ({ ...current, [key]: true }));
+    try {
+      await setWishlistAlert({
+        productId: item.id,
+        alertType,
+        enabled,
+        targetPriceMinor: alertType === 'price_drop' ? item.price : null,
+      });
+    } catch {
+      // The mutation hook reports the backend error as a toast.
+    } finally {
+      setAlertUpdating(current => ({ ...current, [key]: false }));
+    }
   };
 
   return (
@@ -60,6 +89,7 @@ export default function BuyerWishlist() {
               <div className="flex items-center justify-between mt-1">
                 <span className="text-base font-black" style={{ color: colors.text.primary }}>{fmtFull(s.price)}</span>
                 <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                  onClick={() => addToCart(s)}
                   className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg"
                   style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff' }}>
                   <BIcon name="repeat" size={12} /> Reorder
@@ -88,6 +118,7 @@ export default function BuyerWishlist() {
                 style={{ background: colors.surface.elevated, border: `1px solid ${colors.border.subtle}` }}>
                 {/* Visual */}
                 <div className="h-40 flex items-center justify-center relative overflow-hidden"
+                  onClick={() => item.slug && navigate(`/products/${item.slug}`)}
                   style={{ background: `hsl(${hue}, 40%, ${isDark ? '14%' : '96%'})` }}>
                   {(item.products?.image || item.image) ? (
                     <img src={item.products?.image || item.image} alt={itemName} className="w-full h-full object-cover" />
@@ -104,7 +135,7 @@ export default function BuyerWishlist() {
                   )}
                   {/* Remove button */}
                   <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                    onClick={() => remove(item.id)}
+                    onClick={(event) => { event.stopPropagation(); remove(item.id); }}
                     className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow"
                     style={{ background: colors.surface.elevated, color: '#ef4444' }}>
                     <BIcon name="x" size={13} />
@@ -140,18 +171,22 @@ export default function BuyerWishlist() {
                     {/* Price alert toggle */}
                     <div className="flex items-center gap-1.5">
                       <span className="text-[10px]" style={{ color: colors.text.tertiary }}>Alert</span>
-                      <motion.button onClick={() => setAlerts(a => ({ ...a, [item.id]: !a[item.id] }))}
+                      <motion.button
+                        onClick={() => updateAlert(item, 'price_drop', !hasAlert(item.id, 'price_drop'))}
+                        disabled={alertUpdating[`${item.id}:price_drop`]}
                         className="relative w-9 h-5 rounded-full"
-                        style={{ background: alerts[item.id] ? '#667eea' : colors.border.strong }}>
-                        <motion.div animate={{ x: alerts[item.id] ? 18 : 2 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                        style={{ background: hasAlert(item.id, 'price_drop') ? '#667eea' : colors.border.strong }}>
+                        <motion.div animate={{ x: hasAlert(item.id, 'price_drop') ? 18 : 2 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                           className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm" />
                       </motion.button>
                     </div>
                   </div>
 
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }}
-                    onClick={() => item.inStock && addToCart(item.id)}
-                    disabled={!item.inStock}
+                    onClick={() => item.inStock
+                      ? addToCart(item)
+                      : updateAlert(item, 'back_in_stock', !hasAlert(item.id, 'back_in_stock'))}
+                    disabled={alertUpdating[`${item.id}:back_in_stock`]}
                     className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all"
                     style={{
                       background: !item.inStock ? (isDark ? colors.surface.tertiary : '#F3F4F6')
@@ -164,7 +199,8 @@ export default function BuyerWishlist() {
                     {added[item.id] === 'loading'
                       ? <><motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }} className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full block" /> Adding…</>
                       : added[item.id] === 'done' ? <><BIcon name="check" size={15} /> Added to Cart!</>
-                      : !item.inStock ? 'Notify Me When Back'
+                      : !item.inStock
+                        ? hasAlert(item.id, 'back_in_stock') ? 'Back-in-stock Alert Set' : 'Notify Me When Back'
                       : <><BIcon name="cart" size={15} /> Add to Cart</>}
                   </motion.button>
                 </div>
