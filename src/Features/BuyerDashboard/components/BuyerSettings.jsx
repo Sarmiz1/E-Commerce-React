@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useDropzone } from 'react-dropzone';
 import { useTheme } from '../../../Store/useThemeStore';
 import { useBuyer } from '../context/BuyerContext';
 import {
@@ -14,6 +15,7 @@ import {
   toBuyerAccountPayload,
 } from '../Schema/buyerAccountSchema';
 import { BIcon } from './BuyerIcon';
+import BuyerAvatar from './BuyerAvatar';
 import { EmailConfirmationModal } from './BuyerSecurityModals';
 
 function Field({ label, error, helper, ...inputProps }) {
@@ -243,6 +245,8 @@ export default function BuyerSettings() {
     accountSettingsError,
     refreshAccountSettings,
     saveAccountSettings,
+    uploadAccountAvatar,
+    removeAccountAvatar,
     saveAccountPreference,
     requestEmailChange,
     approveEmailChange,
@@ -261,8 +265,12 @@ export default function BuyerSettings() {
   const [pendingNewPassword, setPendingNewPassword] = useState('');
   const [passwordApprovalProcessing, setPasswordApprovalProcessing] = useState(false);
   const [pendingDeactivateApproval, setPendingDeactivateApproval] = useState(null);
-  const [failedAvatar, setFailedAvatar] = useState('');
-  const photoInputRef = useRef(null);
+  const [dropzoneError, setDropzoneError] = useState('');
+  const [avatarUploadProgress, setAvatarUploadProgress] = useState(0);
+  const [avatarUploadFailed, setAvatarUploadFailed] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarRemoving, setAvatarRemoving] = useState(false);
+  const avatarActionInFlightRef = useRef(false);
 
   const initialValues = useMemo(
     () => toBuyerAccountFormValues(accountSettings, profile),
@@ -273,6 +281,7 @@ export default function BuyerSettings() {
     control,
     handleSubmit,
     reset,
+    resetField,
     getValues,
     setValue,
     formState: { errors, isDirty, isSubmitting },
@@ -299,9 +308,10 @@ export default function BuyerSettings() {
     () => (avatarFile ? URL.createObjectURL(avatarFile) : ''),
     [avatarFile],
   );
+  const selectedAvatar = avatarPreview || avatarUrl;
 
   useEffect(() => {
-    reset(initialValues);
+    reset(initialValues, { keepDirtyValues: true });
   }, [initialValues, reset]);
 
   useEffect(() => {
@@ -310,7 +320,43 @@ export default function BuyerSettings() {
     };
   }, [avatarPreview]);
 
+  const selectAvatar = useCallback((files) => {
+    const file = files[0];
+    if (!file) return;
+
+    setDropzoneError('');
+    setAvatarUploadFailed(false);
+    setAvatarUploadProgress(0);
+    setValue('avatarFile', file, { shouldDirty: true, shouldValidate: true });
+  }, [setValue]);
+
+  const rejectAvatar = useCallback((rejections) => {
+    const code = rejections[0]?.errors?.[0]?.code;
+    setDropzoneError(
+      code === 'file-too-large'
+        ? 'Photo must be 2MB or smaller'
+        : 'Photo must be a JPG, PNG, or WEBP image',
+    );
+    setAvatarUploadFailed(false);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/webp': ['.webp'],
+    },
+    maxFiles: 1,
+    maxSize: 2 * 1024 * 1024,
+    multiple: false,
+    disabled: avatarUploading || avatarRemoving,
+    onDropAccepted: selectAvatar,
+    onDropRejected: rejectAvatar,
+  });
+
   const submit = handleSubmit(async (values) => {
+    if (avatarActionInFlightRef.current) return;
+
     try {
       const result = await saveAccountSettings(toBuyerAccountPayload(values));
       reset(toBuyerAccountFormValues(result.settings, profile));
@@ -320,6 +366,51 @@ export default function BuyerSettings() {
       // The mutation hook reports the backend error as a toast.
     }
   });
+
+  const uploadSelectedAvatar = async () => {
+    if (!avatarFile || avatarActionInFlightRef.current) return;
+
+    avatarActionInFlightRef.current = true;
+    setDropzoneError('');
+    setAvatarUploadFailed(false);
+    setAvatarUploadProgress(0);
+    setAvatarUploading(true);
+    try {
+      const result = await uploadAccountAvatar({
+        file: avatarFile,
+        onProgress: setAvatarUploadProgress,
+      });
+      resetField('avatarUrl', { defaultValue: result.avatarUrl });
+      resetField('avatarFile', { defaultValue: null });
+      setAvatarUploadProgress(100);
+    } catch (error) {
+      setDropzoneError(error.message || 'Unable to upload profile photo');
+      setAvatarUploadFailed(true);
+    } finally {
+      avatarActionInFlightRef.current = false;
+      setAvatarUploading(false);
+    }
+  };
+
+  const removeSavedAvatar = async () => {
+    if (avatarActionInFlightRef.current) return;
+
+    avatarActionInFlightRef.current = true;
+    setDropzoneError('');
+    setAvatarRemoving(true);
+    try {
+      await removeAccountAvatar();
+      resetField('avatarFile', { defaultValue: null });
+      resetField('avatarUrl', { defaultValue: '' });
+      setAvatarUploadProgress(0);
+      setAvatarUploadFailed(false);
+    } catch (error) {
+      setDropzoneError(error.message || 'Unable to remove profile photo');
+    } finally {
+      avatarActionInFlightRef.current = false;
+      setAvatarRemoving(false);
+    }
+  };
 
   const confirmDeactivation = handleDeactivateSubmit(async (details) => {
     try {
@@ -419,66 +510,93 @@ export default function BuyerSettings() {
     return <LoadingState error={accountSettingsError} onRetry={() => refreshAccountSettings?.()} />;
   }
 
-  const selectedAvatar = avatarPreview || avatarUrl;
-  const visibleAvatar = selectedAvatar && selectedAvatar !== failedAvatar;
-
   return (
     <div className="space-y-6 max-w-2xl">
       <h2 className="text-xl font-black" style={{ color: colors.text.primary }}>Account Settings</h2>
 
       <form onSubmit={submit} className="space-y-6">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-4">
-          <div className="w-20 h-20 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-3xl shadow-lg">
-            {visibleAvatar ? (
-              <img
-                src={visibleAvatar}
-                alt={`${fullName || 'Buyer'} profile`}
-                className="w-full h-full object-cover"
-                onError={() => setFailedAvatar(selectedAvatar)}
-              />
-            ) : (
-              (fullName?.charAt(0) || 'B').toUpperCase()
-            )}
-          </div>
-          <div>
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={(event) => {
-                setFailedAvatar('');
-                setValue('avatarFile', event.target.files?.[0] || null, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
-              }}
-            />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <BuyerAvatar
+            src={selectedAvatar}
+            name={fullName}
+            loading="eager"
+            className="h-20 w-20 flex-shrink-0 rounded-2xl text-3xl font-black shadow-lg"
+          />
+          <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => photoInputRef.current?.click()}
-                className="text-sm font-bold px-4 py-2 rounded-xl"
-                style={{ background: 'rgba(102,126,234,0.1)', color: '#667eea' }}
+              <div
+                {...getRootProps()}
+                className="cursor-pointer rounded-xl px-4 py-2 text-sm font-bold outline-none transition-all focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 aria-disabled:cursor-wait aria-disabled:opacity-60"
+                style={{
+                  background: isDragActive ? 'rgba(102,126,234,0.18)' : 'rgba(102,126,234,0.1)',
+                  color: '#667eea',
+                }}
               >
-                Change Photo
-              </button>
-              {visibleAvatar && (
+                <input {...getInputProps()} />
+                {isDragActive
+                  ? 'Drop Photo Here'
+                  : (avatarFile || avatarUrl) ? 'Choose a Different Photo' : 'Choose Photo'}
+              </div>
+              {avatarFile && (
+                <>
+                  <button
+                    type="button"
+                    onClick={uploadSelectedAvatar}
+                    disabled={avatarUploading}
+                    className="rounded-xl px-4 py-2 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60"
+                    style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }}
+                  >
+                    {avatarUploading ? 'Uploading...' : avatarUploadFailed ? 'Try Again' : 'Upload Photo'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetField('avatarFile', { defaultValue: null });
+                      setAvatarUploadProgress(0);
+                      setAvatarUploadFailed(false);
+                      setDropzoneError('');
+                    }}
+                    disabled={avatarUploading}
+                    className="rounded-xl px-4 py-2 text-sm font-bold disabled:cursor-wait disabled:opacity-60"
+                    style={{ color: colors.text.secondary }}
+                  >
+                    Cancel Preview
+                  </button>
+                </>
+              )}
+              {avatarUrl && !avatarFile && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setValue('avatarFile', null, { shouldDirty: true, shouldValidate: true });
-                    setValue('avatarUrl', '', { shouldDirty: true, shouldValidate: true });
-                    setFailedAvatar('');
-                  }}
+                  onClick={removeSavedAvatar}
+                  disabled={avatarRemoving}
                   className="text-sm font-bold px-4 py-2 rounded-xl"
-                  style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}
+                  style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', opacity: avatarRemoving ? 0.6 : 1 }}
                 >
-                  Remove
+                  {avatarRemoving ? 'Deleting...' : 'Delete Photo'}
                 </button>
               )}
             </div>
-            <p className="text-xs mt-1.5" style={{ color: colors.text.tertiary }}>JPG, PNG, or WEBP up to 2MB</p>
+            {(avatarUploading || (avatarUploadProgress > 0 && !avatarUploadFailed)) && (
+              <div className="max-w-xs space-y-1">
+                <div className="h-1.5 overflow-hidden rounded-full" style={{ background: colors.border.subtle }}>
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={false}
+                    animate={{ width: `${avatarUploadProgress}%` }}
+                    style={{ background: 'linear-gradient(90deg, #667eea, #764ba2)' }}
+                  />
+                </div>
+                <p className="text-[11px] font-bold" style={{ color: colors.text.tertiary }}>
+                  {avatarUploadProgress >= 100
+                    ? (avatarUploading ? 'Processing profile photo...' : 'Profile photo uploaded')
+                    : `Uploading ${avatarUploadProgress}%`}
+                </p>
+              </div>
+            )}
+            <p className="text-xs" style={{ color: colors.text.tertiary }}>
+              JPG, PNG, or WEBP up to 2MB. Drag and drop also works.
+            </p>
+            {dropzoneError && <p className="text-xs" style={{ color: '#ef4444' }}>{dropzoneError}</p>}
             {errors.avatarFile && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.avatarFile.message}</p>}
           </div>
         </motion.div>
@@ -580,12 +698,12 @@ export default function BuyerSettings() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           type="submit"
-          disabled={isSubmitting || !isDirty}
+          disabled={isSubmitting || avatarUploading || avatarRemoving || !isDirty}
           className="px-8 py-3 rounded-xl font-bold text-sm flex items-center gap-2"
           style={{
             background: saved ? '#059669' : 'linear-gradient(135deg,#667eea,#764ba2)',
             color: '#fff',
-            opacity: isSubmitting || !isDirty ? 0.65 : 1,
+            opacity: isSubmitting || avatarUploading || avatarRemoving || !isDirty ? 0.65 : 1,
           }}
         >
           {isSubmitting ? (

@@ -45,6 +45,8 @@ import {
   useDeletePaymentMethod,
   useApproveSensitiveAction,
   useSaveBuyerAccountSettings,
+  useUploadBuyerAccountAvatar,
+  useRemoveBuyerAccountAvatar,
   useSaveBuyerAccountPreference,
   useRequestBuyerEmailChange,
   useApproveBuyerEmailChange,
@@ -514,6 +516,8 @@ export function BuyerProvider({ children }) {
   const deletePaymentMethodMut = useDeletePaymentMethod();
   const approveSensitiveActionMut = useApproveSensitiveAction();
   const saveBuyerAccountSettingsMut = useSaveBuyerAccountSettings();
+  const uploadBuyerAccountAvatarMut = useUploadBuyerAccountAvatar();
+  const removeBuyerAccountAvatarMut = useRemoveBuyerAccountAvatar();
   const saveBuyerAccountPreferenceMut = useSaveBuyerAccountPreference();
   const requestBuyerEmailChangeMut = useRequestBuyerEmailChange();
   const approveBuyerEmailChangeMut = useApproveBuyerEmailChange();
@@ -633,6 +637,8 @@ export function BuyerProvider({ children }) {
     accountSettingsError,
     refreshAccountSettings,
     saveAccountSettings: (settings) => saveBuyerAccountSettingsMut.mutateAsync(settings),
+    uploadAccountAvatar: (request) => uploadBuyerAccountAvatarMut.mutateAsync(request),
+    removeAccountAvatar: () => removeBuyerAccountAvatarMut.mutateAsync(),
     saveAccountPreference: (preference) => saveBuyerAccountPreferenceMut.mutateAsync(preference),
     requestEmailChange: (details) => requestBuyerEmailChangeMut.mutateAsync(details),
     approveEmailChange: (confirmation) => approveBuyerEmailChangeMut.mutateAsync(confirmation),

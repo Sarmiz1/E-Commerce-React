@@ -2,6 +2,7 @@
  * buyerApi.js — Supabase API layer for the Buyer Dashboard.
  * All functions are pure async, user-id aware, no mock fallback needed.
  */
+import axios from 'axios';
 import { supabase } from '../../../lib/supabaseClient';
 
 const unwrap = async (request) => {
@@ -27,11 +28,13 @@ const invokeEdgeFunction = async (name, body) => {
   throw new Error(message);
 };
 
-const AVATAR_EXTENSION_BY_TYPE = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-};
+const ACCEPTED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL ?? '').trim();
+const supabaseKey = (
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  ?? import.meta.env.VITE_SUPABASE_ANON_KEY
+  ?? ''
+).trim();
 
 async function getAuthenticatedUser() {
   const { data, error } = await supabase.auth.getUser();
@@ -68,19 +71,50 @@ async function approveBuyerSensitiveAction({ requestId, confirmationCode }) {
   return result;
 }
 
-async function uploadBuyerAvatar(userId, file) {
-  const extension = AVATAR_EXTENSION_BY_TYPE[file.type];
-  if (!extension) throw new Error('Photo must be a JPG, PNG, or WEBP image');
+async function uploadBuyerAvatar(file, onProgress) {
+  if (!ACCEPTED_AVATAR_TYPES.has(file.type)) {
+    throw new Error('Photo must be a JPG, PNG, or WEBP image');
+  }
   if (file.size > 2 * 1024 * 1024) throw new Error('Photo must be 2MB or smaller');
 
-  const path = `${userId}/avatar.${extension}`;
-  const { error } = await supabase.storage
-    .from('profile-images')
-    .upload(path, file, { cacheControl: '3600', upsert: true });
-  if (error) throw error;
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (!session?.access_token) throw new Error('Authentication required');
 
-  const { data } = supabase.storage.from('profile-images').getPublicUrl(path);
-  return `${data.publicUrl}?v=${Date.now()}`;
+  const formData = new FormData();
+  formData.append('file', file);
+
+  let result;
+  try {
+    const response = await axios.post(
+      `${supabaseUrl}/functions/v1/cloudinary-avatar`,
+      formData,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        onUploadProgress: (event) => {
+          const total = event.total || file.size;
+          onProgress?.(Math.min(100, Math.round((event.loaded / total) * 100)));
+        },
+      },
+    );
+    result = response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || error.message || 'Unable to upload profile photo');
+  }
+
+  if (!result?.avatarUrl) throw new Error('Cloudinary did not return a profile photo URL');
+
+  return result.avatarUrl;
+}
+
+async function updateAuthAvatarMetadata(avatarUrl) {
+  const { error } = await supabase.auth.updateUser({
+    data: { avatar_url: avatarUrl || null },
+  });
+  if (error) throw error;
 }
 
 export const buyerApi = {
@@ -269,13 +303,21 @@ export const buyerApi = {
     resourceId: id,
     password,
   }),
+  uploadAccountAvatar: async ({ file, onProgress }) => {
+    await getAuthenticatedUser();
+    const avatarUrl = await uploadBuyerAvatar(file, onProgress);
+    await updateAuthAvatarMetadata(avatarUrl);
+    return { avatarUrl };
+  },
+  removeAccountAvatar: async () => {
+    await getAuthenticatedUser();
+    await invokeEdgeFunction('cloudinary-avatar', { action: 'destroy' });
+    await updateAuthAvatarMetadata(null);
+    return { avatarUrl: '' };
+  },
   saveAccountSettings: async (settings) => {
-    const user = await getAuthenticatedUser();
-    let avatarUrl = settings.avatarUrl || null;
-
-    if (settings.avatarFile) {
-      avatarUrl = await uploadBuyerAvatar(user.id, settings.avatarFile);
-    }
+    await getAuthenticatedUser();
+    const avatarUrl = settings.avatarUrl || null;
 
     const savedSettings = await unwrap(supabase.rpc('save_buyer_account_settings', {
       p_full_name: settings.fullName,

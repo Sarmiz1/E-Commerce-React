@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useTheme } from "../../Store/useThemeStore";
 import { BuyerProvider, useBuyer } from './context/BuyerContext';
@@ -7,16 +7,22 @@ import PageErrorFallback from '../../Components/PageErrorFallback';
 import BuyerDashboardFallback from './Components/BuyerDashboardFallback';
 import BuyerSidebar from './Components/BuyerSidebar';
 import BuyerTopbar from './Components/BuyerTopbar';
-import BuyerOverview from './Components/BuyerOverview';
-import BuyerAI from './Components/BuyerAI';
-import BuyerOrders from './Components/BuyerOrders';
-import BuyerWishlist from './Components/BuyerWishlist';
-import BuyerWallet from './Components/BuyerWallet';
-import BuyerCredits from './Components/BuyerCredits';
-import BuyerAnalytics from './Components/BuyerAnalytics';
-import { BuyerAddresses, BuyerPayments } from './Components/BuyerAddressPayment';
-import { BuyerReviews, BuyerNotifications } from './Components/BuyerReviewsNotifs';
-import BuyerSettings from './Components/BuyerSettings';
+const BuyerOverview = lazy(() => import('./Components/BuyerOverview'));
+const BuyerAI = lazy(() => import('./Components/BuyerAI'));
+const BuyerOrders = lazy(() => import('./Components/BuyerOrders'));
+const BuyerWishlist = lazy(() => import('./Components/BuyerWishlist'));
+const BuyerWallet = lazy(() => import('./Components/BuyerWallet'));
+const BuyerCredits = lazy(() => import('./Components/BuyerCredits'));
+const BuyerAnalytics = lazy(() => import('./Components/BuyerAnalytics'));
+const BuyerSettings = lazy(() => import('./Components/BuyerSettings'));
+const BuyerAddresses = lazy(() => import('./Components/BuyerAddressPayment')
+  .then((module) => ({ default: module.BuyerAddresses })));
+const BuyerPayments = lazy(() => import('./Components/BuyerAddressPayment')
+  .then((module) => ({ default: module.BuyerPayments })));
+const BuyerReviews = lazy(() => import('./Components/BuyerReviewsNotifs')
+  .then((module) => ({ default: module.BuyerReviews })));
+const BuyerNotifications = lazy(() => import('./Components/BuyerReviewsNotifs')
+  .then((module) => ({ default: module.BuyerNotifications })));
 
 // ─── Render functions (not static JSX) so each page mounts cleanly ─────────────
 const PAGES = {
@@ -107,6 +113,19 @@ function BuyerSectionFallback(props) {
   );
 }
 
+function BuyerSectionLoading() {
+  const { colors } = useTheme();
+
+  return (
+    <div
+      className="rounded-2xl p-6 text-sm font-semibold"
+      style={{ background: colors.surface.elevated, color: colors.text.tertiary }}
+    >
+      Loading dashboard section...
+    </div>
+  );
+}
+
 // ─── Inner shell ──────────────────────────────────────────────────────────────
 function BuyerDashboardInner() {
   const { colors } = useTheme();
@@ -151,7 +170,9 @@ function BuyerDashboardInner() {
                 FallbackComponent={BuyerSectionFallback}
                 resetKeys={[page]}
               >
-                {renderPage()}
+                <Suspense fallback={<BuyerSectionLoading />}>
+                  {renderPage()}
+                </Suspense>
               </ErrorBoundary>
             </motion.div>
           </AnimatePresence>

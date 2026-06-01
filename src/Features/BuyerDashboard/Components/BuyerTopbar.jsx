@@ -4,6 +4,7 @@ import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { useLogout } from '../../../hooks/auth/useLogout';
 import { BIcon } from './BuyerIcon';
+import BuyerAvatar from './BuyerAvatar';
 import { formatMoneyMinor } from '../../../utils/formatMoneyMinor';
 import { useNavigate } from 'react-router-dom';
 
@@ -230,8 +231,13 @@ export default function BuyerTopbar() {
 
         <div className="relative">
           <button onClick={() => { setProfileOpen(o => !o); setNotifOpen(false); }}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs sm:text-sm">
-            {(profile?.full_name?.charAt(0) || profile?.name?.charAt(0) || 'B').toUpperCase()}
+            aria-label="Open account menu"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl">
+            <BuyerAvatar
+              profile={profile}
+              loading="eager"
+              className="h-full w-full rounded-xl text-xs font-black sm:text-sm"
+            />
           </button>
           <AnimatePresence>
             {profileOpen && (

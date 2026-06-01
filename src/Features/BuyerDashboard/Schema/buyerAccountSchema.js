@@ -136,7 +136,6 @@ export function toBuyerAccountPayload(values) {
   return {
     fullName: values.fullName,
     avatarUrl: values.avatarUrl,
-    avatarFile: values.avatarFile,
     preferences: {
       aiSuggestions: values.aiSuggestions,
       priceDropAlerts: values.priceDropAlerts,

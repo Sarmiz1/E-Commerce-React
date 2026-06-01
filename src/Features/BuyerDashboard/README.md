@@ -2,7 +2,8 @@
 
 The buyer dashboard lives at `/account` for authenticated buyer accounts. It uses
 TanStack Query for server data, Zustand for dashboard navigation state, and the
-shared cart context for cart mutations.
+shared cart context for cart mutations. Dashboard tabs are loaded on demand so
+opening the account area does not download every panel up front.
 
 ## Backend Setup
 
@@ -80,8 +81,10 @@ Configure and deploy the Edge Function with:
 
 ```powershell
 npx supabase secrets set RESEND_API_KEY=... RESEND_FROM_EMAIL="WooSho Security <security@your-verified-domain>"
+npx supabase secrets set CLOUDINARY_CLOUD_NAME=... CLOUDINARY_API_KEY=... CLOUDINARY_API_SECRET=...
 npx supabase functions deploy buyer-phone-confirmation --no-verify-jwt
 npx supabase functions deploy buyer-account-confirmation --no-verify-jwt
+npx supabase functions deploy cloudinary-avatar --no-verify-jwt
 ```
 
 For development without a verified domain, Resend's
@@ -133,7 +136,26 @@ sessions cannot use buyer activity endpoints.
   password verification, a code sent to the current account email, then
   Supabase Auth confirmation from the new address. Password updates use the
   same password-plus-email-code gate before Supabase Auth applies the new
-  password. Avatar files use a per-user Supabase Storage path.
+  password. Profile photos use `react-dropzone` for drag-and-drop selection and
+  client-side validation. Choosing a file creates a reversible local preview;
+  the user presses a separate upload button before anything reaches Cloudinary.
+  Failed uploads keep the preview and expose a `Try Again` action. Successful
+  uploads hide the submit and cancel controls, leaving only
+  `Choose a Different Photo` and `Delete Photo` so duplicate upload events
+  cannot race.
+  The browser uses Axios upload progress while the authenticated
+  `cloudinary-avatar` Edge Function validates the file again, uploads it to a
+  fixed per-user Cloudinary asset under `woosho/user_avatars`, and returns an
+  optimized delivery URL. The same authenticated Edge Function persists the
+  URL without waiting for the rest of the profile form. Replacing a photo
+  overwrites the previous Cloudinary asset instead of creating unused files.
+  Removing a photo deletes that asset. The top bar and sidebar update from the
+  live query cache immediately and render the buyer's first initial as a
+  broken-image or missing-image fallback.
+
+Cloudinary API credentials belong in Supabase Edge secrets and server-only
+local environment variables. Never prefix `CLOUDINARY_API_SECRET` with
+`VITE_`, because Vite exposes `VITE_` variables to browser bundles.
 
 Deactivation retains account data and blocks customer self-service through
 `private.assert_customer_session()`. A later valid login creates a reactivation

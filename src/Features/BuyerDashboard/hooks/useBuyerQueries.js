@@ -409,6 +409,64 @@ export function useSaveBuyerAccountSettings() {
   });
 }
 
+function patchAvatarUrl(data, avatarUrl) {
+  if (!data) return data;
+
+  return {
+    ...data,
+    profile: {
+      ...(data.profile || {}),
+      avatar_url: avatarUrl,
+    },
+  };
+}
+
+export function useUploadBuyerAccountAvatar() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: (request) => buyerApi.uploadAccountAvatar(request),
+    onSuccess: ({ avatarUrl }) => {
+      qc.setQueryData(
+        buyerKeys.accountSettings(user?.id),
+        (settings) => patchAvatarUrl(settings, avatarUrl),
+      );
+      qc.setQueryData(
+        buyerKeys.dashboard(user?.id),
+        (dashboard) => patchAvatarUrl(dashboard, avatarUrl),
+      );
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Profile photo updated.');
+    },
+    onError: (err) => addToast(err.message || 'Failed to upload profile photo', 'error'),
+  });
+}
+
+export function useRemoveBuyerAccountAvatar() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: () => buyerApi.removeAccountAvatar(),
+    onSuccess: () => {
+      qc.setQueryData(
+        buyerKeys.accountSettings(user?.id),
+        (settings) => patchAvatarUrl(settings, ''),
+      );
+      qc.setQueryData(
+        buyerKeys.dashboard(user?.id),
+        (dashboard) => patchAvatarUrl(dashboard, ''),
+      );
+      qc.invalidateQueries({ queryKey: buyerKeys.dashboard(user?.id) });
+      qc.invalidateQueries({ queryKey: buyerKeys.accountSettings(user?.id) });
+      addToast('Profile photo removed.', 'info');
+    },
+    onError: (err) => addToast(err.message || 'Failed to remove profile photo', 'error'),
+  });
+}
+
 export function useSaveBuyerAccountPreference() {
   const { user } = useAuth();
   const qc = useQueryClient();

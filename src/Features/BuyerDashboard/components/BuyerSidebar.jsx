@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from "../../../Store/useThemeStore";
 import { useBuyer, BUYER_NAV } from '../context/BuyerContext';
 import { BIcon } from './BuyerIcon';
+import BuyerAvatar from './BuyerAvatar';
 import { Logo } from '../../../Components/Ui/Logo';
 
 // ─── Sidebar content (extracted to avoid remount on parent re-render) ─────────
-function SidebarContent({ mobileMode, collapsed, toggleCollapsed, setSidebarOpen, toggleSidebar, page, setPage, colors, isDark, unread, profile, stats }) {
+function SidebarContent({ mobileMode, collapsed, toggleCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread, profile, stats }) {
   return (
     <div className="flex flex-col h-full" style={{
       background: isDark ? colors.surface.secondary : '#FAFBFF',
@@ -118,7 +119,10 @@ function SidebarContent({ mobileMode, collapsed, toggleCollapsed, setSidebarOpen
       <div className="p-3" style={{ borderTop: `1px solid ${colors.border.subtle}` }}>
         <div className="flex items-center gap-3 px-2 py-2.5 rounded-xl"
           style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(102,126,234,0.04)' }}>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs flex-shrink-0">{(profile?.full_name?.charAt(0) || profile?.name?.charAt(0) || 'B').toUpperCase()}</div>
+          <BuyerAvatar
+            profile={profile}
+            className="h-8 w-8 flex-shrink-0 rounded-xl text-xs font-black"
+          />
           <AnimatePresence>
             {(!collapsed || mobileMode) && (
               <motion.div key="profile-text"
@@ -137,13 +141,13 @@ function SidebarContent({ mobileMode, collapsed, toggleCollapsed, setSidebarOpen
 
 export default function BuyerSidebar({ mobileMode = false }) {
   const { colors, isDark } = useTheme();
-  const { page, setPage, collapsed, toggleCollapsed, sidebarOpen, setSidebarOpen, toggleSidebar, unreadCount, profile, stats } = useBuyer();
+  const { page, setPage, collapsed, toggleCollapsed, setSidebarOpen, unreadCount, profile, stats } = useBuyer();
   const unread = unreadCount ?? 0;
   
   // Mobile mode is always full width, desktop depends on collapsed state
   const w = mobileMode ? '100%' : (collapsed ? 68 : 236);
 
-  const sharedProps = { mobileMode, collapsed, toggleCollapsed, setSidebarOpen, toggleSidebar, page, setPage, colors, isDark, unread, profile, stats };
+  const sharedProps = { mobileMode, collapsed, toggleCollapsed, setSidebarOpen, page, setPage, colors, isDark, unread, profile, stats };
 
   return (
     <motion.aside
