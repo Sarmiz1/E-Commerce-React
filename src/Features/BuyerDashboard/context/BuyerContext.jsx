@@ -10,7 +10,8 @@
  * via a single useBuyer() hook for backward-compatibility with
  * all existing child components.
  */
-import { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext, useCallback, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useToast } from '../../../Store/useToastStore';
 import { useAuth } from '../../../Store/useAuthStore';
 import { useBuyerUIStore } from '../store/useBuyerUIStore';
@@ -65,6 +66,8 @@ import {
 import { normalizeAddressCountryCode } from '../../../utils/addressCountries';
 
 const BuyerCtx = createContext(null);
+const EMPTY_ARRAY = [];
+const EMPTY_RECORD = {};
 const EMPTY_WALLET = {
   balance: 0,
   totalFunded: 0,
@@ -79,9 +82,9 @@ const EMPTY_AI_CREDITS = {
   history: [],
 };
 
-const asArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : []);
+const asArray = (value) => (Array.isArray(value) ? value.filter(Boolean) : EMPTY_ARRAY);
 const asRecord = (value) => (
-  value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+  value && typeof value === 'object' && !Array.isArray(value) ? value : EMPTY_RECORD
 );
 const asNumber = (value, fallback = 0) => {
   const number = Number(value);
@@ -93,6 +96,11 @@ const formatOrderDate = (value) => {
     ? ''
     : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
+const normalizeSpendingPeriods = periods => asArray(periods).map(period => ({
+  ...asRecord(period),
+  label: period?.label || period?.month || '',
+  spend: asNumber(period?.spend),
+}));
 const getProductVariants = (item) => {
   const product = asRecord(item?.products || item?.product || item);
   return asArray(product.product_variants || item?.product_variants);
@@ -170,7 +178,23 @@ export function BuyerProvider({ children }) {
     page, setPage,
     sidebarOpen, setSidebarOpen, toggleSidebar,
     collapsed, setCollapsed, toggleCollapsed,
-  } = useBuyerUIStore();
+  } = useBuyerUIStore(useShallow(state => ({
+    page: state.page,
+    setPage: state.setPage,
+    sidebarOpen: state.sidebarOpen,
+    setSidebarOpen: state.setSidebarOpen,
+    toggleSidebar: state.toggleSidebar,
+    collapsed: state.collapsed,
+    setCollapsed: state.setCollapsed,
+    toggleCollapsed: state.toggleCollapsed,
+  })));
+
+  const catalogEnabled = ['overview', 'ai', 'wishlist'].includes(page);
+  const reordersEnabled = ['orders', 'wishlist'].includes(page);
+  const addressesEnabled = page === 'addresses';
+  const paymentsEnabled = page === 'payments';
+  const reviewsEnabled = page === 'reviews';
+  const settingsEnabled = page === 'settings';
 
   const { 
     cart, 
@@ -193,55 +217,55 @@ export function BuyerProvider({ children }) {
     isLoading: spendingLoading,
     error: spendingError,
     refetch: refreshSpending,
-  } = useBuyerSpending();
+  } = useBuyerSpending({ enabled: page === 'analytics' });
   const {
     data: reorderData,
     isLoading: reordersLoading,
     error: reordersError,
     refetch: refreshReorders,
-  } = useBuyerReorders();
+  } = useBuyerReorders({ enabled: reordersEnabled });
   const {
     data: addressData,
     isLoading: addressesLoading,
     error: addressesError,
     refetch: refreshAddresses,
-  } = useBuyerAddresses();
+  } = useBuyerAddresses({ enabled: addressesEnabled });
   const {
     data: paymentMethodData,
     isLoading: paymentsLoading,
     error: paymentsError,
     refetch: refreshPayments,
-  } = useBuyerPaymentMethods();
+  } = useBuyerPaymentMethods({ enabled: paymentsEnabled });
   const {
     data: phoneNumberData,
     isLoading: phoneNumbersLoading,
     error: phoneNumbersError,
     refetch: refreshPhoneNumbers,
-  } = useBuyerPhoneNumbers();
+  } = useBuyerPhoneNumbers({ enabled: addressesEnabled });
   const {
     data: reviewData,
     isLoading: reviewsLoading,
     error: reviewsError,
     refetch: refreshReviews,
-  } = useBuyerReviews();
+  } = useBuyerReviews({ enabled: reviewsEnabled });
   const {
     data: accountSettingsData,
     isLoading: accountSettingsLoading,
     error: accountSettingsError,
     refetch: refreshAccountSettings,
-  } = useBuyerAccountSettings();
-  const { data: wishlistAlertData } = useWishlistAlerts();
+  } = useBuyerAccountSettings({ enabled: settingsEnabled });
+  const { data: wishlistAlertData } = useWishlistAlerts({ enabled: page === 'wishlist' });
   
-  const data = asRecord(dbData);
-  const orders = asArray(data.orders).map(order => {
+  const data = useMemo(() => asRecord(dbData), [dbData]);
+  const orders = useMemo(() => asArray(data.orders).map(order => {
     const safeOrder = asRecord(order);
     return {
       ...safeOrder,
       amount: asNumber(safeOrder.total_minor),
       date: formatOrderDate(safeOrder.created_at),
     };
-  });
-  const reviews = asArray(reviewData || data.reviews).map(review => {
+  }), [data.orders]);
+  const reviews = useMemo(() => asArray(reviewData || data.reviews).map(review => {
     const safeReview = asRecord(review);
     return {
       ...safeReview,
@@ -251,8 +275,8 @@ export function BuyerProvider({ children }) {
       orderId: safeReview.order_id || safeReview.orderId,
       submitted: Boolean(safeReview.submitted || safeReview.review_id),
     };
-  });
-  const notifs = asArray(data.notifications).map(notification => {
+  }), [data.reviews, reviewData]);
+  const notifs = useMemo(() => asArray(data.notifications).map(notification => {
     const safeNotification = asRecord(notification);
     return {
       ...safeNotification,
@@ -260,8 +284,8 @@ export function BuyerProvider({ children }) {
       sub: safeNotification.sub || '',
       time: safeNotification.time || formatOrderDate(safeNotification.created_at),
     };
-  });
-  const addresses = asArray(addressData || data.addresses).map(address => {
+  }), [data.notifications]);
+  const addresses = useMemo(() => asArray(addressData || data.addresses).map(address => {
     const safeAddress = asRecord(address);
     return {
       ...safeAddress,
@@ -271,22 +295,22 @@ export function BuyerProvider({ children }) {
       postalCode: safeAddress.postalCode || safeAddress.postal_code || '',
       country: normalizeAddressCountryCode(safeAddress.country || 'NG'),
     };
-  });
-  const payments = asArray(paymentMethodData || data.payment_methods).map(method => {
+  }), [addressData, data.addresses]);
+  const payments = useMemo(() => asArray(paymentMethodData || data.payment_methods).map(method => {
     const safeMethod = asRecord(method);
     return {
       ...safeMethod,
       isDefault: Boolean(safeMethod.isDefault ?? safeMethod.is_default),
     };
-  });
-  const phoneNumbers = asArray(phoneNumberData).map(phone => {
+  }), [data.payment_methods, paymentMethodData]);
+  const phoneNumbers = useMemo(() => asArray(phoneNumberData).map(phone => {
     const safePhone = asRecord(phone);
     return {
       ...safePhone,
       isDefault: Boolean(safePhone.isDefault ?? safePhone.is_default),
     };
-  });
-  const backendInsights = asArray(data.insights).map(insight => {
+  }), [phoneNumberData]);
+  const backendInsights = useMemo(() => asArray(data.insights).map(insight => {
     const safeInsight = asRecord(insight);
     return {
       ...safeInsight,
@@ -295,9 +319,9 @@ export function BuyerProvider({ children }) {
       text: safeInsight.text || 'New shopping insight',
       sub: safeInsight.sub || '',
     };
-  });
+  }), [data.insights]);
 
-  const recommendations = asArray(data.recommendations).map(recommendation => {
+  const recommendations = useMemo(() => asArray(data.recommendations).map(recommendation => {
     const safeRecommendation = asRecord(recommendation);
     const product = asRecord(safeRecommendation.products);
 
@@ -310,46 +334,44 @@ export function BuyerProvider({ children }) {
       price: asNumber(product.price_minor ?? safeRecommendation.price_minor ?? safeRecommendation.price),
       image: product.image || safeRecommendation.image || '',
     };
-  });
+  }), [data.recommendations]);
 
   // ── Global Wishlist Sync ───────────────────────────────────────────────────
   const { productIds, wishlistCount } = useWishlist();
-  const { data: allProducts = [], isLoading: productsLoading } = useAllProducts();
-  const safeProductIds = asArray(productIds);
-  const safeProducts = asArray(allProducts).map(asRecord);
-  const productsById = new Map(safeProducts.map(product => [product.id, product]));
-  const personalizedRecommendations = recommendations
-    .map(recommendation => {
-      const catalogProduct = productsById.get(
-        recommendation.products?.id || recommendation.product_id || recommendation.id,
-      ) || {};
-      return withSelectedVariantPrice({
-        ...recommendation,
-        ...catalogProduct,
-        products: { ...recommendation.products, ...catalogProduct },
-        name: catalogProduct.name || recommendation.name,
-        budgetFit: recommendation.budgetFit ?? recommendation.budget_fit ?? false,
-      });
-    })
-    .filter(recommendation => recommendation.variant?.id);
-  const catalogRecommendations = safeProducts.slice(0, 5).map(product => (
-    withSelectedVariantPrice({
-      ...product,
-      products: product,
-      name: product.name || 'Available product',
-      category: product.category?.name || product.category || 'Other',
-      image: product.image || '',
-      reason: product.ai_summary || 'Available now from the live catalog.',
-      budgetFit: false,
-    })
-  ));
-  const liveRecommendations = personalizedRecommendations.length
-    ? personalizedRecommendations
-    : catalogRecommendations;
-
-  const liveWishlist = (() => {
+  const { data: allProducts = [], isLoading: productsLoading } = useAllProducts({
+    enabled: catalogEnabled,
+  });
+  const safeProductIds = useMemo(() => asArray(productIds), [productIds]);
+  const safeProducts = useMemo(() => asArray(allProducts).map(asRecord), [allProducts]);
+  const { liveRecommendations, liveWishlist } = useMemo(() => {
+    const productsById = new Map(safeProducts.map(product => [product.id, product]));
+    const personalizedRecommendations = recommendations
+      .map(recommendation => {
+        const catalogProduct = productsById.get(
+          recommendation.products?.id || recommendation.product_id || recommendation.id,
+        ) || {};
+        return withSelectedVariantPrice({
+          ...recommendation,
+          ...catalogProduct,
+          products: { ...recommendation.products, ...catalogProduct },
+          name: catalogProduct.name || recommendation.name,
+          budgetFit: recommendation.budgetFit ?? recommendation.budget_fit ?? false,
+        });
+      })
+      .filter(recommendation => recommendation.variant?.id);
+    const catalogRecommendations = safeProducts.slice(0, 5).map(product => (
+      withSelectedVariantPrice({
+        ...product,
+        products: product,
+        name: product.name || 'Available product',
+        category: product.category?.name || product.category || 'Other',
+        image: product.image || '',
+        reason: product.ai_summary || 'Available now from the live catalog.',
+        budgetFit: false,
+      })
+    ));
     const positionById = new Map(safeProductIds.map((id, index) => [id, index]));
-    return safeProducts
+    const wishlist = safeProducts
       .filter(p => positionById.has(p.id))
       .map(p => {
         const stock = getProductVariants(p).reduce(
@@ -370,160 +392,179 @@ export function BuyerProvider({ children }) {
         };
       })
       .sort((a, b) => positionById.get(a.id) - positionById.get(b.id));
-  })();
+    return {
+      liveRecommendations: personalizedRecommendations.length
+        ? personalizedRecommendations
+        : catalogRecommendations,
+      liveWishlist: wishlist,
+    };
+  }, [recommendations, safeProductIds, safeProducts]);
   
-  const dataProfile = asRecord(data.profile);
-  const accountSettings = asRecord(accountSettingsData);
-  const accountProfile = asRecord(accountSettings.profile);
-  const nameCandidate = accountProfile.full_name
-    || user?.user_metadata?.full_name
-    || dataProfile.full_name
-    || user?.user_metadata?.name;
-  const rawName = typeof nameCandidate === 'string' && nameCandidate.trim()
-    ? nameCandidate.trim()
-    : 'Buyer';
-  // Prefer the canonical first name returned by the account RPC. Fall back for legacy payloads.
-  const firstNameCandidate = accountProfile.first_name || rawName;
-  const firstName = firstNameCandidate.trim().split(/\s+/)[0].replace(/[0-9]/g, '') || 'Buyer';
+  const dataProfile = useMemo(() => asRecord(data.profile), [data.profile]);
+  const accountSettings = useMemo(() => asRecord(accountSettingsData), [accountSettingsData]);
+  const accountProfile = useMemo(() => asRecord(accountSettings.profile), [accountSettings.profile]);
+  const profile = useMemo(() => {
+    const nameCandidate = accountProfile.full_name
+      || user?.user_metadata?.full_name
+      || dataProfile.full_name
+      || user?.user_metadata?.name;
+    const rawName = typeof nameCandidate === 'string' && nameCandidate.trim()
+      ? nameCandidate.trim()
+      : 'Buyer';
+    // Prefer the canonical first name returned by the account RPC. Fall back for legacy payloads.
+    const firstNameCandidate = accountProfile.first_name || rawName;
+    const firstName = firstNameCandidate.trim().split(/\s+/)[0].replace(/[0-9]/g, '') || 'Buyer';
 
-  const profile = {
-    ...dataProfile,
-    ...accountProfile,
-    full_name: rawName,
-    firstName: firstName,
-    email: accountProfile.email || user?.email || dataProfile.email || '',
-    phone: accountProfile.phone || user?.phone || dataProfile.phone || '',
-    avatar_url: accountProfile.avatar_url || dataProfile.avatar_url || user?.user_metadata?.avatar_url || '',
-  };
-  const walletData = asRecord(data.wallet);
-  const wallet = {
-    ...EMPTY_WALLET,
-    ...walletData,
-    balance: asNumber(walletData.balance),
-    transactions: asArray(walletData.transactions).map(asRecord),
-  };
-  const aiCreditsData = asRecord(data.ai_credits);
-  const aiCredits = {
-    ...EMPTY_AI_CREDITS,
-    ...aiCreditsData,
-    balance: asNumber(aiCreditsData.balance),
-    totalPurchased: asNumber(aiCreditsData.totalPurchased),
-    totalUsed: asNumber(aiCreditsData.totalUsed),
-    history: asArray(aiCreditsData.history).map(asRecord),
-  };
+    return {
+      ...dataProfile,
+      ...accountProfile,
+      full_name: rawName,
+      firstName,
+      email: accountProfile.email || user?.email || dataProfile.email || '',
+      phone: accountProfile.phone || user?.phone || dataProfile.phone || '',
+      avatar_url: accountProfile.avatar_url || dataProfile.avatar_url || user?.user_metadata?.avatar_url || '',
+    };
+  }, [accountProfile, dataProfile, user?.email, user?.phone, user?.user_metadata]);
+  const wallet = useMemo(() => {
+    const walletData = asRecord(data.wallet);
+    return {
+      ...EMPTY_WALLET,
+      ...walletData,
+      balance: asNumber(walletData.balance),
+      transactions: asArray(walletData.transactions).map(asRecord),
+    };
+  }, [data.wallet]);
+  const aiCredits = useMemo(() => {
+    const aiCreditsData = asRecord(data.ai_credits);
+    return {
+      ...EMPTY_AI_CREDITS,
+      ...aiCreditsData,
+      balance: asNumber(aiCreditsData.balance),
+      totalPurchased: asNumber(aiCreditsData.totalPurchased),
+      totalUsed: asNumber(aiCreditsData.totalUsed),
+      history: asArray(aiCreditsData.history).map(asRecord),
+    };
+  }, [data.ai_credits]);
 
   // Use global cart from useCart hook
   const activeCart = cart;
 
-  // Compute stats on the fly
-  const totalSpentCents = orders
-    .filter(order => order.payment_status === 'paid' && order.status !== 'cancelled')
-    .reduce((s, o) => s + asNumber(o.total_minor), 0);
-  const delivered  = orders.filter((o) => o.status === 'delivered').length;
-  const processing = orders.filter((o) => ['processing', 'pending'].includes(o.status)).length;
-  const shipped    = orders.filter((o) => o.status === 'shipped').length;
-  const cancelled  = orders.filter((o) => o.status === 'cancelled').length;
-  const unreadCount = notifs.filter((n) => n.unread).length;
+  const { stats, snapshot, unreadCount, activityInsights } = useMemo(() => {
+    const totalSpent = orders
+      .filter(order => order.payment_status === 'paid' && order.status !== 'cancelled')
+      .reduce((sum, order) => sum + asNumber(order.total_minor), 0);
+    const delivered = orders.filter(order => order.status === 'delivered').length;
+    const processing = orders.filter(order => ['processing', 'pending'].includes(order.status)).length;
+    const shipped = orders.filter(order => order.status === 'shipped').length;
+    const cancelled = orders.filter(order => order.status === 'cancelled').length;
+    const unread = notifs.filter(notification => notification.unread).length;
+    const savedProducts = asNumber(wishlistCount);
+    const availablePicks = liveRecommendations.length;
 
-  const stats = {
-    totalOrders: orders.length,
-    wishlistItems: asNumber(wishlistCount),
-    totalSpent: totalSpentCents,
-    rewardPoints: asNumber(profile.reward_points),
-    savedAmount: asNumber(totals?.discount),
-  };
-  const snapshot = { processing, shipped, delivered, cancelled };
-  const activityInsights = [
-    delivered > 0 && {
-      color: '#059669',
-      icon: 'check',
-      text: `${delivered} delivered ${delivered === 1 ? 'order' : 'orders'}`,
-      sub: 'Based on your order history',
-    },
-    asNumber(wishlistCount) > 0 && {
-      color: '#ec4899',
-      icon: 'heart',
-      text: `${asNumber(wishlistCount)} saved ${asNumber(wishlistCount) === 1 ? 'product' : 'products'}`,
-      sub: 'From your current wishlist',
-    },
-    unreadCount > 0 && {
-      color: '#f59e0b',
-      icon: 'bell',
-      text: `${unreadCount} unread ${unreadCount === 1 ? 'notification' : 'notifications'}`,
-      sub: 'Review your latest updates',
-    },
-    liveRecommendations.length > 0 && {
-      color: '#667eea',
-      icon: 'sparkle',
-      text: `${liveRecommendations.length} available ${liveRecommendations.length === 1 ? 'pick' : 'picks'} for you`,
-      sub: 'From the live sellable catalog',
-    },
-  ].filter(Boolean);
-  const liveInsights = backendInsights.length ? backendInsights : activityInsights;
-
-  const rawSpending = asRecord(spendingData);
-  const rawSpendingTrends = asRecord(rawSpending.trends);
-  const normalizeSpendingPeriods = periods => asArray(periods).map(period => ({
-    ...asRecord(period),
-    label: period?.label || period?.month || '',
-    spend: asNumber(period?.spend),
-  }));
-  const spendingCategories = asArray(rawSpending.categories);
-  const totalCategorySpend = spendingCategories.reduce(
-    (sum, category) => sum + asNumber(category.spend),
-    0,
+    return {
+      stats: {
+        totalOrders: orders.length,
+        wishlistItems: savedProducts,
+        totalSpent,
+        rewardPoints: asNumber(profile.reward_points),
+        savedAmount: asNumber(totals?.discount),
+      },
+      snapshot: { processing, shipped, delivered, cancelled },
+      unreadCount: unread,
+      activityInsights: [
+        delivered > 0 && {
+          color: '#059669',
+          icon: 'check',
+          text: `${delivered} delivered ${delivered === 1 ? 'order' : 'orders'}`,
+          sub: 'Based on your order history',
+        },
+        savedProducts > 0 && {
+          color: '#ec4899',
+          icon: 'heart',
+          text: `${savedProducts} saved ${savedProducts === 1 ? 'product' : 'products'}`,
+          sub: 'From your current wishlist',
+        },
+        unread > 0 && {
+          color: '#f59e0b',
+          icon: 'bell',
+          text: `${unread} unread ${unread === 1 ? 'notification' : 'notifications'}`,
+          sub: 'Review your latest updates',
+        },
+        availablePicks > 0 && {
+          color: '#667eea',
+          icon: 'sparkle',
+          text: `${availablePicks} available ${availablePicks === 1 ? 'pick' : 'picks'} for you`,
+          sub: 'From the live sellable catalog',
+        },
+      ].filter(Boolean),
+    };
+  }, [liveRecommendations.length, notifs, orders, profile.reward_points, totals?.discount, wishlistCount]);
+  const liveInsights = useMemo(
+    () => (backendInsights.length ? backendInsights : activityInsights),
+    [activityInsights, backendInsights],
   );
-  const monthlySpending = normalizeSpendingPeriods(rawSpendingTrends.monthly || rawSpending.monthly);
-  const spending = {
-    totalSpend: asNumber(rawSpending.lifetimeSpend ?? rawSpending.lifetime_spend, totalCategorySpend),
-    categories: spendingCategories.map(category => ({
-      ...category,
-      spend: asNumber(category.spend),
-      pct: totalCategorySpend > 0
-        ? Math.round((asNumber(category.spend) / totalCategorySpend) * 100)
-        : 0,
-    })),
-    trends: {
-      daily: normalizeSpendingPeriods(rawSpendingTrends.daily),
-      weekly: normalizeSpendingPeriods(rawSpendingTrends.weekly),
+
+  const spending = useMemo(() => {
+    const rawSpending = asRecord(spendingData);
+    const rawSpendingTrends = asRecord(rawSpending.trends);
+    const spendingCategories = asArray(rawSpending.categories);
+    const totalCategorySpend = spendingCategories.reduce(
+      (sum, category) => sum + asNumber(category.spend),
+      0,
+    );
+    const monthlySpending = normalizeSpendingPeriods(rawSpendingTrends.monthly || rawSpending.monthly);
+
+    return {
+      totalSpend: asNumber(rawSpending.lifetimeSpend ?? rawSpending.lifetime_spend, totalCategorySpend),
+      categories: spendingCategories.map(category => ({
+        ...category,
+        spend: asNumber(category.spend),
+        pct: totalCategorySpend > 0
+          ? Math.round((asNumber(category.spend) / totalCategorySpend) * 100)
+          : 0,
+      })),
+      trends: {
+        daily: normalizeSpendingPeriods(rawSpendingTrends.daily),
+        weekly: normalizeSpendingPeriods(rawSpendingTrends.weekly),
+        monthly: monthlySpending,
+        yearly: normalizeSpendingPeriods(rawSpendingTrends.yearly),
+      },
       monthly: monthlySpending,
-      yearly: normalizeSpendingPeriods(rawSpendingTrends.yearly),
-    },
-    monthly: monthlySpending,
-  };
-  const reorders = asArray(reorderData).map(withSelectedVariantPrice);
-  const wishlistAlerts = asArray(wishlistAlertData).map(asRecord);
+    };
+  }, [spendingData]);
+  const reorders = useMemo(() => asArray(reorderData).map(withSelectedVariantPrice), [reorderData]);
+  const wishlistAlerts = useMemo(() => asArray(wishlistAlertData).map(asRecord), [wishlistAlertData]);
 
   // ── Mutation hooks ───────────────────────────────────────────────────────────
-  const removeFromWishlistMut = useRemoveFromWishlist();
-  const addToWishlistMut      = useAddToWishlist();
-  const submitReviewMut       = useSubmitReview();
-  const markNotifsReadMut     = useMarkNotifsRead();
-  const markNotifReadMut      = useMarkNotifRead();
-  const dismissNotifMut       = useDismissNotif();
-  const setWishlistAlertMut   = useSetWishlistAlert();
-  const addAddressMut         = useAddAddress();
-  const updateAddressMut      = useUpdateAddress();
-  const setDefaultAddressMut  = useSetDefaultAddress();
-  const deleteAddressMut      = useDeleteAddress();
-  const addPhoneNumberMut     = useAddPhoneNumber();
-  const updatePhoneNumberMut  = useUpdatePhoneNumber();
-  const setDefaultPhoneMut    = useSetDefaultPhoneNumber();
-  const deletePhoneNumberMut  = useDeletePhoneNumber();
-  const approvePhoneActionMut = useApprovePhoneNumberAction();
-  const addPaymentMethodMut   = useAddPaymentMethod();
-  const setDefaultPaymentMut  = useSetDefaultPaymentMethod();
-  const deletePaymentMethodMut = useDeletePaymentMethod();
-  const approveSensitiveActionMut = useApproveSensitiveAction();
-  const saveBuyerAccountSettingsMut = useSaveBuyerAccountSettings();
-  const uploadBuyerAccountAvatarMut = useUploadBuyerAccountAvatar();
-  const removeBuyerAccountAvatarMut = useRemoveBuyerAccountAvatar();
-  const saveBuyerAccountPreferenceMut = useSaveBuyerAccountPreference();
-  const requestBuyerEmailChangeMut = useRequestBuyerEmailChange();
-  const approveBuyerEmailChangeMut = useApproveBuyerEmailChange();
-  const requestBuyerPasswordChangeMut = useRequestBuyerPasswordChange();
-  const approveBuyerPasswordChangeMut = useApproveBuyerPasswordChange();
-  const deactivateBuyerAccountMut = useDeactivateBuyerAccount();
+  const { mutate: mutateRemoveFromWishlist } = useRemoveFromWishlist();
+  const { mutate: mutateAddToWishlist } = useAddToWishlist();
+  const { mutateAsync: mutateSubmitReview } = useSubmitReview();
+  const { mutate: mutateMarkNotifsRead } = useMarkNotifsRead();
+  const { mutate: mutateMarkNotifRead } = useMarkNotifRead();
+  const { mutate: mutateDismissNotif } = useDismissNotif();
+  const { mutateAsync: mutateSetWishlistAlert } = useSetWishlistAlert();
+  const { mutateAsync: mutateAddAddress } = useAddAddress();
+  const { mutateAsync: mutateUpdateAddress } = useUpdateAddress();
+  const { mutateAsync: mutateSetDefaultAddress } = useSetDefaultAddress();
+  const { mutateAsync: mutateDeleteAddress } = useDeleteAddress();
+  const { mutateAsync: mutateAddPhoneNumber } = useAddPhoneNumber();
+  const { mutateAsync: mutateUpdatePhoneNumber } = useUpdatePhoneNumber();
+  const { mutateAsync: mutateSetDefaultPhone } = useSetDefaultPhoneNumber();
+  const { mutateAsync: mutateDeletePhoneNumber } = useDeletePhoneNumber();
+  const { mutateAsync: mutateApprovePhoneAction } = useApprovePhoneNumberAction();
+  const { mutateAsync: mutateAddPaymentMethod } = useAddPaymentMethod();
+  const { mutateAsync: mutateSetDefaultPayment } = useSetDefaultPaymentMethod();
+  const { mutateAsync: mutateDeletePaymentMethod } = useDeletePaymentMethod();
+  const { mutateAsync: mutateApproveSensitiveAction } = useApproveSensitiveAction();
+  const { mutateAsync: mutateSaveBuyerAccountSettings } = useSaveBuyerAccountSettings();
+  const { mutateAsync: mutateUploadBuyerAccountAvatar } = useUploadBuyerAccountAvatar();
+  const { mutateAsync: mutateRemoveBuyerAccountAvatar } = useRemoveBuyerAccountAvatar();
+  const { mutateAsync: mutateSaveBuyerAccountPreference } = useSaveBuyerAccountPreference();
+  const { mutateAsync: mutateRequestBuyerEmailChange } = useRequestBuyerEmailChange();
+  const { mutateAsync: mutateApproveBuyerEmailChange } = useApproveBuyerEmailChange();
+  const { mutateAsync: mutateRequestBuyerPasswordChange } = useRequestBuyerPasswordChange();
+  const { mutateAsync: mutateApproveBuyerPasswordChange } = useApproveBuyerPasswordChange();
+  const { mutateAsync: mutateDeactivateBuyerAccount } = useDeactivateBuyerAccount();
 
   // ── Actions (TODO: Move wallet/ai mutations to DB) ─────────────────────────
   const fundWallet = useCallback(async () => {
@@ -545,7 +586,7 @@ export function BuyerProvider({ children }) {
   }, [addToast]);
 
   const cartTotal = asNumber(totals?.total);
-  const safeCart = asArray(activeCart).map(item => {
+  const safeCart = useMemo(() => asArray(activeCart).map(item => {
     const safeItem = asRecord(item);
     const product = asRecord(safeItem.product || safeItem.products);
     return {
@@ -554,7 +595,7 @@ export function BuyerProvider({ children }) {
       price: asNumber(safeItem.price ?? product.price_minor),
       quantity: Math.max(asNumber(safeItem.quantity ?? safeItem.qty, 1), 1),
     };
-  });
+  }), [activeCart]);
   const addProductsToCart = useCallback(async (items) => {
     const additions = asArray(Array.isArray(items) ? items : [items])
       .map(toCartAddition)
@@ -582,7 +623,70 @@ export function BuyerProvider({ children }) {
     }
   }, [addToast]);
 
-  const value = {
+  const actions = useMemo(() => ({
+    addToWishlist: product => product?.id && mutateAddToWishlist(product.id),
+    removeFromWishlist: id => mutateRemoveFromWishlist(id),
+    submitReview: (orderId, productId, rating, comment) =>
+      mutateSubmitReview({ orderId, productId, rating, comment }),
+    markAllNotifsRead: () => mutateMarkNotifsRead(),
+    markNotifRead: id => mutateMarkNotifRead(id),
+    dismissNotif: id => mutateDismissNotif(id),
+    setWishlistAlert: variables => mutateSetWishlistAlert(variables),
+    addAddress: address => mutateAddAddress(address),
+    updateAddress: address => mutateUpdateAddress(address),
+    setDefaultAddress: address => mutateSetDefaultAddress(address),
+    deleteAddress: address => mutateDeleteAddress(address),
+    addPhoneNumber: phone => mutateAddPhoneNumber(phone),
+    updatePhoneNumber: phone => mutateUpdatePhoneNumber(phone),
+    setDefaultPhoneNumber: phone => mutateSetDefaultPhone(phone),
+    deletePhoneNumber: phone => mutateDeletePhoneNumber(phone),
+    approvePhoneNumberAction: confirmation => mutateApprovePhoneAction(confirmation),
+    addPaymentMethod: method => mutateAddPaymentMethod(method),
+    setDefaultPaymentMethod: id => mutateSetDefaultPayment(id),
+    deletePaymentMethod: id => mutateDeletePaymentMethod(id),
+    approveSensitiveAction: confirmation => mutateApproveSensitiveAction(confirmation),
+    saveAccountSettings: settings => mutateSaveBuyerAccountSettings(settings),
+    uploadAccountAvatar: request => mutateUploadBuyerAccountAvatar(request),
+    removeAccountAvatar: () => mutateRemoveBuyerAccountAvatar(),
+    saveAccountPreference: preference => mutateSaveBuyerAccountPreference(preference),
+    requestEmailChange: details => mutateRequestBuyerEmailChange(details),
+    approveEmailChange: confirmation => mutateApproveBuyerEmailChange(confirmation),
+    requestPasswordChange: details => mutateRequestBuyerPasswordChange(details),
+    approvePasswordChange: confirmation => mutateApproveBuyerPasswordChange(confirmation),
+    deactivateAccount: confirmation => mutateDeactivateBuyerAccount(confirmation),
+  }), [
+    mutateAddAddress,
+    mutateAddPaymentMethod,
+    mutateAddPhoneNumber,
+    mutateAddToWishlist,
+    mutateApproveBuyerEmailChange,
+    mutateApproveBuyerPasswordChange,
+    mutateApprovePhoneAction,
+    mutateApproveSensitiveAction,
+    mutateDeactivateBuyerAccount,
+    mutateDeleteAddress,
+    mutateDeletePaymentMethod,
+    mutateDeletePhoneNumber,
+    mutateDismissNotif,
+    mutateMarkNotifRead,
+    mutateMarkNotifsRead,
+    mutateRemoveBuyerAccountAvatar,
+    mutateRemoveFromWishlist,
+    mutateRequestBuyerEmailChange,
+    mutateRequestBuyerPasswordChange,
+    mutateSaveBuyerAccountPreference,
+    mutateSaveBuyerAccountSettings,
+    mutateSetDefaultAddress,
+    mutateSetDefaultPayment,
+    mutateSetDefaultPhone,
+    mutateSetWishlistAlert,
+    mutateSubmitReview,
+    mutateUpdateAddress,
+    mutateUpdatePhoneNumber,
+    mutateUploadBuyerAccountAvatar,
+  ]);
+
+  const value = useMemo(() => ({
     // UI
     page, setPage,
     sidebarOpen, setSidebarOpen, toggleSidebar,
@@ -597,35 +701,15 @@ export function BuyerProvider({ children }) {
     stats, snapshot, unreadCount,
     
     // Mutations
-    addToWishlist: (product) => product?.id && addToWishlistMut.mutate(product.id),
-    removeFromWishlist: (id) => removeFromWishlistMut.mutate(id),
-    submitReview: (orderId, productId, rating, comment) =>
-      submitReviewMut.mutateAsync({ orderId, productId, rating, comment }),
-    markAllNotifsRead: () => markNotifsReadMut.mutate(),
-    markNotifRead: (id) => markNotifReadMut.mutate(id),
-    dismissNotif: (id) => dismissNotifMut.mutate(id),
-    setWishlistAlert: (variables) => setWishlistAlertMut.mutateAsync(variables),
+    ...actions,
     wishlistAlerts,
-    addAddress: (addr) => addAddressMut.mutateAsync(addr),
-    updateAddress: (addr) => updateAddressMut.mutateAsync(addr),
-    setDefaultAddress: (address) => setDefaultAddressMut.mutateAsync(address),
-    deleteAddress: (address) => deleteAddressMut.mutateAsync(address),
     addressesLoading,
     addressesError,
     refreshAddresses,
     phoneNumbers,
-    addPhoneNumber: (phone) => addPhoneNumberMut.mutateAsync(phone),
-    updatePhoneNumber: (phone) => updatePhoneNumberMut.mutateAsync(phone),
-    setDefaultPhoneNumber: (phone) => setDefaultPhoneMut.mutateAsync(phone),
-    deletePhoneNumber: (phone) => deletePhoneNumberMut.mutateAsync(phone),
-    approvePhoneNumberAction: (confirmation) => approvePhoneActionMut.mutateAsync(confirmation),
     phoneNumbersLoading,
     phoneNumbersError,
     refreshPhoneNumbers,
-    addPaymentMethod: (method) => addPaymentMethodMut.mutateAsync(method),
-    setDefaultPaymentMethod: (id) => setDefaultPaymentMut.mutateAsync(id),
-    deletePaymentMethod: (id) => deletePaymentMethodMut.mutateAsync(id),
-    approveSensitiveAction: (confirmation) => approveSensitiveActionMut.mutateAsync(confirmation),
     paymentsLoading,
     paymentsError,
     refreshPayments,
@@ -636,16 +720,6 @@ export function BuyerProvider({ children }) {
     accountSettingsLoading,
     accountSettingsError,
     refreshAccountSettings,
-    saveAccountSettings: (settings) => saveBuyerAccountSettingsMut.mutateAsync(settings),
-    uploadAccountAvatar: (request) => uploadBuyerAccountAvatarMut.mutateAsync(request),
-    removeAccountAvatar: () => removeBuyerAccountAvatarMut.mutateAsync(),
-    saveAccountPreference: (preference) => saveBuyerAccountPreferenceMut.mutateAsync(preference),
-    requestEmailChange: (details) => requestBuyerEmailChangeMut.mutateAsync(details),
-    approveEmailChange: (confirmation) => approveBuyerEmailChangeMut.mutateAsync(confirmation),
-    requestPasswordChange: (details) => requestBuyerPasswordChangeMut.mutateAsync(details),
-    approvePasswordChange: (confirmation) => approveBuyerPasswordChangeMut.mutateAsync(confirmation),
-    deactivateAccount: (confirmation) => deactivateBuyerAccountMut.mutateAsync(confirmation),
-    
     // Wallet mapping
     walletBalance: wallet.balance,
     walletTransactions: wallet.transactions,
@@ -669,7 +743,7 @@ export function BuyerProvider({ children }) {
     // Misc dynamic data
     recommendations: liveRecommendations,
     insights: liveInsights,
-    recommendationsLoading: isLoading || productsLoading,
+    recommendationsLoading: isLoading || (catalogEnabled && productsLoading),
     reorders,
     reordersLoading,
     reordersError,
@@ -680,7 +754,76 @@ export function BuyerProvider({ children }) {
     refreshSpending,
     payments,
     refresh: refetch,
-  };
+  }), [
+    accountSettings,
+    accountSettingsError,
+    accountSettingsLoading,
+    actions,
+    addProductsToCart,
+    addresses,
+    addressesError,
+    addressesLoading,
+    aiCredits.balance,
+    aiCredits.history,
+    aiCredits.totalPurchased,
+    aiCredits.totalUsed,
+    buyCredits,
+    cartTotal,
+    catalogEnabled,
+    collapsed,
+    dashboardError,
+    fundWallet,
+    getReceipt,
+    isFetching,
+    isLoading,
+    liveInsights,
+    liveRecommendations,
+    liveWishlist,
+    notifs,
+    orders,
+    page,
+    payments,
+    paymentsError,
+    paymentsLoading,
+    phoneNumbers,
+    phoneNumbersError,
+    phoneNumbersLoading,
+    productsLoading,
+    profile,
+    refetch,
+    refreshAccountSettings,
+    refreshAddresses,
+    refreshPayments,
+    refreshPhoneNumbers,
+    refreshReorders,
+    refreshReviews,
+    refreshSpending,
+    removeFromCart,
+    reorders,
+    reordersError,
+    reordersLoading,
+    reviews,
+    reviewsError,
+    reviewsLoading,
+    safeCart,
+    setCollapsed,
+    setPage,
+    setSidebarOpen,
+    sidebarOpen,
+    snapshot,
+    spending,
+    spendingError,
+    spendingLoading,
+    stats,
+    toggleCollapsed,
+    toggleSidebar,
+    unreadCount,
+    updateCartQty,
+    wallet.balance,
+    wallet.transactions,
+    wishlistAlerts,
+    withdrawWallet,
+  ]);
 
   return <BuyerCtx.Provider value={value}>{children}</BuyerCtx.Provider>;
 }

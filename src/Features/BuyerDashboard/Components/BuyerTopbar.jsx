@@ -115,7 +115,13 @@ export default function BuyerTopbar() {
                         <div key={item.id} className="px-4 py-3 flex items-center gap-3 hover:opacity-80 transition-opacity"
                           style={{ borderBottom: `1px solid ${colors.border.subtle}` }}>
                           {item.image ? (
-                            <img src={item.image} alt={item.name} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                            />
                           ) : (
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-[11px] font-black text-white"
                               style={{ background: `hsl(${hue}, 55%, 50%)` }}>

@@ -24,7 +24,13 @@ export function ReorderSuggestionCard({ item, index = 0, status, onReorder }) {
         style={{ background: `hsl(${hue}, 40%, ${isDark ? '14%' : '96%'})` }}
       >
         {image ? (
-          <img src={image} alt={itemName} className="w-full h-full object-cover" />
+          <img
+            src={image}
+            alt={itemName}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover"
+          />
         ) : (
           <BIcon name="package" size={32} style={{ color: colors.text.tertiary }} />
         )}

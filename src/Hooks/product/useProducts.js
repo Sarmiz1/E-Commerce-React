@@ -15,8 +15,11 @@ export const useProductBySlug = (slug) => {
   });
 };
 
-export const useAllProducts = () => {
-  return useQuery(ProductsAPI.getAll());
+export const useAllProducts = ({ enabled = true } = {}) => {
+  return useQuery({
+    ...ProductsAPI.getAll(),
+    enabled,
+  });
 };
 
 export const useProductRecommendations = (id, limit = 5) => {

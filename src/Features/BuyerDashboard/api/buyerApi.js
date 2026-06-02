@@ -2,7 +2,6 @@
  * buyerApi.js — Supabase API layer for the Buyer Dashboard.
  * All functions are pure async, user-id aware, no mock fallback needed.
  */
-import axios from 'axios';
 import { supabase } from '../../../lib/supabaseClient';
 
 const unwrap = async (request) => {
@@ -86,6 +85,7 @@ async function uploadBuyerAvatar(file, onProgress) {
 
   let result;
   try {
+    const { default: axios } = await import('axios');
     const response = await axios.post(
       `${supabaseUrl}/functions/v1/cloudinary-avatar`,
       formData,

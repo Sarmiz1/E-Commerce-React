@@ -157,7 +157,13 @@ function RecCard({ item, index }) {
       {/* Product visual */}
       <div className="h-32 flex items-center justify-center relative overflow-hidden" style={{ background: `hsl(${hue}, 45%, ${isDark ? '15%' : '96%'})` }}>
         {(item.products?.image || item.image) ? (
-          <img src={item.products?.image || item.image} alt={item.name} className="w-full h-full object-cover" />
+          <img
+            src={item.products?.image || item.image}
+            alt={item.name}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover"
+          />
         ) : (
           <span className="text-5xl select-none">
             {item.category === 'Footwear' ? '👟' : item.category === 'Tech' ? '🎧' : '👕'}

@@ -5,6 +5,21 @@ TanStack Query for server data, Zustand for dashboard navigation state, and the
 shared cart context for cart mutations. Dashboard tabs are loaded on demand so
 opening the account area does not download every panel up front.
 
+## Performance Model
+
+- The `/account` route and each dashboard tab are lazy-loaded boundaries.
+- The provider always loads the unified dashboard shell, but tab-specific RPCs
+  run only when their tab opens. TanStack Query retains those results while the
+  buyer moves between tabs.
+- The complete live catalog loads only for Dashboard, My AI, and Wishlist,
+  where sellable product details are needed.
+- Catalog, wishlist, cart, spending, and account-derived view models are
+  memoized so navigation and mutation status changes do not repeat the heavier
+  transformations.
+- Product-card images use lazy loading and asynchronous decoding. Axios is
+  imported only when an avatar upload starts, keeping upload-only code out of
+  the initial dashboard path.
+
 ## Backend Setup
 
 Apply `supabase/migrations/20260530160000_complete_buyer_dashboard.sql` after the

@@ -55,82 +55,82 @@ export function useBuyerOrders(page, status = 'all', pageSize = 10) {
   });
 }
 
-export function useBuyerSpending() {
+export function useBuyerSpending({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.spending(user?.id),
     queryFn: () => buyerApi.getSpending(),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }
 
-export function useBuyerReorders() {
+export function useBuyerReorders({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.reorders(user?.id),
     queryFn: () => buyerApi.getReorders(),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }
 
-export function useBuyerAddresses() {
+export function useBuyerAddresses({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.addresses(user?.id),
     queryFn: () => buyerApi.getAddresses(),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }
 
-export function useBuyerPaymentMethods() {
+export function useBuyerPaymentMethods({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.paymentMethods(user?.id),
     queryFn: () => buyerApi.getPaymentMethods(),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }
 
-export function useBuyerPhoneNumbers() {
+export function useBuyerPhoneNumbers({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.phoneNumbers(user?.id),
     queryFn: () => buyerApi.getPhoneNumbers(),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }
 
-export function useBuyerReviews() {
+export function useBuyerReviews({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.reviews(user?.id),
     queryFn: () => buyerApi.getReviewItems(),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }
 
-export function useBuyerAccountSettings() {
+export function useBuyerAccountSettings({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.accountSettings(user?.id),
     queryFn: () => buyerApi.getAccountSettings(),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }
 
-export function useWishlistAlerts() {
+export function useWishlistAlerts({ enabled = true } = {}) {
   const { user } = useAuth();
   return useQuery({
     queryKey: buyerKeys.wishlistAlerts(user?.id),
     queryFn: () => buyerApi.getWishlistAlerts(user.id),
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     ...QUERY_DEFAULTS,
   });
 }

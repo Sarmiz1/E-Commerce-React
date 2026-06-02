@@ -134,7 +134,13 @@ export default function BuyerWishlist() {
                   onClick={() => item.slug && navigate(`/products/${item.slug}`)}
                   style={{ background: `hsl(${hue}, 40%, ${isDark ? '14%' : '96%'})` }}>
                   {(item.products?.image || item.image) ? (
-                    <img src={item.products?.image || item.image} alt={itemName} className="w-full h-full object-cover" />
+                    <img
+                      src={item.products?.image || item.image}
+                      alt={itemName}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <span className="text-6xl select-none">
                       {itemName.toLowerCase().includes('shoe') || itemName.toLowerCase().includes('oxford') ? '👟'
