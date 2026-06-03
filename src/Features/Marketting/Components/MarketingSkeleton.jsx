@@ -2,7 +2,7 @@ import React from "react";
 
 export default function MarketingSkeleton({ sections = 3 }) {
   return (
-    <div className="w-full space-y-20 py-20 px-6">
+    <div className="woo-skeleton-wave-group w-full space-y-20 py-20 px-6">
       {Array.from({ length: sections }).map((_, i) => (
         <div key={i} className="max-w-7xl mx-auto">
           {/* Section Label Skeleton */}

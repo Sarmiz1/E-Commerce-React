@@ -5,7 +5,7 @@ import Skeleton from "./Skeleton";
 
 export default function HomePageLoadingState() {
   return (
-    <div className="overflow-x-hidden">
+    <div className="woo-skeleton-wave-group overflow-x-hidden">
       <style>{STYLES}</style>
       <MarqueeStrip />
       <div className="relative bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 min-h-[90vh] flex items-center justify-center animate-pulse">

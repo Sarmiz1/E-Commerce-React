@@ -9,20 +9,22 @@ const badgeIcons = {
 
 export function TrustBadges() {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 gap-2 sm-min:grid-cols-3 sm:gap-3">
       {cartTrustBadges.map((badge) => {
         const BadgeIcon = badgeIcons[badge.icon] || Ic.Check;
 
         return (
           <div
             key={badge.title}
-            className="bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-2xl p-4 text-center shadow-sm transition-colors duration-300"
+            className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-2.5 text-left shadow-sm transition-colors duration-300 dark:border-neutral-800 dark:bg-neutral-900 sm-min:block sm-min:text-center sm:p-4"
           >
-            <div className="w-9 h-9 mx-auto mb-2 rounded-xl bg-gray-50 dark:bg-neutral-800 text-indigo-500 dark:text-indigo-400 flex items-center justify-center">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gray-50 text-indigo-500 dark:bg-neutral-800 dark:text-indigo-400 sm-min:mx-auto sm-min:mb-2">
               <BadgeIcon c="w-4 h-4" />
             </div>
-            <p className="font-bold text-gray-900 dark:text-white text-xs">{badge.title}</p>
-            <p className="text-gray-400 dark:text-neutral-500 text-[10px] mt-0.5">{badge.sub}</p>
+            <div>
+              <p className="text-xs font-bold text-gray-900 dark:text-white">{badge.title}</p>
+              <p className="mt-0.5 text-[10px] text-gray-400 dark:text-neutral-500">{badge.sub}</p>
+            </div>
           </div>
         );
       })}

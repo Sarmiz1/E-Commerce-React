@@ -8,7 +8,7 @@ import { useWishlist } from "../../hooks/useWishlist";
 import { useCartActions } from "../../Store/cartContext";
 import { useAuth } from "../../Store/useAuthStore";
 import { WishlistAPI } from "../../api/wishlistApi";
-import { trackEvent, trackEvents } from "../../api/track_events";
+import { trackEvent } from "../../api/track_events";
 import { formatMoneyMinor } from "../../utils/formatMoneyMinor"
 import { getProductImages } from "../../utils/getProductImages";
 import AddToCart from "../../Components/Ui/AddToCart";
@@ -186,7 +186,7 @@ function WishlistProductCard({ product, onQuickView, isSelected, onToggleSelect,
 
 function WishlistSkeletonGrid() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
+    <div className="woo-skeleton-wave-group grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
       {Array.from({ length: 8 }).map((_, index) => (
         <motion.div
           key={index}

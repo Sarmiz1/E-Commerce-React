@@ -82,6 +82,8 @@ export const useCartStore = create(
 
           if (idx >= 0) {
             s.cart[idx].quantity = (s.cart[idx].quantity || 0) + quantity;
+            s.cart[idx].line_total_minor =
+              (Number(s.cart[idx].unit_price_minor) || 0) * s.cart[idx].quantity;
           } else {
             const price = getSellablePriceMinor(product, variant);
             s.cart.push({
@@ -92,6 +94,7 @@ export const useCartStore = create(
               unit_price_minor: price,
               line_total_minor: price * quantity,
               products: {
+                ...product,
                 id: productId,
                 name: product?.name,
                 slug: product?.slug,
@@ -105,6 +108,7 @@ export const useCartStore = create(
                 rating_count: product?.rating_count,
               },
               variant: {
+                ...variant,
                 id: variantId,
                 color: variant?.color,
                 size: variant?.size,
@@ -136,7 +140,11 @@ export const useCartStore = create(
         const snapshot = get().cart.map((i) => ({ ...i }));
         set((s) => {
           const item = s.cart.find((i) => matchesItem(i, itemId));
-          if (item) item.quantity = Math.max(Number(quantity) || 1, 1);
+          if (item) {
+            item.quantity = Math.max(Number(quantity) || 1, 1);
+            item.line_total_minor =
+              (Number(item.unit_price_minor) || 0) * item.quantity;
+          }
         });
         return snapshot;
       },

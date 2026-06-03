@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Area,
   AreaChart,
@@ -58,18 +61,24 @@ import {
   useAdminHiring,
   useAdminPageActivity,
   useAdminPaidSalesChart,
+  useAdminPromoCodes,
   useAdminProducts,
   useAdminUserGrowth,
   useConfigureAdminPromotionPasscode,
   useCreateAdminJobOpening,
+  useDeleteAdminCareerQuestion,
   useDeleteAdminIntegration,
+  useDeleteAdminPromoCode,
   useDeleteAdminSetting,
   useMoveAdminHiringCandidate,
+  useOpenAdminCareerDocument,
   usePromoteAdmin,
   useQueueAdminAiQuery,
   usePermanentlyDeleteBuyerAccount,
   useReviewBuyerReactivation,
   useSaveAdminIntegration,
+  useSaveAdminCareerQuestion,
+  useSaveAdminPromoCode,
   useSaveAdminSetting,
   useSetAdminJobOpeningStatus,
   useSetAdminOrderStatus,
@@ -105,6 +114,57 @@ const USER_GROWTH_RANGES = [
   { id: "months", label: "Months" },
   { id: "years", label: "Years" },
 ];
+
+const adminPromoSchema = z.object({
+  code: z.string().trim().min(3, "Code must be at least 3 characters.").max(24, "Code is too long.")
+    .regex(/^[A-Z0-9_-]+$/i, "Use letters, numbers, underscores, or hyphens."),
+  label: z.string().trim().min(2, "Label is required.").max(80, "Label is too long."),
+  type: z.enum(["percent", "fixed", "shipping"]),
+  value: z.coerce.number().min(0, "Value cannot be negative."),
+  minOrder: z.coerce.number().min(0, "Minimum order cannot be negative."),
+  maxUses: z.union([z.literal(""), z.coerce.number().int().positive("Use limit must be positive.")]).optional(),
+  startsAt: z.string().optional(),
+  expiresAt: z.string().optional(),
+  isActive: z.boolean(),
+}).superRefine((value, ctx) => {
+  if (value.type !== "shipping" && value.value <= 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["value"], message: "Value must be greater than zero." });
+  }
+  if (value.type === "percent" && value.value > 90) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["value"], message: "Percent promos cannot exceed 90%." });
+  }
+});
+
+const adminPromoDefaults = {
+  code: "",
+  label: "",
+  type: "percent",
+  value: 10,
+  minOrder: 0,
+  maxUses: "",
+  startsAt: "",
+  expiresAt: "",
+  isActive: true,
+};
+
+const toMinor = (value = 0) => Math.round(Number(value || 0) * 100);
+const fromMinor = (value = 0) => Number(value || 0) / 100;
+const toDateTimeLocal = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 16);
+};
+const promoToForm = (promo) => ({
+  code: promo?.code || "",
+  label: promo?.label || "",
+  type: promo?.type || "percent",
+  value: promo?.type === "fixed" ? fromMinor(promo?.value) : Number(promo?.value || 0),
+  minOrder: fromMinor(promo?.min_order_cents),
+  maxUses: promo?.max_uses || "",
+  startsAt: toDateTimeLocal(promo?.starts_at),
+  expiresAt: toDateTimeLocal(promo?.expires_at),
+  isActive: promo?.is_active ?? true,
+});
 
 const SELLER_FILTERS = [
   { id: "all", label: "All" },
@@ -1188,19 +1248,40 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
   const [candidateFilter, setCandidateFilter] = useState("all");
   const [jobFilter, setJobFilter] = useState("all");
   const [jobModalOpen, setJobModalOpen] = useState(false);
+  const [questionJob, setQuestionJob] = useState(null);
+  const [questionEditor, setQuestionEditor] = useState(null);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [jobForm, setJobForm] = useState({
+    id: null,
     title: "",
     department: "",
     location: "",
     employmentType: "full_time",
     openings: 1,
+    summary: "",
+    description: "",
+    responsibilitiesText: "",
+    requirementsText: "",
+    isTechnical: false,
   });
+  const questionMutation = useSaveAdminCareerQuestion();
+  const deleteQuestionMutation = useDeleteAdminCareerQuestion();
+  const documentMutation = useOpenAdminCareerDocument();
   if (hiringQuery.isLoading) return <ModuleLoader/>;
   if (hiringQuery.isError) return <PanelMessage>{hiringQuery.error.message}</PanelMessage>;
 
   const candidates = asArray(hiringQuery.data?.candidates);
   const jobs = asArray(hiringQuery.data?.jobs);
   const stages = asArray(hiringQuery.data?.stages);
+  const talentPoolQuestionGroup = {
+    id: null,
+    questions: asArray(hiringQuery.data?.talentPoolQuestions),
+    scope: "talent_pool",
+    title: "Talent Pool",
+  };
+  const activeQuestionJob = questionJob?.scope === "talent_pool"
+    ? talentPoolQuestionGroup
+    : jobs.find((job)=>job.id===questionJob?.id) || questionJob;
   const filteredJobs = jobs.filter((job) => jobFilter === "all" || job.status === jobFilter);
   const visibleCandidates = candidates.filter((candidate) => candidateFilter === "all" || candidate.stage === candidateFilter);
   const openVacancies = jobs.filter((job) => job.status === "open")
@@ -1212,10 +1293,64 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
   const createJob = async (event) => {
     event.preventDefault();
     try {
-      await jobMutation.mutateAsync(jobForm);
+      await jobMutation.mutateAsync({
+        ...jobForm,
+        responsibilities: jobForm.responsibilitiesText.split("\n").map((item)=>item.trim()).filter(Boolean),
+        requirements: jobForm.requirementsText.split("\n").map((item)=>item.trim()).filter(Boolean),
+      });
       setJobModalOpen(false);
-      setJobForm({title:"",department:"",location:"",employmentType:"full_time",openings:1});
-      toast("Job opening created", C.green);
+      setJobForm({id:null,title:"",department:"",location:"",employmentType:"full_time",openings:1,summary:"",description:"",responsibilitiesText:"",requirementsText:"",isTechnical:false});
+      toast(jobForm.id ? "Job opening updated" : "Job opening created", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const editJob = (job) => {
+    setJobForm({
+      id: job.id,
+      title: job.title,
+      department: job.department,
+      location: job.location,
+      employmentType: job.employment_type,
+      openings: job.openings,
+      summary: job.summary || "",
+      description: job.description || "",
+      responsibilitiesText: asArray(job.responsibilities).join("\n"),
+      requirementsText: asArray(job.requirements).join("\n"),
+      isTechnical: Boolean(job.is_technical),
+    });
+    setJobModalOpen(true);
+  };
+  const saveQuestion = async (event) => {
+    event.preventDefault();
+    try {
+      await questionMutation.mutateAsync({
+        ...questionEditor,
+        jobId: activeQuestionJob.id,
+        options: questionEditor.optionsText.split(",").map((option)=>option.trim()).filter(Boolean),
+        scope: activeQuestionJob.scope || "role",
+      });
+      setQuestionEditor(null);
+      toast("Application question saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+  const removeQuestion = (id) => {
+    if (!window.confirm("Delete this application question?")) return;
+    deleteQuestionMutation.mutate(id, {
+      onSuccess:()=>toast("Application question deleted",C.green),
+      onError:(error)=>toast(error.message,C.red),
+    });
+  };
+  const openDocument = async (document) => {
+    try {
+      const url = await documentMutation.mutateAsync(document.id);
+      const link = window.document.createElement("a");
+      link.href = url;
+      link.rel = "noopener noreferrer";
+      link.target = "_blank";
+      link.click();
     } catch (error) {
       toast(error.message, C.red);
     }
@@ -1232,9 +1367,10 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
         <Stat icon={Clock} label="In Interviews" value={candidates.filter((candidate)=>candidate.stage==="interview").length} color={C.amber}/>
         <Stat icon={CheckCircle2} label="Hired" value={candidates.filter((candidate)=>candidate.stage==="hired").length} color={C.cyan}/>
       </Stats>
-      <Card title="Vacancy Management" accent={C.green} actions={
+      <Card title="Vacancy Management" accent={C.green} actions={<>
+        <Btn icon={Plus} onClick={()=>setQuestionJob({scope:"talent_pool"})}>Talent Pool Questions</Btn>
         <Btn icon={Plus} variant="success" onClick={()=>setJobModalOpen(true)}>Create Job</Btn>
-      }>
+      </>}>
         <div style={{padding:'1rem 1.2rem',display:'flex',gap:7,flexWrap:'wrap'}}>
           {["all","open","draft","closed"].map((status) => (
             <Btn key={status} variant={jobFilter===status?"cyan":"ghost"} onClick={()=>setJobFilter(status)}>{titleCase(status)}</Btn>
@@ -1245,9 +1381,13 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
           rows={filteredJobs.map((job) => <tr key={job.id}>
             <Td>{job.title}</Td><Td>{job.department}</Td><Td>{job.location}</Td>
             <Td>{titleCase(job.employment_type)}</Td><Td>{job.openings}</Td><Td><Badge type={job.status}/></Td>
-            <Td>{job.status==="open"
-              ? <Btn disabled={jobStatusMutation.isPending} icon={X} variant="danger" onClick={()=>updateJobStatus(job.id,"closed")}>Close</Btn>
-              : <Btn disabled={jobStatusMutation.isPending} icon={RotateCcw} variant="success" onClick={()=>updateJobStatus(job.id,"open")}>Reopen</Btn>}</Td>
+            <Td><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+              <Btn icon={Edit2} onClick={()=>editJob(job)}>Edit</Btn>
+              <Btn icon={Plus} onClick={()=>setQuestionJob(job)}>Questions</Btn>
+              {job.status==="open"
+                ? <Btn disabled={jobStatusMutation.isPending} icon={X} variant="danger" onClick={()=>updateJobStatus(job.id,"closed")}>Close</Btn>
+                : <Btn disabled={jobStatusMutation.isPending} icon={RotateCcw} variant="success" onClick={()=>updateJobStatus(job.id,"open")}>Reopen</Btn>}
+            </div></Td>
           </tr>)}/>
       </Card>
       <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
@@ -1268,6 +1408,7 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
                 <strong style={{fontSize:12,color:C.txt}}>{candidate.full_name}</strong>
                 <div style={{fontSize:11,color:C.txt3,marginTop:4}}>{candidate.role_title}</div>
                 <div style={{fontSize:11,color:STAGE_COLORS[stage],marginTop:6}}>Score: {candidate.score ?? "-"}</div>
+                {candidate.application && <div style={{marginTop:8}}><Btn icon={Eye} onClick={()=>setSelectedCandidate(candidate)}>Review</Btn></div>}
                 {index < stages.length - 1 && <div style={{marginTop:8}}><Btn icon={Briefcase} variant="cyan"
                   onClick={()=>move(candidate,stages[index+1])}>Move Forward</Btn></div>}
               </div>)}
@@ -1277,7 +1418,7 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
         })}
       </div>
       {jobModalOpen && (
-        <AdminModal title="Create Job Opening" onClose={()=>setJobModalOpen(false)}>
+        <AdminModal title={jobForm.id?"Edit Job Opening":"Create Job Opening"} onClose={()=>setJobModalOpen(false)}>
           <form onSubmit={createJob} style={{padding:'1.2rem',display:'grid',gap:12}}>
             <Field label="Job Title"><input required value={jobForm.title} onChange={(event)=>setJobForm({...jobForm,title:event.target.value})} style={inputStyle}/></Field>
             <Field label="Department"><input required value={jobForm.department} onChange={(event)=>setJobForm({...jobForm,department:event.target.value})} style={inputStyle}/></Field>
@@ -1287,12 +1428,63 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
             </select></Field>
             <Field label="Vacancies"><input required min="1" type="number" value={jobForm.openings}
               onChange={(event)=>setJobForm({...jobForm,openings:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Summary"><textarea rows="2" value={jobForm.summary} onChange={(event)=>setJobForm({...jobForm,summary:event.target.value})} style={{...inputStyle,resize:"vertical"}}/></Field>
+            <Field label="Description"><textarea rows="3" value={jobForm.description} onChange={(event)=>setJobForm({...jobForm,description:event.target.value})} style={{...inputStyle,resize:"vertical"}}/></Field>
+            <Field label="Responsibilities (one per line)"><textarea rows="4" value={jobForm.responsibilitiesText} onChange={(event)=>setJobForm({...jobForm,responsibilitiesText:event.target.value})} style={{...inputStyle,resize:"vertical"}}/></Field>
+            <Field label="Requirements (one per line)"><textarea rows="4" value={jobForm.requirementsText} onChange={(event)=>setJobForm({...jobForm,requirementsText:event.target.value})} style={{...inputStyle,resize:"vertical"}}/></Field>
+            <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:C.txt2}}><input checked={jobForm.isTechnical} onChange={(event)=>setJobForm({...jobForm,isTechnical:event.target.checked})} type="checkbox"/> Require a live-project URL for this technical role</label>
             <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
               <Btn onClick={()=>setJobModalOpen(false)}>Cancel</Btn>
               <Btn type="submit" disabled={jobMutation.isPending} icon={jobMutation.isPending?Loader2:Plus} iconSpin={jobMutation.isPending}
-                variant="success">{jobMutation.isPending?"Creating...":"Create Job"}</Btn>
+                variant="success">{jobMutation.isPending?"Saving...":"Save Job"}</Btn>
             </div>
           </form>
+        </AdminModal>
+      )}
+      {activeQuestionJob && !questionEditor && (
+        <AdminModal title={`Questions · ${activeQuestionJob.title}`} onClose={()=>{setQuestionJob(null);setQuestionEditor(null);}}>
+          <div style={{padding:"1.2rem",display:"grid",gap:10}}>
+            <PanelMessage>
+              {activeQuestionJob.scope==="talent_pool"
+                ? "The talent pool is always available, even when no vacancies are open. Manage its focused questions here. Dropdown options are comma-separated."
+                : "Core questions are shared across all applications. Add role-specific questions here. Dropdown options are comma-separated."}
+            </PanelMessage>
+            {asArray(activeQuestionJob.questions).map((question)=><div key={question.id} style={{padding:10,borderRadius:9,border:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",gap:8}}>
+              <div><strong style={{fontSize:12,color:C.txt}}>{question.label}</strong><div style={{fontSize:11,color:C.txt3,marginTop:3}}>{titleCase(question.field_type)} · {question.is_required?"Required":"Optional"}</div></div>
+              <div style={{display:"flex",gap:5}}><Btn icon={Edit2} onClick={()=>setQuestionEditor({id:question.id,key:question.field_key,label:question.label,type:question.field_type,placeholder:question.placeholder||"",optionsText:asArray(question.options).join(", "),required:Boolean(question.is_required),position:question.position||0})}>Edit</Btn><Btn disabled={deleteQuestionMutation.isPending} icon={Trash2} variant="danger" onClick={()=>removeQuestion(question.id)}>Delete</Btn></div>
+            </div>)}
+            {!asArray(activeQuestionJob.questions).length && <PanelMessage>No {activeQuestionJob.scope==="talent_pool"?"talent-pool":"role-specific"} questions configured.</PanelMessage>}
+            <Btn icon={Plus} variant="success" onClick={()=>setQuestionEditor({id:null,key:"",label:"",type:"text",placeholder:"",optionsText:"",required:false,position:0})}>Add Question</Btn>
+          </div>
+        </AdminModal>
+      )}
+      {questionEditor && activeQuestionJob && (
+        <AdminModal title={questionEditor.id?"Edit Application Question":"Add Application Question"} onClose={()=>setQuestionEditor(null)}>
+          <form onSubmit={saveQuestion} style={{padding:"1.2rem",display:"grid",gap:12}}>
+            <Field label="Stable key"><input required value={questionEditor.key} onChange={(event)=>setQuestionEditor({...questionEditor,key:event.target.value.replace(/[^a-z0-9_]/gi,"_").toLowerCase()})} style={inputStyle}/></Field>
+            <Field label="Question"><input required value={questionEditor.label} onChange={(event)=>setQuestionEditor({...questionEditor,label:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Answer type"><select value={questionEditor.type} onChange={(event)=>setQuestionEditor({...questionEditor,type:event.target.value})} style={inputStyle}>{["text","textarea","url","select","checkbox"].map((type)=><option key={type} value={type}>{titleCase(type)}</option>)}</select></Field>
+            <Field label="Placeholder"><input value={questionEditor.placeholder} onChange={(event)=>setQuestionEditor({...questionEditor,placeholder:event.target.value})} style={inputStyle}/></Field>
+            {questionEditor.type==="select" && <Field label="Dropdown options"><input required value={questionEditor.optionsText} onChange={(event)=>setQuestionEditor({...questionEditor,optionsText:event.target.value})} placeholder="Option one, Option two" style={inputStyle}/></Field>}
+            <Field label="Position"><input min="0" type="number" value={questionEditor.position} onChange={(event)=>setQuestionEditor({...questionEditor,position:event.target.value})} style={inputStyle}/></Field>
+            <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:C.txt2}}><input checked={questionEditor.required} onChange={(event)=>setQuestionEditor({...questionEditor,required:event.target.checked})} type="checkbox"/> Required question</label>
+            <div style={{display:"flex",justifyContent:"flex-end",gap:8}}><Btn onClick={()=>setQuestionEditor(null)}>Cancel</Btn><Btn disabled={questionMutation.isPending} icon={questionMutation.isPending?Loader2:Check} iconSpin={questionMutation.isPending} type="submit" variant="success">{questionMutation.isPending?"Saving...":"Save Question"}</Btn></div>
+          </form>
+        </AdminModal>
+      )}
+      {selectedCandidate && (
+        <AdminModal title={`Application · ${selectedCandidate.full_name}`} onClose={()=>setSelectedCandidate(null)}>
+          <div style={{padding:"1.2rem",display:"grid",gap:12}}>
+            <PanelMessage>{selectedCandidate.role_title} · submitted {formatDate(selectedCandidate.application.created_at)}</PanelMessage>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:8}}>
+              <Field label="Email"><span style={{fontSize:12,color:C.txt}}>{selectedCandidate.application.email}</span></Field>
+              <Field label="Phone"><span style={{fontSize:12,color:C.txt}}>{selectedCandidate.application.phone||"-"}</span></Field>
+              <Field label="Location"><span style={{fontSize:12,color:C.txt}}>{selectedCandidate.application.location}</span></Field>
+            </div>
+            {[["LinkedIn",selectedCandidate.application.linkedin_url],["Portfolio",selectedCandidate.application.portfolio_url],["Live project",selectedCandidate.application.live_project_url]].filter(([,url])=>url).map(([label,url])=><a href={url} key={label} rel="noreferrer" style={{fontSize:12,color:C.blue}} target="_blank">{label}: {url}</a>)}
+            <Card title="Answers">{Object.entries(selectedCandidate.application.answers||{}).map(([key,value])=><div key={key} style={{padding:"8px 12px",borderBottom:`1px solid ${C.border}`}}><strong style={{display:"block",fontSize:11,color:C.txt3}}>{titleCase(key)}</strong><span style={{fontSize:12,color:C.txt}}>{String(value)}</span></div>)}</Card>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{asArray(selectedCandidate.application.documents).map((document)=><Btn disabled={documentMutation.isPending} icon={Eye} key={document.id} onClick={()=>openDocument(document)}>{document.document_type==="cv"?"Open CV":"Open Cover Letter"}</Btn>)}</div>
+          </div>
         </AdminModal>
       )}
     </div>
@@ -1401,6 +1593,154 @@ function SettingsModule({ data, deleteIntegrationMutation, deleteSettingMutation
   );
 }
 
+function PromoCodesModule({ deleteMutation, query, saveMutation, toast }) {
+  const [editorOpen, setEditorOpen] = useState(false);
+  const form = useForm({
+    resolver: zodResolver(adminPromoSchema),
+    defaultValues: adminPromoDefaults,
+    mode: "onBlur",
+  });
+  const promoType = useWatch({ control: form.control, name: "type" });
+
+  const openEditor = (promo = null) => {
+    form.reset(promo ? promoToForm(promo) : adminPromoDefaults);
+    setEditorOpen(true);
+  };
+
+  const closeEditor = () => {
+    setEditorOpen(false);
+    form.reset(adminPromoDefaults);
+  };
+
+  const submitPromo = form.handleSubmit(async (values) => {
+    const payload = {
+      ...values,
+      code: values.code.toUpperCase(),
+      value: values.type === "shipping"
+        ? 0
+        : values.type === "fixed"
+          ? toMinor(values.value)
+          : Number(values.value || 0),
+      minOrderCents: toMinor(values.minOrder),
+      maxUses: values.maxUses === "" ? null : Number(values.maxUses),
+      startsAt: values.startsAt || null,
+      expiresAt: values.expiresAt || null,
+    };
+
+    try {
+      await saveMutation.mutateAsync(payload);
+      await query.refetch();
+      closeEditor();
+      toast("Promo code saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  });
+
+  const removePromo = async (code) => {
+    try {
+      await deleteMutation.mutateAsync(code);
+      await query.refetch();
+      toast("Promo code deleted", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  const promos = Array.isArray(query.data) ? query.data : [];
+  const valueLabel = promoType === "fixed"
+    ? "Fixed Amount (NGN)"
+    : promoType === "shipping"
+      ? "Value"
+      : "Percent Off";
+
+  return (
+    <div style={{display:'grid',gap:14}}>
+      <Card title="Admin Promo Codes" accent={C.purple} actions={
+        <Btn icon={Plus} variant="success" onClick={()=>openEditor()}>Add Promo</Btn>
+      }>
+        <PanelMessage>Admin promo codes apply across the cart. Seller coupons are product-scoped and managed from the seller dashboard.</PanelMessage>
+        {query.isLoading ? (
+          <PanelMessage>Loading promo codes...</PanelMessage>
+        ) : (
+          <Table columns={["Code","Type","Value","Minimum","Usage","Status","Actions"]}
+            emptyMessage="No admin promo codes configured in the backend."
+            rows={promos.map((promo) => {
+              const value = promo.type === "fixed"
+                ? formatMoney(promo.value)
+                : promo.type === "shipping"
+                  ? "Free shipping"
+                  : `${promo.value}%`;
+              return (
+                <tr key={promo.code}>
+                  <Td><Ticket size={13} color={C.purple}/> <span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:800}}>{promo.code}</span></Td>
+                  <Td>{titleCase(promo.type)}</Td>
+                  <Td>{value}</Td>
+                  <Td>{formatMoney(promo.min_order_cents)}</Td>
+                  <Td>{promo.used_count || 0}{promo.max_uses ? `/${promo.max_uses}` : ""}</Td>
+                  <Td><Badge type={promo.is_active ? "active" : "inactive"}/></Td>
+                  <Td><div style={{display:'flex',gap:5}}>
+                    <Btn icon={Edit2} onClick={()=>openEditor(promo)}>Edit</Btn>
+                    <Btn disabled={deleteMutation.isPending} icon={Trash2} variant="danger" onClick={()=>removePromo(promo.code)}>Delete</Btn>
+                  </div></Td>
+                </tr>
+              );
+            })}/>
+        )}
+      </Card>
+      {editorOpen && (
+        <AdminModal title="Promo Code" onClose={closeEditor}>
+          <form onSubmit={submitPromo} style={{padding:'1.2rem',display:'grid',gap:12}}>
+            <Field label="Code">
+              <input {...form.register("code")}
+                onChange={(event)=>form.setValue("code", event.target.value.toUpperCase(), {shouldValidate:true, shouldDirty:true})}
+                style={inputStyle}/>
+              {form.formState.errors.code && <small style={{color:C.red}}>{form.formState.errors.code.message}</small>}
+            </Field>
+            <Field label="Label">
+              <input {...form.register("label")} style={inputStyle}/>
+              {form.formState.errors.label && <small style={{color:C.red}}>{form.formState.errors.label.message}</small>}
+            </Field>
+            <Field label="Type">
+              <select {...form.register("type")} style={inputStyle}>
+                <option value="percent">Percent</option>
+                <option value="fixed">Fixed Amount</option>
+                <option value="shipping">Free Shipping</option>
+              </select>
+            </Field>
+            <Field label={valueLabel}>
+              <input {...form.register("value")} disabled={promoType === "shipping"} min="0"
+                type="number" style={inputStyle}/>
+              {form.formState.errors.value && <small style={{color:C.red}}>{form.formState.errors.value.message}</small>}
+            </Field>
+            <Field label="Minimum Order (NGN)">
+              <input {...form.register("minOrder")} min="0" step="100" type="number" style={inputStyle}/>
+            </Field>
+            <Field label="Max Uses">
+              <input {...form.register("maxUses")} min="1" placeholder="Unlimited" type="number" style={inputStyle}/>
+            </Field>
+            <Field label="Starts At">
+              <input {...form.register("startsAt")} type="datetime-local" style={inputStyle}/>
+            </Field>
+            <Field label="Expires At">
+              <input {...form.register("expiresAt")} type="datetime-local" style={inputStyle}/>
+            </Field>
+            <label style={{display:'flex',alignItems:'center',gap:8,fontSize:12,color:C.txt2}}>
+              <input type="checkbox" {...form.register("isActive")}/>
+              Active promo code
+            </label>
+            <div style={{display:'flex',justifyContent:'flex-end',gap:8}}>
+              <Btn onClick={closeEditor}>Cancel</Btn>
+              <Btn type="submit" disabled={saveMutation.isPending} icon={saveMutation.isPending?Loader2:Check}
+                iconSpin={saveMutation.isPending} variant="success">{saveMutation.isPending?"Saving...":"Save Promo"}</Btn>
+            </div>
+          </form>
+        </AdminModal>
+      )}
+    </div>
+  );
+}
+
 function AdminPromotionModule({ configurePasscodeMutation, mutation, toast }) {
   const [promotion, setPromotion] = useState({email:"",name:"",role:"support_lead",passcode:""});
   const [passcode, setPasscode] = useState({currentPasscode:"",newPasscode:""});
@@ -1479,6 +1819,9 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
   const deleteIntegrationMutation = useDeleteAdminIntegration();
   const settingMutation = useSaveAdminSetting();
   const deleteSettingMutation = useDeleteAdminSetting();
+  const promoCodesQuery = useAdminPromoCodes(moduleId === "promos");
+  const savePromoMutation = useSaveAdminPromoCode();
+  const deletePromoMutation = useDeleteAdminPromoCode();
   const promoteAdminMutation = usePromoteAdmin();
   const configurePasscodeMutation = useConfigureAdminPromotionPasscode();
   const aiMutation = useQueueAdminAiQuery();
@@ -1503,6 +1846,8 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
       jobStatusMutation={jobStatusMutation} mutation={hiringMutation}/>,
     settings: <SettingsModule {...shared} deleteIntegrationMutation={deleteIntegrationMutation}
       deleteSettingMutation={deleteSettingMutation} integrationMutation={integrationMutation} settingMutation={settingMutation}/>,
+    promos: <PromoCodesModule deleteMutation={deletePromoMutation} query={promoCodesQuery}
+      saveMutation={savePromoMutation} toast={addToast}/>,
     "admin-promotion": <AdminPromotionModule configurePasscodeMutation={configurePasscodeMutation}
       mutation={promoteAdminMutation} toast={addToast}/>,
   };

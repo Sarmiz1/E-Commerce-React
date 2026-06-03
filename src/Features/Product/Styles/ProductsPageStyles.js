@@ -14,13 +14,13 @@ export const PG_STYLES = `
   @keyframes pg-dot { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)} 55%{box-shadow:0 0 0 6px rgba(34,197,94,0)} }
   .pg-dot { animation: pg-dot 2s ease-out infinite; }
 
-  @keyframes pg-shimmer {
-    0%   { background-position: -400px 0; }
-    100% { background-position: 400px 0; }
+  @keyframes pg-hibernating-wave {
+    0%,100% { background-position: 140% 0; opacity:.8; }
+    50%     { background-position: -40% 0; opacity:1; }
   }
-  .pg-skeleton { animation: pg-shimmer 1.4s ease-in-out infinite; background-size: 800px 100%; }
-  .pg-skeleton-light { background-image: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); }
-  .pg-skeleton-dark { background-image: linear-gradient(90deg, #19191C 25%, #2C2C30 50%, #19191C 75%); }
+  .pg-skeleton { animation: pg-hibernating-wave 2.8s ease-in-out infinite; background-size:260% 100%; box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
+  .pg-skeleton-light { background-image:linear-gradient(105deg,#101827 8%,#182236 35%,#293952 50%,#182236 65%,#101827 92%); }
+  .pg-skeleton-dark { background-image:linear-gradient(105deg,#090f1c 8%,#121c2d 35%,#22314a 50%,#121c2d 65%,#090f1c 92%); }
 
   /* ── Card entrance (auto-plays on DOM insert, perfect for infinite scroll) ── */
   @keyframes pg-card-enter {

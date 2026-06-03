@@ -230,10 +230,19 @@ export const useMoveAdminHiringCandidate = () =>
   useDashboardMutation(({ id, stage }) => adminDashboardApi.moveHiringCandidate(id, stage));
 
 export const useCreateAdminJobOpening = () =>
-  useDashboardMutation((job) => adminDashboardApi.createJobOpening(job));
+  useDashboardMutation((job) => adminDashboardApi.saveJobOpening(job));
 
 export const useSetAdminJobOpeningStatus = () =>
   useDashboardMutation(({ id, status }) => adminDashboardApi.setJobOpeningStatus(id, status));
+
+export const useSaveAdminCareerQuestion = () =>
+  useDashboardMutation((question) => adminDashboardApi.saveCareerQuestion(question));
+
+export const useDeleteAdminCareerQuestion = () =>
+  useDashboardMutation((id) => adminDashboardApi.deleteCareerQuestion(id));
+
+export const useOpenAdminCareerDocument = () =>
+  useMutation({ mutationFn: (id) => adminDashboardApi.getHiringDocumentUrl(id) });
 
 export const useSaveAdminIntegration = () =>
   useDashboardMutation((integration) => adminDashboardApi.saveIntegration(integration));
@@ -246,6 +255,22 @@ export const useSaveAdminSetting = () =>
 
 export const useDeleteAdminSetting = () =>
   useDashboardMutation((key) => adminDashboardApi.deleteSetting(key));
+
+export function useAdminPromoCodes(enabled = true) {
+  return useQuery({
+    queryKey: ["admin-promo-codes"],
+    queryFn: adminDashboardApi.getPromoCodes,
+    enabled,
+    staleTime: 1000 * 60 * 2,
+    placeholderData: (previousData) => previousData ?? [],
+  });
+}
+
+export const useSaveAdminPromoCode = () =>
+  useDashboardMutation((promo) => adminDashboardApi.savePromoCode(promo));
+
+export const useDeleteAdminPromoCode = () =>
+  useDashboardMutation((code) => adminDashboardApi.deletePromoCode(code));
 
 export const usePromoteAdmin = () =>
   useDashboardMutation((admin) => adminDashboardApi.promoteAdmin(admin));

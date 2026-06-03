@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function WishlistSkeletonGrid() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
+    <div className="woo-skeleton-wave-group grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
       {Array.from({ length: 8 }).map((_, index) => (
         <motion.div
           key={index}

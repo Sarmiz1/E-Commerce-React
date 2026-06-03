@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sellerApi } from '../api/sellerApi';
 import { useAuthStore } from '../../../Store/useAuthStore';
 import { useToast } from '../../../Store/useToastStore';
+import { supabase } from '../../../lib/supabaseClient';
 
 export function useSellerDashboard() {
   const { user, isMock } = useAuthStore();
@@ -21,30 +23,26 @@ export function useSellerDashboardRealtime() {
   const { user, isMock } = useAuthStore();
   const sellerId = user?.id;
 
-  import('react').then(({ useEffect }) => {
-    useEffect(() => {
-      if (!sellerId || isMock) return;
+  useEffect(() => {
+    if (!sellerId || isMock) return undefined;
 
-      const { supabase } = require('../../../lib/supabaseClient');
-      
-      const ordersSub = supabase
-        .channel('seller-orders-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory_reservations' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
-        })
-        .subscribe();
+    const ordersSub = supabase
+      .channel('seller-orders-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory_reservations' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['seller-dashboard', sellerId] });
+      })
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(ordersSub);
-      };
-    }, [sellerId, isMock, queryClient]);
-  });
+    return () => {
+      supabase.removeChannel(ordersSub);
+    };
+  }, [sellerId, isMock, queryClient]);
 }
 
 export function useUpdateOrderStatus() {
@@ -238,6 +236,52 @@ export function useUpdateMarketing() {
     },
     onError: (err) => {
       addToast(`Failed to update marketing: ${err.message}`, 'error');
+    }
+  });
+}
+
+export function useSellerCoupons() {
+  const { user, isMock } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['seller-coupons', user?.id],
+    queryFn: sellerApi.getCoupons,
+    enabled: Boolean(user?.id) && !isMock,
+    staleTime: 1000 * 60 * 2,
+    placeholderData: (previousData) => previousData ?? [],
+  });
+}
+
+export function useSaveSellerCoupon() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: sellerApi.saveCoupon,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-coupons', user?.id] });
+      addToast('Coupon saved successfully', 'success');
+    },
+    onError: (err) => {
+      addToast(`Failed to save coupon: ${err.message}`, 'error');
+    }
+  });
+}
+
+export function useDeleteSellerCoupon() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: sellerApi.deleteCoupon,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-coupons', user?.id] });
+      addToast('Coupon deleted successfully', 'success');
+    },
+    onError: (err) => {
+      addToast(`Failed to delete coupon: ${err.message}`, 'error');
     }
   });
 }

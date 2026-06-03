@@ -1,23 +1,24 @@
 import { motion } from "framer-motion";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import { Ic, FREE_SHIP_THRESHOLD } from "./CartConstants";
+import { Ic } from "./CartConstants";
 
-export function FreeShippingBar({ subtotal, discount }) {
-  const effective = subtotal - discount;
-  const remaining = Math.max(0, FREE_SHIP_THRESHOLD - effective);
-  const pct = Math.min(100, (effective / FREE_SHIP_THRESHOLD) * 100);
-  const isFree = remaining === 0;
+export function FreeShippingBar({ progress = {} }) {
+  if (!Number(progress.threshold)) return null;
+
+  const remaining = Number(progress.remaining) || 0;
+  const pct = Number(progress.percent) || 0;
+  const isFree = Boolean(progress.unlocked);
 
   return (
-    <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-2xl px-5 py-4 transition-colors duration-300">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <Ic.Truck c="w-4 h-4 text-blue-500" />
-          <span className="text-sm font-bold text-blue-800 dark:text-blue-300">
+    <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3.5 transition-colors duration-300 dark:border-blue-900/30 dark:bg-blue-900/10 sm:px-5 sm:py-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <Ic.Truck c="h-4 w-4 flex-shrink-0 text-blue-500" />
+          <span className="text-xs font-bold leading-snug text-blue-800 dark:text-blue-300 sm:text-sm">
             {isFree ? "Free shipping unlocked" : `Add ${formatMoneyMinor(remaining)} for free shipping`}
           </span>
         </div>
-        <span className="text-xs text-blue-500 font-bold">{Math.round(pct)}%</span>
+        <span className="flex-shrink-0 text-xs font-bold text-blue-500">{Math.round(pct)}%</span>
       </div>
       <div className="h-2 bg-blue-200 dark:bg-blue-900/40 rounded-full overflow-hidden">
         <motion.div

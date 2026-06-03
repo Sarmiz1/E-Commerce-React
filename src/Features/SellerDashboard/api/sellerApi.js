@@ -297,6 +297,45 @@ export const sellerApi = {
     return marketingData;
   },
 
+  getCoupons: async () => {
+    const { data, error } = await supabase.rpc('get_seller_coupons');
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  },
+
+  saveCoupon: async (coupon) => {
+    const discountValue = coupon.discountType === 'fixed'
+      ? nairaToMinor(coupon.discountValue)
+      : Number(coupon.discountValue);
+    const minOrderCents = coupon.minOrder
+      ? nairaToMinor(coupon.minOrder)
+      : 0;
+
+    const { data, error } = await supabase.rpc('seller_upsert_coupon', {
+      p_coupon_id: coupon.id || null,
+      p_code: coupon.code,
+      p_label: coupon.label || null,
+      p_discount_type: coupon.discountType,
+      p_discount_value: discountValue,
+      p_min_order_cents: minOrderCents,
+      p_max_uses: coupon.maxUses || null,
+      p_starts_at: coupon.startsAt || null,
+      p_expires_at: coupon.expiresAt || null,
+      p_is_active: Boolean(coupon.isActive),
+      p_product_ids: coupon.productIds || [],
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  deleteCoupon: async (couponId) => {
+    const { error } = await supabase.rpc('seller_delete_coupon', {
+      p_coupon_id: couponId,
+    });
+    if (error) throw error;
+    return true;
+  },
+
   replyReview: async (reviewId, replyText) => {
     await new Promise(r => setTimeout(r, 600));
     // When backend is ready, implement supabase insert/update here

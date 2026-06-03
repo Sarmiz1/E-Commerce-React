@@ -515,6 +515,17 @@ const router = createBrowserRouter(
         }
         hydrateFallbackElement={<GenericPageSkeleton />}
       />
+      {/* Test******************************* */}
+      <Route
+        path="/test"
+        lazy={() =>
+          import("../Features/ShopByBrands/Brands/BrandsPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<GenericPageSkeleton />}
+      />
+      {/* Test******************************* */}
 
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />

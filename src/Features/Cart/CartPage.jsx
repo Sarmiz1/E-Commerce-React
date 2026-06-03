@@ -33,41 +33,43 @@ export default function CartPage() {
     handleUndo,
     headingRef,
     isCheckingOut,
+    isItemActionPending,
     isEmpty,
     loading,
     navigate,
+    noteStatus,
     orderNote,
     promo,
     quickViewProduct,
     recommendationsFetching,
-    removingItemId,
     savedForLater,
-    savings,
-    setOrderNote,
+    savingsTickerMessage,
+    shippingProgress,
+    handleOrderNoteChange,
     setUndoItem,
     shipping,
     subtotal,
     total,
     undoItem,
-    updatingQuantityItemId,
+    undoPending,
     applyPromo,
   } = useCartPageController();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 overflow-x-hidden pt-16 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 overflow-x-hidden  transition-colors duration-300">
       <style>{CT_STYLES}</style>
 
       <div
         ref={headingRef}
-        className="relative overflow-hidden bg-white dark:bg-neutral-900 border-b border-gray-100 dark:border-neutral-800 px-6 py-10 transition-colors duration-300"
+        className="relative overflow-hidden border-b border-gray-100 bg-white px-4 pb-7 pt-20 transition-colors duration-300 dark:border-neutral-800 dark:bg-neutral-900 sm:px-6 sm:pb-10 sm:pt-24"
       >
         <div
-          className="absolute right-0 top-0 bottom-0 w-1/3 opacity-[0.025] pointer-events-none"
+          className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-1/3 opacity-[0.025] sm:block"
           style={{ background: "radial-gradient(ellipse at right center, #6366f1 0%, transparent 70%)" }}
         />
 
         <div className="max-w-6xl mx-auto">
-          <div className="ct-head-item flex items-center gap-2 text-xs text-gray-400 mb-6 font-medium">
+          <div className="ct-head-item mb-4 flex items-center gap-2 text-xs font-medium text-gray-400 sm:mb-6">
             <button
               type="button"
               onClick={() => navigate("/")}
@@ -87,12 +89,12 @@ export default function CartPage() {
             <span className="text-gray-700 dark:text-neutral-300 font-bold">Cart</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <h1 className="ct-head-item text-4xl sm:text-5xl font-black text-gray-900 dark:text-white leading-tight">
+              <h1 className="ct-head-item text-3xl font-black leading-tight text-gray-900 dark:text-white sm:text-5xl">
                 Shopping Cart
               </h1>
-              <p className="ct-head-item text-gray-400 dark:text-neutral-500 mt-2 text-base">
+              <p className="ct-head-item mt-1.5 text-sm text-gray-400 dark:text-neutral-500 sm:mt-2 sm:text-base">
                 {loading
                   ? "Loading..."
                   : cartItems.length === 0
@@ -106,27 +108,32 @@ export default function CartPage() {
                   key={cartItems.length}
                   animate={{ scale: [1, 1.4, 0.9, 1] }}
                   transition={{ duration: 0.4 }}
-                  className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/25"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md shadow-indigo-500/25 sm:h-12 sm:w-12 sm:rounded-2xl"
                 >
-                  <span className="text-white font-black text-lg">{cartItems.length}</span>
+                  <span className="text-base font-black text-white sm:text-lg">{cartItems.length}</span>
                 </motion.div>
-                <Ic.Bag c="w-6 h-6 text-gray-300 dark:text-neutral-700" />
+                <Ic.Bag c="h-6 w-6 text-gray-300 dark:text-neutral-700" />
               </div>
             ) : null}
           </div>
         </div>
       </div>
 
-      <SavingsTicker savings={savings} />
+      <SavingsTicker message={savingsTickerMessage} />
 
-      <div className="max-w-6xl mx-auto px-2 lg:px-4 sm:px-6 py-8 pb-28 lg:pb-8">
+      <div className="mx-auto max-w-6xl px-3 py-5 pb-32 sm:px-6 sm:py-8 lg:px-4 lg:pb-8">
         {isEmpty ? (
-          <EmptyCart savedItems={savedForLater} onMoveToCart={handleMoveToCart} navigate={navigate} />
+          <EmptyCart
+            savedItems={savedForLater}
+            onMoveToCart={handleMoveToCart}
+            isMovingItem={(itemId) => isItemActionPending("move", itemId)}
+            navigate={navigate}
+          />
         ) : (
-          <div className="grid lg:grid-cols-[1fr_380px] gap-8 items-start">
-            <div className="space-y-8">
+          <div className="grid items-start gap-5 lg:grid-cols-[1fr_380px] lg:gap-8">
+            <div className="space-y-5 sm:space-y-8">
               <div className="ct-clip-wipe" style={{ animationDelay: "0.1s" }}>
-                <FreeShippingBar subtotal={subtotal} discount={discount} />
+                <FreeShippingBar progress={shippingProgress} />
               </div>
 
               <div className="space-y-4">
@@ -142,16 +149,33 @@ export default function CartPage() {
                         onQtyChange={handleQtyChange}
                         onRemove={handleRemove}
                         onSaveLater={handleSaveLater}
-                        pendingQty={updatingQuantityItemId === item.id}
-                        isRemoving={removingItemId === item.id}
+                        pendingQty={isItemActionPending("quantity", item.id)}
+                        isRemoving={isItemActionPending("remove", item.id)}
+                        isSaving={isItemActionPending("save", item.id)}
                       />
                     ))}
                   </AnimatePresence>
                 )}
               </div>
 
-              <div className="bg-white dark:bg-neutral-900 rounded-3xl border border-gray-100 dark:border-neutral-800 p-5 shadow-sm transition-colors duration-300">
-                <OrderNotes value={orderNote} onChange={setOrderNote} />
+              <div className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm transition-colors duration-300 dark:border-neutral-800 dark:bg-neutral-900 sm:p-5">
+                <OrderNotes value={orderNote} onChange={handleOrderNoteChange} status={noteStatus} />
+              </div>
+
+              <div className="lg:hidden">
+                <OrderSummary
+                  subtotal={subtotal}
+                  discount={discount}
+                  shipping={shipping}
+                  total={total}
+                  itemCount={cartItems.length}
+                  promo={promo}
+                  onApplyPromo={applyPromo}
+                  onRemovePromo={handleRemovePromo}
+                  onCheckout={handleCheckout}
+                  isCheckingOut={isCheckingOut}
+                  checkoutError={checkoutError}
+                />
               </div>
 
               <BundleOptimizer
@@ -160,7 +184,11 @@ export default function CartPage() {
                 onAddItem={addItemAsync}
               />
 
-              <SavedForLater items={savedForLater} onMoveToCart={handleMoveToCart} />
+              <SavedForLater
+                items={savedForLater}
+                onMoveToCart={handleMoveToCart}
+                isMovingItem={(itemId) => isItemActionPending("move", itemId)}
+              />
 
               <RecommendedRow
                 products={displayRecommendations}
@@ -211,6 +239,7 @@ export default function CartPage() {
             key={undoItem.id}
             item={{ name: undoItem.name }}
             onUndo={handleUndo}
+            isPending={undoPending}
             onExpire={() => setUndoItem(null)}
           />
         ) : null}

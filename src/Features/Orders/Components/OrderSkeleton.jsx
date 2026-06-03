@@ -1,6 +1,6 @@
 export default function OrderSkeleton() {
   return (
-    <div className="bg-white dark:bg-[#0D1421] rounded-3xl border border-gray-100 dark:border-white dark:border-[#0D1421]/10 shadow-md overflow-hidden animate-pulse">
+    <div className="woo-skeleton-wave-group bg-white dark:bg-[#0D1421] rounded-3xl border border-gray-100 dark:border-white dark:border-[#0D1421]/10 shadow-md overflow-hidden animate-pulse">
       <div className="h-1 bg-gray-200" />
       <div className="p-6 space-y-4">
         <div className="flex justify-between">

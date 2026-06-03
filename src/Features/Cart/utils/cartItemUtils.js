@@ -3,6 +3,16 @@ export const CART_TOTALS_FALLBACK = {
   discount: 0,
   shipping: 0,
   total: 0,
+  savings: 0,
+  savings_ticker_message: null,
+  shipping_progress: {
+    effective_subtotal: 0,
+    threshold: 0,
+    remaining: 0,
+    percent: 0,
+    unlocked: false,
+  },
+  order_note: "",
   applied_promo: null,
 };
 
@@ -32,9 +42,6 @@ export const getCartItemLineTotalCents = (item) =>
 
 export const getCartProductIds = (cartItems = []) =>
   [...new Set(cartItems.map((item) => getCartItemProductId(item)).filter(Boolean))];
-
-export const getCartSavingsCents = ({ subtotal = 0, discount = 0, shipping = 0, promo = null }) =>
-  discount + (subtotal >= 5000 && shipping === 0 && (!promo || promo.type !== "shipping") ? 499 : 0);
 
 export const createCartAdditionFromItem = (item) => ({
   productId: getCartItemProductId(item),

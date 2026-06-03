@@ -1,95 +1,88 @@
-// Skeleton fallback for /cart — matches CartPage layout:
-// Page title → cart item rows (image + text + qty + price) + order summary sidebar
 import { SkeletonStyles, SkBlock } from "./SkeletonBase";
 
 export default function CartSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-slate-950 text-white">
       <SkeletonStyles />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {/* Page title */}
-        <div className="mb-8 space-y-2">
-          <SkBlock w="140px" h="28px" />
-          <SkBlock w="200px" h="14px" />
+      <div className="border-b border-slate-800 bg-slate-950 px-4 pb-8 pt-24 sm:px-6 sm:pb-10">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <SkBlock w="170px" h="12px" dark />
+          <div className="space-y-3">
+            <SkBlock w="min(280px, 80vw)" h="48px" dark />
+            <SkBlock w="220px" h="16px" dark />
+          </div>
         </div>
+      </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* ── Cart items column ── */}
+      <div className="border-y border-slate-800 bg-slate-950 px-4 py-2.5">
+        <SkBlock w="100%" h="10px" dark />
+      </div>
+
+      <div className="mx-auto max-w-6xl px-3 py-6 sm:px-6 sm:py-8 lg:px-4">
+        <div className="flex flex-col gap-5 lg:flex-row lg:gap-8">
           <div className="flex-1 space-y-4">
-            {/* Free shipping bar */}
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4 space-y-2">
+            <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-4 sm:px-5">
               <div className="flex items-center justify-between">
-                <SkBlock w="200px" h="14px" />
-                <SkBlock w="30px" h="12px" />
+                <SkBlock w="min(200px, 60vw)" h="14px" dark />
+                <SkBlock w="30px" h="12px" dark />
               </div>
-              <SkBlock w="100%" h="8px" rounded="99px" />
+              <SkBlock w="100%" h="8px" rounded="99px" dark />
             </div>
 
-            {/* Cart item rows */}
-            {Array(3).fill(0).map((_, i) => (
-              <div key={i} className="bg-white rounded-3xl p-4 sm:p-5 border border-gray-100 shadow-sm">
-                <div className="flex gap-4 items-start">
-                  {/* Product image */}
-                  <SkBlock w="80px" h="80px" rounded="16px" className="flex-shrink-0 sm:w-24 sm:h-24" />
-                  {/* Details */}
+            {Array(3).fill(0).map((_, index) => (
+              <div key={index} className="rounded-3xl border border-slate-800 bg-slate-900 p-3.5 shadow-sm sm:p-5">
+                <div className="grid grid-cols-[4rem_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:gap-4">
+                  <SkBlock w="64px" h="64px" rounded="16px" dark className="flex-shrink-0 sm:w-24 sm:h-24" />
                   <div className="flex-1 space-y-2 pt-1">
-                    <SkBlock w="85%" h="14px" />
-                    {/* Rating stars */}
+                    <SkBlock w="85%" h="14px" dark />
                     <div className="flex gap-0.5">
-                      {Array(5).fill(0).map((_, j) => (
-                        <SkBlock key={j} w="12px" h="12px" rounded="3px" />
+                      {Array(5).fill(0).map((_, starIndex) => (
+                        <SkBlock key={starIndex} w="12px" h="12px" rounded="3px" dark />
                       ))}
                     </div>
-                    <SkBlock w="60px" h="16px" />
-                    {/* Qty stepper */}
-                    <SkBlock w="100px" h="32px" rounded="12px" />
+                    <SkBlock w="60px" h="16px" dark />
+                    <SkBlock w="100px" h="32px" rounded="12px" dark />
                   </div>
-                  {/* Line total + remove */}
-                  <div className="flex flex-col items-end gap-3 flex-shrink-0 pt-1">
-                    <SkBlock w="60px" h="16px" />
-                    <SkBlock w="16px" h="16px" rounded="4px" />
+                  <div className="col-span-2 flex items-center justify-between gap-3 pl-[4.625rem] sm:col-span-1 sm:flex-col sm:items-end sm:justify-start sm:pl-0">
+                    <SkBlock w="60px" h="16px" dark />
+                    <SkBlock w="16px" h="16px" rounded="4px" dark />
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* Order notes */}
-            <SkBlock w="150px" h="14px" />
+            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-5 shadow-sm">
+              <SkBlock w="150px" h="14px" dark />
+            </div>
           </div>
 
-          {/* ── Order summary sidebar ── */}
-          <div className="lg:w-[340px] flex-shrink-0">
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-5 lg:sticky lg:top-24">
-              <SkBlock w="110px" h="10px" />
-              {/* Line items */}
+          <div className="flex-shrink-0 lg:w-[340px]">
+            <div className="space-y-5 rounded-3xl border border-slate-800 bg-slate-900 p-4 shadow-sm sm:p-6 lg:sticky lg:top-24">
+              <SkBlock w="110px" h="10px" dark />
               <div className="space-y-2.5">
-                {["Subtotal", "Shipping"].map((label) => (
+                {["subtotal", "shipping"].map((label) => (
                   <div key={label} className="flex justify-between">
-                    <SkBlock w="70px" h="14px" />
-                    <SkBlock w="50px" h="14px" />
+                    <SkBlock w="70px" h="14px" dark />
+                    <SkBlock w="50px" h="14px" dark />
                   </div>
                 ))}
               </div>
-              {/* Total */}
-              <div className="border-t border-gray-100 pt-4 flex justify-between items-baseline">
-                <SkBlock w="50px" h="16px" />
-                <SkBlock w="80px" h="28px" />
+              <div className="flex items-baseline justify-between border-t border-slate-800 pt-4">
+                <SkBlock w="50px" h="16px" dark />
+                <SkBlock w="80px" h="28px" dark />
               </div>
-              {/* Promo code */}
               <div className="space-y-2">
-                <SkBlock w="80px" h="10px" />
-                <div className="flex gap-2">
-                  <SkBlock w="100%" h="40px" rounded="16px" />
-                  <SkBlock w="70px" h="40px" rounded="16px" className="flex-shrink-0" />
+                <SkBlock w="80px" h="10px" dark />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <SkBlock w="100%" h="40px" rounded="16px" dark />
+                  <SkBlock w="70px" h="40px" rounded="16px" dark className="flex-shrink-0" />
                 </div>
               </div>
-              {/* Checkout button */}
-              <SkBlock w="100%" h="56px" rounded="16px" />
-              {/* Trust */}
+              <SkBlock w="100%" h="56px" rounded="16px" dark />
               <div className="flex justify-center gap-4">
-                {Array(3).fill(0).map((_, i) => (
-                  <SkBlock key={i} w="70px" h="10px" />
+                {Array(3).fill(0).map((_, index) => (
+                  <SkBlock key={index} w="70px" h="10px" dark />
                 ))}
               </div>
             </div>

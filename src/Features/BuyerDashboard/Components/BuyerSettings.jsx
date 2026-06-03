@@ -268,6 +268,7 @@ export default function BuyerSettings() {
   const [dropzoneError, setDropzoneError] = useState('');
   const [avatarUploadProgress, setAvatarUploadProgress] = useState(0);
   const [avatarUploadFailed, setAvatarUploadFailed] = useState(false);
+  const [avatarUploadComplete, setAvatarUploadComplete] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarRemoving, setAvatarRemoving] = useState(false);
   const avatarActionInFlightRef = useRef(false);
@@ -309,6 +310,7 @@ export default function BuyerSettings() {
     [avatarFile],
   );
   const selectedAvatar = avatarPreview || avatarUrl;
+  const showAvatarUploadActions = Boolean(avatarFile) && !avatarUploadComplete;
 
   useEffect(() => {
     reset(initialValues, { keepDirtyValues: true });
@@ -326,6 +328,7 @@ export default function BuyerSettings() {
 
     setDropzoneError('');
     setAvatarUploadFailed(false);
+    setAvatarUploadComplete(false);
     setAvatarUploadProgress(0);
     setValue('avatarFile', file, { shouldDirty: true, shouldValidate: true });
   }, [setValue]);
@@ -373,6 +376,7 @@ export default function BuyerSettings() {
     avatarActionInFlightRef.current = true;
     setDropzoneError('');
     setAvatarUploadFailed(false);
+    setAvatarUploadComplete(false);
     setAvatarUploadProgress(0);
     setAvatarUploading(true);
     try {
@@ -380,12 +384,30 @@ export default function BuyerSettings() {
         file: avatarFile,
         onProgress: setAvatarUploadProgress,
       });
+      setValue('avatarUrl', result.avatarUrl, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+      setValue('avatarFile', null, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+      reset(
+        {
+          ...getValues(),
+          avatarUrl: result.avatarUrl,
+          avatarFile: null,
+        },
+        { keepDirty: false, keepTouched: true },
+      );
       resetField('avatarUrl', { defaultValue: result.avatarUrl });
       resetField('avatarFile', { defaultValue: null });
       setAvatarUploadProgress(100);
+      setAvatarUploadComplete(true);
     } catch (error) {
       setDropzoneError(error.message || 'Unable to upload profile photo');
       setAvatarUploadFailed(true);
+      setAvatarUploadComplete(false);
     } finally {
       avatarActionInFlightRef.current = false;
       setAvatarUploading(false);
@@ -404,6 +426,7 @@ export default function BuyerSettings() {
       resetField('avatarUrl', { defaultValue: '' });
       setAvatarUploadProgress(0);
       setAvatarUploadFailed(false);
+      setAvatarUploadComplete(false);
     } catch (error) {
       setDropzoneError(error.message || 'Unable to remove profile photo');
     } finally {
@@ -537,7 +560,7 @@ export default function BuyerSettings() {
                   ? 'Drop Photo Here'
                   : (avatarFile || avatarUrl) ? 'Choose a Different Photo' : 'Choose Photo'}
               </div>
-              {avatarFile && (
+              {showAvatarUploadActions && (
                 <>
                   <button
                     type="button"
@@ -554,6 +577,7 @@ export default function BuyerSettings() {
                       resetField('avatarFile', { defaultValue: null });
                       setAvatarUploadProgress(0);
                       setAvatarUploadFailed(false);
+                      setAvatarUploadComplete(false);
                       setDropzoneError('');
                     }}
                     disabled={avatarUploading}
@@ -564,7 +588,7 @@ export default function BuyerSettings() {
                   </button>
                 </>
               )}
-              {avatarUrl && !avatarFile && (
+              {avatarUrl && (!avatarFile || avatarUploadComplete) && (
                 <button
                   type="button"
                   onClick={removeSavedAvatar}
@@ -576,7 +600,10 @@ export default function BuyerSettings() {
                 </button>
               )}
             </div>
-            {(avatarUploading || (avatarUploadProgress > 0 && !avatarUploadFailed)) && (
+            {(avatarUploading ||
+              (avatarUploadProgress > 0 &&
+                !avatarUploadFailed &&
+                !avatarUploadComplete)) && (
               <div className="max-w-xs space-y-1">
                 <div className="h-1.5 overflow-hidden rounded-full" style={{ background: colors.border.subtle }}>
                   <motion.div

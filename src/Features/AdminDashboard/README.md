@@ -148,7 +148,7 @@ and access-denied states consistently.
 | Analytics | Revenue, order, user, product, day/month/year growth, funnel, and page-activity metrics. | Open a searchable modal with views and event counts for every tracked page. |
 | Support | Filterable admin support tickets. | Resolve or escalate a ticket. |
 | AI Insights | Queue size, product search signals, recent AI requests, statuses, and responses. | Queue a new AI analysis prompt. |
-| Hiring | Vacancy records, open vacancy count, backend-defined hiring stages, and candidates. | Create, filter, reopen, or close jobs and move candidates forward. |
+| Hiring | Vacancy records, open vacancy count, backend-defined hiring stages, submitted applications, answers, and restricted document metadata. | Create, edit, filter, reopen, or close jobs; configure per-role questions; review signed Cloudinary document links; and move candidates forward. |
 | Settings | Admin accounts, platform integrations, and JSON platform settings. | Add, edit, or delete integrations and settings. |
 | Admin Promotion | Existing Auth accounts eligible for privileged membership. | Super admins can configure a six-digit passcode and promote accounts. Hidden from every other role. |
 

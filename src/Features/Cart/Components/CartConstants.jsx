@@ -1,5 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
 // src/Features/Cart/Components/CartConstants.jsx
-import { motion } from "framer-motion";
 
 export const CT_STYLES = `
   /* Clip-path wipe: left → right */
@@ -69,15 +69,6 @@ export const CT_STYLES = `
   .ct-no-scroll{-ms-overflow-style:none;scrollbar-width:none}
 `;
 
-export const PROMOS = {
-  SAVE10: { type: "percent", value: 10, label: "10% off everything" },
-  WELCOME20: { type: "percent", value: 20, label: "20% off — welcome gift" },
-  FREESHIP: { type: "shipping", value: 0, label: "Free shipping" },
-  FLAT5: { type: "fixed", value: 500, label: "$5 off" },
-};
-
-export const SHIPPING_COST = 499;   // cents ($4.99)
-export const FREE_SHIP_THRESHOLD = 5000;  // cents ($50)
 export const UNDO_DURATION = 5000;
 
 export const Ic = {

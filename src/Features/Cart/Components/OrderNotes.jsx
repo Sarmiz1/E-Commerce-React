@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Ic } from "./CartConstants";
 
-export function OrderNotes({ value, onChange }) {
+export function OrderNotes({ value, onChange, status = "" }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -32,11 +32,17 @@ export function OrderNotes({ value, onChange }) {
               onChange={(event) => onChange(event.target.value)}
               placeholder="Gift message, delivery instructions, special requests..."
               rows={3}
+              maxLength={500}
               className="ct-input w-full mt-3 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-2xl px-4 py-3 text-sm text-gray-700 dark:text-neutral-200 resize-none placeholder-gray-400 dark:placeholder-neutral-500 transition-all duration-300"
             />
           </motion.div>
         ) : null}
       </AnimatePresence>
+      {status ? (
+        <p className="mt-2 text-[11px] font-bold text-gray-400 dark:text-neutral-500">
+          {status}
+        </p>
+      ) : null}
     </div>
   );
 }

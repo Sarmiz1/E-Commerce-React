@@ -72,16 +72,45 @@ export const adminDashboardApi = {
       next_stage: stage,
     }),
   getHiring: () => runRpc("get_admin_hiring"),
-  createJobOpening: (job) =>
-    runRpc("admin_create_job_opening", {
+  saveJobOpening: (job) =>
+    runRpc("admin_upsert_job_opening", {
       job_department: job.department,
+      job_description: job.description || null,
       job_employment_type: job.employmentType,
+      job_id: job.id || null,
+      job_is_technical: Boolean(job.isTechnical),
       job_location: job.location,
       job_openings: Number(job.openings),
+      job_requirements: job.requirements || [],
+      job_responsibilities: job.responsibilities || [],
+      job_summary: job.summary || null,
       job_title: job.title,
     }),
   setJobOpeningStatus: (jobId, status) =>
     runRpc("admin_set_job_opening_status", { job_id: jobId, next_status: status }),
+  saveCareerQuestion: (question) =>
+    runRpc("admin_upsert_career_question", {
+      question_id: question.id || null,
+      question_job_id: question.jobId,
+      question_key: question.key,
+      question_label: question.label,
+      question_options: question.options || [],
+      question_placeholder: question.placeholder || null,
+      question_position: Number(question.position || 0),
+      question_required: Boolean(question.required),
+      application_scope: question.scope || "role",
+      question_type: question.type,
+    }),
+  deleteCareerQuestion: (questionId) =>
+    runRpc("admin_delete_career_question", { question_id: questionId }),
+  getHiringDocumentUrl: async (documentId) => {
+    const { data, error } = await supabase.functions.invoke("careers-application", {
+      body: { action: "view", documentId },
+    });
+    if (error) throw error;
+    if (!data?.url) throw new Error(data?.error || "Document link could not be generated");
+    return data.url;
+  },
   saveIntegration: (integration) =>
     runRpc("admin_upsert_platform_integration", {
       integration_environment: integration.environment,
@@ -99,6 +128,21 @@ export const adminDashboardApi = {
     }),
   deleteSetting: (settingKey) =>
     runRpc("admin_delete_platform_setting", { setting_key: settingKey }),
+  getPromoCodes: () => runRpc("get_admin_promo_codes"),
+  savePromoCode: (promo) =>
+    runRpc("admin_upsert_promo_code", {
+      p_code: promo.code,
+      p_label: promo.label,
+      p_type: promo.type,
+      p_value: Number(promo.value || 0),
+      p_min_order_cents: Number(promo.minOrderCents || 0),
+      p_max_uses: promo.maxUses || null,
+      p_starts_at: promo.startsAt || null,
+      p_expires_at: promo.expiresAt || null,
+      p_is_active: Boolean(promo.isActive),
+    }),
+  deletePromoCode: (code) =>
+    runRpc("admin_delete_promo_code", { p_code: code }),
   promoteAdmin: async (admin) => {
     const result = await runRpc("admin_promote_user", {
       target_email: admin.email,

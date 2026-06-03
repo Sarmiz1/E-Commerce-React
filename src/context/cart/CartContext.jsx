@@ -26,8 +26,14 @@ const createEmptyCart = () => ({
     shipping: 0,
     total: 0,
     applied_promo: null,
+    applied_coupon: null,
   },
 });
+const syncCartQueryData = (userId, data) => {
+  queryClient.setQueryData(["cart", userId], data);
+  useCartStore.getState().hydrate(data);
+  queryClient.invalidateQueries({ queryKey: ["cart", userId] });
+};
 
 const normalizeCartAddition = (item) => {
   const product = item?.product ?? item?.products ?? null;
@@ -116,14 +122,14 @@ export function CartProvider({ children }) {
 
   // ── ADD ITEM ──────────────────────────────────────────────────────────────
   const addItemMutation = useMutation({
-    onMutate: async ({ productId, variantId, quantity = 1, product, variant }) => {
+    onMutate: async ({ productId, variantId, quantity = 1, product, variant, silentToast = false }) => {
       await queryClient.cancelQueries({ queryKey: ["cart", user?.id] });
       // 1. Zustand optimistic update (instant UI)
       const snapshot = store.getState().addItemOptimistic({
         productId, variantId, quantity, product, variant,
       });
       // 2. Toast
-      toast("Added to cart! 🛒", "success");
+      if (!silentToast) toast("Added to cart.", "success");
       // Also snapshot guest cart for rollback
       const guestSnapshot = !user?.id ? CartEngine.getGuestCart() : null;
       return { snapshot, guestSnapshot };
@@ -164,9 +170,7 @@ export function CartProvider({ children }) {
 
     onSuccess: (data) => {
       // 4. Hydrate Zustand with authoritative server data
-      store.getState().hydrate(data);
-      // Invalidate so any stale queries also refetch
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      syncCartQueryData(user?.id, data);
     },
 
     onError: (_error, _vars, context) => {
@@ -219,8 +223,7 @@ export function CartProvider({ children }) {
     },
 
     onSuccess: (data) => {
-      store.getState().hydrate(data);
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      syncCartQueryData(user?.id, data);
     },
 
     onError: (_error, _itemRef, context) => {
@@ -228,6 +231,7 @@ export function CartProvider({ children }) {
       if (!user?.id && context?.guestSnapshot) {
         CartEngine.setGuestCart(context.guestSnapshot);
       }
+      toast("Couldn't remove that item. Please try again.", "error");
     },
   });
 
@@ -275,8 +279,7 @@ export function CartProvider({ children }) {
     },
 
     onSuccess: (data) => {
-      store.getState().hydrate(data);
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      syncCartQueryData(user?.id, data);
     },
 
     onError: (_error, _vars, context) => {
@@ -284,6 +287,7 @@ export function CartProvider({ children }) {
       if (!user?.id && context?.guestSnapshot) {
         CartEngine.setGuestCart(context.guestSnapshot);
       }
+      toast("Couldn't update that quantity. Please try again.", "error");
     },
   });
 
@@ -303,12 +307,22 @@ export function CartProvider({ children }) {
         return CartAPI.load(user.id);
       }
       CartEngine.setGuestCart([]);
-      return { cartId: null, items: [], totals: { subtotal: 0, discount: 0, shipping: 0, total: 0, applied_promo: null } };
+      return {
+        cartId: null,
+        items: [],
+        totals: {
+          subtotal: 0,
+          discount: 0,
+          shipping: 0,
+          total: 0,
+          applied_promo: null,
+          applied_coupon: null,
+        },
+      };
     },
 
     onSuccess: (data) => {
-      store.getState().hydrate(data);
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      syncCartQueryData(user?.id, data);
     },
 
     onError: (_error, _vars, context) => {
@@ -316,6 +330,7 @@ export function CartProvider({ children }) {
       if (!user?.id && context?.guestSnapshot) {
         CartEngine.setGuestCart(context.guestSnapshot);
       }
+      toast("Couldn't clear the cart. Please try again.", "error");
     },
   });
 
@@ -378,8 +393,7 @@ export function CartProvider({ children }) {
     },
 
     onSuccess: (data) => {
-      store.getState().hydrate(data);
-      queryClient.invalidateQueries({ queryKey: ["cart", user?.id] });
+      syncCartQueryData(user?.id, data);
     },
 
     onError: (_error, _items, context) => {
@@ -400,6 +414,11 @@ export function CartProvider({ children }) {
     },
     onSuccess: (totalsData) => {
       store.getState().setTotals(totalsData);
+      const hasDiscount = totalsData?.applied_promo || totalsData?.applied_coupon;
+      toast(hasDiscount ? "Promo code applied." : "Promo code removed.", "success");
+    },
+    onError: (error) => {
+      toast(error?.message || "Promo code could not be applied.", "error");
     },
   });
 
@@ -415,18 +434,32 @@ export function CartProvider({ children }) {
   // ─── Stable action callbacks ──────────────────────────────────────────────
 
   const addItem = useCallback(
-    (productId, variantId, quantity = 1) => {
+    (productId, variantId, quantity = 1, product = null, variant = null, options = {}) => {
       if (!ensureCustomerCartAction()) return;
-      addItemMutate({ productId, variantId, quantity });
+      addItemMutate({
+        productId,
+        variantId,
+        quantity,
+        product,
+        variant,
+        silentToast: Boolean(options.silentToast),
+      });
     },
     [addItemMutate, ensureCustomerCartAction],
   );
   const addItemAsync = useCallback(
-    (productId, variantId, quantity = 1) => {
+    (productId, variantId, quantity = 1, product = null, variant = null, options = {}) => {
       if (!ensureCustomerCartAction()) {
         return Promise.reject(getBlockedCartError());
       }
-      return addItemMutateAsync({ productId, variantId, quantity });
+      return addItemMutateAsync({
+        productId,
+        variantId,
+        quantity,
+        product,
+        variant,
+        silentToast: Boolean(options.silentToast),
+      });
     },
     [addItemMutateAsync, ensureCustomerCartAction, getBlockedCartError],
   );

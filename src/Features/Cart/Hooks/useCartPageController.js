@@ -4,32 +4,39 @@ import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { CartAPI } from "../../../api/cartApi";
 import { useCartActions, useCartState } from "../../../Store/cartContext";
+import { useAuth } from "../../../Store/useAuthStore";
+import { useCartStore } from "../../../Store/useCartStore";
+import { useToastStore } from "../../../Store/useToastStore";
 import useShowErrorBoundary from "../../../hooks/useShowErrorBoundary";
+import { queryClient } from "../../../queries/queryClient";
 import {
   CART_TOTALS_FALLBACK,
   createCartAdditionFromItem,
   getCartItemName,
-  getCartItemProductId,
-  getCartItemVariantId,
   getCartProductIds,
-  getCartSavingsCents,
   readSavedForLater,
   validateCartForCheckout,
   writeSavedForLater,
 } from "../utils/cartItemUtils";
 
+const readGuestOrderNote = () => {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem("woosho_guest_cart_note") || "";
+};
+const toast = (message, type = "success") =>
+  useToastStore.getState().addToast(message, type);
+
 export default function useCartPageController() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const headingRef = useRef(null);
   const {
-    updateQuantity,
+    updateQuantityAsync,
     removeItemAsync,
     addItemAsync,
     applyPromo,
-    removingItemId,
-    updatingQuantityItemId,
   } = useCartActions();
-  const { cart, totals, loading, error } = useCartState();
+  const { cart, cartId, totals, loading, error } = useCartState();
 
   useShowErrorBoundary(error);
 
@@ -45,16 +52,90 @@ export default function useCartPageController() {
   });
 
   const [undoItem, setUndoItem] = useState(null);
-  const [savedForLater, setSavedForLater] = useState(() => readSavedForLater());
-  const [orderNote, setOrderNote] = useState("");
+  const [guestSavedForLater, setGuestSavedForLater] = useState(() => readSavedForLater());
+  const [orderNote, setOrderNote] = useState(readGuestOrderNote);
+  const [noteStatus, setNoteStatus] = useState("");
+  const [pendingItemActions, setPendingItemActions] = useState(() => new Set());
+  const [undoPending, setUndoPending] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [displayRecommendations, setDisplayRecommendations] = useState([]);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [checkoutError, setCheckoutError] = useState("");
+  const pendingItemActionsRef = useRef(new Set());
+  const orderNoteDirtyRef = useRef(false);
+  const {
+    data: serverSavedForLater = [],
+    refetch: refetchSavedForLater,
+  } = useQuery({
+    queryKey: ["saved-cart-items", user?.id],
+    queryFn: CartAPI.loadSavedForLater,
+    enabled: Boolean(user?.id),
+    placeholderData: (previousData) => previousData ?? [],
+  });
+  const savedForLater = user?.id ? serverSavedForLater : guestSavedForLater;
 
   useEffect(() => {
-    writeSavedForLater(savedForLater);
-  }, [savedForLater]);
+    if (!user?.id) writeSavedForLater(guestSavedForLater);
+  }, [guestSavedForLater, user?.id]);
+
+  useEffect(() => {
+    if (orderNoteDirtyRef.current) return;
+    setOrderNote(totals?.order_note || "");
+  }, [totals?.order_note]);
+
+  useEffect(() => {
+    if (loading || !orderNoteDirtyRef.current) return undefined;
+
+    const timeoutId = window.setTimeout(async () => {
+      setNoteStatus("Saving...");
+      try {
+        if (user?.id) {
+          await CartAPI.updateOrderNote(cartId, orderNote);
+        } else {
+          window.localStorage.setItem("woosho_guest_cart_note", orderNote);
+        }
+        orderNoteDirtyRef.current = false;
+        setNoteStatus("Saved");
+      } catch {
+        setNoteStatus("Could not save note");
+        toast("Couldn't save the order note. Please try again.", "error");
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [cartId, loading, orderNote, user?.id]);
+
+  const runItemAction = useCallback(async (scope, itemId, action) => {
+    const key = `${scope}:${itemId}`;
+    const itemKey = `item:${itemId}`;
+    if (!itemId || pendingItemActionsRef.current.has(itemKey)) return false;
+
+    pendingItemActionsRef.current.add(itemKey);
+    pendingItemActionsRef.current.add(key);
+    setPendingItemActions(new Set(pendingItemActionsRef.current));
+    try {
+      await action();
+      return true;
+    } finally {
+      pendingItemActionsRef.current.delete(itemKey);
+      pendingItemActionsRef.current.delete(key);
+      setPendingItemActions(new Set(pendingItemActionsRef.current));
+    }
+  }, []);
+
+  const isItemActionPending = useCallback(
+    (scope, itemId) => pendingItemActions.has(`${scope}:${itemId}`),
+    [pendingItemActions],
+  );
+
+  const syncAuthenticatedCart = useCallback(async () => {
+    if (!user?.id) return;
+
+    const nextCart = await CartAPI.load(user.id);
+    useCartStore.getState().hydrate(nextCart);
+    queryClient.setQueryData(["cart", user.id], nextCart);
+    await queryClient.invalidateQueries({ queryKey: ["cart", user.id] });
+  }, [user?.id]);
 
   useEffect(() => {
     if (cartRecommendationProductIds.length === 0) {
@@ -93,78 +174,149 @@ export default function useCartPageController() {
     discount,
     shipping,
     total,
-    applied_promo: promo,
+    applied_promo: appliedPromo,
+    applied_coupon: appliedCoupon,
+    savings = 0,
+    savings_ticker_message: savingsTickerMessage,
+    shipping_progress: shippingProgress,
   } = totals || CART_TOTALS_FALLBACK;
-  const savings = getCartSavingsCents({ subtotal, discount, shipping, promo });
+  const promo = appliedPromo || appliedCoupon;
 
   const handleQtyChange = useCallback(
-    (itemId, newQty) => {
+    async (itemId, newQty) => {
       if (newQty < 1 || newQty > 10) return;
       setCheckoutError("");
-      updateQuantity(itemId, newQty);
+      try {
+        await runItemAction("quantity", itemId, () =>
+          updateQuantityAsync(itemId, newQty),
+        );
+      } catch {
+        // The cart context reports the mutation error and restores the snapshot.
+      }
     },
-    [updateQuantity],
+    [runItemAction, updateQuantityAsync],
   );
 
   const handleRemove = useCallback(
     async (item) => {
-      setUndoItem({ id: item.id, name: getCartItemName(item), data: item });
-      try {
-        await removeItemAsync(item);
-      } catch {
-        setUndoItem(null);
-      }
+      await runItemAction("remove", item.id, async () => {
+        setUndoItem({ id: item.id, name: getCartItemName(item), data: item });
+        try {
+          await removeItemAsync(item);
+        } catch {
+          setUndoItem(null);
+        }
+      });
     },
-    [removeItemAsync],
+    [removeItemAsync, runItemAction],
   );
 
   const handleUndo = useCallback(async () => {
-    if (!undoItem) return;
+    if (!undoItem || undoPending) return;
 
     const itemToRestore = undoItem.data;
     setUndoItem(null);
+    setUndoPending(true);
 
     try {
+      const addition = createCartAdditionFromItem(itemToRestore);
       await addItemAsync(
-        getCartItemProductId(itemToRestore),
-        getCartItemVariantId(itemToRestore),
-        itemToRestore.quantity,
+        addition.productId,
+        addition.variantId,
+        addition.quantity,
+        addition.product,
+        addition.variant,
+        { silentToast: true },
       );
+      toast("Item restored.");
     } catch {
       setUndoItem(undoItem);
+    } finally {
+      setUndoPending(false);
     }
-  }, [addItemAsync, undoItem]);
+  }, [addItemAsync, undoItem, undoPending]);
 
   const handleSaveLater = useCallback(
     async (item) => {
-      setSavedForLater((previous) =>
-        previous.some((savedItem) => savedItem.id === item.id) ? previous : [...previous, item],
-      );
-
       try {
-        await removeItemAsync(item);
-      } catch {
-        setSavedForLater((previous) => previous.filter((savedItem) => savedItem.id !== item.id));
+        await runItemAction("save", item.id, async () => {
+          if (user?.id) {
+            await CartAPI.saveForLater(item.id);
+            await Promise.all([syncAuthenticatedCart(), refetchSavedForLater()]);
+            toast("Saved for later.");
+            return;
+          }
+
+          setGuestSavedForLater((previous) =>
+            previous.some((savedItem) => savedItem.id === item.id)
+              ? previous
+              : [...previous, item],
+          );
+
+          try {
+            await removeItemAsync(item);
+            toast("Saved for later.");
+          } catch (error) {
+            setGuestSavedForLater((previous) =>
+              previous.filter((savedItem) => savedItem.id !== item.id),
+            );
+            throw error;
+          }
+        });
+      } catch (error) {
+        toast(error?.message || "Couldn't save that item for later.", "error");
       }
     },
-    [removeItemAsync],
+    [refetchSavedForLater, removeItemAsync, runItemAction, syncAuthenticatedCart, user?.id],
   );
 
   const handleMoveToCart = useCallback(
     async (item) => {
-      setSavedForLater((previous) => previous.filter((savedItem) => savedItem.id !== item.id));
-
       try {
-        const addition = createCartAdditionFromItem(item);
-        await addItemAsync(addition.productId, addition.variantId, addition.quantity);
-      } catch {
-        setSavedForLater((previous) =>
-          previous.some((savedItem) => savedItem.id === item.id) ? previous : [...previous, item],
-        );
+        await runItemAction("move", item.id, async () => {
+          if (user?.id) {
+            await CartAPI.moveSavedToCart(item.id, cartId);
+            await Promise.all([syncAuthenticatedCart(), refetchSavedForLater()]);
+            toast("Moved to cart.");
+            return;
+          }
+
+          setGuestSavedForLater((previous) =>
+            previous.filter((savedItem) => savedItem.id !== item.id),
+          );
+
+          try {
+            const addition = createCartAdditionFromItem(item);
+            await addItemAsync(
+              addition.productId,
+              addition.variantId,
+              addition.quantity,
+              addition.product,
+              addition.variant,
+              { silentToast: true },
+            );
+            toast("Moved to cart.");
+          } catch (error) {
+            setGuestSavedForLater((previous) =>
+              previous.some((savedItem) => savedItem.id === item.id)
+                ? previous
+                : [...previous, item],
+            );
+            throw error;
+          }
+        });
+      } catch (error) {
+        toast(error?.message || "Couldn't move that item to the cart.", "error");
       }
     },
-    [addItemAsync],
+    [addItemAsync, cartId, refetchSavedForLater, runItemAction, syncAuthenticatedCart, user?.id],
   );
+
+  const handleOrderNoteChange = useCallback((value) => {
+    orderNoteDirtyRef.current = true;
+    setNoteStatus("");
+    setOrderNote(value);
+  }, []);
 
   const handleCheckout = useCallback(() => {
     const validationError = validateCartForCheckout(cartItems);
@@ -179,7 +331,7 @@ export default function useCartPageController() {
   }, [cartItems, navigate]);
 
   const handleRemovePromo = useCallback(() => {
-    applyPromo(null).catch(() => {});
+    return applyPromo(null);
   }, [applyPromo]);
 
   const handleCloseQuickView = useCallback(() => setQuickViewProduct(null), []);
@@ -204,19 +356,22 @@ export default function useCartPageController() {
     loading,
     navigate,
     orderNote,
+    noteStatus,
     promo,
     quickViewProduct,
     recommendationsFetching,
-    removingItemId,
+    isItemActionPending,
     savedForLater,
     savings,
-    setOrderNote,
+    savingsTickerMessage,
+    shippingProgress,
+    handleOrderNoteChange,
     setUndoItem,
     shipping,
     subtotal,
     total,
     undoItem,
-    updatingQuantityItemId,
+    undoPending,
     applyPromo,
   };
 }
