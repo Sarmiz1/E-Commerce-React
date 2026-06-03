@@ -2,14 +2,24 @@ import { Link } from "react-router-dom";
 import QuickView from "../../../Components/Ui/QuickView";
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 import { useAddToCart } from "../../../hooks/cart/useAddToCart";
-import { formatShowcasePrice } from "../data";
+import {
+  formatShowcaseProductPrice,
+  getShowcaseDiscount,
+  getShowcaseOriginalPriceMinor,
+  getShowcasePriceMinor,
+  getShowcaseProductImage,
+  getShowcaseProductPath,
+  getShowcaseVariantId,
+} from "../utils/showcaseProduct";
 
 function DealSideItem({ item, accent, index, visible }) {
-  const discount = Math.round((1 - item.price / item.originalPrice) * 100);
+  const discount = getShowcaseDiscount(item);
+  const priceMinor = getShowcasePriceMinor(item);
+  const originalPriceMinor = getShowcaseOriginalPriceMinor(item);
 
   return (
     <Link
-      to={`/products/${item.slug || item.id}`}
+      to={getShowcaseProductPath(item)}
       style={{
         display: "flex", gap: 14, alignItems: "center",
         background: "#fafaf8",
@@ -21,30 +31,38 @@ function DealSideItem({ item, accent, index, visible }) {
         textDecoration: "none",
       }}
     >
-      <img src={item.img} alt={item.name}
+      <img src={getShowcaseProductImage(item)} alt={item.name}
         style={{ width: 90, height: 90, objectFit: "cover", flexShrink: 0 }} />
       <div style={{ flex: 1, paddingRight: 16 }}>
         <p style={{ margin: "0 0 2px", fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: 0.5 }}>{item.brand}</p>
         <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 600, color: "#1a1a1a" }}>{item.name}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: accent }}>{formatShowcasePrice(item.price)}</span>
-          <span style={{ fontSize: 11, color: "#bbb", textDecoration: "line-through" }}>{formatShowcasePrice(item.originalPrice)}</span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: "#fff", background: accent, padding: "2px 5px", borderRadius: 3 }}>{discount}%</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: accent }}>{formatShowcaseProductPrice(item, priceMinor)}</span>
+          {originalPriceMinor > priceMinor && (
+            <span style={{ fontSize: 11, color: "#bbb", textDecoration: "line-through" }}>{formatShowcaseProductPrice(item, originalPriceMinor)}</span>
+          )}
+          {discount && (
+            <span style={{ fontSize: 9, fontWeight: 700, color: "#fff", background: accent, padding: "2px 5px", borderRadius: 3 }}>{discount}%</span>
+          )}
         </div>
       </div>
     </Link>
   );
 }
 
-export default function DealOfDaySection({ section, visible, onQuickView }) {
+export default function ShowcaseDealSection({ section, visible, onQuickView }) {
   const featured = section.featured;
-  const pct = Math.round((featured.sold / featured.stock) * 100);
-  const discount = Math.round((1 - featured.price / featured.originalPrice) * 100);
+  const stock = Number(featured.stock || featured.stock_quantity || 0);
+  const sold = Number(featured.sold || 0);
+  const pct = stock ? Math.round((sold / stock) * 100) : 0;
+  const discount = getShowcaseDiscount(featured);
+  const priceMinor = getShowcasePriceMinor(featured);
+  const originalPriceMinor = getShowcaseOriginalPriceMinor(featured);
   const {
     handleAdd,
     loading: addingToCart,
     success: addedToCart,
-  } = useAddToCart(featured.id, { variantId: featured.variant_id, quantity: 1 });
+  } = useAddToCart(featured.id, { variantId: getShowcaseVariantId(featured), quantity: 1 });
 
   return (
     <div style={{
@@ -65,18 +83,20 @@ export default function DealOfDaySection({ section, visible, onQuickView }) {
           position: "relative",
         }}>
           <div className="group" style={{ position: "relative", flex: 1, minHeight: 300 }}>
-            <Link to={`/products/${featured.slug || featured.id}`} style={{ display: "block", width: "100%", height: "100%" }}>
-              <img src={featured.img} alt={featured.name}
+            <Link to={getShowcaseProductPath(featured)} style={{ display: "block", width: "100%", height: "100%" }}>
+              <img src={getShowcaseProductImage(featured)} alt={featured.name}
                 style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.75, display: "block" }} />
             </Link>
-            <div style={{ position: "absolute", top: 16, left: 16 }}>
-              <span style={{
-                background: section.accent, color: "#fff",
-                fontSize: 12, fontWeight: 800,
-                padding: "5px 12px", borderRadius: 5,
-                letterSpacing: 1,
-              }}>{discount}% OFF</span>
-            </div>
+            {discount && (
+              <div style={{ position: "absolute", top: 16, left: 16 }}>
+                <span style={{
+                  background: section.accent, color: "#fff",
+                  fontSize: 12, fontWeight: 800,
+                  padding: "5px 12px", borderRadius: 5,
+                  letterSpacing: 1,
+                }}>{discount}% OFF</span>
+              </div>
+            )}
             <QuickView
               product={featured}
               onQuickView={onQuickView}
@@ -89,29 +109,35 @@ export default function DealOfDaySection({ section, visible, onQuickView }) {
           </div>
           <div style={{ padding: "20px 20px 22px" }}>
             <p style={{ margin: "0 0 3px", fontSize: 10, color: "#777", textTransform: "uppercase", letterSpacing: 1 }}>{featured.brand}</p>
-            <Link to={`/products/${featured.slug || featured.id}`} style={{ textDecoration: "none" }}>
+            <Link to={getShowcaseProductPath(featured)} style={{ textDecoration: "none" }}>
               <p style={{ margin: "0 0 10px", fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>{featured.name}</p>
             </Link>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 14 }}>
               <span style={{ fontSize: 22, fontWeight: 800, color: section.accent }}>
-                {formatShowcasePrice(featured.price)}
+                {formatShowcaseProductPrice(featured, priceMinor)}
               </span>
-              <span style={{ fontSize: 14, color: "#555", textDecoration: "line-through" }}>
-                {formatShowcasePrice(featured.originalPrice)}
-              </span>
+              {originalPriceMinor > priceMinor && (
+                <span style={{ fontSize: 14, color: "#555", textDecoration: "line-through" }}>
+                  {formatShowcaseProductPrice(featured, originalPriceMinor)}
+                </span>
+              )}
             </div>
-            <p style={{ fontSize: 10, color: "#666", marginBottom: 5 }}>
-              <span style={{ color: "#fff", fontWeight: 600 }}>{featured.sold}</span> of {featured.stock} sold
-            </p>
-            <div style={{ height: 4, background: "#2a2a2a", borderRadius: 2, overflow: "hidden" }}>
-              <div style={{
-                height: "100%",
-                width: `${pct}%`,
-                background: section.accent,
-                borderRadius: 2,
-                transition: "width 1.5s cubic-bezier(0.22, 1, 0.36, 1)",
-              }} />
-            </div>
+            {stock > 0 && (
+              <>
+                <p style={{ fontSize: 10, color: "#666", marginBottom: 5 }}>
+                  <span style={{ color: "#fff", fontWeight: 600 }}>{sold}</span> of {stock} sold
+                </p>
+                <div style={{ height: 4, background: "#2a2a2a", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%",
+                    width: `${pct}%`,
+                    background: section.accent,
+                    borderRadius: 2,
+                    transition: "width 1.5s cubic-bezier(0.22, 1, 0.36, 1)",
+                  }} />
+                </div>
+              </>
+            )}
             <button
               type="button"
               onClick={handleAdd}

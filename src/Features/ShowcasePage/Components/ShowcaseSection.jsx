@@ -1,18 +1,20 @@
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { useIntersectionObserver } from "../Hooks/useIntersectionObserver";
-import CountdownTimer from "./CountdownTimer";
-import DealOfDaySection from "./DealOfDaySection";
-import HorizontalScroll from "./HorizontalScroll";
+import ShowcaseCountdownTimer from "./ShowcaseCountdownTimer";
+import ShowcaseDealSection from "./ShowcaseDealSection";
+import ShowcaseRail from "./ShowcaseRail";
 import ShowcaseProductCard from "./ShowcaseProductCard";
 
-export default function SectionBlock({ section, onQuickView }) {
+export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
   const ref = useRef(null);
   const visible = useIntersectionObserver(ref);
 
-  const isHot = section.id === "hotrightnow";
-  const isMostLoved = section.id === "mostloved";
-  const isContinue = section.id === "continueshopping";
-  const isBrowsing = section.id === "browsing";
+  const normalizedId = String(section.id || "").replace(/-/g, "");
+  const isHot = normalizedId === "hotrightnow";
+  const isMostLoved = normalizedId === "mostloved";
+  const isContinue = normalizedId === "continueshopping";
+  const isBrowsing = normalizedId === "browsing";
 
   return (
     <section
@@ -37,7 +39,7 @@ export default function SectionBlock({ section, onQuickView }) {
             }}>
               {section.tag}
             </span>
-            {section.isFlash && <CountdownTimer label="2h 30m" />}
+            {section.isFlash && <ShowcaseCountdownTimer label="2h 30m" />}
           </div>
           <h2 style={{
             margin: 0,
@@ -50,7 +52,7 @@ export default function SectionBlock({ section, onQuickView }) {
             {section.label}
           </h2>
         </div>
-        <a href="#" style={{
+        <Link to={viewAllPath || section.path || "#"} style={{
           fontSize: 11, fontWeight: 600,
           color: "#666", textDecoration: "none",
           letterSpacing: 0.5, textTransform: "uppercase",
@@ -59,13 +61,13 @@ export default function SectionBlock({ section, onQuickView }) {
           transition: "color 0.2s ease, border-color 0.2s ease",
         }}>
           View All {"\u2192"}
-        </a>
+        </Link>
       </div>
 
       {section.isDealOfDay ? (
-        <DealOfDaySection section={section} visible={visible} onQuickView={onQuickView} />
+        <ShowcaseDealSection section={section} visible={visible} onQuickView={onQuickView} />
       ) : (
-        <HorizontalScroll>
+        <ShowcaseRail>
           {section.items.map((item, i) => (
             <ShowcaseProductCard
               key={item.id}
@@ -81,7 +83,7 @@ export default function SectionBlock({ section, onQuickView }) {
               onQuickView={onQuickView}
             />
           ))}
-        </HorizontalScroll>
+        </ShowcaseRail>
       )}
     </section>
   );

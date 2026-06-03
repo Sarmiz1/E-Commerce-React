@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const DURATION = 5500;
 
-export default function HeroBanner({ slides }) {
+export default function ShowcaseHeroBanner({ slides }) {
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
   const [paused, setPaused] = useState(false);

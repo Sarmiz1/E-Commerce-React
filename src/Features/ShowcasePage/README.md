@@ -1,44 +1,73 @@
 # ShowcasePage
 
-Reusable merchandising showcase for curated product rails, hero slides, quick add,
-wishlist, quick view, and product-detail navigation.
+Reusable merchandising surfaces for WooSho product discovery.
+
+The folder owns two UI surfaces:
+
+- `ShowcaseIndexPage.jsx`: a rail-based discovery index with hero slides, sticky section nav, quick add, wishlist, quick view, and `View All` links.
+- `ShowcasePage.jsx`: a reusable product-list page with hero, breadcrumbs, filters, product grid, quick view, SEO, loading, error, and empty states.
+
+## Routes
+
+Current product routes using this feature:
+
+- `/products/curation` renders `ShowcaseCurationIndexPage`.
+- `/products/curation/:showcaseSlug` renders `ShowcaseCurationPage`.
+- `/products/categories` renders `ShowcaseCategoryIndexPage`.
+- `/products/categories/:categorySlug` renders `ShowcaseCategoryPage`.
+
+The older `/products/curations` routes still point at the existing Curation feature. The singular
+`/products/curation` route is the Showcase-backed route.
 
 ## Structure
 
-- `ShowcaseIndexPage.jsx` composes the page and exports `ShowcasePage` for reuse.
-- `data.js` owns the hero slides, section data, topbar labels, and normalized product records.
-- `Components/` contains the hero, topbar, section, scroller, product card, deal-of-day, countdown, and star UI pieces.
-- `Hooks/` contains local page helpers for fonts, intersection visibility, and seeding static Showcase products into the global React Query product cache.
+- `Components/` contains Showcase-named UI pieces only:
+  - `ShowcaseHeroBanner`
+  - `ShowcaseTopbar`
+  - `ShowcaseSection`
+  - `ShowcaseRail`
+  - `ShowcaseProductCard`
+  - `ShowcaseDealSection`
+  - `ShowcaseHero`
+  - `ShowcaseProductGrid`
+  - `ShowcaseStates`
+- `Hooks/` contains local helpers for fonts, filtering, intersection visibility, and product cache seeding.
+- `utils/showcaseAdapters.js` turns backend curation/category data into index sections.
+- `utils/showcaseProduct.js` normalizes product image, price, discount, variant, and route behavior.
+- `data.js` keeps the default static Showcase data.
+
+## Data Flow
+
+Route containers fetch data and pass plain props into reusable Showcase renderers:
+
+- Curations use the existing backend curation feed APIs.
+- Categories use the global product catalog and derive category groups from product category metadata.
+- The index renderer receives `sections`, `heroSlides`, `topbarLabels`, `products`, and a `basePath`.
+- The detail renderer receives `title`, `description`, `products`, loading/error flags, SEO path, breadcrumb labels, and copy.
+
+`View All` links are generated from `section.path` first, then fall back to:
+
+```txt
+{basePath}/{section.id}
+```
 
 ## Product Behavior
 
-Each item in `data.js` is normalized into the global product shape with:
+Showcase cards use global shopping behavior:
+
+- `useAddToCart`
+- `WishlistHeart`
+- `QuickView`
+- product-detail links to `/products/:productSlug`
+
+Products should provide the normal global product fields where possible:
 
 - `id`
 - `slug`
-- `image` and `images`
-- `price_minor`, `compare_at_price_minor`, and `original_price_minor`
-- `variant_id`
-- `product_variants` and `variants`
+- `image` or `product_images`
+- `price_minor`
+- `compare_at_price_minor` or `original_price_minor`
+- `variant_id` or `product_variants`
 
-Cards use the shared `WishlistHeart`, `QuickView`, and `useAddToCart` hook. Product images,
-names, deal tiles, and featured deal content link to `/products/:productSlug`.
-
-## Reuse
-
-Import the reusable page when another Showcase surface needs the same layout with different data:
-
-```jsx
-import { ShowcasePage } from "./ShowcaseIndexPage";
-
-<ShowcasePage
-  heroSlides={heroSlides}
-  sections={sections}
-  topbarLabels={labels}
-  products={products}
-  topbarOffset={0}
-/>
-```
-
-When replacing the static Showcase records with backend products, keep the normalized fields above
-or pass records that already match the global product shape.
+Static `data.js` records are normalized into this shape so the same components can render static,
+curation-backed, or category-backed products.

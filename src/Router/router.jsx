@@ -351,10 +351,22 @@ const router = createBrowserRouter(
             />
 
             <Route
-              path="categories/*"
-              element={<ProductsPage />}
-              loader={fetchProductsLoader}
-              shouldRevalidate={revalidateOnPathChange}
+              path="categories"
+              lazy={() =>
+                import("../Features/ShowcasePage/ShowcaseCategoryIndexPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="categories/:categorySlug"
+              lazy={() =>
+                import("../Features/ShowcasePage/ShowcaseCategoryPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 
@@ -363,6 +375,26 @@ const router = createBrowserRouter(
               element={<ProductsPage />}
               loader={fetchProductsLoader}
               shouldRevalidate={revalidateOnPathChange}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="curation"
+              lazy={() =>
+                import("../Features/ShowcasePage/ShowcaseCurationIndexPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="curation/:showcaseSlug"
+              lazy={() =>
+                import("../Features/ShowcasePage/ShowcaseCurationPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 

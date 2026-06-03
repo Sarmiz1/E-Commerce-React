@@ -6,38 +6,67 @@ import {
   SHOWCASE_PRODUCTS,
   TOPBAR_LABELS,
 } from "./data";
-import HeroBanner from "./Components/HeroBanner";
-import SectionBlock from "./Components/SectionBlock";
+import ShowcaseHeroBanner from "./Components/ShowcaseHeroBanner";
+import ShowcaseSection from "./Components/ShowcaseSection";
 import ShowcaseTopbar from "./Components/ShowcaseTopbar";
 import { useShowcaseFonts } from "./Hooks/useShowcaseFonts";
 import { useShowcaseProductsCache } from "./Hooks/useShowcaseProductsCache";
+import {
+  buildTopbarLabels,
+  getSectionProducts,
+} from "./utils/showcaseAdapters";
 
-const getSectionProducts = (sections) =>
-  sections.flatMap((section) => [
-    ...(section.featured ? [section.featured] : []),
-    ...(section.items || []),
-  ]);
+function ShowcaseIndexStatus({ children }) {
+  return (
+    <div style={{
+      maxWidth: 1200,
+      margin: "0 auto",
+      padding: "52px 48px 72px",
+      color: "#666",
+      fontSize: 13,
+      fontWeight: 600,
+    }}>
+      {children}
+    </div>
+  );
+}
 
-export function ShowcasePage({
+const getDefaultSectionPath = (basePath, section) =>
+  section.path || `${basePath}/${encodeURIComponent(section.id)}`;
+
+export function ShowcaseIndex({
   heroSlides = HERO_SLIDES,
   sections = SECTIONS,
-  topbarLabels = TOPBAR_LABELS,
-  products = SHOWCASE_PRODUCTS,
+  topbarLabels,
+  products,
   topbarOffset = 0,
+  basePath = "/products/showcase",
+  isLoading = false,
+  isError = false,
+  onRetry,
+  emptyMessage = "No showcase sections are available yet.",
 }) {
-  const [activeId, setActiveId] = useState(sections[0]?.id || "trending");
+  const safeSections = useMemo(() => sections || [], [sections]);
+  const safeHeroSlides = heroSlides?.length ? heroSlides : HERO_SLIDES;
+  const labels = useMemo(
+    () => topbarLabels || buildTopbarLabels(safeSections) || TOPBAR_LABELS,
+    [safeSections, topbarLabels],
+  );
+  const [activeId, setActiveId] = useState(safeSections[0]?.id || "trending");
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const topbarRef = useRef(null);
   const cacheProducts = useMemo(
-    () => (products?.length ? products : getSectionProducts(sections)),
-    [products, sections],
+    () => (products?.length ? products : getSectionProducts(safeSections)),
+    [products, safeSections],
   );
 
   useShowcaseFonts();
   useShowcaseProductsCache(cacheProducts);
 
   useEffect(() => {
-    const observers = sections.map((section) => {
+    if (!safeSections.length) return undefined;
+
+    const observers = safeSections.map((section) => {
       const el = document.getElementById(section.id);
       if (!el) return null;
 
@@ -50,7 +79,7 @@ export function ShowcasePage({
     });
 
     return () => observers.forEach((observer) => observer?.disconnect());
-  }, [sections]);
+  }, [safeSections]);
 
   useEffect(() => {
     const handleQuickView = (event) => {
@@ -77,8 +106,8 @@ export function ShowcasePage({
       color: "#1a1a1a",
     }}>
       <ShowcaseTopbar
-        sections={sections}
-        labels={topbarLabels}
+        sections={safeSections}
+        labels={labels}
         activeId={activeId}
         topbarRef={topbarRef}
         onScrollSection={scrollToSection}
@@ -86,20 +115,47 @@ export function ShowcasePage({
         top={topbarOffset}
       />
 
-      <HeroBanner slides={heroSlides} />
+      <ShowcaseHeroBanner slides={safeHeroSlides} />
 
       <div style={{
         maxWidth: 1200, margin: "0 auto",
         padding: "64px 48px 0",
       }}>
-        {sections.map((section) => (
-          <SectionBlock
+        {safeSections.map((section) => (
+          <ShowcaseSection
             key={section.id}
             section={section}
+            viewAllPath={getDefaultSectionPath(basePath, section)}
             onQuickView={setQuickViewProduct}
           />
         ))}
       </div>
+
+      {isLoading && (
+        <ShowcaseIndexStatus>Loading showcase sections...</ShowcaseIndexStatus>
+      )}
+      {isError && (
+        <ShowcaseIndexStatus>
+          <button
+            onClick={onRetry}
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 999,
+              padding: "10px 16px",
+              background: "#fff",
+              color: "#1a1a1a",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+            type="button"
+          >
+            Retry showcase
+          </button>
+        </ShowcaseIndexStatus>
+      )}
+      {!isLoading && !isError && safeSections.length === 0 && (
+        <ShowcaseIndexStatus>{emptyMessage}</ShowcaseIndexStatus>
+      )}
 
       <div style={{ height: 80 }} />
 
@@ -113,6 +169,6 @@ export function ShowcasePage({
   );
 }
 
-export default function ShowcaseIndexPage() {
-  return <ShowcasePage />;
+export default function ShowcaseIndexPage(props) {
+  return <ShowcaseIndex {...props} />;
 }

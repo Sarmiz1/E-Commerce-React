@@ -3,9 +3,17 @@ import { Link } from "react-router-dom";
 import QuickView from "../../../Components/Ui/QuickView";
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 import { useAddToCart } from "../../../hooks/cart/useAddToCart";
-import { formatShowcasePrice } from "../data";
-import Stars from "./Stars";
-import CountdownTimer from "./CountdownTimer";
+import {
+  formatShowcaseProductPrice,
+  getShowcaseDiscount,
+  getShowcaseOriginalPriceMinor,
+  getShowcasePriceMinor,
+  getShowcaseProductImage,
+  getShowcaseProductPath,
+  getShowcaseVariantId,
+} from "../utils/showcaseProduct";
+import ShowcaseStars from "./ShowcaseStars";
+import ShowcaseCountdownTimer from "./ShowcaseCountdownTimer";
 
 export default function ShowcaseProductCard({
   item,
@@ -24,12 +32,13 @@ export default function ShowcaseProductCard({
     handleAdd,
     loading: addingToCart,
     success: addedToCart,
-  } = useAddToCart(item.id, { variantId: item.variant_id, quantity: 1 });
+  } = useAddToCart(item.id, { variantId: getShowcaseVariantId(item), quantity: 1 });
 
-  const discount = item.originalPrice
-    ? Math.round((1 - item.price / item.originalPrice) * 100)
-    : null;
-  const productPath = `/products/${item.slug || item.id}`;
+  const discount = getShowcaseDiscount(item);
+  const image = getShowcaseProductImage(item);
+  const priceMinor = getShowcasePriceMinor(item);
+  const originalPriceMinor = getShowcaseOriginalPriceMinor(item);
+  const productPath = getShowcaseProductPath(item);
 
   const handleQuickAdd = (event) => {
     event.preventDefault();
@@ -62,7 +71,7 @@ export default function ShowcaseProductCard({
       }}>
         <Link to={productPath} aria-label={`View ${item.name}`} style={{ display: "block", width: "100%", height: "100%" }}>
           <img
-            src={item.img}
+            src={image}
             alt={item.name}
             loading="lazy"
             style={{
@@ -111,7 +120,7 @@ export default function ShowcaseProductCard({
             background: "rgba(0,0,0,0.85)",
             padding: "4px 8px", borderRadius: 4,
           }}>
-            <CountdownTimer label={item.timeLeft} />
+            <ShowcaseCountdownTimer label={item.timeLeft} />
           </div>
         )}
         <div style={{
@@ -166,7 +175,7 @@ export default function ShowcaseProductCard({
         )}
         {isMostLoved && item.rating && (
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
-            <Stars rating={item.rating} />
+            <ShowcaseStars rating={item.rating} />
             <span style={{ fontSize: 10, color: "#999" }}>{item.reviews?.toLocaleString()}</span>
           </div>
         )}
@@ -181,11 +190,11 @@ export default function ShowcaseProductCard({
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: discount ? accent : "#0f0f0f" }}>
-            {formatShowcasePrice(item.price)}
+            {formatShowcaseProductPrice(item, priceMinor)}
           </span>
-          {item.originalPrice && (
+          {originalPriceMinor > priceMinor && (
             <span style={{ fontSize: 11, color: "#aaa", textDecoration: "line-through" }}>
-              {formatShowcasePrice(item.originalPrice)}
+              {formatShowcaseProductPrice(item, originalPriceMinor)}
             </span>
           )}
         </div>

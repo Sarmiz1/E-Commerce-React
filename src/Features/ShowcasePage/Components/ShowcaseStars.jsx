@@ -1,4 +1,4 @@
-export default function Stars({ rating }) {
+export default function ShowcaseStars({ rating }) {
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
       {[1, 2, 3, 4, 5].map((i) => (

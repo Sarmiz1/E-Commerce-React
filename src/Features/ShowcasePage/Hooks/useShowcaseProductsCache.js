@@ -4,9 +4,11 @@ import { useQueryClient } from "@tanstack/react-query";
 export function seedShowcaseProductCache(queryClient, products = []) {
   if (!queryClient || !products.length) return;
 
-  products.forEach((product) => {
+  products.filter((product) => product?.id).forEach((product) => {
     queryClient.setQueryData(["product", product.id], product);
-    queryClient.setQueryData(["product", product.slug], product);
+    if (product.slug) {
+      queryClient.setQueryData(["product", product.slug], product);
+    }
   });
 
   queryClient.setQueryData(["products", "complete-catalog-v1"], (current = []) => {

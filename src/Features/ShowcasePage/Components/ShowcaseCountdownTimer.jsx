@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function CountdownTimer({ label }) {
+export default function ShowcaseCountdownTimer({ label }) {
   const [time, setTime] = useState(() => {
     const parts = label.match(/(\d+)h (\d+)m/);
     if (!parts) return { h: 2, m: 30, s: 0 };

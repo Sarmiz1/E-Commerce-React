@@ -1,6 +1,15 @@
 import { Link } from "react-router-dom";
 
-export default function CurationAdvert({ colors, image, title }) {
+export default function ShowcaseAdvert({
+  colors,
+  image,
+  title,
+  browsePath = "/products",
+  eyebrow = "More to discover",
+  heading,
+  body = "Browse the complete marketplace for more products from independent stores.",
+  cta = "Browse all products",
+}) {
   return (
     <section className="mx-auto max-w-screen-xl px-6 pt-8">
       <div
@@ -23,16 +32,16 @@ export default function CurationAdvert({ colors, image, title }) {
             className="text-[10px] font-black uppercase tracking-[0.24em]"
             style={{ color: colors.text.accent }}
           >
-            More to discover
+            {eyebrow}
           </p>
           <h2
             className="mt-2 font-serif text-2xl font-bold"
             style={{ color: colors.text.primary }}
           >
-            Explore beyond {title}
+            {heading || `Explore beyond ${title}`}
           </h2>
           <p className="mt-2 text-sm leading-6" style={{ color: colors.text.secondary }}>
-            Browse the complete marketplace for more products from independent stores.
+            {body}
           </p>
           <Link
             className="mt-5 inline-flex rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-wider transition-opacity hover:opacity-90"
@@ -40,9 +49,9 @@ export default function CurationAdvert({ colors, image, title }) {
               background: colors.cta.primary,
               color: colors.cta.primaryText,
             }}
-            to="/products"
+            to={browsePath}
           >
-            Browse all products
+            {cta}
           </Link>
         </div>
       </div>

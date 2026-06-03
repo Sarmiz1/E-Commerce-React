@@ -1,55 +1,61 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
-import { useParams } from "react-router-dom";
 import SEO from "../../Components/SEO";
 import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 import { IconSpinner } from "../../Components/Icons/IconSpinner";
 import { useTheme } from "../../Store/useThemeStore";
 import { getProductImages } from "../../utils/getProductImages";
-import { CurationsAPI } from "../../api/curationsApi";
 import FilterSidebar, {
   ActiveFilterChips,
 } from "../Product/Components/FilterSidebar";
 import MobileFilterDrawer from "../Product/Components/MobileFilterDrawer";
 import { PG_STYLES } from "../Product/Styles/ProductsPageStyles";
-import CurationAdvert from "./Components/CurationAdvert";
-import CurationBreadcrumbs from "./Components/CurationBreadcrumbs";
-import CurationHero from "./Components/CurationHero";
-import CurationProductGrid from "./Components/CurationProductGrid";
+import ShowcaseAdvert from "./Components/ShowcaseAdvert";
+import ShowcaseBreadcrumbs from "./Components/ShowcaseBreadcrumbs";
+import ShowcaseHero from "./Components/ShowcaseHero";
+import ShowcaseProductGrid from "./Components/ShowcaseProductGrid";
 import {
-  CurationEmptyState,
-  CurationErrorState,
-  CurationLoadingState,
-} from "./Components/CurationStates";
-import { useCurationProductsFilter } from "./Hooks/useCurationProductsFilter";
-import { formatSlugTitle } from "./utils/formatSlugTitle";
+  ShowcaseEmptyState,
+  ShowcaseErrorState,
+  ShowcaseLoadingState,
+} from "./Components/ShowcaseStates";
+import { useShowcaseProductsFilter } from "./Hooks/useShowcaseProductsFilter";
+import { useShowcaseProductsCache } from "./Hooks/useShowcaseProductsCache";
 
-const getCurationDescription = (curation, title) =>
-  curation?.description ||
-  `Discover handpicked ${title.toLowerCase()} selected for the WooSho marketplace.`;
+const getCanonicalUrl = (canonicalPath) => {
+  if (typeof window === "undefined") return undefined;
+  return `${window.location.origin}${canonicalPath || window.location.pathname}`;
+};
 
-export default function ShowcasePage() {
-  const { curationSlug = "" } = useParams();
+export default function ShowcasePage({
+  title = "Showcase",
+  description = "Explore curated products from the WooSho marketplace.",
+  products = [],
+  heroImage,
+  isLoading = false,
+  isFetching = false,
+  isError = false,
+  onRetry,
+  noIndex = false,
+  canonicalPath,
+  eyebrow = "WooSho Showcase",
+  parentLabel = "Showcase",
+  parentPath = "/products",
+  collectionLabel = "Showcase products",
+  listTitle = "Shop the selection",
+  emptyLabel = "Showcase coming soon",
+  emptyBody,
+  advert,
+}) {
   const { colors, isDark } = useTheme();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
-  const displayTitle = formatSlugTitle(curationSlug) || "Curation";
+  const stableProducts = useMemo(() => products || [], [products]);
+  const displayHeroImage = heroImage || getProductImages(stableProducts[0])[0];
+  const canonicalUrl = getCanonicalUrl(canonicalPath);
 
-  const curationQuery = useQuery({
-    ...CurationsAPI.getBySlug(curationSlug),
-    enabled: Boolean(curationSlug),
-  });
-  const productsQuery = useQuery({
-    ...CurationsAPI.getProducts(curationSlug),
-    enabled: Boolean(curationSlug),
-  });
+  useShowcaseProductsCache(stableProducts);
 
-  const curation = curationQuery.data;
-  const products = useMemo(() => productsQuery.data || [], [productsQuery.data]);
-  const title = curation?.name || displayTitle;
-  const description = getCurationDescription(curation, title);
-  const heroImage = getProductImages(products[0])[0];
   const {
     categoryOptions,
     filteredProducts,
@@ -61,7 +67,7 @@ export default function ShowcasePage() {
     selectedCategoryValue,
     setFilters,
     setSelectedCategory,
-  } = useCurationProductsFilter(products);
+  } = useShowcaseProductsFilter(stableProducts);
 
   const hasActiveFilters =
     selectedCategory !== "All" ||
@@ -70,14 +76,8 @@ export default function ShowcasePage() {
     filters.inStock ||
     filters.onSale ||
     filters.budget < maxBudget;
-  const isLoading = curationQuery.isLoading || productsQuery.isLoading;
-  const isFetching = curationQuery.isFetching || productsQuery.isFetching;
-  const isError = curationQuery.isError || productsQuery.isError;
-  const canonicalUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/products/curations/${encodeURIComponent(curationSlug)}`
-      : undefined;
-  const curationSchema = useMemo(
+
+  const schema = useMemo(
     () => ({
       "@context": "https://schema.org",
       "@type": "CollectionPage",
@@ -86,8 +86,8 @@ export default function ShowcasePage() {
       url: canonicalUrl,
       mainEntity: {
         "@type": "ItemList",
-        numberOfItems: products.length,
-        itemListElement: products.slice(0, 24).map((product, index) => ({
+        numberOfItems: stableProducts.length,
+        itemListElement: stableProducts.slice(0, 24).map((product, index) => ({
           "@type": "ListItem",
           position: index + 1,
           name: product.name,
@@ -99,7 +99,7 @@ export default function ShowcasePage() {
         })),
       },
     }),
-    [canonicalUrl, description, products, title],
+    [canonicalUrl, description, stableProducts, title],
   );
 
   useEffect(() => {
@@ -122,33 +122,38 @@ export default function ShowcasePage() {
       <SEO
         canonical={canonicalUrl}
         description={description}
-        image={heroImage}
-        noIndex={!curation}
-        schema={curationSchema}
+        image={displayHeroImage}
+        noIndex={noIndex}
+        schema={schema}
         title={`${title} | WooSho`}
       />
       <style>{PG_STYLES}</style>
 
       {isLoading ? (
-        <CurationLoadingState colors={colors} isDark={isDark} />
+        <ShowcaseLoadingState colors={colors} isDark={isDark} />
       ) : isError ? (
-        <CurationErrorState
-          colors={colors}
-          onRetry={() => {
-            curationQuery.refetch();
-            productsQuery.refetch();
-          }}
-        />
+        <ShowcaseErrorState colors={colors} onRetry={onRetry} />
       ) : (
         <>
-          <CurationBreadcrumbs colors={colors} title={title} />
-          <CurationHero
-            description={description}
-            image={heroImage}
-            productCount={products.length}
+          <ShowcaseBreadcrumbs
+            colors={colors}
+            parentLabel={parentLabel}
+            parentPath={parentPath}
             title={title}
           />
-          <CurationAdvert colors={colors} image={heroImage} title={title} />
+          <ShowcaseHero
+            description={description}
+            eyebrow={eyebrow}
+            image={displayHeroImage}
+            productCount={stableProducts.length}
+            title={title}
+          />
+          <ShowcaseAdvert
+            colors={colors}
+            image={displayHeroImage}
+            title={title}
+            {...advert}
+          />
 
           <main className="mx-auto max-w-screen-xl px-6 py-10">
             <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -157,11 +162,11 @@ export default function ShowcasePage() {
                   className="text-[10px] font-black uppercase tracking-[0.22em]"
                   style={{ color: colors.text.accent }}
                 >
-                  Curated products
+                  {collectionLabel}
                 </p>
-                <h2 className="mt-2 font-serif text-3xl font-bold">Shop the selection</h2>
+                <h2 className="mt-2 font-serif text-3xl font-bold">{listTitle}</h2>
                 <p className="mt-2 text-sm" style={{ color: colors.text.tertiary }}>
-                  Showing {filteredProducts.length} of {products.length} products
+                  Showing {filteredProducts.length} of {stableProducts.length} products
                   {isFetching && <IconSpinner />}
                 </p>
               </div>
@@ -213,14 +218,16 @@ export default function ShowcasePage() {
                 </div>
 
                 {filteredProducts.length ? (
-                  <CurationProductGrid
+                  <ShowcaseProductGrid
                     onQuickView={setQuickViewProduct}
                     products={filteredProducts}
                   />
                 ) : (
-                  <CurationEmptyState
+                  <ShowcaseEmptyState
                     colors={colors}
-                    filtered={products.length > 0 && hasActiveFilters}
+                    emptyBody={emptyBody}
+                    emptyLabel={emptyLabel}
+                    filtered={stableProducts.length > 0 && hasActiveFilters}
                     onReset={resetFilters}
                     title={title}
                   />

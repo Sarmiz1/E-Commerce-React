@@ -1,4 +1,4 @@
-export function CurationLoadingState({ colors, isDark }) {
+export function ShowcaseLoadingState({ colors, isDark }) {
   const skeletonClass = `pg-skeleton ${
     isDark ? "pg-skeleton-dark" : "pg-skeleton-light"
   }`;
@@ -31,51 +31,68 @@ export function CurationLoadingState({ colors, isDark }) {
   );
 }
 
-export function CurationErrorState({ colors, onRetry }) {
+export function ShowcaseErrorState({
+  colors,
+  eyebrow = "Unable to load showcase",
+  heading = "This page needs a refresh.",
+  body = "We could not load these products right now. Please try again.",
+  onRetry,
+}) {
   return (
     <div className="mx-auto max-w-lg px-6 py-24 text-center">
       <p
         className="text-[11px] font-black uppercase tracking-[0.22em]"
         style={{ color: colors.state.error }}
       >
-        Unable to load curation
+        {eyebrow}
       </p>
       <h1 className="mt-3 font-serif text-3xl font-bold" style={{ color: colors.text.primary }}>
-        This collection needs a refresh.
+        {heading}
       </h1>
       <p className="mt-3 text-sm leading-6" style={{ color: colors.text.secondary }}>
-        We could not load these products right now. Please try again.
+        {body}
       </p>
-      <button
-        className="mt-6 rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-wider"
-        onClick={onRetry}
-        style={{ background: colors.cta.primary, color: colors.cta.primaryText }}
-        type="button"
-      >
-        Try again
-      </button>
+      {onRetry && (
+        <button
+          className="mt-6 rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-wider"
+          onClick={onRetry}
+          style={{ background: colors.cta.primary, color: colors.cta.primaryText }}
+          type="button"
+        >
+          Try again
+        </button>
+      )}
     </div>
   );
 }
 
-export function CurationEmptyState({ colors, filtered, onReset, title }) {
+export function ShowcaseEmptyState({
+  colors,
+  filtered,
+  onReset,
+  title,
+  emptyLabel = "Showcase coming soon",
+  filteredLabel = "No matches",
+  emptyHeading,
+  filteredHeading = "Try a wider filter",
+  emptyBody = "There are no active products here yet. Explore the full marketplace in the meantime.",
+  filteredBody = "Adjust the selected filters to see more products from this showcase.",
+}) {
   return (
     <div className="rounded-3xl border px-6 py-20 text-center" style={{ borderColor: colors.border.subtle }}>
       <p
         className="text-[11px] font-black uppercase tracking-[0.22em]"
         style={{ color: colors.text.accent }}
       >
-        {filtered ? "No matches" : "Curation coming soon"}
+        {filtered ? filteredLabel : emptyLabel}
       </p>
       <h2 className="mt-3 font-serif text-3xl font-bold" style={{ color: colors.text.primary }}>
-        {filtered ? "Try a wider filter" : `${title} is being prepared.`}
+        {filtered ? filteredHeading : emptyHeading || `${title} is being prepared.`}
       </h2>
       <p className="mx-auto mt-3 max-w-md text-sm leading-6" style={{ color: colors.text.secondary }}>
-        {filtered
-          ? "Adjust the selected filters to see more products from this curation."
-          : "There are no active products in this curation yet. Explore the full marketplace in the meantime."}
+        {filtered ? filteredBody : emptyBody}
       </p>
-      {filtered && (
+      {filtered && onReset && (
         <button
           className="mt-6 text-sm font-bold underline"
           onClick={onReset}

@@ -1,5 +1,6 @@
-export default function CurationHero({
+export default function ShowcaseHero({
   description,
+  eyebrow = "WooSho Showcase",
   image,
   productCount,
   title,
@@ -16,7 +17,7 @@ export default function CurationHero({
       <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/35" />
       <div className="relative mx-auto max-w-screen-xl px-6 py-16 sm:py-20 lg:py-24">
         <p className="mb-3 text-[11px] font-black uppercase tracking-[0.32em] text-blue-300">
-          WooSho Curations
+          {eyebrow}
         </p>
         <h1 className="max-w-3xl font-serif text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
           {title}

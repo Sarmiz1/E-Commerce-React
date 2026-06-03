@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 
-export default function CurationBreadcrumbs({ colors, title }) {
+export default function ShowcaseBreadcrumbs({
+  colors,
+  title,
+  parentLabel = "Showcase",
+  parentPath = "/products",
+}) {
   return (
     <nav
       aria-label="Breadcrumb"
@@ -13,6 +18,10 @@ export default function CurationBreadcrumbs({ colors, title }) {
       <span aria-hidden="true">/</span>
       <Link className="transition-colors hover:underline" to="/products">
         Products
+      </Link>
+      <span aria-hidden="true">/</span>
+      <Link className="transition-colors hover:underline" to={parentPath}>
+        {parentLabel}
       </Link>
       <span aria-hidden="true">/</span>
       <span style={{ color: colors.text.primary }}>{title}</span>
