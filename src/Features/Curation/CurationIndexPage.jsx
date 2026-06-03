@@ -279,6 +279,7 @@ function HeroBanner() {
         overflow: "hidden",
         background: "#0a0a0a",
       }}
+      className="mt-14"
     >
       {/* Slides — pure background-image crossfade + Ken Burns */}
       {HERO_SLIDES.map((s, i) => {
@@ -1073,7 +1074,7 @@ function SectionBlock({ section, activeId }) {
   );
 }
 
-export default function CurationIndexPage() {
+export default function ShowcaseIndexPage() {
   const [activeId, setActiveId] = useState("trending");
   const topbarRef = useRef(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -1117,7 +1118,7 @@ export default function CurationIndexPage() {
     }}>
       {/* Sticky Topbar */}
       <div style={{
-        position: "sticky", top: 0, zIndex: 100,
+        position: "sticky", top: 70, zIndex: 100,
         background: "rgba(255,255,255,0.96)",
         borderBottom: "1px solid #f0f0f0",
         backdropFilter: "blur(12px)",
