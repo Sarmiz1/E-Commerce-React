@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const DURATION = 5500;
 
-export default function ShowcaseHeroBanner({ slides }) {
+export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
   const [paused, setPaused] = useState(false);
@@ -51,6 +51,7 @@ export default function ShowcaseHeroBanner({ slides }) {
         overflow: "hidden",
         background: "#0a0a0a",
       }}
+      className={`mt-14 ${sectionIsAvailable ? "" : "mt-[4.5rem]" }`}
     >
       {slides.map((s, i) => {
         const isActive = i === current;
@@ -87,6 +88,7 @@ export default function ShowcaseHeroBanner({ slides }) {
         pointerEvents: "none",
       }} />
 
+      {/* Content Text */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 4,
         display: "flex",
@@ -194,10 +196,13 @@ export default function ShowcaseHeroBanner({ slides }) {
         </div>
       </div>
 
+      {/* Scroll Indicator */}
       <div style={{
-        position: "absolute", right: 48, bottom: 64, zIndex: 6,
+        position: "absolute", right: 48,  zIndex: 6,
         display: "flex", alignItems: "center", gap: 14,
-      }}>
+        }}
+        className="bottom-3 md:bottom-16"
+      >
         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>
           {String(current + 1).padStart(2, "0")}
         </span>

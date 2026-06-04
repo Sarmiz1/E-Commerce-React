@@ -60,6 +60,13 @@ export function ShowcaseIndex({
     [products, safeSections],
   );
 
+  // Checking if section is available or not,
+  const sectionIsAvailable = useMemo(() => {
+    if (isLoading || isError) return false;
+    if (safeSections.length > 0) return true
+    else return false;
+  }, [isLoading, isError, safeSections]);
+
   useShowcaseFonts();
   useShowcaseProductsCache(cacheProducts);
 
@@ -115,7 +122,8 @@ export function ShowcaseIndex({
         top={topbarOffset}
       />
 
-      <ShowcaseHeroBanner slides={safeHeroSlides} />
+      <ShowcaseHeroBanner slides={safeHeroSlides}
+        sectionIsAvailable={sectionIsAvailable} />
 
       <div style={{
         maxWidth: 1200, margin: "0 auto",

@@ -7,9 +7,13 @@ export default function ShowcaseTopbar({
   onScrollTopbar,
   top = 0,
 }) {
+
+  // if there are no sections dont hide top bar
+  if (!sections || sections.length === 0) return null;
+
   return (
     <div style={{
-      position: "sticky", top, zIndex: 100,
+      position: "sticky", top, zIndex: 50,
       background: "rgba(255,255,255,0.96)",
       borderBottom: "1px solid #f0f0f0",
       backdropFilter: "blur(12px)",

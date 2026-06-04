@@ -398,25 +398,6 @@ const router = createBrowserRouter(
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 
-            <Route
-              path="curations"
-              lazy={() =>
-                import("../Features/Curation/CurationIndexPage").then((m) => ({
-                  Component: m.default,
-                }))
-              }
-              hydrateFallbackElement={<ProductsSkeleton />}
-            />
-
-            <Route
-              path="curations/:curationSlug"
-              lazy={() =>
-                import("../Features/Curation/CurationPage").then((m) => ({
-                  Component: m.default,
-                }))
-              }
-              hydrateFallbackElement={<ProductsSkeleton />}
-            />
 
             <Route
               path="curations/*"
@@ -549,13 +530,33 @@ const router = createBrowserRouter(
       />
       {/* Test******************************* */}
       <Route
-        path="/test"
+        path="test1"
         lazy={() =>
           import("../Features/ShopByBrands/Brands/BrandsPage").then((m) => ({
             Component: m.default,
           }))
         }
         hydrateFallbackElement={<GenericPageSkeleton />}
+      />
+
+      <Route
+        path="test2"
+        lazy={() =>
+          import("../Features/Curation/CurationIndexPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
+
+      <Route
+        path="test3"
+        lazy={() =>
+          import("../Features/Curation/CurationPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
       />
       {/* Test******************************* */}
 

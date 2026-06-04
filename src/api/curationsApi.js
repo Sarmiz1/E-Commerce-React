@@ -23,6 +23,12 @@ const throwQueryError = (error) => {
   if (error) throw new Error(error.message);
 };
 
+const normalizeCuration = (curation = {}) => ({
+  ...curation,
+  slug: normalizeCurationSlug(curation.slug || curation.name),
+  description: curation.description || "",
+});
+
 const fetchCurationBySlug = async (curationSlug) => {
   const resolvedSlug = resolveCurationSlug(curationSlug);
   if (!resolvedSlug) return null;
@@ -37,15 +43,11 @@ const fetchCurationBySlug = async (curationSlug) => {
   throwQueryError(error);
 
   return data
-    ? {
-        ...data,
-        slug: normalizeCurationSlug(data.slug || data.name),
-        description: data.description || "",
-      }
+    ? normalizeCuration(data)
     : null;
 };
 
-const fetchActiveCurations = async () => {
+const fetchRawActiveCurations = async () => {
   const { data: curations = [], error } = await supabase
     .from("curations")
     .select("id, name, slug, description, is_active, created_at")
@@ -54,7 +56,14 @@ const fetchActiveCurations = async () => {
 
   throwQueryError(error);
 
-  const memberships = await fetchCurationMemberships();
+  return curations.map(normalizeCuration);
+};
+
+const fetchActiveCurations = async () => {
+  const curations = await fetchRawActiveCurations();
+  const memberships = await fetchCurationMemberships(
+    curations.map((curation) => curation.id),
+  );
 
   const productCounts = memberships.reduce((counts, membership) => {
     counts.set(membership.curation_id, (counts.get(membership.curation_id) || 0) + 1);
@@ -63,22 +72,25 @@ const fetchActiveCurations = async () => {
 
   return curations.map((curation) => ({
     ...curation,
-    slug: normalizeCurationSlug(curation.slug || curation.name),
-    description: curation.description || "",
     productCount: productCounts.get(curation.id) || 0,
   }));
 };
 
-const fetchCurationMemberships = async (curationId) => {
+const fetchCurationMemberships = async (curationIdOrIds) => {
   const memberships = [];
+  const curationIds = Array.isArray(curationIdOrIds)
+    ? curationIdOrIds.filter(Boolean)
+    : [];
 
   for (let from = 0; ; from += CURATION_MEMBERSHIP_PAGE_SIZE) {
     let query = supabase
       .from("curation_products")
       .select("curation_id, product_id, sort_order, score, source, metadata");
 
-    if (curationId) {
-      query = query.eq("curation_id", curationId);
+    if (curationIds.length) {
+      query = query.in("curation_id", curationIds);
+    } else if (curationIdOrIds) {
+      query = query.eq("curation_id", curationIdOrIds);
     }
 
     const { data = [], error } = await query
@@ -93,6 +105,63 @@ const fetchCurationMemberships = async (curationId) => {
   }
 
   return memberships;
+};
+
+const groupCurationMemberships = (memberships = []) =>
+  memberships.reduce((groups, membership) => {
+    if (!groups.has(membership.curation_id)) {
+      groups.set(membership.curation_id, []);
+    }
+    groups.get(membership.curation_id).push(membership);
+    return groups;
+  }, new Map());
+
+const fetchCurationsWithProducts = async () => {
+  const curations = await fetchRawActiveCurations();
+  const curationIds = curations.map((curation) => curation.id);
+  if (!curationIds.length) return [];
+
+  const memberships = await fetchCurationMemberships(curationIds);
+  const productsResult = await fetchCurationProductsByIds(
+    memberships.map((membership) => membership.product_id),
+  );
+
+  if (productsResult.error) {
+    throw new Error(productsResult.error.message);
+  }
+
+  const productsById = new Map(
+    productsResult.data.map((product) => [product.id, product]),
+  );
+  const membershipsByCuration = groupCurationMemberships(memberships);
+
+  return curations
+    .map((curation) => {
+      const curationMemberships = membershipsByCuration.get(curation.id) || [];
+      const products = curationMemberships
+        .map((membership) => {
+          const product = productsById.get(membership.product_id);
+          if (!product) return null;
+
+          return {
+            ...product,
+            curation: {
+              sortOrder: membership.sort_order,
+              score: membership.score,
+              source: membership.source,
+              metadata: membership.metadata,
+            },
+          };
+        })
+        .filter(Boolean);
+
+      return {
+        ...curation,
+        productCount: products.length,
+        products,
+      };
+    })
+    .filter((curation) => curation.products.length);
 };
 
 const fetchProductsForCuration = async (curationSlug) => {
@@ -143,5 +212,9 @@ export const CurationsAPI = {
   getProducts: (curationSlug) => ({
     queryKey: ["curation-products", curationSlug],
     queryFn: () => fetchProductsForCuration(curationSlug),
+  }),
+  getIndexSections: () => ({
+    queryKey: ["curation-index-sections"],
+    queryFn: fetchCurationsWithProducts,
   }),
 };

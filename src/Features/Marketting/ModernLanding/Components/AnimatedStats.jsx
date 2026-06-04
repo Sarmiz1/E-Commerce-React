@@ -67,7 +67,7 @@ const AnimatedStats = memo(function AnimatedStats() {
 
                 <div className="relative z-10">
                   <p
-                    className={`text-4xl md:text-5xl font-black bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-3 tabular-nums`}
+                    className={`text-xl sm:text-2xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-3 tabular-nums`}
                   >
                     <AnimatedCounter
                       target={stat.value}
