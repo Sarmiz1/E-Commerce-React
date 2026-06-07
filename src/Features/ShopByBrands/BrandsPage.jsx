@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import ModernNavbar from "../../../Components/ModernNavbar";
-import SEO from "../../../Components/SEO";
-import { useTheme } from "../../../Store/useThemeStore";
+import ModernNavbar from "../../Components/ModernNavbar";
+import SEO from "../../Components/SEO";
+import { useTheme } from "../../Store/useThemeStore";
 import {
   BRAND_DIRECTORY_ACTIONS,
   BRAND_FILTERS,

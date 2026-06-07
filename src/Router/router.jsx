@@ -399,13 +399,15 @@ const router = createBrowserRouter(
             />
 
             <Route
-              path="brands/*"
-              element={<ProductsPage />}
-              loader={fetchProductsLoader}
-              shouldRevalidate={revalidateOnPathChange}
-              hydrateFallbackElement={<ProductsSkeleton />}
+              path="shop-by-brands/*"
+              lazy={() =>
+                import("../Features/ShopByBrands/BrandsPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              hydrateFallbackElement={<GenericPageSkeleton />}
             />
-
+            
             <Route
               path=":productSlug"
               element={<ProductDetail />}
@@ -533,7 +535,7 @@ const router = createBrowserRouter(
       <Route
         path="test1"
         lazy={() =>
-          import("../Features/ShopByBrands/Brands/BrandsPage").then((m) => ({
+          import("../Features/ShopByBrands/BrandsPage").then((m) => ({
             Component: m.default,
           }))
         }

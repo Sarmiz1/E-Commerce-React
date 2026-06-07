@@ -35,7 +35,7 @@ export default function ShowcaseStoreCard({
         borderRadius: 12,
         background: colors.surface.elevated,
         overflow: "hidden",
-        boxShadow: "0 18px 45px rgba(20, 18, 14, 0.08)",
+        boxShadow: isDark ? "0 18px 45px rgba(0,0,0,0.22)" : "0 18px 45px rgba(20,18,14,0.08)",
       }}>
         <div style={{
           height: 106,
@@ -102,7 +102,7 @@ export default function ShowcaseStoreCard({
             lineHeight: 1.5,
           }}>
             {store.rating > 0 ? `${store.rating.toFixed(1)} rating` : "Newly added to WooSho"}
-            {store.trustScore > 0 ? ` · ${store.trustScore}% trust score` : ""}
+            {store.trustScore > 0 ? ` - ${store.trustScore}% trust score` : ""}
           </p>
           <div style={{
             marginTop: 18,

@@ -115,7 +115,7 @@ export default function ShowcaseProductCard({
             color: "#fff",
             fontSize: 10, fontWeight: 700,
             padding: "3px 8px", borderRadius: 4,
-            letterSpacing: 0.5,
+            letterSpacing: 0,
             textTransform: "uppercase",
           }}>
             {displayBadge}
@@ -149,7 +149,7 @@ export default function ShowcaseProductCard({
               borderRadius: 6,
               fontSize: 10,
               fontWeight: 700,
-              letterSpacing: 0.8,
+              letterSpacing: 0,
               textTransform: "uppercase",
               padding: "6px 12px",
               cursor: addingToCart ? "wait" : "pointer",
