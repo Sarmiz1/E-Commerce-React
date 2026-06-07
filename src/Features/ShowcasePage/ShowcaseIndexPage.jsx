@@ -142,7 +142,7 @@ export function ShowcaseIndex({
       </div>
 
       {isLoading && (
-        <ShowcaseIndexStatus>Loading {pageName} sections...</ShowcaseIndexStatus>
+        <ShowcaseIndexStatus>Loading {pageName || 'showcase' } sections...</ShowcaseIndexStatus>
       )}
       {isError && (
         <ShowcaseIndexStatus>

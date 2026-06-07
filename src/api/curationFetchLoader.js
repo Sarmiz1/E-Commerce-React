@@ -86,6 +86,53 @@ const EMPTY_HOME_CURATIONS = CURATION_DEFINITIONS.reduce(
   },
 );
 
+const HOME_CURATION_KEYS = new Set([
+  "heroFeatured",
+  "trendingProducts",
+  "bestSellers",
+  "newArrivals",
+  "flashDeals",
+  "recommendedForUser",
+  "continueShopping",
+  "editorialCollections",
+  "hotRightNow",
+  "mostLoved",
+  "editorsPicks",
+  "dealOfTheDay",
+  "productScrollStrip",
+  "bentoProducts",
+  "filterGrid",
+  "lookbook",
+  "basedOnBrowsing",
+]);
+
+const STORE_SELECT = `
+  id,
+  full_name,
+  avatar_url,
+  store_name,
+  store_slug,
+  store_logo,
+  rating,
+  is_verified_store,
+  trust_score,
+  seller_badges,
+  created_at
+`;
+
+const STORE_SELECT_FALLBACK = `
+  id,
+  full_name,
+  avatar_url,
+  store_name,
+  store_slug,
+  store_logo,
+  rating,
+  is_verified_store,
+  trust_score,
+  seller_badges
+`;
+
 const normalizeSlug = (value) =>
   String(value || "")
     .trim()
@@ -167,6 +214,18 @@ const buildCurationCards = (curations, membershipsByCurationId, productsById) =>
       bg: "from-indigo-500 to-violet-600",
     };
   });
+
+const normalizeStore = (store = {}) => ({
+  ...store,
+  id: store.id,
+  name: store.store_name || store.full_name || "WooSho Store",
+  image: store.store_logo || store.avatar_url || "",
+  slug: store.store_slug || store.id,
+  rating: Number(store.rating || 0),
+  isVerified: Boolean(store.is_verified_store),
+  trustScore: Number(store.trust_score || 0),
+  badges: Array.isArray(store.seller_badges) ? store.seller_badges : [],
+});
 
 async function fetchActiveCurations() {
   let query = supabase
@@ -297,6 +356,35 @@ async function fetchProductSalesStats(productIds) {
   };
 }
 
+async function fetchRecentlyAddedStores(limit = 5) {
+  let { data, error } = await supabase
+    .from("seller_public")
+    .select(STORE_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error?.message?.includes("created_at")) {
+    const fallback = await supabase
+      .from("seller_public")
+      .select(STORE_SELECT_FALLBACK)
+      .limit(limit);
+    data = fallback.data;
+    error = fallback.error;
+  }
+
+  if (error) {
+    return {
+      data: [],
+      error: { table: "seller_public", message: error.message },
+    };
+  }
+
+  return {
+    data: (data || []).map(normalizeStore),
+    error: null,
+  };
+}
+
 function groupMemberships(memberships) {
   const grouped = new Map();
 
@@ -309,6 +397,14 @@ function groupMemberships(memberships) {
 
   grouped.forEach((items) => items.sort(sortMemberships));
   return grouped;
+}
+
+function limitMembershipsForDisplay(memberships, perCurationLimit = 5) {
+  const grouped = groupMemberships(memberships);
+
+  return [...grouped.values()].flatMap((items) =>
+    items.slice(0, perCurationLimit),
+  );
 }
 
 const withMembershipMerchandising = (product, membership, stats) => ({
@@ -341,7 +437,14 @@ const withMembershipMerchandising = (product, membership, stats) => ({
   sales_minor: Number(stats?.sales_minor || membership.metadata?.sales_minor || product.sales_minor || 0),
 });
 
-function buildHomeFeed({ curations, memberships, products, salesStatsByProductId = new Map() }) {
+function buildHomeFeed({
+  curations,
+  memberships,
+  products,
+  salesStatsByProductId = new Map(),
+  includeAllSections = false,
+  recentlyAddedStores = [],
+}) {
   const feed = createEmptyHomeCurations();
   const curationBySlug = new Map(curations.map((curation) => [curation.slug, curation]));
   const productsById = new Map(products.map((product) => [product.id, product]));
@@ -349,28 +452,33 @@ function buildHomeFeed({ curations, memberships, products, salesStatsByProductId
 
   feed.curations = curations;
   feed.curationCards = buildCurationCards(curations, membershipsByCurationId, productsById);
-  feed.curationSections = curations
-    .map((curation) => {
-      const curationMemberships = membershipsByCurationId.get(curation.id) || [];
-      const productsForCuration = curationMemberships
-        .map((membership) => {
-          const product = productsById.get(membership.product_id);
-          if (!product) return null;
-          return withMembershipMerchandising(
-            product,
-            membership,
-            salesStatsByProductId.get(membership.product_id),
-          );
-        })
-        .filter(Boolean);
+  feed.recentlyAddedStores = recentlyAddedStores;
+  feed.curationSections = includeAllSections
+    ? curations
+        .map((curation) => {
+          const isRecentlyAddedStores = normalizeSlug(curation.slug) === "recently-added-stores";
+          const curationMemberships = membershipsByCurationId.get(curation.id) || [];
+          const productsForCuration = curationMemberships
+            .map((membership) => {
+              const product = productsById.get(membership.product_id);
+              if (!product) return null;
+              return withMembershipMerchandising(
+                product,
+                membership,
+                salesStatsByProductId.get(membership.product_id),
+              );
+            })
+            .filter(Boolean);
 
-      return {
-        ...curation,
-        products: productsForCuration,
-        productCount: productsForCuration.length,
-      };
-    })
-    .filter((curation) => curation.products.length);
+          return {
+            ...curation,
+            products: isRecentlyAddedStores ? [] : productsForCuration,
+            stores: isRecentlyAddedStores ? recentlyAddedStores : [],
+            productCount: productsForCuration.length,
+          };
+        })
+        .filter((curation) => curation.products.length || curation.stores?.length)
+    : [];
 
   CURATION_DEFINITIONS.forEach((definition) => {
     const curation = definition.slugs
@@ -398,8 +506,17 @@ function buildHomeFeed({ curations, memberships, products, salesStatsByProductId
 }
 
 export const CurationFetchLoaderAPI = {
-  getHomeCurations: () => ({
-    queryKey: ["home-curations"],
+  getHomeCurations: ({
+    scope = "home",
+    includeAllSections = false,
+    includeSalesStats = false,
+    includeStores = false,
+  } = {}) => ({
+    queryKey: [
+      "home-curations",
+      scope,
+      { includeAllSections, includeSalesStats, includeStores },
+    ],
     queryFn: async () => {
       const feed = createEmptyHomeCurations();
       const curationsResult = await fetchActiveCurations();
@@ -412,27 +529,44 @@ export const CurationFetchLoaderAPI = {
       }
 
       const curations = curationsResult.data;
+      const relevantSlugSet = new Set(
+        CURATION_DEFINITIONS
+          .filter((definition) => includeAllSections || HOME_CURATION_KEYS.has(definition.key))
+          .flatMap((definition) => definition.slugs.map(normalizeSlug)),
+      );
+      const relevantCurations = includeAllSections
+        ? curations
+        : curations.filter((curation, index) => relevantSlugSet.has(curation.slug) || index < 6);
       const membershipsResult = await fetchCurationMemberships(
-        curations.map((curation) => curation.id),
+        relevantCurations.map((curation) => curation.id),
       );
+      const displayMemberships = includeAllSections
+        ? limitMembershipsForDisplay(membershipsResult.data, 5)
+        : limitMembershipsForDisplay(membershipsResult.data, 12);
       const productsResult = await fetchProducts(
-        membershipsResult.data.map((membership) => membership.product_id),
+        displayMemberships.map((membership) => membership.product_id),
       );
-      const salesStatsResult = await fetchProductSalesStats(
-        membershipsResult.data.map((membership) => membership.product_id),
-      );
+      const salesStatsResult = includeSalesStats
+        ? await fetchProductSalesStats(displayMemberships.map((membership) => membership.product_id))
+        : { data: new Map(), error: null };
+      const storesResult = includeStores
+        ? await fetchRecentlyAddedStores(5)
+        : { data: [], error: null };
 
       return {
         ...buildHomeFeed({
           curations,
-          memberships: membershipsResult.data,
+          memberships: displayMemberships,
           products: productsResult.data,
           salesStatsByProductId: salesStatsResult.data,
+          includeAllSections,
+          recentlyAddedStores: storesResult.data,
         }),
         unavailableFeeds: [
           membershipsResult.error,
           productsResult.error,
           salesStatsResult.error,
+          storesResult.error,
         ].filter(Boolean),
       };
     },

@@ -70,6 +70,20 @@ const getSectionTag = ({ curation, definition, items = [], fallback = "CURATED" 
   );
 };
 
+const decorateShowcaseStore = (store = {}) => ({
+  ...store,
+  id: store.id,
+  name: store.name || store.store_name || store.full_name || "WooSho Store",
+  image: store.image || store.store_logo || store.avatar_url || "",
+  slug: store.slug || store.store_slug || store.id,
+  rating: Number(store.rating || 0),
+  trustScore: Number(store.trustScore || store.trust_score || 0),
+  isVerified: Boolean(store.isVerified || store.is_verified_store),
+  badges: Array.isArray(store.badges || store.seller_badges)
+    ? store.badges || store.seller_badges
+    : [],
+});
+
 const decorateShowcaseItem = (item = {}, index = 0, sectionTag = "") => {
   const normalized = normalizeShowcaseProduct(item);
   const sold = Number(normalized.sold || normalized.quantity_sold || 0);
@@ -171,17 +185,27 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
         };
       }).filter(Boolean);
 
-  return curationSections.map((curation, index) => {
+  const sections = curationSections.map((curation, index) => {
     const definition = definitionBySlug.get(slugify(curation.slug)) || null;
+    const id = slugify(curation.slug || definition?.slugs?.[0] || definition?.key);
+    const isStoreSection = id === "recently-added-stores";
     const rawItems = curation.products || [];
-    const sectionTag = getSectionTag({ curation, definition, items: rawItems });
+    const rawStores = isStoreSection ? curation.stores || feed.recentlyAddedStores || [] : [];
+    const sectionTag = getSectionTag({
+      curation,
+      definition,
+      items: isStoreSection ? rawStores : rawItems,
+      fallback: isStoreSection ? "FRESH ARRIVALS" : "CURATED",
+    });
     const items = rawItems
       .slice(0, 5)
       .map((item, itemIndex) => decorateShowcaseItem(item, itemIndex, sectionTag));
+    const stores = rawStores
+      .slice(0, 5)
+      .map(decorateShowcaseStore);
 
-    if (!curation || !items.length) return null;
+    if (!curation || (!items.length && !stores.length)) return null;
 
-    const id = slugify(curation.slug || definition?.slugs?.[0] || definition?.key);
     const accent = ACCENTS[index % ACCENTS.length];
     const isDealOfDay =
       id === "deal-of-the-day" ||
@@ -198,6 +222,12 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
       curation.saleEndsAt ||
       curation.sale_ends_at ||
       getSoonestSaleEnd(items);
+    const displayItems = isFlash && saleEndsAt
+      ? items.map((item) => ({
+          ...item,
+          saleEndsAt: item.saleEndsAt || item.sale_ends_at || saleEndsAt,
+        }))
+      : items;
 
     return {
       id,
@@ -207,14 +237,74 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
       tagColor: curation.showcaseTagColor || curation.showcase_tag_color || accent,
       accent,
       path: `${basePath}/${encodeURIComponent(id)}`,
-      featured: isDealOfDay ? items[0] : null,
-      items: isDealOfDay ? items.slice(1, 5) : items,
+      featured: isDealOfDay ? displayItems[0] : null,
+      items: isDealOfDay ? displayItems.slice(1, 5) : displayItems,
+      stores,
+      type: isStoreSection ? "stores" : "products",
       isDealOfDay,
       isFlash,
       saleEndsAt,
       description: curation.description || "",
     };
   }).filter(Boolean);
+
+  if (feed.adminDealOfDay?.featured) {
+    const adminDealItems = [
+      feed.adminDealOfDay.featured,
+      ...(feed.adminDealOfDay.items || []),
+    ]
+      .slice(0, 5)
+      .map((item, index) => decorateShowcaseItem(item, index, feed.adminDealOfDay.tag || "TODAY ONLY"));
+    const adminSaleEndsAt =
+      feed.adminDealOfDay.saleEndsAt ||
+      getSoonestSaleEnd(adminDealItems);
+    const displayItems = adminSaleEndsAt
+      ? adminDealItems.map((item) => ({
+          ...item,
+          saleEndsAt: item.saleEndsAt || item.sale_ends_at || adminSaleEndsAt,
+        }))
+      : adminDealItems;
+    const adminSection = {
+      ...feed.adminDealOfDay,
+      id: "deal-of-the-day",
+      path: feed.adminDealOfDay.path || `${basePath}/deal-of-the-day`,
+      featured: displayItems[0],
+      items: displayItems.slice(1, 5),
+      stores: [],
+      type: "products",
+      isDealOfDay: true,
+      saleEndsAt: adminSaleEndsAt,
+    };
+    const fallbackIndex = sections.findIndex((section) => section.id === "deal-of-the-day");
+
+    if (fallbackIndex >= 0) {
+      sections[fallbackIndex] = adminSection;
+    } else {
+      sections.unshift(adminSection);
+    }
+  }
+
+  if (!sections.some((section) => section.id === "recently-added-stores") && feed.recentlyAddedStores?.length) {
+    sections.push({
+      id: "recently-added-stores",
+      label: "Recently Added Stores",
+      topbarLabel: "Recently Added Stores",
+      tag: "FRESH ARRIVALS",
+      tagColor: "#0F7B6C",
+      accent: "#0F7B6C",
+      path: "/stores",
+      type: "stores",
+      stores: feed.recentlyAddedStores.slice(0, 5).map(decorateShowcaseStore),
+      items: [],
+      description: "Discover the newest stores joining WooSho.",
+    });
+  }
+
+  return sections.map((section) =>
+    section.id === "recently-added-stores"
+      ? { ...section, path: "/stores" }
+      : section,
+  );
 };
 
 export const buildCategoryIndexSections = (products = [], basePath = "/products/categories") => {

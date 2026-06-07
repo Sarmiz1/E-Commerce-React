@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AdminAdvertsAPI } from "../../api/adminAdvertsApi";
+import { AdminDealsOfDayAPI } from "../../api/adminDealsOfDayApi";
 import {
   CurationFetchLoaderAPI,
   createEmptyHomeCurations,
@@ -16,7 +17,12 @@ import {
 
 export default function ShowcaseCurationIndexPage() {
   const curationQuery = useQuery({
-    ...CurationFetchLoaderAPI.getHomeCurations(),
+    ...CurationFetchLoaderAPI.getHomeCurations({
+      scope: "showcase-curations",
+      includeAllSections: true,
+      includeSalesStats: true,
+      includeStores: true,
+    }),
     staleTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData ?? createEmptyHomeCurations(),
   });
@@ -28,11 +34,26 @@ export default function ShowcaseCurationIndexPage() {
     staleTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData ?? [],
   });
+  const dealOfDayQuery = useQuery({
+    ...AdminDealsOfDayAPI.getPublicActive(),
+    staleTime: 1000 * 60,
+    placeholderData: (previousData) => previousData ?? null,
+  });
 
   const sections = useMemo(
-    () => buildCurationIndexSections(curationQuery.data, "/products/curations"),
-    [curationQuery.data],
+    () => buildCurationIndexSections({
+      ...curationQuery.data,
+      adminDealOfDay: dealOfDayQuery.data,
+    }, "/products/curations"),
+    [curationQuery.data, dealOfDayQuery.data],
   );
+  const isInitialLoading =
+    curationQuery.isLoading ||
+    (curationQuery.isFetching && !curationQuery.dataUpdatedAt && !sections.length);
+  const hasBlockingFetchIssue =
+    !isInitialLoading &&
+    !sections.length &&
+    Boolean(curationQuery.data?.unavailableFeeds?.length);
   const products = useMemo(() => getSectionProducts(sections), [sections]);
   const heroSlides = useMemo(
     () => advertQuery.data?.length ? advertQuery.data : buildShowcaseHeroSlides({
@@ -53,8 +74,8 @@ export default function ShowcaseCurationIndexPage() {
       basePath="/products/curations"
       emptyMessage="No active curation sections are available yet."
       heroSlides={heroSlides}
-      isError={curationQuery.isError}
-      isLoading={curationQuery.isLoading && !sections.length}
+      isError={curationQuery.isError || hasBlockingFetchIssue}
+      isLoading={isInitialLoading}
       onRetry={() => curationQuery.refetch()}
       products={products}
       sections={sections}

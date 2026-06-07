@@ -507,6 +507,16 @@ const router = createBrowserRouter(
             loader={fetchProductsLoader}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
+
+          <Route
+            path="stores"
+            lazy={() =>
+              import("../Features/Stores/StoresPage").then((m) => ({
+                Component: m.default,
+              }))
+            }
+            hydrateFallbackElement={<GenericPageSkeleton />}
+          />
         </Route>
       </Route>
 

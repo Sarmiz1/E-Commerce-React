@@ -5,6 +5,7 @@ import ShowcaseCountdownTimer from "./ShowcaseCountdownTimer";
 import ShowcaseDealSection from "./ShowcaseDealSection";
 import ShowcaseRail from "./ShowcaseRail";
 import ShowcaseProductCard from "./ShowcaseProductCard";
+import ShowcaseStoreCard from "./ShowcaseStoreCard";
 
 export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
   const ref = useRef(null);
@@ -33,7 +34,7 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <span style={{
               fontSize: 9, fontWeight: 800,
-              letterSpacing: 1.5, textTransform: "uppercase",
+              letterSpacing: 0, textTransform: "uppercase",
               color: section.tagColor,
               display: "inline-block",
             }}>
@@ -51,7 +52,7 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
             fontSize: 22,
             fontWeight: 700,
             color: "#0f0f0f",
-            letterSpacing: -0.5,
+            letterSpacing: 0,
             fontFamily: "'Playfair Display', serif",
           }}>
             {section.label}
@@ -60,7 +61,7 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
         <Link to={viewAllPath || section.path || "#"} style={{
           fontSize: 11, fontWeight: 600,
           color: "#666", textDecoration: "none",
-          letterSpacing: 0.5, textTransform: "uppercase",
+          letterSpacing: 0, textTransform: "uppercase",
           borderBottom: "1px solid #ccc",
           paddingBottom: 1,
           transition: "color 0.2s ease, border-color 0.2s ease",
@@ -69,7 +70,19 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
         </Link>
       </div>
 
-      {section.isDealOfDay ? (
+      {section.type === "stores" ? (
+        <ShowcaseRail>
+          {section.stores.map((store, i) => (
+            <ShowcaseStoreCard
+              key={store.id}
+              store={store}
+              accent={section.accent}
+              delay={i * 60}
+              visible={visible}
+            />
+          ))}
+        </ShowcaseRail>
+      ) : section.isDealOfDay ? (
         <ShowcaseDealSection section={section} visible={visible} onQuickView={onQuickView} />
       ) : (
         <ShowcaseRail>
