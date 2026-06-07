@@ -30,12 +30,13 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
   const [progress, setProgress] = useState(0);
   const timerRef = useRef(null);
   const progressRef = useRef(null);
+  const safeCurrent = slides.length ? Math.min(current, slides.length - 1) : 0;
 
   const go = useCallback((idx) => {
-    setPrev(current);
+    setPrev(safeCurrent);
     setCurrent(idx);
     setProgress(0);
-  }, [current]);
+  }, [safeCurrent]);
 
   useEffect(() => {
     if (paused || slides.length <= 1) return undefined;
@@ -48,7 +49,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
     }, 60);
 
     timerRef.current = setTimeout(() => {
-      const next = (current + 1) % slides.length;
+      const next = (safeCurrent + 1) % slides.length;
       go(next);
     }, DURATION);
 
@@ -56,16 +57,9 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
       clearTimeout(timerRef.current);
       clearInterval(progressRef.current);
     };
-  }, [current, go, paused, slides.length]);
+  }, [go, paused, safeCurrent, slides.length]);
 
-  useEffect(() => {
-    if (current <= slides.length - 1) return;
-    setCurrent(0);
-    setPrev(null);
-    setProgress(0);
-  }, [current, slides.length]);
-
-  const slide = slides[current];
+  const slide = slides[safeCurrent];
   const hasMultipleSlides = slides.length > 1;
 
   useEffect(() => {
@@ -119,7 +113,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
       className={`showcase-hero-banner mt-14 ${sectionIsAvailable ? "" : "mt-[4.5rem]" }`}
     >
       {slides.map((s, i) => {
-        const isActive = i === current;
+        const isActive = i === safeCurrent;
         const isPrev = i === prev;
         return (
           <div
@@ -179,7 +173,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
         alignItems: textX,
         padding: "0 64px 64px",
       }}>
-        <div key={`eyebrow-${current}`} style={{
+        <div key={`eyebrow-${safeCurrent}`} style={{
           display: "flex", alignItems: "center", gap: 12,
           justifyContent: textX,
           marginBottom: 18,
@@ -203,7 +197,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
         </div>
 
         <h1
-          key={`h-${current}`}
+          key={`h-${safeCurrent}`}
           style={{
             margin: "0 0 20px",
             fontSize: "clamp(40px, 6.5vw, 82px)",
@@ -223,7 +217,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
         </h1>
 
         <p
-          key={`sub-${current}`}
+          key={`sub-${safeCurrent}`}
           style={{
             margin: "0 0 36px",
             fontSize: 15,
@@ -240,7 +234,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
         </p>
 
         <div
-          key={`cta-${current}`}
+          key={`cta-${safeCurrent}`}
           style={{
             display: "flex", gap: 12, alignItems: "center", justifyContent: textX,
             flexWrap: "wrap",
@@ -308,7 +302,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
           color: "rgba(255,255,255,0.5)",
           letterSpacing: 1,
         }}>
-          {String(current + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+          {String(safeCurrent + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
@@ -327,7 +321,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
                 gap: 8,
               }}
             >
-              {i === current && (
+              {i === safeCurrent && (
                 <span style={{
                   fontSize: 9,
                   color: "rgba(255,255,255,0.6)",
@@ -344,15 +338,15 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
               )}
               <span style={{
                 display: "block",
-                width: i === current ? 32 : 6,
+                width: i === safeCurrent ? 32 : 6,
                 height: 3,
                 borderRadius: 2,
-                background: i === current ? slide.accent : "rgba(255,255,255,0.3)",
+                background: i === safeCurrent ? slide.accent : "rgba(255,255,255,0.3)",
                 transition: "width 0.4s ease, background 0.3s ease",
                 position: "relative",
                 overflow: "hidden",
               }}>
-                {i === current && (
+                {i === safeCurrent && (
                   <span style={{
                     position: "absolute",
                     left: 0,
@@ -381,7 +375,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
           flexDirection: "column",
           gap: 8,
         }}>
-          <button onClick={() => go((current - 1 + slides.length) % slides.length)} style={{
+          <button onClick={() => go((safeCurrent - 1 + slides.length) % slides.length)} style={{
             width: 40, height: 40, borderRadius: "50%",
             background: "rgba(255,255,255,0.12)",
             border: "1px solid rgba(255,255,255,0.18)",
@@ -393,7 +387,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
               <path d="M9 2L3 7l6 5" />
             </svg>
           </button>
-          <button onClick={() => go((current + 1) % slides.length)} style={{
+          <button onClick={() => go((safeCurrent + 1) % slides.length)} style={{
             width: 40, height: 40, borderRadius: "50%",
             background: "rgba(255,255,255,0.12)",
             border: "1px solid rgba(255,255,255,0.18)",
@@ -434,7 +428,7 @@ export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) 
             onClick={() => hasMultipleSlides && go(i)}
             style={{
               flex: 1,
-              background: i === current ? s.accent : "rgba(255,255,255,0.15)",
+              background: i === safeCurrent ? s.accent : "rgba(255,255,255,0.15)",
               transition: "background 0.4s ease",
               cursor: hasMultipleSlides ? "pointer" : "default",
             }}

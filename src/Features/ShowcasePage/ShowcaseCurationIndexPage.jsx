@@ -22,6 +22,7 @@ export default function ShowcaseCurationIndexPage() {
       includeAllSections: true,
       includeSalesStats: true,
       includeStores: true,
+      includeBrands: true,
     }),
     staleTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData ?? createEmptyHomeCurations(),

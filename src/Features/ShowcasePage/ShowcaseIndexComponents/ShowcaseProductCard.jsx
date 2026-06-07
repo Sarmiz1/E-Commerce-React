@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import QuickView from "../../../Components/Ui/QuickView";
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 import { useAddToCart } from "../../../hooks/cart/useAddToCart";
+import { useTheme } from "../../../Store/useThemeStore";
 import {
   formatShowcaseProductPrice,
   getShowcaseDiscount,
@@ -28,6 +29,7 @@ export default function ShowcaseProductCard({
   visible,
   onQuickView,
 }) {
+  const { colors } = useTheme();
   const [hovered, setHovered] = useState(false);
   const {
     handleAdd,
@@ -70,7 +72,7 @@ export default function ShowcaseProductCard({
         position: "relative",
         borderRadius: 12,
         overflow: "hidden",
-        background: "#f4f3f0",
+        background: colors.surface.secondary,
         aspectRatio: "3/4",
         marginBottom: 10,
       }}>
@@ -142,7 +144,7 @@ export default function ShowcaseProductCard({
             onClick={handleQuickAdd}
             disabled={addingToCart}
             style={{
-              background: "#fff",
+              background: colors.surface.elevated,
               border: "none",
               borderRadius: 6,
               fontSize: 10,
@@ -151,7 +153,7 @@ export default function ShowcaseProductCard({
               textTransform: "uppercase",
               padding: "6px 12px",
               cursor: addingToCart ? "wait" : "pointer",
-              color: "#1a1a1a",
+              color: colors.text.primary,
               minWidth: 78,
             }}
           >
@@ -163,48 +165,48 @@ export default function ShowcaseProductCard({
       <div>
         {isContinue && item.progress && (
           <span style={{
-            fontSize: 9, fontWeight: 700, letterSpacing: 1,
+            fontSize: 9, fontWeight: 700, letterSpacing: 0,
             textTransform: "uppercase", color: accent,
             display: "block", marginBottom: 3,
           }}>{item.progress} {"\u00b7"} {item.lastSeen}</span>
         )}
         {(isBrowsing || item.reason) && item.reason && (
-          <span style={{ fontSize: 9, color: "#999", display: "block", marginBottom: 3, letterSpacing: 0.3 }}>
+          <span style={{ fontSize: 9, color: colors.text.tertiary, display: "block", marginBottom: 3, letterSpacing: 0 }}>
             {item.reason}
           </span>
         )}
         {isHot && item.velocity && (
-          <span style={{ fontSize: 9, color: accent, fontWeight: 700, letterSpacing: 0.5, display: "block", marginBottom: 3 }}>
+          <span style={{ fontSize: 9, color: accent, fontWeight: 700, letterSpacing: 0, display: "block", marginBottom: 3 }}>
             {item.velocity}
           </span>
         )}
         {isMostLoved && item.rating && (
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
             <ShowcaseStars rating={item.rating} />
-            <span style={{ fontSize: 10, color: "#999" }}>{item.reviews?.toLocaleString()}</span>
+            <span style={{ fontSize: 10, color: colors.text.tertiary }}>{item.reviews?.toLocaleString()}</span>
           </div>
         )}
         {editorial && item.note && (
-          <p style={{ fontSize: 10, color: "#999", margin: "0 0 3px", fontStyle: "italic", letterSpacing: 0.2 }}>
+          <p style={{ fontSize: 10, color: colors.text.tertiary, margin: "0 0 3px", fontStyle: "italic", letterSpacing: 0 }}>
             "{item.note}"
           </p>
         )}
-        <p style={{ margin: 0, fontSize: 10, color: "#888", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 2 }}>{item.brand}</p>
+        <p style={{ margin: 0, fontSize: 10, color: colors.text.secondary, letterSpacing: 0, textTransform: "uppercase", marginBottom: 2 }}>{item.brand}</p>
         <Link to={productPath} style={{ textDecoration: "none" }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: "#0f0f0f", lineHeight: 1.3, marginBottom: 5 }}>{item.name}</p>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: colors.text.primary, lineHeight: 1.3, marginBottom: 5 }}>{item.name}</p>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: discount ? accent : "#0f0f0f" }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: discount ? accent : colors.text.primary }}>
             {formatShowcaseProductPrice(item, priceMinor)}
           </span>
           {originalPriceMinor > priceMinor && (
-            <span style={{ fontSize: 11, color: "#aaa", textDecoration: "line-through" }}>
+            <span style={{ fontSize: 11, color: colors.text.tertiary, textDecoration: "line-through" }}>
               {formatShowcaseProductPrice(item, originalPriceMinor)}
             </span>
           )}
         </div>
         {sold > 0 && (
-          <p style={{ margin: "4px 0 0", fontSize: 10, color: "#aaa" }}>{sold.toLocaleString()} sold</p>
+          <p style={{ margin: "4px 0 0", fontSize: 10, color: colors.text.tertiary }}>{sold.toLocaleString()} sold</p>
         )}
       </div>
     </div>

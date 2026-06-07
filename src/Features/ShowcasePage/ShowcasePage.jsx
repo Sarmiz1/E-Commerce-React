@@ -10,15 +10,15 @@ import FilterSidebar, {
 } from "../Product/Components/FilterSidebar";
 import MobileFilterDrawer from "../Product/Components/MobileFilterDrawer";
 import { PG_STYLES } from "../Product/Styles/ProductsPageStyles";
-import ShowcaseAdvert from "./Components/ShowcaseAdvert";
-import ShowcaseBreadcrumbs from "./Components/ShowcaseBreadcrumbs";
-import ShowcaseHero from "./Components/ShowcaseHero";
-import ShowcaseProductGrid from "./Components/ShowcaseProductGrid";
+import ShowcaseAdvert from "./ShowcaseComponents/ShowcaseAdvert";
+import ShowcaseBreadcrumbs from "./ShowcaseComponents/ShowcaseBreadcrumbs";
+import ShowcaseHero from "./ShowcaseComponents/ShowcaseHero";
+import ShowcaseProductGrid from "./ShowcaseComponents/ShowcaseProductGrid";
 import {
   ShowcaseEmptyState,
   ShowcaseErrorState,
   ShowcaseLoadingState,
-} from "./Components/ShowcaseStates";
+} from "./ShowcaseComponents/ShowcaseStates";
 import { useShowcaseProductsFilter } from "./Hooks/useShowcaseProductsFilter";
 import { useShowcaseProductsCache } from "./Hooks/useShowcaseProductsCache";
 

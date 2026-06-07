@@ -386,7 +386,10 @@ export default function SellerPage() {
     <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#f9f9f7", minHeight: "100vh", color: "#1a1a1a" }}>
 
       {/* ── BANNER ───────────────────────────────────────────────── */}
-      <div style={{ position: "relative", height: 320, overflow: "hidden", background: "#0f0f0f" }}>
+      <div 
+        style={{ position: "relative", height: 320, overflow: "hidden", background: "#0f0f0f" }}
+        className="mb-16"
+      >
         <div style={{
           position: "absolute", inset: 0,
           backgroundImage: `url(${SELLER.banner})`,

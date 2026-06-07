@@ -50,7 +50,7 @@ export function CartItemRow({ item, onUpdateQty, onRemove, removing, updating })
             type="button"
             onClick={() => onUpdateQty(item, -1)}
             disabled={quantity <= 1}
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-sm font-black text-gray-600 dark:text-gray-300 dark:text-gray-600 transition hover:bg-gray-200 disabled:opacity-30"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-sm font-black text-gray-600 dark:text-gray-300 transition hover:bg-gray-200 disabled:opacity-30"
             aria-label={`Decrease ${name} quantity`}
           >
             -
@@ -60,7 +60,7 @@ export function CartItemRow({ item, onUpdateQty, onRemove, removing, updating })
             type="button"
             onClick={() => onUpdateQty(item, 1)}
             disabled={quantity >= 10}
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-sm font-black text-gray-600 dark:text-gray-300 dark:text-gray-600 transition hover:bg-gray-200 disabled:opacity-30"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-sm font-black text-gray-600 dark:text-gray-300 transition hover:bg-gray-200 disabled:opacity-30"
             aria-label={`Increase ${name} quantity`}
           >
             +

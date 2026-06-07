@@ -559,6 +559,26 @@ const router = createBrowserRouter(
         }
         hydrateFallbackElement={<ProductsSkeleton />}
       />
+
+      <Route
+        path="test4"
+        lazy={() =>
+          import("../Features/Collections/pages/FlashSalesPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
+
+      <Route
+        path="test5"
+        lazy={() =>
+          import("../Features/Stores/SellerPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
       {/* Test******************************* */}
 
       {/* 404 */}

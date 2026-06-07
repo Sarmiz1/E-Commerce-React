@@ -1,3 +1,5 @@
+import { useTheme } from "../../../Store/useThemeStore";
+
 export default function ShowcaseTopbar({
   sections,
   labels,
@@ -7,6 +9,7 @@ export default function ShowcaseTopbar({
   onScrollTopbar,
   top = 0,
 }) {
+  const { colors, isDark } = useTheme();
 
   // if there are no sections dont hide top bar
   if (!sections || sections.length === 0) return null;
@@ -14,8 +17,8 @@ export default function ShowcaseTopbar({
   return (
     <div style={{
       position: "sticky", top, zIndex: 50,
-      background: "rgba(255,255,255,0.96)",
-      borderBottom: "1px solid #f0f0f0",
+      background: isDark ? "rgba(14,14,16,0.94)" : "rgba(255,255,255,0.96)",
+      borderBottom: `1px solid ${colors.border.subtle}`,
       backdropFilter: "blur(12px)",
     }}>
       <div style={{
@@ -25,7 +28,7 @@ export default function ShowcaseTopbar({
       }}>
         <button onClick={() => onScrollTopbar(-1)} style={{
           padding: "14px 8px", background: "none", border: "none",
-          cursor: "pointer", color: "#aaa", fontSize: 16, flexShrink: 0,
+          cursor: "pointer", color: colors.text.tertiary, fontSize: 16, flexShrink: 0,
         }}>{"\u2039"}</button>
         <div ref={topbarRef} style={{
           display: "flex", gap: 0,
@@ -44,9 +47,9 @@ export default function ShowcaseTopbar({
                 padding: "16px 14px",
                 fontSize: 11,
                 fontWeight: activeId === section.id ? 700 : 500,
-                color: activeId === section.id ? section.accent : "#888",
+                color: activeId === section.id ? section.accent : colors.text.secondary,
                 cursor: "pointer",
-                letterSpacing: 0.3,
+                letterSpacing: 0,
                 whiteSpace: "nowrap",
                 transition: "color 0.2s ease, border-color 0.2s ease",
                 fontFamily: "'DM Sans', sans-serif",
@@ -58,7 +61,7 @@ export default function ShowcaseTopbar({
         </div>
         <button onClick={() => onScrollTopbar(1)} style={{
           padding: "14px 8px", background: "none", border: "none",
-          cursor: "pointer", color: "#aaa", fontSize: 16, flexShrink: 0,
+          cursor: "pointer", color: colors.text.tertiary, fontSize: 16, flexShrink: 0,
         }}>{"\u203a"}</button>
       </div>
     </div>

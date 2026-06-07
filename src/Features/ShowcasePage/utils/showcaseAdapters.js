@@ -51,6 +51,7 @@ const SECTION_TAGS = {
   "recommended-for-user": "PERSONAL",
   "continue-shopping": "PICK UP WHERE YOU LEFT OFF",
   "based-on-browsing": "JUST FOR YOU",
+  "shop-by-brands": "BRAND DIRECTORY",
 };
 
 const getSectionTag = ({ curation, definition, items = [], fallback = "CURATED" }) => {
@@ -82,6 +83,15 @@ const decorateShowcaseStore = (store = {}) => ({
   badges: Array.isArray(store.badges || store.seller_badges)
     ? store.badges || store.seller_badges
     : [],
+});
+
+const decorateShowcaseBrand = (brand = {}) => ({
+  ...brand,
+  id: brand.id || brand.slug || brand.name,
+  name: brand.name || brand.brand_name || "Brand",
+  slug: brand.slug || brand.brand_slug || slugify(brand.name || brand.brand_name),
+  image: brand.image || brand.sample_image || "",
+  productCount: Number(brand.productCount || brand.product_count || 0),
 });
 
 const decorateShowcaseItem = (item = {}, index = 0, sectionTag = "") => {
@@ -189,13 +199,15 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
     const definition = definitionBySlug.get(slugify(curation.slug)) || null;
     const id = slugify(curation.slug || definition?.slugs?.[0] || definition?.key);
     const isStoreSection = id === "recently-added-stores";
+    const isBrandSection = id === "shop-by-brands";
     const rawItems = curation.products || [];
     const rawStores = isStoreSection ? curation.stores || feed.recentlyAddedStores || [] : [];
+    const rawBrands = isBrandSection ? curation.brands || feed.shopByBrands || [] : [];
     const sectionTag = getSectionTag({
       curation,
       definition,
-      items: isStoreSection ? rawStores : rawItems,
-      fallback: isStoreSection ? "FRESH ARRIVALS" : "CURATED",
+      items: isStoreSection ? rawStores : isBrandSection ? rawBrands : rawItems,
+      fallback: isStoreSection ? "FRESH ARRIVALS" : isBrandSection ? "BRAND DIRECTORY" : "CURATED",
     });
     const items = rawItems
       .slice(0, 5)
@@ -203,8 +215,11 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
     const stores = rawStores
       .slice(0, 5)
       .map(decorateShowcaseStore);
+    const brands = rawBrands
+      .slice(0, 8)
+      .map(decorateShowcaseBrand);
 
-    if (!curation || (!items.length && !stores.length)) return null;
+    if (!curation || (!items.length && !stores.length && !brands.length)) return null;
 
     const accent = ACCENTS[index % ACCENTS.length];
     const isDealOfDay =
@@ -240,7 +255,8 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
       featured: isDealOfDay ? displayItems[0] : null,
       items: isDealOfDay ? displayItems.slice(1, 5) : displayItems,
       stores,
-      type: isStoreSection ? "stores" : "products",
+      brands,
+      type: isBrandSection ? "brands" : isStoreSection ? "stores" : "products",
       isDealOfDay,
       isFlash,
       saleEndsAt,
@@ -303,6 +319,8 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
   return sections.map((section) =>
     section.id === "recently-added-stores"
       ? { ...section, path: "/stores" }
+      : section.id === "shop-by-brands"
+      ? { ...section, path: "/brands" }
       : section,
   );
 };

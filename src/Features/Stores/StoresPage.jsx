@@ -584,7 +584,10 @@ export default function StoresPage() {
   const featuredStore = STORES.find(s => s.featured);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#fafaf8", minHeight: "100vh", color: "#1a1a1a" }}>
+    <div 
+      style={{ fontFamily: "'DM Sans', sans-serif", background: "#fafaf8", minHeight: "100vh", color: "#1a1a1a" }}
+      className="pb-10"
+    >
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <div ref={heroRef} style={{
@@ -942,7 +945,11 @@ export default function StoresPage() {
               Join 2,800+ stores reaching buyers across Africa. It only takes a few minutes to get started.
             </p>
           </div>
-          <div style={{ display: "flex", gap: 12, position: "relative", zIndex: 1, flexShrink: 0 }}>
+          <div 
+            style={{ display: "flex", 
+            gap: 12, position: "relative", 
+            zIndex: 1, flexShrink: 0 }}
+          >
             <button style={{
               background: "#C9A84C", border: "none", borderRadius: 8,
               padding: "14px 28px", fontSize: 12, fontWeight: 700,

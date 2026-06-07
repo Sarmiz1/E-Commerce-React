@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabaseClient";
 import { fetchCurationProductsByIds } from "./curationFetchLoader";
 
-const ADMIN_DEAL_SELECT = `
+const PUBLIC_ADMIN_DEAL_SELECT = `
   id,
   title,
   eyebrow,
@@ -17,10 +17,14 @@ const ADMIN_DEAL_SELECT = `
   cta_label,
   cta_url,
   metadata,
-  created_by,
-  updated_by,
   created_at,
   updated_at
+`;
+
+const ADMIN_DEAL_SELECT = `
+  ${PUBLIC_ADMIN_DEAL_SELECT},
+  created_by,
+  updated_by
 `;
 
 const normalizeProductIds = (deal = {}) => [
@@ -81,7 +85,7 @@ const activeDealQuery = () => {
 
   return supabase
     .from("admin_deals_of_day")
-    .select(ADMIN_DEAL_SELECT)
+    .select(PUBLIC_ADMIN_DEAL_SELECT)
     .eq("status", "active")
     .or(`starts_at.is.null,starts_at.lte.${now}`)
     .or(`ends_at.is.null,ends_at.gte.${now}`)
@@ -96,6 +100,7 @@ export const AdminDealsOfDayAPI = {
     queryFn: async () => {
       const { data, error } = await activeDealQuery();
 
+      if (error?.message?.includes("admin_users")) return null;
       throwQueryError(error);
       if (!data?.[0]) return null;
       return toShowcaseSection(data[0]);

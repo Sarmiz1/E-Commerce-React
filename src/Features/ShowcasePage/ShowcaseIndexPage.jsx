@@ -6,23 +6,24 @@ import {
   SHOWCASE_PRODUCTS,
   TOPBAR_LABELS,
 } from "./data";
-import ShowcaseHeroBanner from "./Components/ShowcaseHeroBanner";
-import ShowcaseSection from "./Components/ShowcaseSection";
-import ShowcaseTopbar from "./Components/ShowcaseTopbar";
+import ShowcaseHeroBanner from "./ShowcaseIndexComponents/ShowcaseHeroBanner";
+import ShowcaseSection from "./ShowcaseIndexComponents/ShowcaseSection";
+import ShowcaseTopbar from "./ShowcaseIndexComponents/ShowcaseTopbar";
 import { useShowcaseFonts } from "./Hooks/useShowcaseFonts";
 import { useShowcaseProductsCache } from "./Hooks/useShowcaseProductsCache";
 import {
   buildTopbarLabels,
   getSectionProducts,
 } from "./utils/showcaseAdapters";
+import { useTheme } from "../../Store/useThemeStore";
 
-function ShowcaseIndexStatus({ children }) {
+function ShowcaseIndexStatus({ children, colors }) {
   return (
     <div style={{
       maxWidth: 1200,
       margin: "0 auto",
       padding: "52px 48px 72px",
-      color: "#666",
+      color: colors.text.secondary,
       fontSize: 13,
       fontWeight: 600,
     }}>
@@ -47,6 +48,7 @@ export function ShowcaseIndex({
   emptyMessage = "No showcase sections are available yet.",
   pageName = 'showcase',
 }) {
+  const { colors } = useTheme();
   const safeSections = useMemo(() => sections || [], [sections]);
   const safeHeroSlides = heroSlides?.length ? heroSlides : HERO_SLIDES;
   const labels = useMemo(
@@ -108,9 +110,10 @@ export function ShowcaseIndex({
   return (
     <div style={{
       fontFamily: "'DM Sans', sans-serif",
-      background: "#fff",
+      background: colors.surface.primary,
       minHeight: "100vh",
-      color: "#1a1a1a",
+      color: colors.text.primary,
+      transition: "background 0.2s ease, color 0.2s ease",
     }}>
       {sectionIsAvailable && (
         <ShowcaseTopbar
@@ -142,29 +145,30 @@ export function ShowcaseIndex({
       </div>
 
       {isLoading && (
-        <ShowcaseIndexStatus>Loading {pageName || 'showcase' } sections...</ShowcaseIndexStatus>
+        <ShowcaseIndexStatus colors={colors}>Loading {pageName} sections...</ShowcaseIndexStatus>
       )}
       {isError && (
-        <ShowcaseIndexStatus>
+        <ShowcaseIndexStatus colors={colors}>
           <button
             onClick={onRetry}
             style={{
-              border: "1px solid #ddd",
+              border: `1px solid ${colors.border.default}`,
               borderRadius: 999,
               padding: "10px 16px",
-              background: "#fff",
-              color: "#1a1a1a",
+              background: colors.surface.elevated,
+              color: colors.text.primary,
               fontWeight: 700,
               cursor: "pointer",
             }}
             type="button"
+            className="hover:scale-110 transition-all duration-300 ease-in-out"
           >
-            Retry showcase
+            Retry {pageName}
           </button>
         </ShowcaseIndexStatus>
       )}
       {!isLoading && !isError && safeSections.length === 0 && (
-        <ShowcaseIndexStatus>{emptyMessage}</ShowcaseIndexStatus>
+        <ShowcaseIndexStatus colors={colors}>{emptyMessage}</ShowcaseIndexStatus>
       )}
 
       <div style={{ height: 80 }} />

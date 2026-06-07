@@ -1,13 +1,16 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useIntersectionObserver } from "../Hooks/useIntersectionObserver";
+import { useTheme } from "../../../Store/useThemeStore";
 import ShowcaseCountdownTimer from "./ShowcaseCountdownTimer";
 import ShowcaseDealSection from "./ShowcaseDealSection";
 import ShowcaseRail from "./ShowcaseRail";
 import ShowcaseProductCard from "./ShowcaseProductCard";
 import ShowcaseStoreCard from "./ShowcaseStoreCard";
+import ShowcaseBrandCard from "./ShowcaseBrandCard";
 
 export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
+  const { colors } = useTheme();
   const ref = useRef(null);
   const visible = useIntersectionObserver(ref);
 
@@ -51,7 +54,7 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
             margin: 0,
             fontSize: 22,
             fontWeight: 700,
-            color: "#0f0f0f",
+            color: colors.text.primary,
             letterSpacing: 0,
             fontFamily: "'Playfair Display', serif",
           }}>
@@ -60,9 +63,9 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
         </div>
         <Link to={viewAllPath || section.path || "#"} style={{
           fontSize: 11, fontWeight: 600,
-          color: "#666", textDecoration: "none",
+          color: colors.text.secondary, textDecoration: "none",
           letterSpacing: 0, textTransform: "uppercase",
-          borderBottom: "1px solid #ccc",
+          borderBottom: `1px solid ${colors.border.strong}`,
           paddingBottom: 1,
           transition: "color 0.2s ease, border-color 0.2s ease",
         }}>
@@ -70,7 +73,19 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
         </Link>
       </div>
 
-      {section.type === "stores" ? (
+      {section.type === "brands" ? (
+        <ShowcaseRail>
+          {section.brands.map((brand, i) => (
+            <ShowcaseBrandCard
+              key={brand.id}
+              brand={brand}
+              accent={section.accent}
+              delay={i * 60}
+              visible={visible}
+            />
+          ))}
+        </ShowcaseRail>
+      ) : section.type === "stores" ? (
         <ShowcaseRail>
           {section.stores.map((store, i) => (
             <ShowcaseStoreCard

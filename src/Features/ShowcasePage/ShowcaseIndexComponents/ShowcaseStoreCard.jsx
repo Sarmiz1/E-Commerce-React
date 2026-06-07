@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTheme } from "../../../Store/useThemeStore";
 
 const getStorePath = (store) =>
   store?.slug ? `/seller?store=${encodeURIComponent(store.slug)}` : "/seller";
@@ -9,6 +10,7 @@ export default function ShowcaseStoreCard({
   delay = 0,
   visible,
 }) {
+  const { colors, isDark } = useTheme();
   const badge = store.isVerified
     ? "Verified"
     : store.badges?.[0] || (store.trustScore >= 80 ? "Trusted" : "New Store");
@@ -29,9 +31,9 @@ export default function ShowcaseStoreCard({
     >
       <article style={{
         minHeight: 260,
-        border: "1px solid #ece8df",
+        border: `1px solid ${colors.border.subtle}`,
         borderRadius: 12,
-        background: "#fff",
+        background: colors.surface.elevated,
         overflow: "hidden",
         boxShadow: "0 18px 45px rgba(20, 18, 14, 0.08)",
       }}>
@@ -47,12 +49,12 @@ export default function ShowcaseStoreCard({
             width: 76,
             height: 76,
             borderRadius: "50%",
-            border: "4px solid #fff",
-            background: "#f4f3f0",
+            border: `4px solid ${colors.surface.elevated}`,
+            background: colors.surface.secondary,
             overflow: "hidden",
             display: "grid",
             placeItems: "center",
-            color: "#111",
+            color: colors.text.primary,
             fontSize: 26,
             fontWeight: 800,
           }}>
@@ -75,8 +77,8 @@ export default function ShowcaseStoreCard({
             marginBottom: 8,
             padding: "3px 8px",
             borderRadius: 4,
-            background: "rgba(0,0,0,0.84)",
-            color: "#fff",
+            background: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.84)",
+            color: isDark ? colors.text.primary : "#fff",
             fontSize: 9,
             fontWeight: 800,
             textTransform: "uppercase",
@@ -86,7 +88,7 @@ export default function ShowcaseStoreCard({
           </span>
           <h3 style={{
             margin: 0,
-            color: "#111",
+            color: colors.text.primary,
             fontSize: 15,
             fontWeight: 800,
             lineHeight: 1.25,
@@ -95,7 +97,7 @@ export default function ShowcaseStoreCard({
           </h3>
           <p style={{
             margin: "8px 0 0",
-            color: "#777",
+            color: colors.text.secondary,
             fontSize: 11,
             lineHeight: 1.5,
           }}>

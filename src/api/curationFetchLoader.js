@@ -66,6 +66,7 @@ export const CURATION_DEFINITIONS = [
   { key: "mostLoved", slugs: ["most-loved", "most_loved"], limit: 8 },
   { key: "editorsPicks", slugs: ["editors-picks", "editors_picks"], limit: 8 },
   { key: "dealOfTheDay", slugs: ["deal-of-the-day", "deal_of_the_day"], limit: 1 },
+  { key: "shopByBrands", slugs: ["shop-by-brands", "shop_by_brands"], limit: 8 },
   { key: "productScrollStrip", slugs: ["product-scroll-strip", "product_scroll_strip"], limit: 10 },
   { key: "bentoProducts", slugs: ["bento-products", "bento_products"], limit: 5 },
   { key: "filterGrid", slugs: ["filter-grid", "filter_grid"], limit: 12 },
@@ -99,6 +100,7 @@ const HOME_CURATION_KEYS = new Set([
   "mostLoved",
   "editorsPicks",
   "dealOfTheDay",
+  "shopByBrands",
   "productScrollStrip",
   "bentoProducts",
   "filterGrid",
@@ -132,6 +134,16 @@ const STORE_SELECT_FALLBACK = `
   trust_score,
   seller_badges
 `;
+
+const normalizeBrand = (brand = {}) => ({
+  ...brand,
+  id: brand.brand_slug || brand.brand_name,
+  name: brand.brand_name || "Brand",
+  slug: brand.brand_slug || normalizeSlug(brand.brand_name),
+  productCount: Number(brand.product_count || 0),
+  image: brand.sample_image || "",
+  productIds: Array.isArray(brand.product_ids) ? brand.product_ids : [],
+});
 
 const normalizeSlug = (value) =>
   String(value || "")
@@ -385,6 +397,31 @@ async function fetchRecentlyAddedStores(limit = 5) {
   };
 }
 
+async function fetchShopByBrands(limit = 8) {
+  const { data, error } = await supabase
+    .from("shop_by_brands")
+    .select("id, brand_name, brand_slug, product_count, sample_image, product_ids, last_product_at")
+    .eq("is_active", true)
+    .gt("product_count", 0)
+    .order("product_count", { ascending: false })
+    .order("last_product_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return {
+      data: [],
+      error: error.message?.includes("shop_by_brands")
+        ? null
+        : { table: "shop_by_brands", message: error.message },
+    };
+  }
+
+  return {
+    data: (data || []).map(normalizeBrand),
+    error: null,
+  };
+}
+
 function groupMemberships(memberships) {
   const grouped = new Map();
 
@@ -444,6 +481,7 @@ function buildHomeFeed({
   salesStatsByProductId = new Map(),
   includeAllSections = false,
   recentlyAddedStores = [],
+  shopByBrands = [],
 }) {
   const feed = createEmptyHomeCurations();
   const curationBySlug = new Map(curations.map((curation) => [curation.slug, curation]));
@@ -453,10 +491,12 @@ function buildHomeFeed({
   feed.curations = curations;
   feed.curationCards = buildCurationCards(curations, membershipsByCurationId, productsById);
   feed.recentlyAddedStores = recentlyAddedStores;
+  feed.shopByBrands = shopByBrands;
   feed.curationSections = includeAllSections
     ? curations
         .map((curation) => {
           const isRecentlyAddedStores = normalizeSlug(curation.slug) === "recently-added-stores";
+          const isShopByBrands = normalizeSlug(curation.slug) === "shop-by-brands";
           const curationMemberships = membershipsByCurationId.get(curation.id) || [];
           const productsForCuration = curationMemberships
             .map((membership) => {
@@ -472,12 +512,13 @@ function buildHomeFeed({
 
           return {
             ...curation,
-            products: isRecentlyAddedStores ? [] : productsForCuration,
+            products: isRecentlyAddedStores || isShopByBrands ? [] : productsForCuration,
             stores: isRecentlyAddedStores ? recentlyAddedStores : [],
+            brands: isShopByBrands ? shopByBrands : [],
             productCount: productsForCuration.length,
           };
         })
-        .filter((curation) => curation.products.length || curation.stores?.length)
+        .filter((curation) => curation.products.length || curation.stores?.length || curation.brands?.length)
     : [];
 
   CURATION_DEFINITIONS.forEach((definition) => {
@@ -511,11 +552,12 @@ export const CurationFetchLoaderAPI = {
     includeAllSections = false,
     includeSalesStats = false,
     includeStores = false,
+    includeBrands = false,
   } = {}) => ({
     queryKey: [
       "home-curations",
       scope,
-      { includeAllSections, includeSalesStats, includeStores },
+      { includeAllSections, includeSalesStats, includeStores, includeBrands },
     ],
     queryFn: async () => {
       const feed = createEmptyHomeCurations();
@@ -529,6 +571,9 @@ export const CurationFetchLoaderAPI = {
       }
 
       const curations = curationsResult.data;
+      const hasShopByBrandsCuration = curations.some(
+        (curation) => normalizeSlug(curation.slug) === "shop-by-brands",
+      );
       const relevantSlugSet = new Set(
         CURATION_DEFINITIONS
           .filter((definition) => includeAllSections || HOME_CURATION_KEYS.has(definition.key))
@@ -552,6 +597,9 @@ export const CurationFetchLoaderAPI = {
       const storesResult = includeStores
         ? await fetchRecentlyAddedStores(5)
         : { data: [], error: null };
+      const brandsResult = includeBrands && hasShopByBrandsCuration
+        ? await fetchShopByBrands(8)
+        : { data: [], error: null };
 
       return {
         ...buildHomeFeed({
@@ -561,12 +609,14 @@ export const CurationFetchLoaderAPI = {
           salesStatsByProductId: salesStatsResult.data,
           includeAllSections,
           recentlyAddedStores: storesResult.data,
+          shopByBrands: brandsResult.data,
         }),
         unavailableFeeds: [
           membershipsResult.error,
           productsResult.error,
           salesStatsResult.error,
           storesResult.error,
+          brandsResult.error,
         ].filter(Boolean),
       };
     },

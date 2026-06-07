@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTheme } from "../../../Store/useThemeStore";
 
 export default function ShowcaseRail({ children }) {
+  const { colors } = useTheme();
   const ref = useRef(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(true);
@@ -31,11 +33,11 @@ export default function ShowcaseRail({ children }) {
         <button className="showcase-rail-arrow" onClick={() => scroll(-1)} style={{
           position: "absolute", left: -16, top: "38%", zIndex: 10,
           width: 36, height: 36, borderRadius: "50%",
-          background: "#fff", border: "1px solid #e8e8e8",
+          background: colors.surface.elevated, border: `1px solid ${colors.border.default}`,
           cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
         }}>
-          <svg width="14" height="14" fill="none" stroke="#1a1a1a" strokeWidth="2">
+          <svg width="14" height="14" fill="none" stroke={colors.text.primary} strokeWidth="2">
             <path d="M9 2L3 7l6 5" />
           </svg>
         </button>
@@ -44,11 +46,11 @@ export default function ShowcaseRail({ children }) {
         <button className="showcase-rail-arrow" onClick={() => scroll(1)} style={{
           position: "absolute", right: -16, top: "38%", zIndex: 10,
           width: 36, height: 36, borderRadius: "50%",
-          background: "#fff", border: "1px solid #e8e8e8",
+          background: colors.surface.elevated, border: `1px solid ${colors.border.default}`,
           cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
         }}>
-          <svg width="14" height="14" fill="none" stroke="#1a1a1a" strokeWidth="2">
+          <svg width="14" height="14" fill="none" stroke={colors.text.primary} strokeWidth="2">
             <path d="M5 2l6 5-6 5" />
           </svg>
         </button>

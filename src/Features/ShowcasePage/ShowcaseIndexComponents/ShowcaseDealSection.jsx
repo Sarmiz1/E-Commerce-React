@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import QuickView from "../../../Components/Ui/QuickView";
 import WishlistHeart from "../../../Components/Ui/WishlistHeart";
 import { useAddToCart } from "../../../hooks/cart/useAddToCart";
+import { useTheme } from "../../../Store/useThemeStore";
 import {
   formatShowcaseProductPrice,
   getShowcaseDiscount,
@@ -12,7 +13,7 @@ import {
   getShowcaseVariantId,
 } from "../utils/showcaseProduct";
 
-function DealSideItem({ item, accent, index, visible }) {
+function DealSideItem({ item, accent, index, visible, colors }) {
   const discount = getShowcaseDiscount(item);
   const priceMinor = getShowcasePriceMinor(item);
   const originalPriceMinor = getShowcaseOriginalPriceMinor(item);
@@ -23,7 +24,8 @@ function DealSideItem({ item, accent, index, visible }) {
       to={getShowcaseProductPath(item)}
       style={{
         display: "flex", gap: 14, alignItems: "center",
-        background: "#fafaf8",
+        background: colors.surface.secondary,
+        border: `1px solid ${colors.border.subtle}`,
         borderRadius: 12, overflow: "hidden",
         padding: 0,
         opacity: visible ? 1 : 0,
@@ -35,12 +37,12 @@ function DealSideItem({ item, accent, index, visible }) {
       <img src={getShowcaseProductImage(item)} alt={item.name}
         style={{ width: 90, height: 90, objectFit: "cover", flexShrink: 0 }} />
       <div style={{ flex: 1, paddingRight: 16 }}>
-        <p style={{ margin: "0 0 2px", fontSize: 10, color: "#999", textTransform: "uppercase", letterSpacing: 0.5 }}>{item.brand}</p>
-        <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 600, color: "#1a1a1a" }}>{item.name}</p>
+        <p style={{ margin: "0 0 2px", fontSize: 10, color: colors.text.tertiary, textTransform: "uppercase", letterSpacing: 0 }}>{item.brand}</p>
+        <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 600, color: colors.text.primary }}>{item.name}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: accent }}>{formatShowcaseProductPrice(item, priceMinor)}</span>
           {originalPriceMinor > priceMinor && (
-            <span style={{ fontSize: 11, color: "#bbb", textDecoration: "line-through" }}>{formatShowcaseProductPrice(item, originalPriceMinor)}</span>
+            <span style={{ fontSize: 11, color: colors.text.tertiary, textDecoration: "line-through" }}>{formatShowcaseProductPrice(item, originalPriceMinor)}</span>
           )}
           {discount && (
             <span style={{ fontSize: 9, fontWeight: 700, color: "#fff", background: accent, padding: "2px 5px", borderRadius: 3 }}>{discount}%</span>
@@ -52,6 +54,7 @@ function DealSideItem({ item, accent, index, visible }) {
 }
 
 export default function ShowcaseDealSection({ section, visible, onQuickView }) {
+  const { colors, isDark } = useTheme();
   const featured = section.featured;
   const stock = Number(featured.stock || featured.stock_quantity || 0);
   const sold = Number(featured.sold || 0);
@@ -76,7 +79,8 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
         gap: 20, marginBottom: 20,
       }}>
         <div style={{
-          background: "#0f0f0f",
+          background: isDark ? colors.surface.elevated : "#0f0f0f",
+          border: `1px solid ${isDark ? colors.border.default : "transparent"}`,
           borderRadius: 16,
           overflow: "hidden",
           display: "flex",
@@ -94,7 +98,7 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
                   background: section.accent, color: "#fff",
                   fontSize: 12, fontWeight: 800,
                   padding: "5px 12px", borderRadius: 5,
-                  letterSpacing: 1,
+                  letterSpacing: 0,
                 }}>{discount}% OFF</span>
               </div>
             )}
@@ -109,7 +113,7 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
             />
           </div>
           <div style={{ padding: "20px 20px 22px" }}>
-            <p style={{ margin: "0 0 3px", fontSize: 10, color: "#777", textTransform: "uppercase", letterSpacing: 1 }}>{featured.brand}</p>
+            <p style={{ margin: "0 0 3px", fontSize: 10, color: isDark ? colors.text.secondary : "#777", textTransform: "uppercase", letterSpacing: 0 }}>{featured.brand}</p>
             <Link to={getShowcaseProductPath(featured)} style={{ textDecoration: "none" }}>
               <p style={{ margin: "0 0 10px", fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>{featured.name}</p>
             </Link>
@@ -118,17 +122,17 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
                 {formatShowcaseProductPrice(featured, priceMinor)}
               </span>
               {originalPriceMinor > priceMinor && (
-                <span style={{ fontSize: 14, color: "#555", textDecoration: "line-through" }}>
+                <span style={{ fontSize: 14, color: isDark ? colors.text.tertiary : "#555", textDecoration: "line-through" }}>
                   {formatShowcaseProductPrice(featured, originalPriceMinor)}
                 </span>
               )}
             </div>
             {stock > 0 && (
               <>
-                <p style={{ fontSize: 10, color: "#666", marginBottom: 5 }}>
+                <p style={{ fontSize: 10, color: isDark ? colors.text.secondary : "#666", marginBottom: 5 }}>
                   <span style={{ color: "#fff", fontWeight: 600 }}>{sold}</span> of {stock} sold
                 </p>
-                <div style={{ height: 4, background: "#2a2a2a", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ height: 4, background: isDark ? colors.surface.tertiary : "#2a2a2a", borderRadius: 2, overflow: "hidden" }}>
                   <div style={{
                     height: "100%",
                     width: `${pct}%`,
@@ -147,7 +151,7 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
                 width: "100%", marginTop: 16,
                 background: section.accent, color: "#fff",
                 border: "none", borderRadius: 8,
-                fontSize: 12, fontWeight: 700, letterSpacing: 1,
+                fontSize: 12, fontWeight: 700, letterSpacing: 0,
                 textTransform: "uppercase",
                 padding: "12px 0",
                 cursor: addingToCart ? "wait" : "pointer",
@@ -160,7 +164,7 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {section.items.map((item, i) => (
-            <DealSideItem key={item.id} item={item} accent={section.accent} index={i} visible={visible} />
+            <DealSideItem key={item.id} item={item} accent={section.accent} index={i} visible={visible} colors={colors} />
           ))}
         </div>
       </div>
