@@ -39,6 +39,7 @@ export default function ShowcaseProductCard({
   const priceMinor = getShowcasePriceMinor(item);
   const originalPriceMinor = getShowcaseOriginalPriceMinor(item);
   const productPath = getShowcaseProductPath(item);
+  const sold = Number(item.sold || item.quantity_sold || 0);
 
   const handleQuickAdd = (event) => {
     event.preventDefault();
@@ -52,13 +53,14 @@ export default function ShowcaseProductCard({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        flex: "0 0 200px",
-        width: 200,
+        flex: "0 0 clamp(168px, 48vw, 200px)",
+        width: "clamp(168px, 48vw, 200px)",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(28px)",
         transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
         cursor: "pointer",
         position: "relative",
+        scrollSnapAlign: "start",
       }}
     >
       <div style={{
@@ -198,8 +200,8 @@ export default function ShowcaseProductCard({
             </span>
           )}
         </div>
-        {item.sold && (
-          <p style={{ margin: "4px 0 0", fontSize: 10, color: "#aaa" }}>{item.sold.toLocaleString()} sold</p>
+        {sold > 0 && (
+          <p style={{ margin: "4px 0 0", fontSize: 10, color: "#aaa" }}>{sold.toLocaleString()} sold</p>
         )}
       </div>
     </div>

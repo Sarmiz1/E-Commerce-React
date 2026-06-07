@@ -18,6 +18,7 @@ const HOME_PRODUCT_SELECT = `
   brand,
   seller_id,
   keywords,
+  showcase_badge,
   is_featured,
   is_active,
   created_at,
@@ -72,6 +73,7 @@ const EMPTY_HOME_CURATIONS = CURATION_DEFINITIONS.reduce(
   {
     curations: [],
     curationCards: [],
+    curationSections: [],
     unavailableFeeds: [],
   },
 );
@@ -123,6 +125,9 @@ const normalizeCuration = (curation = {}) => ({
   slug: normalizeSlug(curation.slug || curation.name),
   name: curation.name || curation.title || "Curation",
   description: curation.description || "",
+  showcaseTag: curation.showcase_tag || "",
+  showcaseTagColor: curation.showcase_tag_color || "",
+  showcaseSortOrder: curation.showcase_sort_order,
 });
 
 const createEmptyHomeCurations = () => ({
@@ -158,8 +163,9 @@ const buildCurationCards = (curations, membershipsByCurationId, productsById) =>
 async function fetchActiveCurations() {
   const { data, error } = await supabase
     .from("curations")
-    .select("id, name, slug, description, is_active, created_at")
+    .select("id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order")
     .eq("is_active", true)
+    .order("showcase_sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -230,6 +236,36 @@ async function fetchProducts(productIds) {
   };
 }
 
+async function fetchProductSalesStats(productIds) {
+  const ids = [...new Set(productIds.filter(Boolean))];
+  if (!ids.length) return { data: new Map(), error: null };
+
+  const { data, error } = await supabase.rpc("get_public_product_sales_stats", {
+    p_product_ids: ids,
+  });
+
+  if (error) {
+    return {
+      data: new Map(),
+      error: { table: "product_sales_stats", message: error.message },
+    };
+  }
+
+  return {
+    data: new Map(
+      (data || []).map((stats) => [
+        stats.product_id,
+        {
+          quantity_sold: Number(stats.quantity_sold || 0),
+          sales_minor: Number(stats.sales_minor || 0),
+          recent_quantity_sold: Number(stats.recent_quantity_sold || 0),
+        },
+      ]),
+    ),
+    error: null,
+  };
+}
+
 function groupMemberships(memberships) {
   const grouped = new Map();
 
@@ -244,7 +280,35 @@ function groupMemberships(memberships) {
   return grouped;
 }
 
-function buildHomeFeed({ curations, memberships, products }) {
+const withMembershipMerchandising = (product, membership, stats) => ({
+  ...product,
+  curation: {
+    sortOrder: membership.sort_order,
+    score: membership.score,
+    source: membership.source,
+    metadata: membership.metadata || {},
+  },
+  badge: membership.metadata?.badge || membership.metadata?.tag || product.showcase_badge || product.badge,
+  tag: membership.metadata?.tag || product.tag,
+  velocity: membership.metadata?.velocity || product.velocity,
+  reason: membership.metadata?.reason || product.reason,
+  note: membership.metadata?.note || product.note,
+  timeLeft: membership.metadata?.timeLeft || membership.metadata?.time_left || product.timeLeft,
+  stock: Number(membership.metadata?.stock || product.stock || product.stock_quantity || 0),
+  sold: Number(
+    membership.metadata?.quantity_sold ||
+    membership.metadata?.sold ||
+    stats?.quantity_sold ||
+    product.quantity_sold ||
+    product.sold ||
+    0
+  ),
+  quantity_sold: Number(stats?.quantity_sold || membership.metadata?.quantity_sold || product.quantity_sold || 0),
+  recent_quantity_sold: Number(stats?.recent_quantity_sold || product.recent_quantity_sold || 0),
+  sales_minor: Number(stats?.sales_minor || membership.metadata?.sales_minor || product.sales_minor || 0),
+});
+
+function buildHomeFeed({ curations, memberships, products, salesStatsByProductId = new Map() }) {
   const feed = createEmptyHomeCurations();
   const curationBySlug = new Map(curations.map((curation) => [curation.slug, curation]));
   const productsById = new Map(products.map((product) => [product.id, product]));
@@ -252,6 +316,28 @@ function buildHomeFeed({ curations, memberships, products }) {
 
   feed.curations = curations;
   feed.curationCards = buildCurationCards(curations, membershipsByCurationId, productsById);
+  feed.curationSections = curations
+    .map((curation) => {
+      const curationMemberships = membershipsByCurationId.get(curation.id) || [];
+      const productsForCuration = curationMemberships
+        .map((membership) => {
+          const product = productsById.get(membership.product_id);
+          if (!product) return null;
+          return withMembershipMerchandising(
+            product,
+            membership,
+            salesStatsByProductId.get(membership.product_id),
+          );
+        })
+        .filter(Boolean);
+
+      return {
+        ...curation,
+        products: productsForCuration,
+        productCount: productsForCuration.length,
+      };
+    })
+    .filter((curation) => curation.products.length);
 
   CURATION_DEFINITIONS.forEach((definition) => {
     const curation = definition.slugs
@@ -262,7 +348,15 @@ function buildHomeFeed({ curations, memberships, products }) {
     if (!curation) return;
 
     feed[definition.key] = (membershipsByCurationId.get(curation.id) || [])
-      .map((membership) => productsById.get(membership.product_id))
+      .map((membership) => {
+        const product = productsById.get(membership.product_id);
+        if (!product) return null;
+        return withMembershipMerchandising(
+          product,
+          membership,
+          salesStatsByProductId.get(membership.product_id),
+        );
+      })
       .filter(Boolean)
       .slice(0, definition.limit);
   });
@@ -291,16 +385,21 @@ export const CurationFetchLoaderAPI = {
       const productsResult = await fetchProducts(
         membershipsResult.data.map((membership) => membership.product_id),
       );
+      const salesStatsResult = await fetchProductSalesStats(
+        membershipsResult.data.map((membership) => membership.product_id),
+      );
 
       return {
         ...buildHomeFeed({
           curations,
           memberships: membershipsResult.data,
           products: productsResult.data,
+          salesStatsByProductId: salesStatsResult.data,
         }),
         unavailableFeeds: [
           membershipsResult.error,
           productsResult.error,
+          salesStatsResult.error,
         ].filter(Boolean),
       };
     },

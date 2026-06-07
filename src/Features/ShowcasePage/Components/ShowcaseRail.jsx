@@ -28,7 +28,7 @@ export default function ShowcaseRail({ children }) {
   return (
     <div style={{ position: "relative" }}>
       {canLeft && (
-        <button onClick={() => scroll(-1)} style={{
+        <button className="showcase-rail-arrow" onClick={() => scroll(-1)} style={{
           position: "absolute", left: -16, top: "38%", zIndex: 10,
           width: 36, height: 36, borderRadius: "50%",
           background: "#fff", border: "1px solid #e8e8e8",
@@ -41,7 +41,7 @@ export default function ShowcaseRail({ children }) {
         </button>
       )}
       {canRight && (
-        <button onClick={() => scroll(1)} style={{
+        <button className="showcase-rail-arrow" onClick={() => scroll(1)} style={{
           position: "absolute", right: -16, top: "38%", zIndex: 10,
           width: 36, height: 36, borderRadius: "50%",
           background: "#fff", border: "1px solid #e8e8e8",
@@ -63,6 +63,13 @@ export default function ShowcaseRail({ children }) {
       }}>
         {children}
       </div>
+      <style>{`
+        @media (max-width: 767px) {
+          .showcase-rail-arrow {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

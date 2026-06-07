@@ -9,7 +9,7 @@ const CARD_GRADIENTS = [
   "from-zinc-950 via-neutral-800 to-slate-600",
 ];
 
-export default function ShowcaseCard({ item, index, basePath = "/products/curation" }) {
+export default function ShowcaseCard({ item, index, basePath = "/products/curations" }) {
   const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length];
   const count = item.productCount ?? item.count ?? 0;
 

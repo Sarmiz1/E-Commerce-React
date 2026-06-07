@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { AdminAdvertsAPI } from "../../api/adminAdvertsApi";
 import { ProductsAPI } from "../../api/productsApi";
 import ShowcaseIndexPage from "./ShowcaseIndexPage";
 import {
@@ -14,6 +15,14 @@ export default function ShowcaseCategoryIndexPage() {
     ...ProductsAPI.getAll(),
     staleTime: 1000 * 60 * 5,
   });
+  const advertQuery = useQuery({
+    ...AdminAdvertsAPI.getPublicHeroSlides({
+      placement: "showcase_hero",
+      surface: "categories",
+    }),
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData ?? [],
+  });
 
   const products = useMemo(() => productsQuery.data || [], [productsQuery.data]);
   const sections = useMemo(
@@ -21,7 +30,7 @@ export default function ShowcaseCategoryIndexPage() {
     [products],
   );
   const heroSlides = useMemo(
-    () => buildShowcaseHeroSlides({
+    () => advertQuery.data?.length ? advertQuery.data : buildShowcaseHeroSlides({
       id: "category-index",
       title: "Shop by Category",
       eyebrow: "WooSho categories",
@@ -31,7 +40,7 @@ export default function ShowcaseCategoryIndexPage() {
       cta: "Browse Categories",
       ctaSecondary: "View Products",
     }),
-    [sections],
+    [advertQuery.data, sections],
   );
 
   return (
@@ -46,6 +55,7 @@ export default function ShowcaseCategoryIndexPage() {
       sections={sections}
       topbarLabels={buildTopbarLabels(sections)}
       topbarOffset={70}
+      pageName='categories'
     />
   );
 }

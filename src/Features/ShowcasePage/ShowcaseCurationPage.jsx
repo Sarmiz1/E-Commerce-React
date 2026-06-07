@@ -32,11 +32,11 @@ export default function ShowcaseCurationPage() {
   return (
     <ShowcasePage
       advert={{
-        browsePath: "/products/curation",
+        browsePath: "/products/curations",
         body: "Browse more WooSho curations assembled from active marketplace product feeds.",
         cta: "Browse curations",
       }}
-      canonicalPath={`/products/curation/${encodeURIComponent(slug)}`}
+      canonicalPath={`/products/curations/${encodeURIComponent(slug)}`}
       collectionLabel="Curated products"
       description={description}
       emptyBody="There are no active products in this curation yet. Explore the full marketplace in the meantime."
@@ -52,7 +52,7 @@ export default function ShowcaseCurationPage() {
         productsQuery.refetch();
       }}
       parentLabel="Curations"
-      parentPath="/products/curation"
+      parentPath="/products/curations"
       products={products}
       title={title}
     />

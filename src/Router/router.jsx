@@ -379,7 +379,7 @@ const router = createBrowserRouter(
             />
 
             <Route
-              path="curation"
+              path="curations"
               lazy={() =>
                 import("../Features/ShowcasePage/ShowcaseCurationIndexPage").then((m) => ({
                   Component: m.default,
@@ -389,21 +389,12 @@ const router = createBrowserRouter(
             />
 
             <Route
-              path="curation/:showcaseSlug"
+              path="curations/:showcaseSlug"
               lazy={() =>
                 import("../Features/ShowcasePage/ShowcaseCurationPage").then((m) => ({
                   Component: m.default,
                 }))
               }
-              hydrateFallbackElement={<ProductsSkeleton />}
-            />
-
-
-            <Route
-              path="curations/*"
-              element={<ProductsPage />}
-              loader={fetchProductsLoader}
-              shouldRevalidate={revalidateOnPathChange}
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 

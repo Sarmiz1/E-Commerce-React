@@ -1,8 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AdminAdvertsAPI } from "../../../api/adminAdvertsApi";
 
 const DURATION = 5500;
 
-export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
+function HeroAction({ children, href, onClick, style }) {
+  if (href) {
+    return (
+      <a
+        href={href}
+        onClick={onClick}
+        style={{ ...style, display: "inline-flex", textDecoration: "none" }}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <button onClick={onClick} style={style} type="button">
+      {children}
+    </button>
+  );
+}
+
+export default function ShowcaseHeroBanner({ slides = [], sectionIsAvailable }) {
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
   const [paused, setPaused] = useState(false);
@@ -17,7 +38,7 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
   }, [current]);
 
   useEffect(() => {
-    if (paused) return undefined;
+    if (paused || slides.length <= 1) return undefined;
 
     progressRef.current = setInterval(() => {
       setProgress((p) => {
@@ -37,7 +58,51 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
     };
   }, [current, go, paused, slides.length]);
 
+  useEffect(() => {
+    if (current <= slides.length - 1) return;
+    setCurrent(0);
+    setPrev(null);
+    setProgress(0);
+  }, [current, slides.length]);
+
   const slide = slides[current];
+  const hasMultipleSlides = slides.length > 1;
+
+  useEffect(() => {
+    if (!slide?.advertId) return;
+
+    AdminAdvertsAPI.recordEvent({
+      advertId: slide.advertId,
+      eventType: "impression",
+      placement: "showcase_hero",
+      surface: slide.rawAdvert?.surface,
+    }).catch(() => {});
+  }, [slide]);
+
+  const recordClick = useCallback((metadata = {}) => {
+    if (!slide?.advertId) return;
+
+    AdminAdvertsAPI.recordEvent({
+      advertId: slide.advertId,
+      eventType: "click",
+      placement: "showcase_hero",
+      surface: slide.rawAdvert?.surface,
+      metadata,
+    }).catch(() => {});
+  }, [slide]);
+
+  if (!slide) return null;
+  const textX = slide.position === "right"
+    ? "flex-end"
+    : slide.position === "center"
+      ? "center"
+      : "flex-start";
+  const textAlign = slide.position === "right"
+    ? "right"
+    : slide.position === "center"
+      ? "center"
+      : "left";
+  const slideLabel = (value = "") => String(value).split("·")[0].trim();
 
   return (
     <div
@@ -51,7 +116,7 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
         overflow: "hidden",
         background: "#0a0a0a",
       }}
-      className={`mt-14 ${sectionIsAvailable ? "" : "mt-[4.5rem]" }`}
+      className={`showcase-hero-banner mt-14 ${sectionIsAvailable ? "" : "mt-[4.5rem]" }`}
     >
       {slides.map((s, i) => {
         const isActive = i === current;
@@ -73,7 +138,24 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
                 : "opacity 1.0s cubic-bezier(0.4,0,0.2,1), transform 0.6s ease",
               willChange: "transform, opacity",
             }}
-          />
+          >
+            {s.type === "video" && s.videoSrc ? (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                poster={s.poster || s.src}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              >
+                <source src={s.videoSrc} />
+              </video>
+            ) : null}
+          </div>
         );
       })}
 
@@ -89,15 +171,17 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
       }} />
 
       {/* Content Text */}
-      <div style={{
+      <div className="showcase-hero-content" style={{
         position: "absolute", inset: 0, zIndex: 4,
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
+        alignItems: textX,
         padding: "0 64px 64px",
       }}>
         <div key={`eyebrow-${current}`} style={{
           display: "flex", alignItems: "center", gap: 12,
+          justifyContent: textX,
           marginBottom: 18,
           animation: "heroFadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both",
           animationDelay: "0.05s",
@@ -125,11 +209,12 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
             fontSize: "clamp(40px, 6.5vw, 82px)",
             fontWeight: 700,
             lineHeight: 1.08,
-            letterSpacing: -2,
+            letterSpacing: 0,
             color: "#fff",
             fontFamily: "'Playfair Display', serif",
             whiteSpace: "pre-line",
             maxWidth: 680,
+            textAlign,
             animation: "heroFadeUp 0.75s cubic-bezier(0.22,1,0.36,1) both",
             animationDelay: "0.15s",
           }}
@@ -146,6 +231,7 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
             maxWidth: 460,
             lineHeight: 1.65,
             fontWeight: 400,
+            textAlign,
             animation: "heroFadeUp 0.75s cubic-bezier(0.22,1,0.36,1) both",
             animationDelay: "0.25s",
           }}
@@ -156,12 +242,16 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
         <div
           key={`cta-${current}`}
           style={{
-            display: "flex", gap: 12, alignItems: "center",
+            display: "flex", gap: 12, alignItems: "center", justifyContent: textX,
+            flexWrap: "wrap",
             animation: "heroFadeUp 0.75s cubic-bezier(0.22,1,0.36,1) both",
             animationDelay: "0.35s",
           }}
         >
-          <button style={{
+          <HeroAction
+            href={slide.ctaHref}
+            onClick={() => recordClick({ action: "primary_cta" })}
+            style={{
             background: slide.accent,
             color: "#fff",
             border: "none",
@@ -176,8 +266,11 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
             transition: "opacity 0.2s ease",
           }}>
             {slide.cta}
-          </button>
-          <button style={{
+          </HeroAction>
+          <HeroAction
+            href={slide.ctaSecondaryHref}
+            onClick={() => recordClick({ action: "secondary_cta" })}
+            style={{
             background: "transparent",
             color: "rgba(255,255,255,0.85)",
             border: "1px solid rgba(255,255,255,0.28)",
@@ -192,58 +285,128 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
             backdropFilter: "blur(4px)",
           }}>
             {slide.ctaSecondary}
-          </button>
+          </HeroAction>
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div style={{
-        position: "absolute", right: 48,  zIndex: 6,
-        display: "flex", alignItems: "center", gap: 14,
+      <div
+        style={{
+          position: "absolute",
+          bottom: 64,
+          right: 64,
+          zIndex: 6,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 16,
         }}
-        className="bottom-3 md:bottom-16"
+        className="showcase-hero-dots"
       >
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>
-          {String(current + 1).padStart(2, "0")}
-        </span>
-        <div style={{ width: 80, height: 2, background: "rgba(255,255,255,0.18)", overflow: "hidden", borderRadius: 2 }}>
-          <div style={{
-            width: `${progress}%`,
-            height: "100%",
-            background: slide.accent,
-            transition: "width 0.06s linear",
-          }} />
+        <div style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 11,
+          color: "rgba(255,255,255,0.5)",
+          letterSpacing: 1,
+        }}>
+          {String(current + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
         </div>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'DM Mono', monospace" }}>
-          {String(slides.length).padStart(2, "0")}
-        </span>
-        <div style={{ display: "flex", gap: 6, marginLeft: 8 }}>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+          {slides.map((s, i) => (
+            <button
+              key={s.id}
+              onClick={() => hasMultipleSlides && go(i)}
+              type="button"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: hasMultipleSlides ? "pointer" : "default",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              {i === current && (
+                <span style={{
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.6)",
+                  textTransform: "uppercase",
+                  letterSpacing: 1.5,
+                  fontFamily: "'DM Mono', monospace",
+                  maxWidth: 150,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}>
+                  {slideLabel(s.eyebrow)}
+                </span>
+              )}
+              <span style={{
+                display: "block",
+                width: i === current ? 32 : 6,
+                height: 3,
+                borderRadius: 2,
+                background: i === current ? slide.accent : "rgba(255,255,255,0.3)",
+                transition: "width 0.4s ease, background 0.3s ease",
+                position: "relative",
+                overflow: "hidden",
+              }}>
+                {i === current && (
+                  <span style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: `${progress}%`,
+                    background: "#fff",
+                    opacity: 0.5,
+                    transition: "width 0.06s linear",
+                  }} />
+                )}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {hasMultipleSlides && (
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          right: 24,
+          zIndex: 6,
+          transform: "translateY(-50%)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        }}>
           <button onClick={() => go((current - 1 + slides.length) % slides.length)} style={{
-            width: 34, height: 34, borderRadius: "50%",
-            background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.2)",
+            width: 40, height: 40, borderRadius: "50%",
+            background: "rgba(255,255,255,0.12)",
+            border: "1px solid rgba(255,255,255,0.18)",
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
             color: "#fff",
             backdropFilter: "blur(8px)",
-          }}>
+          }} type="button">
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 2L3 7l6 5" />
             </svg>
           </button>
           <button onClick={() => go((current + 1) % slides.length)} style={{
-            width: 34, height: 34, borderRadius: "50%",
-            background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.2)",
+            width: 40, height: 40, borderRadius: "50%",
+            background: "rgba(255,255,255,0.12)",
+            border: "1px solid rgba(255,255,255,0.18)",
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
             color: "#fff",
             backdropFilter: "blur(8px)",
-          }}>
+          }} type="button">
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 2l6 5-6 5" />
             </svg>
           </button>
         </div>
-      </div>
+      )}
 
       <div style={{
         position: "absolute", bottom: 28, left: "50%",
@@ -268,18 +431,37 @@ export default function ShowcaseHeroBanner({ slides, sectionIsAvailable }) {
         {slides.map((s, i) => (
           <div
             key={s.id}
-            onClick={() => go(i)}
+            onClick={() => hasMultipleSlides && go(i)}
             style={{
               flex: 1,
               background: i === current ? s.accent : "rgba(255,255,255,0.15)",
               transition: "background 0.4s ease",
-              cursor: "pointer",
+              cursor: hasMultipleSlides ? "pointer" : "default",
             }}
           />
         ))}
       </div>
 
       <style>{`
+        @media (max-width: 767px) {
+          .showcase-hero-banner {
+            height: 82vh !important;
+            min-height: 560px !important;
+          }
+          .showcase-hero-content {
+            padding: 0 20px 86px !important;
+            align-items: flex-start !important;
+          }
+          .showcase-hero-dots {
+            right: 20px !important;
+            bottom: 28px !important;
+            gap: 10px !important;
+          }
+          .showcase-hero-content h1,
+          .showcase-hero-content p {
+            text-align: left !important;
+          }
+        }
         @keyframes heroFadeUp {
           from { opacity: 0; transform: translateY(28px); }
           to { opacity: 1; transform: translateY(0); }

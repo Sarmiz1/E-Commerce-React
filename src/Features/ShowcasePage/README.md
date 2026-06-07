@@ -11,13 +11,12 @@ The folder owns two UI surfaces:
 
 Current product routes using this feature:
 
-- `/products/curation` renders `ShowcaseCurationIndexPage`.
-- `/products/curation/:showcaseSlug` renders `ShowcaseCurationPage`.
+- `/products/curations` renders `ShowcaseCurationIndexPage`.
+- `/products/curations/:showcaseSlug` renders `ShowcaseCurationPage`.
 - `/products/categories` renders `ShowcaseCategoryIndexPage`.
 - `/products/categories/:categorySlug` renders `ShowcaseCategoryPage`.
 
-The older `/products/curations` routes still point at the existing Curation feature. The singular
-`/products/curation` route is the Showcase-backed route.
+The old singular `/products/curation` route was only used while testing this reusable showcase surface.
 
 ## Structure
 

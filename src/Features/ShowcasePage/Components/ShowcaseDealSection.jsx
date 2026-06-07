@@ -19,6 +19,7 @@ function DealSideItem({ item, accent, index, visible }) {
 
   return (
     <Link
+      className="showcase-deal-side-item"
       to={getShowcaseProductPath(item)}
       style={{
         display: "flex", gap: 14, alignItems: "center",
@@ -70,7 +71,7 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
       transform: visible ? "translateY(0)" : "translateY(24px)",
       transition: "opacity 0.6s ease, transform 0.6s ease",
     }}>
-      <div style={{
+      <div className="showcase-deal-grid" style={{
         display: "grid", gridTemplateColumns: "1fr 1fr",
         gap: 20, marginBottom: 20,
       }}>
@@ -163,6 +164,17 @@ export default function ShowcaseDealSection({ section, visible, onQuickView }) {
           ))}
         </div>
       </div>
+      <style>{`
+        @media (max-width: 767px) {
+          .showcase-deal-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .showcase-deal-side-item img {
+            width: 82px !important;
+            height: 82px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

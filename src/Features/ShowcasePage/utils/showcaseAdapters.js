@@ -37,6 +37,73 @@ const getCurationForDefinition = (curations = [], definition) => {
   return curations.find((curation) => slugs.has(slugify(curation.slug)));
 };
 
+const SECTION_TAGS = {
+  "trending-products": "LIVE",
+  "trending-now": "LIVE",
+  "best-sellers": "ALWAYS ON",
+  "new-arrivals": "JUST IN",
+  "flash-deals": "ENDS SOON",
+  "deal-of-the-day": "TODAY ONLY",
+  "editorial-collections": "CURATED",
+  "editors-picks": "CURATED",
+  "most-loved": "TOP RATED",
+  "hot-right-now": "SURGING",
+  "recommended-for-user": "PERSONAL",
+  "continue-shopping": "PICK UP WHERE YOU LEFT OFF",
+  "based-on-browsing": "JUST FOR YOU",
+};
+
+const getSectionTag = ({ curation, definition, items = [], fallback = "CURATED" }) => {
+  const metadata = curation?.metadata || {};
+  const slug = slugify(curation?.slug || definition?.slugs?.[0] || definition?.key);
+  const keySlug = slugify(definition?.key || "");
+
+  return (
+    curation?.showcaseTag ||
+    curation?.showcase_tag ||
+    metadata.showcaseTag ||
+    metadata.showcase_tag ||
+    metadata.tag ||
+    SECTION_TAGS[slug] ||
+    SECTION_TAGS[keySlug] ||
+    (items.some((item) => Number(item.recent_quantity_sold || 0) > 0) ? "LIVE" : fallback)
+  );
+};
+
+const decorateShowcaseItem = (item = {}, index = 0, sectionTag = "") => {
+  const normalized = normalizeShowcaseProduct(item);
+  const sold = Number(normalized.sold || normalized.quantity_sold || 0);
+  const recentSold = Number(normalized.recent_quantity_sold || 0);
+  const rating = Number(normalized.rating_stars || normalized.rating || 0);
+  const reviews = Number(normalized.rating_count || normalized.reviews || 0);
+  const isNew = normalized.created_at
+    ? Date.now() - new Date(normalized.created_at).getTime() < 1000 * 60 * 60 * 24 * 14
+    : false;
+
+  let badge =
+    normalized.badge ||
+    normalized.showcase_badge ||
+    normalized.curation?.metadata?.badge ||
+    normalized.curation?.metadata?.tag ||
+    "";
+
+  if (!badge) {
+    if (index === 0 && /best|trending|hot/i.test(sectionTag)) badge = "#1 This Week";
+    else if (recentSold >= 25) badge = "Viral";
+    else if (recentSold >= 10) badge = "Trending";
+    else if (isNew) badge = "New";
+    else if (rating >= 4.7 && reviews >= 20) badge = "Top Rated";
+  }
+
+  return {
+    ...normalized,
+    badge,
+    sold,
+    quantity_sold: sold,
+    sales_minor: Number(normalized.sales_minor || 0),
+  };
+};
+
 export const buildTopbarLabels = (sections = []) =>
   sections.reduce((labels, section) => {
     labels[section.id] = section.topbarLabel || section.label;
@@ -74,27 +141,53 @@ export const buildShowcaseHeroSlides = ({
   },
 ];
 
-export const buildCurationIndexSections = (feed, basePath = "/products/curation") => {
+export const buildCurationIndexSections = (feed, basePath = "/products/curations") => {
   if (!feed) return [];
 
-  return CURATION_DEFINITIONS.map((definition, index) => {
-    const curation = getCurationForDefinition(feed.curations || [], definition);
-    const items = (feed[definition.key] || []).map(normalizeShowcaseProduct);
+  const definitionBySlug = new Map(
+    CURATION_DEFINITIONS.flatMap((definition) =>
+      definition.slugs.map((slug) => [slugify(slug), definition]),
+    ),
+  );
+  const curationSections = feed.curationSections?.length
+    ? feed.curationSections
+    : CURATION_DEFINITIONS.map((definition) => {
+        const curation = getCurationForDefinition(feed.curations || [], definition);
+        if (!curation) return null;
+        return {
+          ...curation,
+          products: feed[definition.key] || [],
+        };
+      }).filter(Boolean);
+
+  return curationSections.map((curation, index) => {
+    const definition = definitionBySlug.get(slugify(curation.slug)) || null;
+    const rawItems = curation.products || [];
+    const sectionTag = getSectionTag({ curation, definition, items: rawItems });
+    const items = rawItems
+      .slice(0, 5)
+      .map((item, itemIndex) => decorateShowcaseItem(item, itemIndex, sectionTag));
 
     if (!curation || !items.length) return null;
 
-    const id = slugify(curation.slug || definition.slugs[0] || definition.key);
+    const id = slugify(curation.slug || definition?.slugs?.[0] || definition?.key);
     const accent = ACCENTS[index % ACCENTS.length];
+    const isDealOfDay =
+      id === "deal-of-the-day" ||
+      slugify(definition?.key) === "deal-of-the-day" ||
+      /deal of the day/i.test(curation.name || "");
 
     return {
       id,
-      label: curation.name || titleFromKey(definition.key),
-      topbarLabel: curation.name || titleFromKey(definition.key),
-      tag: "CURATION",
-      tagColor: accent,
+      label: curation.name || titleFromKey(definition?.key || id),
+      topbarLabel: curation.name || titleFromKey(definition?.key || id),
+      tag: sectionTag,
+      tagColor: curation.showcaseTagColor || curation.showcase_tag_color || accent,
       accent,
       path: `${basePath}/${encodeURIComponent(id)}`,
-      items,
+      featured: isDealOfDay ? items[0] : null,
+      items: isDealOfDay ? items.slice(1, 5) : items,
+      isDealOfDay,
       description: curation.description || "",
     };
   }).filter(Boolean);
@@ -107,15 +200,19 @@ export const buildCategoryIndexSections = (products = [], basePath = "/products/
     const id = slugify(category.value || category.label);
     const items = products
       .filter((product) => matchesProductCategory(product, category.value))
-      .slice(0, 10)
-      .map(normalizeShowcaseProduct);
+      .slice(0, 5)
+      .map((product, itemIndex) => decorateShowcaseItem(product, itemIndex, category.label));
     const accent = ACCENTS[index % ACCENTS.length];
+    const hasNewProducts = items.some((item) => {
+      if (!item.created_at) return false;
+      return Date.now() - new Date(item.created_at).getTime() < 1000 * 60 * 60 * 24 * 14;
+    });
 
     return {
       id,
       label: category.label,
       topbarLabel: category.label,
-      tag: `${items.length} PICKS`,
+      tag: hasNewProducts ? "JUST IN" : "ALWAYS ON",
       tagColor: accent,
       accent,
       path: `${basePath}/${encodeURIComponent(id)}`,

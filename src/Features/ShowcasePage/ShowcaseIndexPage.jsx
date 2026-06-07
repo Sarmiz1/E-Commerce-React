@@ -45,6 +45,7 @@ export function ShowcaseIndex({
   isError = false,
   onRetry,
   emptyMessage = "No showcase sections are available yet.",
+  pageName = 'showcase',
 }) {
   const safeSections = useMemo(() => sections || [], [sections]);
   const safeHeroSlides = heroSlides?.length ? heroSlides : HERO_SLIDES;
@@ -63,8 +64,7 @@ export function ShowcaseIndex({
   // Checking if section is available or not,
   const sectionIsAvailable = useMemo(() => {
     if (isLoading || isError) return false;
-    if (safeSections.length > 0) return true
-    else return false;
+    return safeSections.length > 0;
   }, [isLoading, isError, safeSections]);
 
   useShowcaseFonts();
@@ -112,20 +112,22 @@ export function ShowcaseIndex({
       minHeight: "100vh",
       color: "#1a1a1a",
     }}>
-      <ShowcaseTopbar
-        sections={safeSections}
-        labels={labels}
-        activeId={activeId}
-        topbarRef={topbarRef}
-        onScrollSection={scrollToSection}
-        onScrollTopbar={scrollTopbar}
-        top={topbarOffset}
-      />
+      {sectionIsAvailable && (
+        <ShowcaseTopbar
+          sections={safeSections}
+          labels={labels}
+          activeId={activeId}
+          topbarRef={topbarRef}
+          onScrollSection={scrollToSection}
+          onScrollTopbar={scrollTopbar}
+          top={topbarOffset}
+        />
+      )}
 
       <ShowcaseHeroBanner slides={safeHeroSlides}
         sectionIsAvailable={sectionIsAvailable} />
 
-      <div style={{
+      <div className="showcase-index-sections" style={{
         maxWidth: 1200, margin: "0 auto",
         padding: "64px 48px 0",
       }}>
@@ -140,7 +142,7 @@ export function ShowcaseIndex({
       </div>
 
       {isLoading && (
-        <ShowcaseIndexStatus>Loading showcase sections...</ShowcaseIndexStatus>
+        <ShowcaseIndexStatus>Loading {pageName} sections...</ShowcaseIndexStatus>
       )}
       {isError && (
         <ShowcaseIndexStatus>
@@ -173,6 +175,14 @@ export function ShowcaseIndex({
           onClose={() => setQuickViewProduct(null)}
         />
       )}
+
+      <style>{`
+        @media (max-width: 767px) {
+          .showcase-index-sections {
+            padding: 42px 18px 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

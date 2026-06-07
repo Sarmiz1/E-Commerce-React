@@ -20,7 +20,11 @@ export const getShowcasePriceMinor = (product) => {
 };
 
 export const getShowcaseOriginalPriceMinor = (product) =>
-  Number(product?.compare_at_price_minor || product?.original_price_minor) || 0;
+  Number(
+    product?.compare_at_price_minor ||
+    product?.original_price_minor ||
+    (Number(product?.sale_price_minor) > 0 ? product?.price_minor : 0),
+  ) || 0;
 
 export const getShowcaseDiscount = (product) => {
   const price = getShowcasePriceMinor(product);
@@ -41,4 +45,7 @@ export const normalizeShowcaseProduct = (product = {}) => ({
   img: product.img || getShowcaseProductImage(product),
   image: product.image || product.img || getShowcaseProductImage(product),
   variant_id: getShowcaseVariantId(product),
+  sales_minor: Number(product.sales_minor || 0),
+  sold: Number(product.sold || product.quantity_sold || 0),
+  quantity_sold: Number(product.quantity_sold || product.sold || 0),
 });

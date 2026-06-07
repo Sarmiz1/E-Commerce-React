@@ -22,7 +22,7 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
       ref={ref}
       style={{ paddingBottom: 64 }}
     >
-      <div style={{
+      <div className="showcase-section-head" style={{
         display: "flex", alignItems: "flex-end", justifyContent: "space-between",
         marginBottom: 24,
         opacity: visible ? 1 : 0,
@@ -85,6 +85,14 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
           ))}
         </ShowcaseRail>
       )}
+      <style>{`
+        @media (max-width: 767px) {
+          .showcase-section-head {
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }

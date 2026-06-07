@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { AdminAdvertsAPI } from "../../api/adminAdvertsApi";
 import {
   CurationFetchLoaderAPI,
   createEmptyHomeCurations,
@@ -19,14 +20,22 @@ export default function ShowcaseCurationIndexPage() {
     staleTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData ?? createEmptyHomeCurations(),
   });
+  const advertQuery = useQuery({
+    ...AdminAdvertsAPI.getPublicHeroSlides({
+      placement: "showcase_hero",
+      surface: "curations",
+    }),
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData ?? [],
+  });
 
   const sections = useMemo(
-    () => buildCurationIndexSections(curationQuery.data, "/products/curation"),
+    () => buildCurationIndexSections(curationQuery.data, "/products/curations"),
     [curationQuery.data],
   );
   const products = useMemo(() => getSectionProducts(sections), [sections]);
   const heroSlides = useMemo(
-    () => buildShowcaseHeroSlides({
+    () => advertQuery.data?.length ? advertQuery.data : buildShowcaseHeroSlides({
       id: "curation-index",
       title: "WooSho Curations",
       eyebrow: "Marketplace edits",
@@ -36,12 +45,12 @@ export default function ShowcaseCurationIndexPage() {
       cta: "Browse Curations",
       ctaSecondary: "View Products",
     }),
-    [sections],
+    [advertQuery.data, sections],
   );
 
   return (
     <ShowcaseIndexPage
-      basePath="/products/curation"
+      basePath="/products/curations"
       emptyMessage="No active curation sections are available yet."
       heroSlides={heroSlides}
       isError={curationQuery.isError}
@@ -51,6 +60,7 @@ export default function ShowcaseCurationIndexPage() {
       sections={sections}
       topbarLabels={buildTopbarLabels(sections)}
       topbarOffset={70}
+      pageName='curations'
     />
   );
 }

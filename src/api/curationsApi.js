@@ -27,6 +27,9 @@ const normalizeCuration = (curation = {}) => ({
   ...curation,
   slug: normalizeCurationSlug(curation.slug || curation.name),
   description: curation.description || "",
+  showcaseTag: curation.showcase_tag || "",
+  showcaseTagColor: curation.showcase_tag_color || "",
+  showcaseSortOrder: curation.showcase_sort_order,
 });
 
 const fetchCurationBySlug = async (curationSlug) => {
@@ -35,7 +38,7 @@ const fetchCurationBySlug = async (curationSlug) => {
 
   const { data, error } = await supabase
     .from("curations")
-    .select("id, name, slug, description, is_active, created_at")
+    .select("id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order")
     .eq("slug", resolvedSlug)
     .eq("is_active", true)
     .maybeSingle();
@@ -50,8 +53,9 @@ const fetchCurationBySlug = async (curationSlug) => {
 const fetchRawActiveCurations = async () => {
   const { data: curations = [], error } = await supabase
     .from("curations")
-    .select("id, name, slug, description, is_active, created_at")
+    .select("id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order")
     .eq("is_active", true)
+    .order("showcase_sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
 
   throwQueryError(error);
