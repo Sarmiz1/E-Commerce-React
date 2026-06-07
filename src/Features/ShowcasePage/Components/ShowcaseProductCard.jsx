@@ -23,6 +23,7 @@ export default function ShowcaseProductCard({
   isContinue,
   isBrowsing,
   isHot,
+  isFlash,
   delay = 0,
   visible,
   onQuickView,
@@ -40,6 +41,8 @@ export default function ShowcaseProductCard({
   const originalPriceMinor = getShowcaseOriginalPriceMinor(item);
   const productPath = getShowcaseProductPath(item);
   const sold = Number(item.sold || item.quantity_sold || 0);
+  const saleEndsAt = item.saleEndsAt || item.sale_ends_at;
+  const displayBadge = isFlash && discount ? `${discount}% OFF` : item.badge;
 
   const handleQuickAdd = (event) => {
     event.preventDefault();
@@ -103,7 +106,7 @@ export default function ShowcaseProductCard({
           className="absolute top-2.5 right-2.5"
         />
 
-        {item.badge && (
+        {displayBadge && (
           <div style={{
             position: "absolute", bottom: 10, left: 10,
             background: discount ? accent : "rgba(0,0,0,0.8)",
@@ -113,16 +116,16 @@ export default function ShowcaseProductCard({
             letterSpacing: 0.5,
             textTransform: "uppercase",
           }}>
-            {item.badge}
+            {displayBadge}
           </div>
         )}
-        {item.timeLeft && (
+        {(item.timeLeft || saleEndsAt) && (
           <div style={{
             position: "absolute", top: 10, left: 10,
             background: "rgba(0,0,0,0.85)",
             padding: "4px 8px", borderRadius: 4,
           }}>
-            <ShowcaseCountdownTimer label={item.timeLeft} />
+            <ShowcaseCountdownTimer endsAt={saleEndsAt} label={item.timeLeft} />
           </div>
         )}
         <div style={{

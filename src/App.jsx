@@ -19,7 +19,7 @@ export default function App() {
               <IconContext.Provider value={{ size: "80px", color: "green" }}>
                 <RouterProvider router={router} />
               </IconContext.Provider>
-              {/* <ReactQueryDevtools /> */}
+              <ReactQueryDevtools />
             </ToastProvider>
           </ThemeProvider>
         </CartProvider>

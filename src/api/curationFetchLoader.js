@@ -43,6 +43,14 @@ const HOME_PRODUCT_SELECT = `
   )
 `;
 
+const HOME_PRODUCT_SELECT_FALLBACK = HOME_PRODUCT_SELECT
+  .replace(/\s+showcase_badge,\n/, "\n");
+
+const CURATION_SELECT =
+  "id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order";
+const CURATION_SELECT_FALLBACK =
+  "id, name, slug, description, is_active, created_at";
+
 export const CURATION_DEFINITIONS = [
   { key: "heroFeatured", slugs: ["hero-featured", "hero_featured"], limit: 1 },
   { key: "trendingProducts", slugs: ["trending-products", "trending_products"], limit: 8 },
@@ -161,12 +169,23 @@ const buildCurationCards = (curations, membershipsByCurationId, productsById) =>
   });
 
 async function fetchActiveCurations() {
-  const { data, error } = await supabase
+  let query = supabase
     .from("curations")
-    .select("id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order")
+    .select(CURATION_SELECT)
     .eq("is_active", true)
     .order("showcase_sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
+  let { data, error } = await query;
+
+  if (error?.message?.includes("showcase_")) {
+    const fallback = await supabase
+      .from("curations")
+      .select(CURATION_SELECT_FALLBACK)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true });
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     return {
@@ -213,11 +232,21 @@ async function fetchProducts(productIds) {
 
   for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
     const chunk = ids.slice(i, i + CHUNK_SIZE);
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("products")
       .select(HOME_PRODUCT_SELECT)
       .in("id", chunk)
       .eq("is_active", true);
+
+    if (error?.message?.includes("showcase_badge")) {
+      const fallback = await supabase
+        .from("products")
+        .select(HOME_PRODUCT_SELECT_FALLBACK)
+        .in("id", chunk)
+        .eq("is_active", true);
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       firstError = firstError || { table: "products", message: error.message };
@@ -247,7 +276,9 @@ async function fetchProductSalesStats(productIds) {
   if (error) {
     return {
       data: new Map(),
-      error: { table: "product_sales_stats", message: error.message },
+      error: error.message?.includes("get_public_product_sales_stats")
+        ? null
+        : { table: "product_sales_stats", message: error.message },
     };
   }
 
@@ -294,6 +325,8 @@ const withMembershipMerchandising = (product, membership, stats) => ({
   reason: membership.metadata?.reason || product.reason,
   note: membership.metadata?.note || product.note,
   timeLeft: membership.metadata?.timeLeft || membership.metadata?.time_left || product.timeLeft,
+  saleEndsAt: membership.metadata?.saleEndsAt || membership.metadata?.sale_ends_at || product.sale_ends_at,
+  saleStartsAt: membership.metadata?.saleStartsAt || membership.metadata?.sale_starts_at || product.sale_starts_at,
   stock: Number(membership.metadata?.stock || product.stock || product.stock_quantity || 0),
   sold: Number(
     membership.metadata?.quantity_sold ||

@@ -101,8 +101,19 @@ const decorateShowcaseItem = (item = {}, index = 0, sectionTag = "") => {
     sold,
     quantity_sold: sold,
     sales_minor: Number(normalized.sales_minor || 0),
+    saleEndsAt: normalized.saleEndsAt || normalized.sale_ends_at || normalized.curation?.metadata?.saleEndsAt || normalized.curation?.metadata?.sale_ends_at,
+    saleStartsAt: normalized.saleStartsAt || normalized.sale_starts_at || normalized.curation?.metadata?.saleStartsAt || normalized.curation?.metadata?.sale_starts_at,
   };
 };
+
+const getSoonestSaleEnd = (items = []) =>
+  items
+    .map((item) => item.saleEndsAt || item.sale_ends_at || item.timeLeftEndsAt)
+    .filter(Boolean)
+    .map((value) => new Date(value))
+    .filter((date) => !Number.isNaN(date.getTime()) && date.getTime() > Date.now())
+    .sort((a, b) => a.getTime() - b.getTime())[0]
+    ?.toISOString();
 
 export const buildTopbarLabels = (sections = []) =>
   sections.reduce((labels, section) => {
@@ -176,6 +187,17 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
       id === "deal-of-the-day" ||
       slugify(definition?.key) === "deal-of-the-day" ||
       /deal of the day/i.test(curation.name || "");
+    const isFlash =
+      id === "flash-deals" ||
+      slugify(definition?.key) === "flash-deals" ||
+      /flash|sale/i.test(curation.name || "") ||
+      sectionTag === "ENDS SOON";
+    const saleEndsAt =
+      curation.metadata?.saleEndsAt ||
+      curation.metadata?.sale_ends_at ||
+      curation.saleEndsAt ||
+      curation.sale_ends_at ||
+      getSoonestSaleEnd(items);
 
     return {
       id,
@@ -188,6 +210,8 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
       featured: isDealOfDay ? items[0] : null,
       items: isDealOfDay ? items.slice(1, 5) : items,
       isDealOfDay,
+      isFlash,
+      saleEndsAt,
       description: curation.description || "",
     };
   }).filter(Boolean);

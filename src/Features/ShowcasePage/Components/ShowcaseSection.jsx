@@ -39,7 +39,12 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
             }}>
               {section.tag}
             </span>
-            {section.isFlash && <ShowcaseCountdownTimer label="2h 30m" />}
+            {section.isFlash && (
+              <ShowcaseCountdownTimer
+                endsAt={section.saleEndsAt}
+                label={section.countdownLabel || "2h 29m 3s"}
+              />
+            )}
           </div>
           <h2 style={{
             margin: 0,
@@ -78,6 +83,7 @@ export default function ShowcaseSection({ section, onQuickView, viewAllPath }) {
               isContinue={isContinue}
               isBrowsing={isBrowsing}
               isHot={isHot}
+              isFlash={section.isFlash}
               delay={i * 60}
               visible={visible}
               onQuickView={onQuickView}
