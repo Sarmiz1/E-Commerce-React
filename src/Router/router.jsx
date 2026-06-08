@@ -626,6 +626,16 @@ const router = createBrowserRouter(
       <Route
         path="test8"
         lazy={() =>
+          import("../Features/AdvertisementAndPlacement/ProductPlacement").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
+
+      <Route
+        path="test9"
+        lazy={() =>
           import("../Features/ShopByBrands/BrandDetailTest").then((m) => ({
             Component: m.default,
           }))

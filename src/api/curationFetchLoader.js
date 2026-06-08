@@ -45,6 +45,11 @@ const HOME_PRODUCT_SELECT = `
 
 const HOME_PRODUCT_SELECT_FALLBACK = HOME_PRODUCT_SELECT
   .replace(/\s+showcase_badge,\n/, "\n");
+const HOME_PRODUCT_SELECT_NO_CATEGORY = HOME_PRODUCT_SELECT_FALLBACK
+  .replace(
+    /\s+category:categories!category_id \(\s+id,\s+name,\s+slug\s+\),/m,
+    "\n",
+  );
 
 const CURATION_SELECT =
   "id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order";
@@ -313,6 +318,16 @@ async function fetchProducts(productIds) {
       const fallback = await supabase
         .from("products")
         .select(HOME_PRODUCT_SELECT_FALLBACK)
+        .in("id", chunk)
+        .eq("is_active", true);
+      data = fallback.data;
+      error = fallback.error;
+    }
+
+    if (error?.message?.includes("admin_users")) {
+      const fallback = await supabase
+        .from("products")
+        .select(HOME_PRODUCT_SELECT_NO_CATEGORY)
         .in("id", chunk)
         .eq("is_active", true);
       data = fallback.data;

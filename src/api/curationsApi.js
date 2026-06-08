@@ -30,6 +30,10 @@ const throwQueryError = (error) => {
   if (error) throw new Error(error.message);
 };
 
+const isAdminUsersPermissionError = (error) =>
+  error?.message?.toLowerCase().includes("admin_users") &&
+  error?.message?.toLowerCase().includes("permission denied");
+
 const normalizeCuration = (curation = {}) => ({
   ...curation,
   slug: normalizeCurationSlug(curation.slug || curation.name),
@@ -91,6 +95,9 @@ const fetchCurationBySlug = async (curationSlug) => {
     error = fallback.error;
   }
 
+  if (isAdminUsersPermissionError(error)) {
+    return createFallbackCuration(resolvedSlug);
+  }
   throwQueryError(error);
 
   return data
@@ -116,6 +123,7 @@ const fetchRawActiveCurations = async () => {
     error = fallback.error;
   }
 
+  if (isAdminUsersPermissionError(error)) return [];
   throwQueryError(error);
 
   return curations.map(normalizeCuration);
@@ -160,6 +168,7 @@ const fetchCurationMemberships = async (curationIdOrIds) => {
       .order("score", { ascending: false })
       .range(from, from + CURATION_MEMBERSHIP_PAGE_SIZE - 1);
 
+    if (isAdminUsersPermissionError(error)) return [];
     throwQueryError(error);
     memberships.push(...data);
 
