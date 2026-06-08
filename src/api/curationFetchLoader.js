@@ -296,6 +296,32 @@ async function fetchCurationMemberships(curationIds) {
   return { data: data || [], error: null };
 }
 
+async function fetchLimitedCurationMemberships(curationIds, perCurationLimit = 5) {
+  if (!curationIds.length) return { data: [], error: null };
+
+  const allMemberships = [];
+  let firstError = null;
+
+  for (const curationId of curationIds) {
+    const { data, error } = await supabase
+      .from("curation_products")
+      .select("curation_id, product_id, sort_order, score, source, metadata, created_at, updated_at")
+      .eq("curation_id", curationId)
+      .order("sort_order", { ascending: true })
+      .order("score", { ascending: false })
+      .limit(perCurationLimit);
+
+    if (error) {
+      firstError = firstError || { table: "curation_products", message: error.message };
+      continue;
+    }
+
+    allMemberships.push(...(data || []));
+  }
+
+  return { data: allMemberships, error: firstError };
+}
+
 async function fetchProducts(productIds) {
   const ids = [...new Set(productIds.filter(Boolean))];
   if (!ids.length) return { data: [], error: null };
@@ -597,11 +623,16 @@ export const CurationFetchLoaderAPI = {
       const relevantCurations = includeAllSections
         ? curations
         : curations.filter((curation, index) => relevantSlugSet.has(curation.slug) || index < 6);
-      const membershipsResult = await fetchCurationMemberships(
-        relevantCurations.map((curation) => curation.id),
-      );
+      const membershipsResult = includeAllSections
+        ? await fetchLimitedCurationMemberships(
+            relevantCurations.map((curation) => curation.id),
+            5,
+          )
+        : await fetchCurationMemberships(
+            relevantCurations.map((curation) => curation.id),
+          );
       const displayMemberships = includeAllSections
-        ? limitMembershipsForDisplay(membershipsResult.data, 5)
+        ? membershipsResult.data
         : limitMembershipsForDisplay(membershipsResult.data, 12);
       const productsResult = await fetchProducts(
         displayMemberships.map((membership) => membership.product_id),

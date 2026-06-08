@@ -1,5 +1,4 @@
 import { supabase } from "../lib/supabaseClient";
-import { ProductsAPI } from "./productsApi";
 import {
   CURATION_DEFINITIONS,
   CurationFetchLoaderAPI,
@@ -20,6 +19,33 @@ const CURATION_SLUG_ALIASES = {
   lookbook: "lookbook-products",
 };
 const CURATION_MEMBERSHIP_PAGE_SIZE = 500;
+const FALLBACK_PRODUCT_SELECT = `
+  *,
+  product_variants(*),
+  product_images(*),
+  category:categories!category_id (
+    id,
+    name,
+    slug
+  ),
+  seller:seller_public!seller_id (
+    id,
+    full_name,
+    avatar_url,
+    store_name,
+    store_slug,
+    store_logo,
+    rating,
+    is_verified_store,
+    trust_score,
+    seller_badges
+  )
+`;
+const FALLBACK_PRODUCT_SELECT_NO_CATEGORY = FALLBACK_PRODUCT_SELECT
+  .replace(
+    /\s+category:categories!category_id \(\s+id,\s+name,\s+slug\s+\),/m,
+    "\n",
+  );
 
 export const resolveCurationSlug = (curationSlug) => {
   const normalizedSlug = normalizeCurationSlug(curationSlug);
@@ -295,7 +321,7 @@ const byRating = (a, b) =>
 
 const fetchFallbackProductsForCuration = async (curationSlug) => {
   const resolvedSlug = resolveCurationSlug(curationSlug);
-  const products = await ProductsAPI.getAll().queryFn();
+  const products = await fetchFallbackCatalogProducts(resolvedSlug);
   let filtered = [...products];
 
   if (resolvedSlug === "new-arrivals") {
@@ -328,6 +354,43 @@ const fetchFallbackProductsForCuration = async (curationSlug) => {
   }
 
   return filtered.slice(0, 60);
+};
+
+const fetchFallbackCatalogProducts = async (resolvedSlug) => {
+  let query = supabase
+    .from("products")
+    .select(FALLBACK_PRODUCT_SELECT)
+    .eq("is_active", true)
+    .limit(60);
+
+  if (resolvedSlug === "new-arrivals") {
+    query = query.order("created_at", { ascending: false });
+  } else if (resolvedSlug === "flash-deals" || resolvedSlug === "deal-of-the-day") {
+    query = query
+      .or("sale_price_minor.gt.0,compare_at_price_minor.gt.0")
+      .order("created_at", { ascending: false });
+  } else {
+    query = query
+      .order("rating_stars", { ascending: false, nullsFirst: false })
+      .order("rating_count", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
+  }
+
+  let { data, error } = await query;
+
+  if (isAdminUsersPermissionError(error)) {
+    const fallback = await supabase
+      .from("products")
+      .select(FALLBACK_PRODUCT_SELECT_NO_CATEGORY)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(60);
+    data = fallback.data;
+    error = fallback.error;
+  }
+
+  throwQueryError(error);
+  return data || [];
 };
 
 export const CurationsAPI = {
