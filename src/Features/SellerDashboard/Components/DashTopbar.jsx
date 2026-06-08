@@ -20,7 +20,7 @@ export default function DashTopbar() {
 
   const pageTitle = {
     overview: 'Overview', ai_sales_assistant: 'AI Sales Assistant', orders: 'Orders', products: 'Products', analytics: 'Analytics',
-    customers: 'Customers', wallet: 'Wallet', plan: 'Subscription Plan', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings',
+    customers: 'Customers', wallet: 'Wallet', plan: 'Subscription Plan', ads: 'Advertisements', marketing: 'Marketing', reviews: 'Reviews', settings: 'Settings',
   }[activePage] || 'Dashboard';
 
   return (

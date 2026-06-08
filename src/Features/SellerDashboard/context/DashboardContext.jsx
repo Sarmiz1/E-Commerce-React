@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo } from 'react';
 import { useSellerUIStore } from '../store/useSellerUIStore';
 import {
@@ -27,6 +28,7 @@ export const NAV_ITEMS = [
   { id: 'customers',          label: 'Customers',    icon: 'users' },
   { id: 'wallet',             label: 'Wallet',       icon: 'wallet' },
   { id: 'plan',               label: 'Subscription', icon: 'credit-card' },
+  { id: 'ads',                label: 'Ads',          icon: 'megaphone' },
   { id: 'marketing',          label: 'Marketing',    icon: 'trending-up' },
   { id: 'reviews',            label: 'Reviews',      icon: 'star' },
   { id: 'settings',           label: 'Settings',     icon: 'settings' },
@@ -77,7 +79,7 @@ export function DashboardProvider({ children }) {
   const orders = data.orders || [];
   const products = data.products || [];
   const reviews = data.reviews || [];
-  const notifications = data.notifications || [];
+  const notifications = useMemo(() => data.notifications || [], [data.notifications]);
   const revenueChart = data.revenueChart || { '7d': [], '30d': [], '90d': [] };
   
   const analytics = data.analytics || {

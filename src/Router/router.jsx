@@ -566,7 +566,7 @@ const router = createBrowserRouter(
       <Route
         path="test2"
         lazy={() =>
-          import("../Features/Curation/CurationIndexPage").then((m) => ({
+          import("../Features/Stores/SellerPage").then((m) => ({
             Component: m.default,
           }))
         }
@@ -576,7 +576,7 @@ const router = createBrowserRouter(
       <Route
         path="test3"
         lazy={() =>
-          import("../Features/Curation/CurationPage").then((m) => ({
+          import("../Features/AdvertisementAndPlacement/Advertisement").then((m) => ({
             Component: m.default,
           }))
         }
@@ -586,7 +586,7 @@ const router = createBrowserRouter(
       <Route
         path="test4"
         lazy={() =>
-          import("../Features/Collections/pages/FlashSalesPage").then((m) => ({
+          import("../Features/AdvertisementAndPlacement/Placement").then((m) => ({
             Component: m.default,
           }))
         }
@@ -596,36 +596,6 @@ const router = createBrowserRouter(
       <Route
         path="test5"
         lazy={() =>
-          import("../Features/Stores/SellerPage").then((m) => ({
-            Component: m.default,
-          }))
-        }
-        hydrateFallbackElement={<ProductsSkeleton />}
-      />
-
-      <Route
-        path="test6"
-        lazy={() =>
-          import("../Features/AdvertisementAndPlacement/Advertisement").then((m) => ({
-            Component: m.default,
-          }))
-        }
-        hydrateFallbackElement={<ProductsSkeleton />}
-      />
-
-      <Route
-        path="test7"
-        lazy={() =>
-          import("../Features/AdvertisementAndPlacement/Placement").then((m) => ({
-            Component: m.default,
-          }))
-        }
-        hydrateFallbackElement={<ProductsSkeleton />}
-      />
-
-      <Route
-        path="test8"
-        lazy={() =>
           import("../Features/AdvertisementAndPlacement/ProductPlacement").then((m) => ({
             Component: m.default,
           }))
@@ -634,7 +604,7 @@ const router = createBrowserRouter(
       />
 
       <Route
-        path="test9"
+        path="test6"
         lazy={() =>
           import("../Features/ShopByBrands/BrandDetailTest").then((m) => ({
             Component: m.default,

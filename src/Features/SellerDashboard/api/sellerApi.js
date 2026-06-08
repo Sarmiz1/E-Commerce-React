@@ -336,6 +336,118 @@ export const sellerApi = {
     return true;
   },
 
+  getAdvertisements: async (sellerId) => {
+    if (!sellerId) return [];
+
+    const { data, error } = await supabase
+      .from('advertisements')
+      .select(`
+        *,
+        product:products!product_id (
+          id,
+          name,
+          slug,
+          image,
+          price_minor
+        )
+      `)
+      .eq('seller_id', sellerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  createAdvertisement: async (sellerId, advert) => {
+    let imageUrl = advert.imageUrl || null;
+
+    if (advert.imageFile && advert.imageFile instanceof File) {
+      imageUrl = await uploadImage(advert.imageFile, 'advertisements');
+    }
+
+    const { data, error } = await supabase
+      .from('advertisements')
+      .insert({
+        seller_id: sellerId,
+        product_id: advert.productId || null,
+        title: advert.title,
+        subtitle: advert.subtitle || null,
+        creative_type: advert.creativeType,
+        placement: advert.placement,
+        destination_url: advert.destinationUrl || null,
+        image_url: imageUrl,
+        package_id: advert.packageId,
+        required_seller_plan: advert.requiredSellerPlan,
+        eligible_plan_ids: advert.eligiblePlanIds,
+        budget_minor: nairaToMinor(advert.budget),
+        bid_type: advert.bidType,
+        bid_minor: nairaToMinor(advert.bid),
+        starts_at: advert.startsAt || null,
+        ends_at: advert.endsAt || null,
+        payment_status: advert.paymentReference ? 'paid' : 'pending',
+        payment_reference: advert.paymentReference || null,
+        approval_status: advert.paymentReference ? 'pending_review' : 'draft',
+        targeting_rules: {
+          categories: advert.categories || [],
+          locations: advert.locations || [],
+          keywords: advert.keywords || [],
+        },
+        creative_payload: {
+          headline: advert.title,
+          subtitle: advert.subtitle || '',
+          imageUrl,
+        },
+        metadata: {
+          submittedFrom: 'seller_dashboard',
+          sellerPlan: advert.sellerPlan || 'starter',
+        },
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  getAdvertisementAnalytics: async (sellerId) => {
+    const adverts = await sellerApi.getAdvertisements(sellerId);
+    const advertIds = adverts.map((advert) => advert.id);
+
+    if (!advertIds.length) {
+      return {
+        campaigns: [],
+        totals: { impressions: 0, clicks: 0, conversions: 0, revenueMinor: 0 },
+        timeline: [],
+      };
+    }
+
+    const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString();
+    const { data: events, error } = await supabase
+      .from('advertisement_events')
+      .select('advertisement_id, event_type, event_value_minor, occurred_at')
+      .in('advertisement_id', advertIds)
+      .gte('occurred_at', since)
+      .order('occurred_at', { ascending: true });
+
+    if (error) throw error;
+
+    const totals = (events || []).reduce((acc, event) => {
+      if (event.event_type === 'impression') acc.impressions += 1;
+      if (event.event_type === 'click') acc.clicks += 1;
+      if (event.event_type === 'conversion') {
+        acc.conversions += 1;
+        acc.revenueMinor += Number(event.event_value_minor || 0);
+      }
+      return acc;
+    }, { impressions: 0, clicks: 0, conversions: 0, revenueMinor: 0 });
+
+    return {
+      campaigns: adverts,
+      totals,
+      events: events || [],
+    };
+  },
+
   replyReview: async (reviewId, replyText) => {
     await new Promise(r => setTimeout(r, 600));
     // When backend is ready, implement supabase insert/update here

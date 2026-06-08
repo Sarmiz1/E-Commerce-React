@@ -286,6 +286,52 @@ export function useDeleteSellerCoupon() {
   });
 }
 
+export function useSellerAdvertisements() {
+  const { user, isMock } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['seller-advertisements', user?.id],
+    queryFn: () => sellerApi.getAdvertisements(user?.id),
+    enabled: Boolean(user?.id) && !isMock,
+    staleTime: 1000 * 60,
+    placeholderData: (previousData) => previousData ?? [],
+  });
+}
+
+export function useSellerAdvertisementAnalytics() {
+  const { user, isMock } = useAuthStore();
+
+  return useQuery({
+    queryKey: ['seller-advertisement-analytics', user?.id],
+    queryFn: () => sellerApi.getAdvertisementAnalytics(user?.id),
+    enabled: Boolean(user?.id) && !isMock,
+    staleTime: 1000 * 60,
+    placeholderData: (previousData) => previousData ?? {
+      campaigns: [],
+      totals: { impressions: 0, clicks: 0, conversions: 0, revenueMinor: 0 },
+      events: [],
+    },
+  });
+}
+
+export function useCreateSellerAdvertisement() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: (advert) => sellerApi.createAdvertisement(user?.id, advert),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seller-advertisements', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['seller-advertisement-analytics', user?.id] });
+      addToast('Advertisement submitted for admin review', 'success');
+    },
+    onError: (err) => {
+      addToast(`Failed to submit advertisement: ${err.message}`, 'error');
+    }
+  });
+}
+
 export function useReplyReview() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();

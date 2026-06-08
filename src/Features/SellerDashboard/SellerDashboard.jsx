@@ -9,6 +9,7 @@ import DashProducts from './Components/DashProducts';
 import DashAnalytics from './Components/DashAnalytics';
 import DashCustomers from './Components/DashCustomers';
 import DashWallet from './Components/DashWallet';
+import DashAds from './Components/DashAds';
 import DashMarketing from './Components/DashMarketing';
 import DashReviews from './Components/DashReviews';
 import DashSettings from './Components/DashSettings';
@@ -43,6 +44,7 @@ const PAGE_MAP = {
   customers: () => <DashCustomers />,
   wallet:    () => <DashWallet />,
   plan:      () => <DashPlan />,
+  ads:       () => <DashAds />,
   marketing: () => <DashMarketing />,
   reviews:   () => <DashReviews />,
   settings:  () => <DashSettings />,

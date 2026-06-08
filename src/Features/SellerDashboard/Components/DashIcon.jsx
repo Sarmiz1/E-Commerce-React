@@ -40,6 +40,7 @@ export function Icon({ name, size = 20, className = '', style = {} }) {
     case 'tag': return <svg {...props}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg>;
     case 'percent': return <svg {...props}><line x1="19" y1="5" x2="5" y2="19" /><circle cx="6.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="17.5" r="2.5" /></svg>;
     case 'message-square': return <svg {...props}><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>;
+    case 'megaphone': return <svg {...props}><path d="M3 11v3a2 2 0 002 2h2l4 4v-5l8 2V7l-8 2V4L7 8H5a2 2 0 00-2 2v1z" /><path d="M19 8.5a3.5 3.5 0 010 7" /></svg>;
     case 'crown': return <svg {...props}><path d="M2 20h20l-2-8-5 4-3-6-3 6-5-4-2 8z" /><path d="M2 20v2h20v-2" /></svg>;
     case 'lock': return <svg {...props}><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>;
     case 'shield': return <svg {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
