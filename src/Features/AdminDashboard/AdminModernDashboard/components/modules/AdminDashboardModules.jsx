@@ -56,12 +56,15 @@ import {
 } from "lucide-react";
 import {
   useAdminDashboard,
+  useAdminAdverts,
   useAdminBuyers,
+  useAdminDealsOfDay,
   useAdminDeactivatedBuyers,
   useAdminHiring,
   useAdminPageActivity,
   useAdminPaidSalesChart,
   useAdminPromoCodes,
+  useAdminSellerAdvertisements,
   useAdminProducts,
   useAdminUserGrowth,
   useConfigureAdminPromotionPasscode,
@@ -77,7 +80,9 @@ import {
   usePermanentlyDeleteBuyerAccount,
   useReviewBuyerReactivation,
   useSaveAdminIntegration,
+  useSaveAdminAdvert,
   useSaveAdminCareerQuestion,
+  useSaveAdminDealOfDay,
   useSaveAdminPromoCode,
   useSaveAdminSetting,
   useSetAdminJobOpeningStatus,
@@ -86,6 +91,9 @@ import {
   useSetAdminProductModerationStatus,
   useSetAdminSellerStatus,
   useSetAdminSupportTicketStatus,
+  useUpdateSellerAdvertisementStatus,
+  useDeleteAdminAdvert,
+  useDeleteAdminDealOfDay,
 } from "../../hooks/useAdminDashboardQueries";
 import {
   ADMIN_NAV,
@@ -1741,6 +1749,326 @@ function PromoCodesModule({ deleteMutation, query, saveMutation, toast }) {
   );
 }
 
+const advertDefaults = {
+  title: "",
+  eyebrow: "",
+  subtitle: "",
+  placement: "showcase_hero",
+  surface: "global",
+  status: "draft",
+  image_url: "",
+  cta_label: "Shop Now",
+  cta_url: "",
+  priority: 10,
+  weight: 1,
+  starts_at: "",
+  ends_at: "",
+};
+
+const dealDefaults = {
+  title: "Deal of the Day",
+  eyebrow: "Today Only",
+  description: "",
+  status: "draft",
+  priority: 10,
+  accent_color: "#E8433A",
+  featured_product_id: "",
+  product_ids: "",
+  cta_label: "View deal",
+  cta_url: "/products/curations/deal-of-the-day",
+  starts_at: "",
+  ends_at: "",
+};
+
+const csvToIds = (value = "") =>
+  value.split(",").map((item) => item.trim()).filter(Boolean);
+
+function CommercialModule({
+  advertsQuery,
+  dealsQuery,
+  deleteAdvertMutation,
+  deleteDealMutation,
+  saveAdvertMutation,
+  saveDealMutation,
+  sellerAdsQuery,
+  sellerAdStatusMutation,
+  toast,
+}) {
+  const [advertEditor, setAdvertEditor] = useState(null);
+  const [dealEditor, setDealEditor] = useState(null);
+  const [statusNote, setStatusNote] = useState("");
+
+  const adminAdverts = Array.isArray(advertsQuery.data) ? advertsQuery.data : [];
+  const deals = Array.isArray(dealsQuery.data) ? dealsQuery.data : [];
+  const sellerAds = Array.isArray(sellerAdsQuery.data) ? sellerAdsQuery.data : [];
+
+  const openAdvertEditor = (advert = null) => {
+    setAdvertEditor(advert ? {
+      ...advertDefaults,
+      ...advert,
+      starts_at: toDateTimeLocal(advert.starts_at),
+      ends_at: toDateTimeLocal(advert.ends_at),
+      image_url: advert.image_url || advert.imageUrl || "",
+      cta_url: advert.cta_url || advert.ctaUrl || advert.targetUrl || "",
+      cta_label: advert.cta_label || advert.ctaLabel || "Shop Now",
+    } : advertDefaults);
+  };
+
+  const openDealEditor = (deal = null) => {
+    setDealEditor(deal ? {
+      ...dealDefaults,
+      ...deal,
+      starts_at: toDateTimeLocal(deal.starts_at),
+      ends_at: toDateTimeLocal(deal.ends_at),
+      product_ids: Array.isArray(deal.product_ids) ? deal.product_ids.join(", ") : "",
+    } : dealDefaults);
+  };
+
+  const saveAdvert = async (event) => {
+    event.preventDefault();
+    const payload = {
+      title: advertEditor.title,
+      eyebrow: advertEditor.eyebrow || null,
+      subtitle: advertEditor.subtitle || null,
+      placement: advertEditor.placement,
+      surface: advertEditor.surface,
+      status: advertEditor.status,
+      image_url: advertEditor.image_url || null,
+      cta_label: advertEditor.cta_label || null,
+      cta_url: advertEditor.cta_url || null,
+      target_url: advertEditor.cta_url || null,
+      priority: Number(advertEditor.priority || 10),
+      weight: Number(advertEditor.weight || 1),
+      starts_at: advertEditor.starts_at || null,
+      ends_at: advertEditor.ends_at || null,
+    };
+
+    try {
+      await saveAdvertMutation.mutateAsync({ id: advertEditor.id, payload });
+      await advertsQuery.refetch();
+      setAdvertEditor(null);
+      toast("Advert control saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  const saveDeal = async (event) => {
+    event.preventDefault();
+    const productIds = csvToIds(dealEditor.product_ids);
+    const payload = {
+      title: dealEditor.title,
+      eyebrow: dealEditor.eyebrow || null,
+      description: dealEditor.description || null,
+      status: dealEditor.status,
+      priority: Number(dealEditor.priority || 10),
+      accent_color: dealEditor.accent_color || "#E8433A",
+      featured_product_id: dealEditor.featured_product_id || productIds[0] || null,
+      product_ids: productIds,
+      cta_label: dealEditor.cta_label || null,
+      cta_url: dealEditor.cta_url || null,
+      starts_at: dealEditor.starts_at || null,
+      ends_at: dealEditor.ends_at || null,
+    };
+
+    try {
+      await saveDealMutation.mutateAsync({ id: dealEditor.id, payload });
+      await dealsQuery.refetch();
+      setDealEditor(null);
+      toast("Deal of the Day saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  const updateSellerAd = async (ad, approvalStatus) => {
+    try {
+      await sellerAdStatusMutation.mutateAsync({
+        id: ad.id,
+        payload: {
+          approvalStatus,
+          adminStatusNote: statusNote,
+          priority: Number(ad.priority || 10),
+          weight: Number(ad.weight || 1),
+          startsAt: ad.starts_at,
+          endsAt: ad.ends_at,
+        },
+      });
+      await sellerAdsQuery.refetch();
+      setStatusNote("");
+      toast(`Seller advertisement ${titleCase(approvalStatus)}`, C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  const removeAdvert = async (id) => {
+    if (!window.confirm("Delete this admin advert?")) return;
+    try {
+      await deleteAdvertMutation.mutateAsync(id);
+      await advertsQuery.refetch();
+      toast("Advert deleted", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  const removeDeal = async (id) => {
+    if (!window.confirm("Delete this deal?")) return;
+    try {
+      await deleteDealMutation.mutateAsync(id);
+      await dealsQuery.refetch();
+      toast("Deal deleted", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  return (
+    <div style={{display:'grid',gap:14}}>
+      <Stats>
+        <Stat icon={Sparkles} label="Admin adverts" value={adminAdverts.length} color={C.purple}/>
+        <Stat icon={Ticket} label="Deal controls" value={deals.length} color={C.amber}/>
+        <Stat icon={Store} label="Seller ad requests" value={sellerAds.length} color={C.cyan}/>
+        <Stat icon={CheckCircle2} label="Pending review" value={sellerAds.filter((ad)=>ad.approval_status==="pending_review").length} color={C.green}/>
+      </Stats>
+
+      <Card title="Seller Paid Advertisement Requests" accent={C.cyan}>
+        <PanelMessage>Seller-created paid ads stay pending until admin approves their placement, dates, priority, and package fit.</PanelMessage>
+        <div style={{padding:'0 1.2rem 1rem'}}>
+          <Field label="Review Note">
+            <input value={statusNote} onChange={(event)=>setStatusNote(event.target.value)}
+              placeholder="Optional note sent with approve/reject decisions" style={inputStyle}/>
+          </Field>
+        </div>
+        {sellerAdsQuery.isLoading ? <PanelMessage>Loading seller advertisements...</PanelMessage> : (
+          <Table columns={["Campaign","Seller","Placement","Package","Budget","Payment","Status","Actions"]}
+            emptyMessage="No seller advertisement requests found."
+            rows={sellerAds.map((ad) => (
+              <tr key={ad.id}>
+                <Td>{ad.title}<div style={{fontSize:10,color:C.txt3}}>{ad.subtitle || ad.destination_url || "-"}</div></Td>
+                <Td>{ad.seller?.store_name || ad.seller?.full_name || ad.seller_id}</Td>
+                <Td>{titleCase(ad.placement)}</Td>
+                <Td>{titleCase(ad.package_id || ad.required_seller_plan || "standard")}</Td>
+                <Td>{formatMoney(ad.budget_minor)}</Td>
+                <Td><Badge type={ad.payment_status || "pending"}/></Td>
+                <Td><Badge type={ad.approval_status || "draft"}/></Td>
+                <Td><div style={{display:'flex',gap:5}}>
+                  <Btn icon={Check} variant="success" disabled={sellerAdStatusMutation.isPending}
+                    onClick={()=>updateSellerAd(ad, "approved")}>Approve</Btn>
+                  <Btn icon={XCircle} variant="danger" disabled={sellerAdStatusMutation.isPending}
+                    onClick={()=>updateSellerAd(ad, "rejected")}>Reject</Btn>
+                  <Btn icon={Clock} disabled={sellerAdStatusMutation.isPending}
+                    onClick={()=>updateSellerAd(ad, "paused")}>Pause</Btn>
+                </div></Td>
+              </tr>
+            ))}/>
+        )}
+      </Card>
+
+      <Card title="Hero, Featured, And Placement Adverts" accent={C.purple} actions={
+        <Btn icon={Plus} variant="success" onClick={()=>openAdvertEditor()}>Add Advert</Btn>
+      }>
+        {advertsQuery.isLoading ? <PanelMessage>Loading admin adverts...</PanelMessage> : (
+          <Table columns={["Title","Placement","Surface","Status","Priority","Dates","Actions"]}
+            emptyMessage="No admin-controlled adverts yet."
+            rows={adminAdverts.map((advert) => (
+              <tr key={advert.id}>
+                <Td>{advert.title}<div style={{fontSize:10,color:C.txt3}}>{advert.eyebrow || advert.subtitle || "-"}</div></Td>
+                <Td>{titleCase(advert.placement)}</Td>
+                <Td>{titleCase(advert.surface || "global")}</Td>
+                <Td><Badge type={advert.status || "draft"}/></Td>
+                <Td>{advert.priority || 10} / {advert.weight || 1}</Td>
+                <Td>{formatDate(advert.starts_at)} - {formatDate(advert.ends_at)}</Td>
+                <Td><div style={{display:'flex',gap:5}}>
+                  <Btn icon={Edit2} onClick={()=>openAdvertEditor(advert)}>Edit</Btn>
+                  <Btn icon={Trash2} variant="danger" onClick={()=>removeAdvert(advert.id)}>Delete</Btn>
+                </div></Td>
+              </tr>
+            ))}/>
+        )}
+      </Card>
+
+      <Card title="Deal Of The Day" accent={C.amber} actions={
+        <Btn icon={Plus} variant="success" onClick={()=>openDealEditor()}>Add Deal</Btn>
+      }>
+        {dealsQuery.isLoading ? <PanelMessage>Loading deals...</PanelMessage> : (
+          <Table columns={["Title","Featured Product","Products","Status","Priority","Ends","Actions"]}
+            emptyMessage="No Deal of the Day rows configured."
+            rows={deals.map((deal) => (
+              <tr key={deal.id}>
+                <Td>{deal.title}<div style={{fontSize:10,color:C.txt3}}>{deal.eyebrow || "-"}</div></Td>
+                <Td>{deal.featured_product_id || "-"}</Td>
+                <Td>{Array.isArray(deal.product_ids) ? deal.product_ids.length : 0}</Td>
+                <Td><Badge type={deal.status || "draft"}/></Td>
+                <Td>{deal.priority || 10}</Td>
+                <Td>{formatDate(deal.ends_at)}</Td>
+                <Td><div style={{display:'flex',gap:5}}>
+                  <Btn icon={Edit2} onClick={()=>openDealEditor(deal)}>Edit</Btn>
+                  <Btn icon={Trash2} variant="danger" onClick={()=>removeDeal(deal.id)}>Delete</Btn>
+                </div></Td>
+              </tr>
+            ))}/>
+        )}
+      </Card>
+
+      {advertEditor && (
+        <AdminModal title={advertEditor.id ? "Edit Advert" : "Create Advert"} onClose={()=>setAdvertEditor(null)}>
+          <form onSubmit={saveAdvert} style={{padding:'1.2rem',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:12}}>
+            <Field label="Title"><input required value={advertEditor.title} onChange={(event)=>setAdvertEditor({...advertEditor,title:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Eyebrow"><input value={advertEditor.eyebrow || ""} onChange={(event)=>setAdvertEditor({...advertEditor,eyebrow:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Subtitle"><input value={advertEditor.subtitle || ""} onChange={(event)=>setAdvertEditor({...advertEditor,subtitle:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Placement"><select value={advertEditor.placement} onChange={(event)=>setAdvertEditor({...advertEditor,placement:event.target.value})} style={inputStyle}>
+              {["showcase_hero","homepage_hero","featured_banner","category_banner","curation_slot","store_spotlight"].map((placement)=><option key={placement} value={placement}>{titleCase(placement)}</option>)}
+            </select></Field>
+            <Field label="Surface"><input value={advertEditor.surface || "global"} onChange={(event)=>setAdvertEditor({...advertEditor,surface:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Status"><select value={advertEditor.status} onChange={(event)=>setAdvertEditor({...advertEditor,status:event.target.value})} style={inputStyle}>
+              {["draft","active","paused","archived"].map((status)=><option key={status} value={status}>{titleCase(status)}</option>)}
+            </select></Field>
+            <Field label="Image URL"><input value={advertEditor.image_url || ""} onChange={(event)=>setAdvertEditor({...advertEditor,image_url:event.target.value})} style={inputStyle}/></Field>
+            <Field label="CTA Label"><input value={advertEditor.cta_label || ""} onChange={(event)=>setAdvertEditor({...advertEditor,cta_label:event.target.value})} style={inputStyle}/></Field>
+            <Field label="CTA URL"><input value={advertEditor.cta_url || ""} onChange={(event)=>setAdvertEditor({...advertEditor,cta_url:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Priority"><input min="0" type="number" value={advertEditor.priority} onChange={(event)=>setAdvertEditor({...advertEditor,priority:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Weight"><input min="0" type="number" value={advertEditor.weight} onChange={(event)=>setAdvertEditor({...advertEditor,weight:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Starts At"><input type="datetime-local" value={advertEditor.starts_at || ""} onChange={(event)=>setAdvertEditor({...advertEditor,starts_at:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Ends At"><input type="datetime-local" value={advertEditor.ends_at || ""} onChange={(event)=>setAdvertEditor({...advertEditor,ends_at:event.target.value})} style={inputStyle}/></Field>
+            <div style={{gridColumn:'1/-1',display:'flex',justifyContent:'flex-end',gap:8}}>
+              <Btn onClick={()=>setAdvertEditor(null)}>Cancel</Btn>
+              <Btn type="submit" variant="success" disabled={saveAdvertMutation.isPending} icon={saveAdvertMutation.isPending?Loader2:Check}
+                iconSpin={saveAdvertMutation.isPending}>{saveAdvertMutation.isPending ? "Saving..." : "Save Advert"}</Btn>
+            </div>
+          </form>
+        </AdminModal>
+      )}
+
+      {dealEditor && (
+        <AdminModal title={dealEditor.id ? "Edit Deal Of The Day" : "Create Deal Of The Day"} onClose={()=>setDealEditor(null)}>
+          <form onSubmit={saveDeal} style={{padding:'1.2rem',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:12}}>
+            <Field label="Title"><input required value={dealEditor.title} onChange={(event)=>setDealEditor({...dealEditor,title:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Eyebrow"><input value={dealEditor.eyebrow || ""} onChange={(event)=>setDealEditor({...dealEditor,eyebrow:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Description"><input value={dealEditor.description || ""} onChange={(event)=>setDealEditor({...dealEditor,description:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Status"><select value={dealEditor.status} onChange={(event)=>setDealEditor({...dealEditor,status:event.target.value})} style={inputStyle}>
+              {["draft","active","paused","archived"].map((status)=><option key={status} value={status}>{titleCase(status)}</option>)}
+            </select></Field>
+            <Field label="Featured Product ID"><input value={dealEditor.featured_product_id || ""} onChange={(event)=>setDealEditor({...dealEditor,featured_product_id:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Product IDs"><textarea rows="3" value={dealEditor.product_ids || ""} onChange={(event)=>setDealEditor({...dealEditor,product_ids:event.target.value})} style={{...inputStyle,resize:'vertical'}}/></Field>
+            <Field label="Accent Color"><input value={dealEditor.accent_color || ""} onChange={(event)=>setDealEditor({...dealEditor,accent_color:event.target.value})} style={inputStyle}/></Field>
+            <Field label="CTA URL"><input value={dealEditor.cta_url || ""} onChange={(event)=>setDealEditor({...dealEditor,cta_url:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Priority"><input min="0" type="number" value={dealEditor.priority} onChange={(event)=>setDealEditor({...dealEditor,priority:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Starts At"><input type="datetime-local" value={dealEditor.starts_at || ""} onChange={(event)=>setDealEditor({...dealEditor,starts_at:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Ends At"><input type="datetime-local" value={dealEditor.ends_at || ""} onChange={(event)=>setDealEditor({...dealEditor,ends_at:event.target.value})} style={inputStyle}/></Field>
+            <div style={{gridColumn:'1/-1',display:'flex',justifyContent:'flex-end',gap:8}}>
+              <Btn onClick={()=>setDealEditor(null)}>Cancel</Btn>
+              <Btn type="submit" variant="success" disabled={saveDealMutation.isPending} icon={saveDealMutation.isPending?Loader2:Check}
+                iconSpin={saveDealMutation.isPending}>{saveDealMutation.isPending ? "Saving..." : "Save Deal"}</Btn>
+            </div>
+          </form>
+        </AdminModal>
+      )}
+    </div>
+  );
+}
+
 function AdminPromotionModule({ configurePasscodeMutation, mutation, toast }) {
   const [promotion, setPromotion] = useState({email:"",name:"",role:"support_lead",passcode:""});
   const [passcode, setPasscode] = useState({currentPasscode:"",newPasscode:""});
@@ -1820,8 +2148,16 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
   const settingMutation = useSaveAdminSetting();
   const deleteSettingMutation = useDeleteAdminSetting();
   const promoCodesQuery = useAdminPromoCodes(moduleId === "promos");
+  const adminAdvertsQuery = useAdminAdverts(moduleId === "commercial");
+  const adminDealsQuery = useAdminDealsOfDay(moduleId === "commercial");
+  const sellerAdsQuery = useAdminSellerAdvertisements(moduleId === "commercial");
   const savePromoMutation = useSaveAdminPromoCode();
   const deletePromoMutation = useDeleteAdminPromoCode();
+  const saveAdminAdvertMutation = useSaveAdminAdvert();
+  const deleteAdminAdvertMutation = useDeleteAdminAdvert();
+  const saveAdminDealMutation = useSaveAdminDealOfDay();
+  const deleteAdminDealMutation = useDeleteAdminDealOfDay();
+  const sellerAdStatusMutation = useUpdateSellerAdvertisementStatus();
   const promoteAdminMutation = usePromoteAdmin();
   const configurePasscodeMutation = useConfigureAdminPromotionPasscode();
   const aiMutation = useQueueAdminAiQuery();
@@ -1846,6 +2182,10 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
       jobStatusMutation={jobStatusMutation} mutation={hiringMutation}/>,
     settings: <SettingsModule {...shared} deleteIntegrationMutation={deleteIntegrationMutation}
       deleteSettingMutation={deleteSettingMutation} integrationMutation={integrationMutation} settingMutation={settingMutation}/>,
+    commercial: <CommercialModule advertsQuery={adminAdvertsQuery} dealsQuery={adminDealsQuery}
+      deleteAdvertMutation={deleteAdminAdvertMutation} deleteDealMutation={deleteAdminDealMutation}
+      saveAdvertMutation={saveAdminAdvertMutation} saveDealMutation={saveAdminDealMutation}
+      sellerAdsQuery={sellerAdsQuery} sellerAdStatusMutation={sellerAdStatusMutation} toast={addToast}/>,
     promos: <PromoCodesModule deleteMutation={deletePromoMutation} query={promoCodesQuery}
       saveMutation={savePromoMutation} toast={addToast}/>,
     "admin-promotion": <AdminPromotionModule configurePasscodeMutation={configurePasscodeMutation}

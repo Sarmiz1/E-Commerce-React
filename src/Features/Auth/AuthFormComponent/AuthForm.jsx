@@ -14,7 +14,6 @@ import ForgotForm from "./ForgotForm";
 import RegisterForm from "./RegisterForm";
 import glassLogo from "../../../assets/logos/glass_logo.png";
 import logoDark from "../../../assets/logos/logo-darkmode.png";
-import { adminApi } from "../../../api/adminApi";
 import { getSafeAuthReturnTo } from "../utils/authRedirect";
 
 export default function AuthForm({
@@ -88,20 +87,8 @@ export default function AuthForm({
 
     if (mode === "login") {
       const from = getSafeAuthReturnTo(location.state?.from, "/");
-      let cancelled = false;
-
-      adminApi
-        .getCurrentAdmin(authMutation.data?.userId)
-        .then((admin) => {
-          if (!cancelled) navigate(admin ? "/admin" : from, { replace: true });
-        })
-        .catch(() => {
-          if (!cancelled) navigate(from, { replace: true });
-        });
-
-      return () => {
-        cancelled = true;
-      };
+      navigate(from, { replace: true });
+      return undefined;
     }
 
     // For register/forgot, wait a short moment for them to see the success message

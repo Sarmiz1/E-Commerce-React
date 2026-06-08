@@ -9,6 +9,7 @@ import {
   rememberRequestedAccountRole,
 } from "../utils/authRedirect";
 import { accountApi } from "../../../api/accountApi";
+import { adminApi } from "../../../api/adminApi";
 
 
 // This function translates raw error messages from Supabase into more user-friendly messages that can be displayed in the UI. It checks for specific keywords in the error message and returns a more understandable message for the user. If no specific case matches, it returns the original message or a generic fallback message. 
@@ -96,14 +97,22 @@ export const useAuthMutation = (mode, setFormError) => {
 
         if (error) throw new Error(getFriendlyError(error.message));
 
+        const admin = await adminApi.getCurrentAdmin(data.user?.id);
+        if (admin) {
+          await supabase.auth.signOut();
+          throw new Error("Admin accounts must sign in from the admin portal.");
+        }
+
         await accountApi.rejectInactiveBuyerSession();
 
         return { message: "Signed in successfully.", userId: data.user?.id };
       }
 
       if (mode === "forgot") {
+        const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
         const { error } = await supabase.auth.resetPasswordForEmail(
           formData.email,
+          { redirectTo: `${siteUrl}/reset-password` },
         );
 
         if (error) throw new Error(getFriendlyError(error.message));

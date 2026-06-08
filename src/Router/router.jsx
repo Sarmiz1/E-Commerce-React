@@ -265,6 +265,17 @@ const router = createBrowserRouter(
           hydrateFallbackElement={<GenericPageSkeleton />}
         />
 
+        <Route
+          path="admin/reset-password"
+          lazy={() =>
+            import("../Features/Auth/ResetPasswordPage").then((m) => {
+              const ResetPasswordPage = m.default;
+              return { Component: () => <ResetPasswordPage audience="admin" /> };
+            })
+          }
+          hydrateFallbackElement={<GenericPageSkeleton />}
+        />
+
         {/* Admin Route Protection */}
         <Route element={<AdminRoute />}>
           <Route
@@ -552,6 +563,16 @@ const router = createBrowserRouter(
         }
         hydrateFallbackElement={<GenericPageSkeleton />}
       />
+
+      <Route
+        path="reset-password"
+        lazy={() =>
+          import("../Features/Auth/ResetPasswordPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<GenericPageSkeleton />}
+      />
       {/* Test******************************* */}
       <Route
         path="test1"
@@ -607,6 +628,16 @@ const router = createBrowserRouter(
         path="test6"
         lazy={() =>
           import("../Features/ShopByBrands/BrandDetailTest").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
+
+      <Route
+        path="test7"
+        lazy={() =>
+          import("../Features/Legal/TermsOfServicePage").then((m) => ({
             Component: m.default,
           }))
         }

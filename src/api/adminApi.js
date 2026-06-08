@@ -46,6 +46,17 @@ export const adminApi = {
     return admin;
   },
 
+  requestPasswordReset: async (email) => {
+    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${siteUrl}/admin/reset-password`,
+    });
+
+    if (error) throw error;
+
+    return true;
+  },
+
   signOut: async () => {
     const { error } = await supabase.auth.signOut();
 

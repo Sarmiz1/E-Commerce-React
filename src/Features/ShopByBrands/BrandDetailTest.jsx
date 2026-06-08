@@ -9,7 +9,7 @@ import { IconSpinner } from "../../Components/Icons/IconSpinner";
 import { useAllProducts } from "../../Hooks/product/useProducts";
 import { useTheme } from "../../Store/useThemeStore";
 import { getProductImages } from "../../utils/getProductImages";
-import { CurationLoadingState } from "../Curation/Components/CurationStates";
+import { ShowcaseLoadingState } from "../ShowcasePage/ShowcaseComponents/ShowcaseStates";
 import { BRANDS_NAV_LINKS } from "./data/brandsData";
 import {
   buildBrandCatalogHref,
@@ -276,7 +276,7 @@ export default function BrandDetailTest() {
           </Link>
         </main>
       ) : productsQuery.isLoading ? (
-        <CurationLoadingState colors={colors} isDark={isDark} />
+        <ShowcaseLoadingState colors={colors} isDark={isDark} />
       ) : (
         <>
           {/* ── Back link ── */}

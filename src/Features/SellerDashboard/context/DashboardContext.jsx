@@ -28,7 +28,7 @@ export const NAV_ITEMS = [
   { id: 'customers',          label: 'Customers',    icon: 'users' },
   { id: 'wallet',             label: 'Wallet',       icon: 'wallet' },
   { id: 'plan',               label: 'Subscription', icon: 'credit-card' },
-  { id: 'ads',                label: 'Ads',          icon: 'megaphone' },
+  { id: 'ads',                label: 'Advertise',    icon: 'megaphone' },
   { id: 'marketing',          label: 'Marketing',    icon: 'trending-up' },
   { id: 'reviews',            label: 'Reviews',      icon: 'star' },
   { id: 'settings',           label: 'Settings',     icon: 'settings' },

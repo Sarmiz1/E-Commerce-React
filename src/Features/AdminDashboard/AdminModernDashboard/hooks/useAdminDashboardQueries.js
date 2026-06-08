@@ -1,5 +1,8 @@
 import { keepPreviousData, useMutation, useMutationState, useQuery, useQueryClient } from "@tanstack/react-query";
 import { adminDashboardApi } from "../../../../api/adminDashboardApi";
+import { AdminAdvertsAPI } from "../../../../api/adminAdvertsApi";
+import { AdminDealsOfDayAPI } from "../../../../api/adminDealsOfDayApi";
+import { AdvertisementsAPI } from "../../../../api/advertisementsApi";
 
 export const adminDashboardKey = ["admin-dashboard"];
 const adminOrderStatusMutationKey = [...adminDashboardKey, "order-status"];
@@ -280,3 +283,47 @@ export const useConfigureAdminPromotionPasscode = () =>
 
 export const useQueueAdminAiQuery = () =>
   useDashboardMutation((prompt) => adminDashboardApi.queueAiQuery(prompt));
+
+export function useAdminAdverts(enabled = true) {
+  return useQuery({
+    ...AdminAdvertsAPI.listAdmin({ limit: 100 }),
+    enabled,
+    staleTime: 1000 * 60,
+    placeholderData: (previousData) => previousData ?? [],
+  });
+}
+
+export const useSaveAdminAdvert = () =>
+  useDashboardMutation(({ id, payload }) =>
+    id ? AdminAdvertsAPI.update(id, payload) : AdminAdvertsAPI.create(payload));
+
+export const useDeleteAdminAdvert = () =>
+  useDashboardMutation((id) => AdminAdvertsAPI.remove(id));
+
+export function useAdminDealsOfDay(enabled = true) {
+  return useQuery({
+    ...AdminDealsOfDayAPI.listAdmin({ limit: 100 }),
+    enabled,
+    staleTime: 1000 * 60,
+    placeholderData: (previousData) => previousData ?? [],
+  });
+}
+
+export const useSaveAdminDealOfDay = () =>
+  useDashboardMutation(({ id, payload }) =>
+    id ? AdminDealsOfDayAPI.update(id, payload) : AdminDealsOfDayAPI.create(payload));
+
+export const useDeleteAdminDealOfDay = () =>
+  useDashboardMutation((id) => AdminDealsOfDayAPI.remove(id));
+
+export function useAdminSellerAdvertisements(enabled = true) {
+  return useQuery({
+    ...AdvertisementsAPI.listAdmin({ limit: 100 }),
+    enabled,
+    staleTime: 1000 * 60,
+    placeholderData: (previousData) => previousData ?? [],
+  });
+}
+
+export const useUpdateSellerAdvertisementStatus = () =>
+  useDashboardMutation(({ id, payload }) => AdvertisementsAPI.updateAdminStatus(id, payload));

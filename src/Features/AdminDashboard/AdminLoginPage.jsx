@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { adminApi } from "../../api/adminApi";
 import { useAuth } from "../../Store/useAuthStore";
@@ -11,6 +11,8 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [mode, setMode] = useState("login");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -35,13 +37,21 @@ export default function AdminLoginPage() {
     if (submitting) return;
 
     setError("");
+    setMessage("");
     setSubmitting(true);
 
     try {
+      if (mode === "forgot") {
+        await adminApi.requestPasswordReset(email.trim());
+        setMessage("Admin password reset link sent. Check your email.");
+        setSubmitting(false);
+        return;
+      }
+
       await adminApi.signIn(email.trim(), password);
       navigate("/admin", { replace: true });
     } catch (signInError) {
-      setError(signInError.message || "Admin sign-in failed.");
+      setError(signInError.message || (mode === "forgot" ? "Reset request failed." : "Admin sign-in failed."));
       setSubmitting(false);
     }
   };
@@ -63,10 +73,12 @@ export default function AdminLoginPage() {
           </div>
 
           <h1 className="text-2xl font-extrabold tracking-tight">
-            Sign in to the control room
+            {mode === "forgot" ? "Reset admin password" : "Sign in to the control room"}
           </h1>
           <p className="mt-2 text-sm leading-6 text-[#8BA3C7]">
-            Admin membership is verified by the backend after authentication.
+            {mode === "forgot"
+              ? "Reset links stay inside the admin portal and are verified against admin membership."
+              : "Admin membership is verified by the backend after authentication."}
           </p>
 
           <form className="mt-8 space-y-4" onSubmit={submit}>
@@ -82,31 +94,39 @@ export default function AdminLoginPage() {
               />
             </label>
 
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#8BA3C7]">
-              Password
-              <span className="relative mt-2 block">
-                <input
-                  autoComplete="current-password"
-                  className="w-full rounded-xl border border-[#1E3050] bg-[#090F1E] px-4 py-3 pr-12 text-sm text-[#EDF2FF] outline-none transition focus:border-[#4F8EF7]"
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                />
-                <button
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8BA3C7]"
-                  onClick={() => setShowPassword((visible) => !visible)}
-                  type="button"
-                >
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </span>
-            </label>
+            {mode === "login" && (
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#8BA3C7]">
+                Password
+                <span className="relative mt-2 block">
+                  <input
+                    autoComplete="current-password"
+                    className="w-full rounded-xl border border-[#1E3050] bg-[#090F1E] px-4 py-3 pr-12 text-sm text-[#EDF2FF] outline-none transition focus:border-[#4F8EF7]"
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                  />
+                  <button
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8BA3C7]"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    type="button"
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </span>
+              </label>
+            )}
 
             {error && (
               <p className="rounded-xl border border-[#F43F5E55] bg-[#4A0E1A] px-4 py-3 text-sm text-[#F43F5E]">
                 {error}
+              </p>
+            )}
+
+            {message && (
+              <p className="rounded-xl border border-[#10B98155] bg-[#053D28] px-4 py-3 text-sm text-[#10B981]">
+                {message}
               </p>
             )}
 
@@ -115,8 +135,24 @@ export default function AdminLoginPage() {
               disabled={submitting}
               type="submit"
             >
-              <LockKeyhole size={16} />
-              {submitting ? "Verifying access..." : "Sign in securely"}
+              {mode === "forgot" ? <Mail size={16} /> : <LockKeyhole size={16} />}
+              {submitting
+                ? mode === "forgot" ? "Sending reset link..." : "Verifying access..."
+                : mode === "forgot" ? "Send admin reset link" : "Sign in securely"}
+            </button>
+
+            <button
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#1E3050] px-4 py-3 text-sm font-extrabold text-[#8BA3C7] transition hover:text-[#EDF2FF] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={submitting}
+              onClick={() => {
+                setMode((current) => current === "login" ? "forgot" : "login");
+                setError("");
+                setMessage("");
+              }}
+              type="button"
+            >
+              {mode === "forgot" && <ArrowLeft size={15} />}
+              {mode === "forgot" ? "Back to admin sign in" : "Forgot admin password?"}
             </button>
           </form>
         </section>

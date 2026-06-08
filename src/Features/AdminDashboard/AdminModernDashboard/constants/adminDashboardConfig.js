@@ -4,6 +4,7 @@ import {
   Briefcase,
   LayoutDashboard,
   LifeBuoy,
+  Megaphone,
   Package,
   Percent,
   ShieldPlus,
@@ -27,7 +28,7 @@ export const glow = (color, power=18) =>
 
 export const ADMIN_ROLES = {
   super_admin:{label:'Super Admin',color:C.purple,icon:'SA',
-    modules:['dashboard','orders','products','users','sellers','promos','analytics','support','ai','hiring','settings','admin-promotion'],
+    modules:['dashboard','orders','products','users','sellers','commercial','promos','analytics','support','ai','hiring','settings','admin-promotion'],
     canApprove:true,canSuspend:true,canViewKeys:true,canViewFinance:true,canHire:true},
   support_lead:{label:'Support Lead',color:C.cyan,icon:'SL',
     modules:['dashboard','orders','support','users'],
@@ -36,7 +37,7 @@ export const ADMIN_ROLES = {
     modules:['dashboard','orders','analytics','settings'],
     canApprove:false,canSuspend:false,canViewKeys:false,canViewFinance:true,canHire:false},
   content_mod:{label:'Content Mod',color:C.amber,icon:'CM',
-    modules:['dashboard','products','sellers'],
+    modules:['dashboard','products','sellers','commercial'],
     canApprove:true,canSuspend:false,canViewKeys:false,canViewFinance:false,canHire:false},
 };
 
@@ -46,6 +47,7 @@ export const ADMIN_NAV = [
   {id:'products',label:'Products',icon:Package},
   {id:'users',label:'Users',icon:Users},
   {id:'sellers',label:'Sellers',icon:Store,badgeKey:'sellers',badgeColor:C.blue},
+  {id:'commercial',label:'Commercial',icon:Megaphone},
   {id:'promos',label:'Promo Codes',icon:Percent},
   {id:'analytics',label:'Analytics',icon:BarChart2},
   {id:'support',label:'Support',icon:LifeBuoy,badgeKey:'support',badgeColor:C.red},
