@@ -46,6 +46,11 @@ const getProductCategoryValues = (product) => {
     category?.name,
     category?.slug,
     product?.category_name,
+    product?.categoryName,
+    product?.category_slug,
+    product?.categorySlug,
+    product?.category_label,
+    product?.categoryLabel,
   ].filter(Boolean);
 };
 
@@ -80,8 +85,22 @@ export const getProductCategoryOptions = (products = []) => {
 
   products.forEach((product) => {
     const category = product?.category;
-    const label = typeof category === "string" ? category : category?.name;
-    const value = typeof category === "string" ? category : category?.slug || category?.name;
+    const label =
+      typeof category === "string"
+        ? category
+        : category?.name ||
+          product?.category_name ||
+          product?.categoryName ||
+          product?.category_label ||
+          product?.categoryLabel;
+    const value =
+      typeof category === "string"
+        ? category
+        : category?.slug ||
+          product?.category_slug ||
+          product?.categorySlug ||
+          category?.name ||
+          label;
     if (!label || !value) return;
 
     const normalizedValue = normalizeCategory(value);

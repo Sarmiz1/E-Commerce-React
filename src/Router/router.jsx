@@ -363,10 +363,11 @@ const router = createBrowserRouter(
             <Route
               path="categories/:categorySlug"
               lazy={() =>
-                import("../Features/ShowcasePage/ShowcaseCategoryPage").then((m) => ({
+                import("../Features/Collections/pages/CategoryCollectionPage").then((m) => ({
                   Component: m.default,
                 }))
               }
+              loader={fetchProductsLoader}
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 
@@ -399,13 +400,23 @@ const router = createBrowserRouter(
             />
 
             <Route
-              path="shop-by-brands/*"
+              path="shop-by-brands"
               lazy={() =>
                 import("../Features/ShopByBrands/BrandsPage").then((m) => ({
                   Component: m.default,
                 }))
               }
               hydrateFallbackElement={<GenericPageSkeleton />}
+            />
+
+            <Route
+              path="shop-by-brands/:brandSlug"
+              lazy={() =>
+                import("../Features/ShowcasePage/ShowcaseBrandPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              hydrateFallbackElement={<ProductsSkeleton />}
             />
             
             <Route
@@ -519,6 +530,16 @@ const router = createBrowserRouter(
             }
             hydrateFallbackElement={<GenericPageSkeleton />}
           />
+
+          <Route
+            path="stores/:storeSlug"
+            lazy={() =>
+              import("../Features/Stores/SellerPage").then((m) => ({
+                Component: m.default,
+              }))
+            }
+            hydrateFallbackElement={<ProductsSkeleton />}
+          />
         </Route>
       </Route>
 
@@ -576,6 +597,36 @@ const router = createBrowserRouter(
         path="test5"
         lazy={() =>
           import("../Features/Stores/SellerPage").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
+
+      <Route
+        path="test6"
+        lazy={() =>
+          import("../Features/AdvertisementAndPlacement/Advertisement").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
+
+      <Route
+        path="test7"
+        lazy={() =>
+          import("../Features/AdvertisementAndPlacement/Placement").then((m) => ({
+            Component: m.default,
+          }))
+        }
+        hydrateFallbackElement={<ProductsSkeleton />}
+      />
+
+      <Route
+        path="test8"
+        lazy={() =>
+          import("../Features/ShopByBrands/BrandDetailTest").then((m) => ({
             Component: m.default,
           }))
         }

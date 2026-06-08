@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import ModernNavbar from "../../Components/ModernNavbar";
 import SEO from "../../Components/SEO";
 import { useTheme } from "../../Store/useThemeStore";
 import {
@@ -20,7 +19,7 @@ import {
 } from "./utils/brandUtils";
 
 const getCanonicalUrl = () =>
-  typeof window !== "undefined" ? `${window.location.origin}/brands` : undefined;
+  typeof window !== "undefined" ? `${window.location.origin}/products/shop-by-brands` : undefined;
 
 export default function BrandsPage() {
   const { colors } = useTheme();
@@ -65,8 +64,7 @@ export default function BrandsPage() {
         schema={schema}
         title={BRANDS_SEO.title}
       />
-      <ModernNavbar navLinks={BRANDS_NAV_LINKS} />
-
+      
       <header className="mx-auto grid max-w-screen-xl gap-6 px-6 pb-8 pt-8 lg:grid-cols-[1fr_320px] lg:items-end">
         <div>
           <p
@@ -249,4 +247,3 @@ export default function BrandsPage() {
     </div>
   );
 }
-

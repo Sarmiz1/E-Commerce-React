@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../../../Store/useThemeStore";
 
 const getBrandPath = (brand) =>
-  brand?.slug ? `/brands/${encodeURIComponent(brand.slug)}` : "/brands";
+  brand?.slug
+    ? `/products/shop-by-brands/${encodeURIComponent(brand.slug)}`
+    : "/products/shop-by-brands";
 
 export default function ShowcaseBrandCard({
   brand,

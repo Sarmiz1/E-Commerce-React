@@ -3,7 +3,6 @@ import { Link, useLoaderData, useNavigation, useNavigate } from "react-router-do
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import { useTheme } from "../../Store/useThemeStore";
-import { formatMoneyMinor } from "../../utils/formatMoneyMinor";
 import ProductCard from "../Product/Components/ProductCard";
 import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 import { useCompare } from "../Product/Hooks/useCompare";
@@ -21,12 +20,45 @@ function filterProducts(products, config) {
   if (!products?.length) return [];
   let filtered = [...products];
 
+  if (config.categorySlug || config.categoryLabel) {
+    const normalizeCategory = (value = "") =>
+      String(value)
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]+/g, " ")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    const categoryTargets = [config.categorySlug, config.categoryLabel]
+      .filter(Boolean)
+      .map(normalizeCategory);
+
+    filtered = filtered.filter((p) => {
+      const category = p.category;
+      const values = [
+        typeof category === "string" ? category : "",
+        category?.name,
+        category?.slug,
+        p.category_name,
+        p.categoryName,
+        p.category_slug,
+        p.categorySlug,
+        p.category_label,
+        p.categoryLabel,
+      ]
+        .filter(Boolean)
+        .map(normalizeCategory);
+
+      return values.some((value) => categoryTargets.includes(value));
+    });
+  }
+
   // Category keyword match
   if (config.keywords?.length) {
     filtered = filtered.filter((p) =>
       config.keywords.some((kw) =>
         (p.keywords || []).some((pk) => pk.toLowerCase().includes(kw.toLowerCase())) ||
-        (p.category || "").toLowerCase().includes(kw.toLowerCase()) ||
+        (typeof p.category === "string" ? p.category : p.category?.name || "").toLowerCase().includes(kw.toLowerCase()) ||
         (p.name || "").toLowerCase().includes(kw.toLowerCase())
       )
     );
@@ -49,7 +81,9 @@ function filterProducts(products, config) {
   }
 
   // Final fallback — just show all
-  if (filtered.length === 0) filtered = products.slice(0, PAGE_SIZE);
+  if (filtered.length === 0 && !config.categorySlug && !config.categoryLabel) {
+    filtered = products.slice(0, PAGE_SIZE);
+  }
 
   return filtered;
 }
@@ -198,7 +232,7 @@ export default function CollectionPage({ config }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
   const [quickView, setQuickView] = useState(null);
-  const { compareList, showCompare, setShowCompare, toggleCompare, removeCompare, clearCompare } = useCompare();
+  const { compareList, setShowCompare, toggleCompare, clearCompare } = useCompare();
 
   const gridRef = useRef(null);
 

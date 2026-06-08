@@ -1,9 +1,16 @@
 import { supabase } from "../lib/supabaseClient";
+import { ProductsAPI } from "./productsApi";
 import {
+  CURATION_DEFINITIONS,
+  CurationFetchLoaderAPI,
   fetchCurationProductsByIds,
   normalizeCurationSlug,
 } from "./curationFetchLoader";
 
+const CURATION_SELECT =
+  "id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order";
+const CURATION_SELECT_FALLBACK =
+  "id, name, slug, description, is_active, created_at";
 const CURATION_SLUG_ALIASES = {
   "flash-sale": "flash-deals",
   "flash-sales": "flash-deals",
@@ -32,31 +39,82 @@ const normalizeCuration = (curation = {}) => ({
   showcaseSortOrder: curation.showcase_sort_order,
 });
 
+const titleFromSlug = (slug = "") =>
+  String(slug)
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+
+const getDefinitionForSlug = (curationSlug) => {
+  const resolvedSlug = resolveCurationSlug(curationSlug);
+  return CURATION_DEFINITIONS.find((definition) =>
+    definition.slugs.some((slug) => normalizeCurationSlug(slug) === resolvedSlug),
+  );
+};
+
+const createFallbackCuration = (curationSlug) => {
+  const resolvedSlug = resolveCurationSlug(curationSlug);
+  const definition = getDefinitionForSlug(resolvedSlug);
+  const slug = normalizeCurationSlug(definition?.slugs?.[0] || resolvedSlug);
+
+  if (!slug) return null;
+
+  return normalizeCuration({
+    id: slug,
+    name: titleFromSlug(slug),
+    slug,
+    description: "",
+    is_active: true,
+    created_at: null,
+  });
+};
+
 const fetchCurationBySlug = async (curationSlug) => {
   const resolvedSlug = resolveCurationSlug(curationSlug);
   if (!resolvedSlug) return null;
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("curations")
-    .select("id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order")
+    .select(CURATION_SELECT)
     .eq("slug", resolvedSlug)
     .eq("is_active", true)
     .maybeSingle();
+
+  if (error?.message?.includes("showcase_")) {
+    const fallback = await supabase
+      .from("curations")
+      .select(CURATION_SELECT_FALLBACK)
+      .eq("slug", resolvedSlug)
+      .eq("is_active", true)
+      .maybeSingle();
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   throwQueryError(error);
 
   return data
     ? normalizeCuration(data)
-    : null;
+    : createFallbackCuration(resolvedSlug);
 };
 
 const fetchRawActiveCurations = async () => {
-  const { data: curations = [], error } = await supabase
+  let { data: curations = [], error } = await supabase
     .from("curations")
-    .select("id, name, slug, description, is_active, created_at, showcase_tag, showcase_tag_color, showcase_sort_order")
+    .select(CURATION_SELECT)
     .eq("is_active", true)
     .order("showcase_sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
+
+  if (error?.message?.includes("showcase_")) {
+    const fallback = await supabase
+      .from("curations")
+      .select(CURATION_SELECT_FALLBACK)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true });
+    curations = fallback.data || [];
+    error = fallback.error;
+  }
 
   throwQueryError(error);
 
@@ -186,7 +244,7 @@ const fetchProductsForCuration = async (curationSlug) => {
     productsResult.data.map((product) => [product.id, product]),
   );
 
-  return memberships
+  const membershipProducts = memberships
     .map((membership) => {
       const product = productsById.get(membership.product_id);
       if (!product) return null;
@@ -202,6 +260,65 @@ const fetchProductsForCuration = async (curationSlug) => {
       };
     })
     .filter(Boolean);
+
+  if (membershipProducts.length) return membershipProducts;
+
+  return fetchFallbackProductsForCuration(curation.slug);
+};
+
+const isSaleProduct = (product) => {
+  const price = Number(product?.price_minor) || 0;
+  const salePrice = Number(product?.sale_price_minor) || 0;
+  const compareAt = Number(product?.compare_at_price_minor) || 0;
+  const now = Date.now();
+  const startsAt = product?.sale_starts_at ? new Date(product.sale_starts_at).getTime() : null;
+  const endsAt = product?.sale_ends_at ? new Date(product.sale_ends_at).getTime() : null;
+
+  if (startsAt && startsAt > now) return false;
+  if (endsAt && endsAt < now) return false;
+  return (salePrice > 0 && salePrice < price) || (compareAt > price && price > 0);
+};
+
+const byNewest = (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0);
+const byRating = (a, b) =>
+  (Number(b.rating_stars || 0) * 10 + Number(b.rating_count || 0)) -
+  (Number(a.rating_stars || 0) * 10 + Number(a.rating_count || 0));
+
+const fetchFallbackProductsForCuration = async (curationSlug) => {
+  const resolvedSlug = resolveCurationSlug(curationSlug);
+  const products = await ProductsAPI.getAll().queryFn();
+  let filtered = [...products];
+
+  if (resolvedSlug === "new-arrivals") {
+    filtered.sort(byNewest);
+  } else if (resolvedSlug === "flash-deals" || resolvedSlug === "deal-of-the-day") {
+    filtered = filtered.filter(isSaleProduct).sort(byNewest);
+  } else if (
+    resolvedSlug === "best-sellers" ||
+    resolvedSlug === "trending-products" ||
+    resolvedSlug === "hot-right-now" ||
+    resolvedSlug === "most-loved"
+  ) {
+    filtered.sort(byRating);
+  } else {
+    const feed = await CurationFetchLoaderAPI.getHomeCurations({
+      scope: "curation-detail-fallback",
+      includeAllSections: true,
+      includeSalesStats: true,
+      includeStores: false,
+      includeBrands: false,
+    }).queryFn();
+    const definition = getDefinitionForSlug(resolvedSlug);
+    const feedProducts =
+      feed[definition?.key] ||
+      feed.curationSections?.find((section) => section.slug === resolvedSlug)?.products ||
+      [];
+
+    if (feedProducts.length) return feedProducts;
+    filtered.sort(byNewest);
+  }
+
+  return filtered.slice(0, 60);
 };
 
 export const CurationsAPI = {

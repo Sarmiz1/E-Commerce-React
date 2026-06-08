@@ -2,13 +2,12 @@ import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import ModernNavbar from "../../../Components/ModernNavbar";
-import SEO from "../../../Components/SEO";
-import ProductDetailModal from "../../../Components/Ui/ProductDetailModal";
-import { IconSpinner } from "../../../Components/Icons/IconSpinner";
-import { useAllProducts } from "../../../Hooks/product/useProducts";
-import { useTheme } from "../../../Store/useThemeStore";
-import { getProductImages } from "../../../utils/getProductImages";
+import SEO from "../../Components/SEO";
+import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
+import { IconSpinner } from "../../Components/Icons/IconSpinner";
+import { useAllProducts } from "../../Hooks/product/useProducts";
+import { useTheme } from "../../Store/useThemeStore";
+import { getProductImages } from "../../utils/getProductImages";
 import CurationProductGrid from "../Curation/Components/CurationProductGrid";
 import { CurationLoadingState } from "../Curation/Components/CurationStates";
 import { PG_STYLES } from "../Product/Styles/ProductsPageStyles";
@@ -77,7 +76,7 @@ export default function BrandDetail() {
         schema={schema}
         title={brand ? `${brand.name} products | WooSho` : "Brand not found | WooSho"}
       />
-      <ModernNavbar navLinks={BRANDS_NAV_LINKS} />
+
       <style>{PG_STYLES}</style>
 
       {!brand ? (

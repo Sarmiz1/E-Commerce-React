@@ -47,6 +47,10 @@ const ADVERT_SELECT = `
   updated_at
 `;
 
+const PUBLIC_ADVERT_SELECT = ADVERT_SELECT
+  .replace(/\s+created_by,\n/, "\n")
+  .replace(/\s+updated_by,\n/, "\n");
+
 const firstDefined = (...values) =>
   values.find((value) => value !== undefined && value !== null && value !== "");
 
@@ -133,6 +137,10 @@ const throwQueryError = (error) => {
   if (error) throw new Error(error.message);
 };
 
+const isAdminUsersPermissionError = (error) =>
+  error?.message?.toLowerCase().includes("admin_users") &&
+  error?.message?.toLowerCase().includes("permission denied");
+
 export const AdminAdvertsAPI = {
   getPublic: ({ placement, surface, surfaces, limit } = {}) => ({
     queryKey: [
@@ -144,10 +152,11 @@ export const AdminAdvertsAPI = {
     ],
     queryFn: async () => {
       const { data, error } = await applyPublicFilters(
-        supabase.from("admin_adverts").select(ADVERT_SELECT),
+        supabase.from("admin_adverts").select(PUBLIC_ADVERT_SELECT),
         { placement, surface, surfaces, limit },
       );
 
+      if (isAdminUsersPermissionError(error)) return [];
       throwQueryError(error);
       return (data || []).map(normalizeAdvert);
     },
@@ -172,10 +181,11 @@ export const AdminAdvertsAPI = {
         ? [surface, "products", "global", "all"]
         : undefined;
       const { data, error } = await applyPublicFilters(
-        supabase.from("admin_adverts").select(ADVERT_SELECT),
+        supabase.from("admin_adverts").select(PUBLIC_ADVERT_SELECT),
         { placement, surface, surfaces, limit },
       );
 
+      if (isAdminUsersPermissionError(error)) return [];
       throwQueryError(error);
       return (data || []).map(toHeroSlide);
     },

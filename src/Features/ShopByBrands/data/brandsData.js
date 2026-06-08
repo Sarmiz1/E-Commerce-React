@@ -1,6 +1,6 @@
 export const BRANDS_NAV_LINKS = [
   { label: "Shop", href: "/products" },
-  { label: "Brands", href: "/brands" },
+  { label: "Brands", href: "/products/shop-by-brands" },
   { label: "Sell", href: "/sell" },
   { label: "About", href: "/about" },
 ];
@@ -25,8 +25,8 @@ export const BRAND_FILTERS = [
 ];
 
 export const BRAND_DIRECTORY_ACTIONS = {
-  browseHref: "/products",
-  browseLabel: "Browse marketplace",
+  browseHref: "/products/shop-by-brands",
+  browseLabel: "Browse brands",
 };
 
 export const BRANDS = [
@@ -234,4 +234,3 @@ export const BRANDS = [
 ];
 
 export const FEATURED_BRAND_ID = "nike";
-

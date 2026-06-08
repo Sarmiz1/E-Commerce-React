@@ -320,7 +320,7 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
     section.id === "recently-added-stores"
       ? { ...section, path: "/stores" }
       : section.id === "shop-by-brands"
-      ? { ...section, path: "/brands" }
+      ? { ...section, path: "/products/shop-by-brands" }
       : section,
   );
 };

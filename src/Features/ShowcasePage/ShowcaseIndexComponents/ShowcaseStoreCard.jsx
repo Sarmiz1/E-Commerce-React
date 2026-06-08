@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../../../Store/useThemeStore";
 
 const getStorePath = (store) =>
-  store?.slug ? `/seller?store=${encodeURIComponent(store.slug)}` : "/seller";
+  store?.slug ? `/stores/${encodeURIComponent(store.slug)}` : "/stores";
 
 export default function ShowcaseStoreCard({
   store,

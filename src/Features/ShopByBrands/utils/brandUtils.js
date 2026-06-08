@@ -9,7 +9,7 @@ const normalizeBrandValue = (value = "") =>
     .trim();
 
 export const buildBrandHref = (brandId) =>
-  `/brands/${encodeURIComponent(brandId)}`;
+  `/products/shop-by-brands/${encodeURIComponent(brandId)}`;
 
 export const buildBrandCatalogHref = (brandName) =>
   `/products?search=${encodeURIComponent(brandName)}`;
@@ -36,4 +36,3 @@ export const getProductsForBrand = (products, brand) => {
     return aliases.has(normalizeBrandValue(productBrand));
   });
 };
-
