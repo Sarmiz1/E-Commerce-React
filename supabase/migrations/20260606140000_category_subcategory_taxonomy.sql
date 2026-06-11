@@ -380,13 +380,17 @@ values
   (2805, array['Energy & Solar','Generators'], null),
   (2806, array['Energy & Solar','Power Solutions'], null);
 
+drop table if exists category_seed_rows;
+
+create temporary table category_seed_rows on commit drop as
 with recursive nodes as (
   select
     sort_order,
     path,
     array_length(path, 1) taxonomy_level,
     path[array_length(path, 1)] name,
-    public.normalize_category_slug(array_to_string(path, '-')) slug,
+    public.normalize_category_slug(path[array_length(path, 1)]) natural_slug,
+    public.normalize_category_slug(array_to_string(path, '-')) path_slug,
     case
       when array_length(path, 1) = 1 then null::text
       else public.normalize_category_slug(array_to_string(path[1:array_length(path, 1) - 1], '-'))
@@ -403,14 +407,30 @@ with recursive nodes as (
     ) description
   from taxonomy_seed
 ),
-ranked_nodes as (
+existing_categories as (
+  select distinct on (public.normalize_category_slug(name))
+    id,
+    name,
+    slug,
+    public.normalize_category_slug(name) natural_slug
+  from public.categories
+  order by public.normalize_category_slug(name), parent_id nulls first, id
+),
+slugged_nodes as (
   select
     nodes.*,
+    coalesce(existing.slug, nodes.path_slug) slug
+  from nodes
+  left join existing_categories existing on existing.natural_slug = nodes.natural_slug
+),
+ranked_nodes as (
+  select
+    slugged_nodes.*,
     row_number() over (
       partition by slug
       order by taxonomy_level desc, sort_order asc, array_length(path, 1) desc
     ) slug_rank
-  from nodes
+  from slugged_nodes
 ),
 ordered_nodes as (
   select *
@@ -423,22 +443,12 @@ parent_categories as (
   from public.categories
   order by slug, id
 )
-insert into public.categories (
-  name,
-  slug,
-  parent_id,
-  description,
-  is_active,
-  sort_order,
-  taxonomy_level,
-  metadata
-)
 select
   insertable_node.name,
   insertable_node.slug,
+  insertable_node.parent_slug,
   insertable_node.parent_id,
   insertable_node.description,
-  true,
   insertable_node.sort_order,
   insertable_node.taxonomy_level,
   insertable_node.metadata
@@ -446,6 +456,7 @@ from (
   select distinct on (node.slug)
     node.name,
     node.slug,
+    node.parent_slug,
     parent.id parent_id,
     node.description,
     node.sort_order,
@@ -458,41 +469,56 @@ from (
   left join parent_categories parent on parent.slug = node.parent_slug
   where node.slug is not null and node.slug <> ''
   order by node.slug, node.taxonomy_level desc, node.sort_order asc
-) insertable_node
-on conflict (slug) do update
-set
-  name = excluded.name,
-  parent_id = excluded.parent_id,
-  description = excluded.description,
-  is_active = true,
-  sort_order = excluded.sort_order,
-  taxonomy_level = excluded.taxonomy_level,
-  metadata = public.categories.metadata || excluded.metadata;
+) insertable_node;
 
-with nodes as (
-  select
-    public.normalize_category_slug(array_to_string(path, '-')) slug,
-    case
-      when array_length(path, 1) = 1 then null::text
-      else public.normalize_category_slug(array_to_string(path[1:array_length(path, 1) - 1], '-'))
-    end parent_slug,
-    row_number() over (
-      partition by public.normalize_category_slug(array_to_string(path, '-'))
-      order by array_length(path, 1) desc, sort_order asc
-    ) slug_rank
-  from taxonomy_seed
-),
-parent_categories as (
+update public.categories category
+set
+  name = seed.name,
+  parent_id = seed.parent_id,
+  description = seed.description,
+  is_active = true,
+  sort_order = seed.sort_order,
+  taxonomy_level = seed.taxonomy_level,
+  metadata = category.metadata || seed.metadata
+from category_seed_rows seed
+where category.slug = seed.slug;
+
+insert into public.categories (
+  name,
+  slug,
+  parent_id,
+  description,
+  is_active,
+  sort_order,
+  taxonomy_level,
+  metadata
+)
+select
+  seed.name,
+  seed.slug,
+  seed.parent_id,
+  seed.description,
+  true,
+  seed.sort_order,
+  seed.taxonomy_level,
+  seed.metadata
+from category_seed_rows seed
+where not exists (
+  select 1
+  from public.categories category
+  where category.slug = seed.slug
+);
+
+with parent_categories as (
   select distinct on (slug) id, slug
   from public.categories
   order by slug, id
 )
 update public.categories child
 set parent_id = parent.id
-from nodes node
-left join parent_categories parent on parent.slug = node.parent_slug
-where child.slug = node.slug
-  and node.slug_rank = 1
+from category_seed_rows seed
+left join parent_categories parent on parent.slug = seed.parent_slug
+where child.slug = seed.slug
   and child.parent_id is distinct from parent.id;
 
 create or replace function public.category_root_id(p_category_id uuid)
@@ -805,13 +831,12 @@ begin
     join public.curations curation on curation.slug = candidate.slug and curation.is_active = true
     order by curation.id, candidate.product_id, candidate.score desc, candidate.sort_order asc
   ) insertable_curation_product
-  on conflict (curation_id, product_id) do update
-  set
-    score = greatest(public.curation_products.score, excluded.score),
-    sort_order = least(public.curation_products.sort_order, excluded.sort_order),
-    source = excluded.source,
-    metadata = public.curation_products.metadata || excluded.metadata,
-    updated_at = timezone('utc'::text, now());
+  where not exists (
+    select 1
+    from public.curation_products existing
+    where existing.curation_id = insertable_curation_product.curation_id
+      and existing.product_id = insertable_curation_product.product_id
+  );
 end;
 $$;
 
