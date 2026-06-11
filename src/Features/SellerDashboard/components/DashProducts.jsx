@@ -1,10 +1,13 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useTheme } from "../../../Store/useThemeStore";
 import { useDashboard } from '../context/DashboardContext';
+import { CategoriesAPI } from '../../../api/categoriesApi';
+import { sellerApi } from '../api/sellerApi';
 import { fmtFull } from '../utils/format';
 import { Icon } from './DashIcon';
 import { StatusBadge } from './DashOverview';
@@ -12,7 +15,6 @@ import {
   productSchema,
   productDefaults,
   emptyVariant,
-  CATEGORIES,
   SIZES,
   CURRENCIES,
 } from '../utils/productSchema';
@@ -321,11 +323,25 @@ export default function DashProducts() {
     handleSubmit,
     control,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: productDefaults,
   });
+
+  const categoryTreeQuery = useQuery(CategoriesAPI.getTree());
+  const categoryTree = useMemo(() => categoryTreeQuery.data || [], [categoryTreeQuery.data]);
+  const selectedCategoryId = watch('categoryId');
+  const selectedCategory = useMemo(
+    () => categoryTree.find((category) => category.id === selectedCategoryId),
+    [categoryTree, selectedCategoryId],
+  );
+  const subcategoryOptions = useMemo(
+    () => selectedCategory ? CategoriesAPI.flattenLeafSubcategories([selectedCategory]) : [],
+    [selectedCategory],
+  );
 
   const closePanel = useCallback(() => {
     if (isSubmitting) return;
@@ -339,13 +355,14 @@ export default function DashProducts() {
   const handleEditClick = async (id) => {
     try {
       setIsLoadingProduct(true);
-      const { sellerApi } = await import('../api/sellerApi');
       const productData = await sellerApi.getProduct(id);
       
       reset({
         name: productData.name || '',
         brand: productData.brand || '',
-        category: '', // Usually need to map category_id to name, leaving blank for simplicity
+        category: productData.category?.name || '',
+        categoryId: productData.category_id || '',
+        subcategoryId: productData.subcategory_id || '',
         currency: productData.currency || 'NGN',
         is_featured: productData.is_featured || false,
         price: productData.price_minor ? productData.price_minor / 100 : 0,
@@ -642,20 +659,53 @@ export default function DashProducts() {
                         <div>
                           <FieldLabel required colors={colors}>Category</FieldLabel>
                           <Controller
-                            name="category"
+                            name="categoryId"
                             control={control}
                             render={({ field }) => (
                               <select
                                 {...field}
+                                onChange={(event) => {
+                                  field.onChange(event);
+                                  const category = categoryTree.find((item) => item.id === event.target.value);
+                                  setValue('category', category?.name || '', { shouldDirty: true });
+                                  setValue('subcategoryId', '', { shouldValidate: true, shouldDirty: true });
+                                }}
                                 className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all appearance-none"
-                                style={inputStyle(errors.category)}
+                                style={inputStyle(errors.categoryId)}
                               >
-                                <option value="">Select a category...</option>
-                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                <option value="">{categoryTreeQuery.isLoading ? 'Loading categories...' : 'Select a category...'}</option>
+                                {categoryTree.map((category) => (
+                                  <option key={category.id} value={category.id}>{category.name}</option>
+                                ))}
                               </select>
                             )}
                           />
-                          {errors.category && <p className="text-xs mt-1 font-semibold" style={{ color: colors.state.error }}>{errors.category.message}</p>}
+                          {errors.categoryId && <p className="text-xs mt-1 font-semibold" style={{ color: colors.state.error }}>{errors.categoryId.message}</p>}
+                        </div>
+
+                        {/* Subcategory */}
+                        <div>
+                          <FieldLabel required colors={colors}>Subcategory</FieldLabel>
+                          <Controller
+                            name="subcategoryId"
+                            control={control}
+                            render={({ field }) => (
+                              <select
+                                {...field}
+                                disabled={!selectedCategoryId || categoryTreeQuery.isLoading}
+                                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all appearance-none disabled:cursor-not-allowed disabled:opacity-60"
+                                style={inputStyle(errors.subcategoryId)}
+                              >
+                                <option value="">
+                                  {selectedCategoryId ? 'Select a subcategory...' : 'Choose category first'}
+                                </option>
+                                {subcategoryOptions.map((subcategory) => (
+                                  <option key={subcategory.id} value={subcategory.id}>{subcategory.label}</option>
+                                ))}
+                              </select>
+                            )}
+                          />
+                          {errors.subcategoryId && <p className="text-xs mt-1 font-semibold" style={{ color: colors.state.error }}>{errors.subcategoryId.message}</p>}
                         </div>
 
                         {/* Currency + Featured row */}

@@ -14,6 +14,12 @@ const PRODUCT_SELECT = `
     name,
     slug
   ),
+  subcategory:categories!subcategory_id (
+    id,
+    name,
+    slug,
+    parent_id
+  ),
   seller:seller_public!seller_id (
     id,
     full_name,

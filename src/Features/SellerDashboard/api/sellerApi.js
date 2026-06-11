@@ -28,7 +28,7 @@ export const sellerApi = {
   getProduct: async (productId) => {
     const { data, error } = await supabase
       .from('products')
-      .select('*, product_variants(*), product_images(*)')
+      .select('*, category:categories!category_id(id, name, slug), subcategory:categories!subcategory_id(id, name, slug, parent_id), product_variants(*), product_images(*)')
       .eq('id', productId)
       .single();
     if (error) throw error;
@@ -116,13 +116,6 @@ export const sellerApi = {
 
   // ── Add Product: products + product_images + product_variants ────────────────
   addProduct: async (sellerId, productData) => {
-    // 1. Resolve category_id from name
-    const { data: catData } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('name', productData.category)
-      .single();
-
     const slug = createProductSlug(productData.name);
 
     // 2. Upload thumbnail (required field in products.image)
@@ -146,7 +139,8 @@ export const sellerApi = {
       .from('products')
       .insert([{
         seller_id: sellerId,
-        category_id: catData?.id ?? null,
+        category_id: productData.categoryId,
+        subcategory_id: productData.subcategoryId,
         name: productData.name,
         slug,
         brand: productData.brand || null,
@@ -211,13 +205,6 @@ export const sellerApi = {
   },
 
   updateProduct: async (productId, productData) => {
-    // 1. Resolve category_id from name
-    const { data: catData } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('name', productData.category)
-      .single();
-
     const { data: currentProduct, error: currentProductError } = await supabase
       .from('products')
       .select('slug')
@@ -243,7 +230,8 @@ export const sellerApi = {
     const { data: product, error: pErr } = await supabase
       .from('products')
       .update({
-        category_id: catData?.id ?? null,
+        category_id: productData.categoryId,
+        subcategory_id: productData.subcategoryId,
         name: productData.name,
         slug: refreshProductSlug(productData.name, currentProduct.slug),
         brand: productData.brand || null,

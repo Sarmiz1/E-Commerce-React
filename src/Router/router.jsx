@@ -6,6 +6,7 @@ import {
 
 // Loaders
 import { fetchProductsLoader } from "../loaders/fetchProductsLoader";
+import { categoryProductsLoader } from "../loaders/categoryProductsLoader";
 import { productDetailsLoader } from "../loaders/productDetailsLoader";
 
 // Layouts
@@ -378,7 +379,18 @@ const router = createBrowserRouter(
                   Component: m.default,
                 }))
               }
-              loader={fetchProductsLoader}
+              loader={categoryProductsLoader}
+              hydrateFallbackElement={<ProductsSkeleton />}
+            />
+
+            <Route
+              path="categories/:categorySlug/:subcategorySlug"
+              lazy={() =>
+                import("../Features/Collections/pages/CategoryCollectionPage").then((m) => ({
+                  Component: m.default,
+                }))
+              }
+              loader={categoryProductsLoader}
               hydrateFallbackElement={<ProductsSkeleton />}
             />
 

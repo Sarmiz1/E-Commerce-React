@@ -45,11 +45,46 @@ function filterProducts(products, config) {
         p.categorySlug,
         p.category_label,
         p.categoryLabel,
+        p.subcategory?.name,
+        p.subcategory?.slug,
+        p.subcategory_name,
+        p.subcategoryName,
+        p.subcategory_slug,
+        p.subcategorySlug,
       ]
         .filter(Boolean)
         .map(normalizeCategory);
 
       return values.some((value) => categoryTargets.includes(value));
+    });
+  }
+
+  if (config.subcategorySlug || config.subcategoryLabel) {
+    const normalizeCategory = (value = "") =>
+      String(value)
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]+/g, " ")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    const subcategoryTargets = [config.subcategorySlug, config.subcategoryLabel]
+      .filter(Boolean)
+      .map(normalizeCategory);
+
+    filtered = filtered.filter((p) => {
+      const values = [
+        p.subcategory?.name,
+        p.subcategory?.slug,
+        p.subcategory_name,
+        p.subcategoryName,
+        p.subcategory_slug,
+        p.subcategorySlug,
+      ]
+        .filter(Boolean)
+        .map(normalizeCategory);
+
+      return values.some((value) => subcategoryTargets.includes(value));
     });
   }
 
@@ -220,6 +255,15 @@ function sortProducts(products, sort) {
   return p;
 }
 
+const normalizeFilterValue = (value = "") =>
+  String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function CollectionPage({ config }) {
   const { isDark, colors } = useTheme();
@@ -229,6 +273,7 @@ export default function CollectionPage({ config }) {
   const isLoading = navigation.state === "loading";
 
   const [sort, setSort] = useState("default");
+  const [activeSubcategory, setActiveSubcategory] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
   const [quickView, setQuickView] = useState(null);
@@ -236,8 +281,42 @@ export default function CollectionPage({ config }) {
 
   const gridRef = useRef(null);
 
+  const activeSubcategoryFromConfig = useMemo(
+    () => normalizeFilterValue(config.subcategorySlug || config.subcategoryLabel || ""),
+    [config.subcategoryLabel, config.subcategorySlug],
+  );
+
   const baseFiltered = useMemo(() => filterProducts(Array.isArray(allProducts) ? allProducts : [], config), [allProducts, config]);
-  const sorted = useMemo(() => sortProducts(baseFiltered, sort), [baseFiltered, sort]);
+  const subcategories = useMemo(() => {
+    const bySlug = new Map();
+    baseFiltered.forEach((product) => {
+      const name = product.subcategory?.name || product.subcategory_name || product.subcategoryName;
+      const slug = product.subcategory?.slug || product.subcategory_slug || product.subcategorySlug;
+      if (!name || !slug) return;
+      const key = normalizeFilterValue(slug);
+      bySlug.set(key, {
+        name,
+        slug,
+        count: (bySlug.get(key)?.count || 0) + 1,
+      });
+    });
+    return [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [baseFiltered]);
+  const effectiveActiveSubcategory = useMemo(
+    () => {
+      const requested = activeSubcategoryFromConfig || activeSubcategory;
+      return subcategories.some((subcategory) => normalizeFilterValue(subcategory.slug) === requested)
+        ? requested
+        : "all";
+    },
+    [activeSubcategory, activeSubcategoryFromConfig, subcategories],
+  );
+  const filteredBySubcategory = useMemo(() => {
+    if (effectiveActiveSubcategory === "all") return baseFiltered;
+    return baseFiltered.filter((product) =>
+      normalizeFilterValue(product.subcategory?.slug || product.subcategory_slug || product.subcategorySlug) === effectiveActiveSubcategory);
+  }, [effectiveActiveSubcategory, baseFiltered]);
+  const sorted = useMemo(() => sortProducts(filteredBySubcategory, sort), [filteredBySubcategory, sort]);
   const visible = sorted.slice(0, visibleCount);
 
   // GSAP stagger on mount / sort change
@@ -293,6 +372,54 @@ export default function CollectionPage({ config }) {
           </p>
         </div>
       </div>
+
+      {subcategories.length > 1 && (
+        <div className="border-b" style={{ borderColor: colors.border.subtle, background: colors.surface.primary }}>
+          <div className="max-w-screen-xl mx-auto px-6 py-3 flex gap-2 overflow-x-auto">
+            <button
+              className="px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all"
+              onClick={() => {
+                setActiveSubcategory("all");
+                setVisibleCount(PAGE_SIZE);
+                if (config.categorySlug) navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}`);
+              }}
+              style={{
+                background: effectiveActiveSubcategory === "all" ? accent : "transparent",
+                color: effectiveActiveSubcategory === "all" ? "#fff" : colors.text.secondary,
+                border: `1px solid ${effectiveActiveSubcategory === "all" ? accent : colors.border.default}`,
+              }}
+              type="button"
+            >
+              All subcategories · {baseFiltered.length}
+            </button>
+            {subcategories.map((subcategory) => {
+              const key = normalizeFilterValue(subcategory.slug);
+              const active = effectiveActiveSubcategory === key;
+              return (
+                <button
+                  className="px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all"
+                  key={key}
+                  onClick={() => {
+                    setActiveSubcategory(key);
+                    setVisibleCount(PAGE_SIZE);
+                    if (config.categorySlug) {
+                      navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}/${encodeURIComponent(subcategory.slug)}`);
+                    }
+                  }}
+                  style={{
+                    background: active ? accent : "transparent",
+                    color: active ? "#fff" : colors.text.secondary,
+                    border: `1px solid ${active ? accent : colors.border.default}`,
+                  }}
+                  type="button"
+                >
+                  {subcategory.name} · {subcategory.count}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Grid */}
       <div className="max-w-screen-xl mx-auto px-6 py-12">

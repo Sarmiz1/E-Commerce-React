@@ -1,16 +1,5 @@
 import { z } from 'zod';
 
-export const CATEGORIES = [
-  'Fashion',
-  'Electronics',
-  'Home & Garden',
-  'Beauty & Health',
-  'Sports & Outdoors',
-  'Automotive',
-  'Books & Audible',
-  'Gaming',
-];
-
 export const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size', 'N/A'];
 
 export const CURRENCIES = ['NGN', 'USD', 'GBP', 'EUR'];
@@ -41,7 +30,8 @@ export const productSchema = z.object({
 
   brand: z.string().max(60, 'Brand name is too long').optional().or(z.literal('')),
 
-  category: z.string().min(1, 'Please select a category'),
+  categoryId: z.string().uuid('Please select a category'),
+  subcategoryId: z.string().uuid('Please select a subcategory'),
 
   currency: z.string().default('NGN'),
 
@@ -107,6 +97,8 @@ export const productDefaults = {
   name: '',
   brand: '',
   category: '',
+  categoryId: '',
+  subcategoryId: '',
   currency: 'NGN',
   is_featured: false,
   price: '',
