@@ -3,11 +3,22 @@ begin;
 create extension if not exists pgcrypto;
 
 alter table public.categories
+  add column if not exists path_slug text,
   add column if not exists description text,
   add column if not exists is_active boolean not null default true,
   add column if not exists sort_order integer not null default 1000,
   add column if not exists taxonomy_level integer not null default 1,
   add column if not exists metadata jsonb not null default '{}'::jsonb;
+
+update public.categories
+set path_slug = coalesce(nullif(path_slug, ''), slug)
+where path_slug is null or path_slug = '';
+
+alter table public.categories
+  alter column path_slug set not null;
+
+alter table public.categories
+  drop constraint if exists categories_slug_key;
 
 alter table public.products
   add column if not exists subcategory_id uuid references public.categories(id) on delete set null;
@@ -17,6 +28,9 @@ create index if not exists categories_parent_sort_idx
 
 create index if not exists categories_active_slug_idx
   on public.categories(is_active, slug);
+
+create unique index if not exists categories_path_slug_key
+  on public.categories(path_slug);
 
 create index if not exists products_subcategory_idx
   on public.products(subcategory_id);
@@ -129,7 +143,6 @@ values
   (351, array['Electronics','Wearables','Smart Watches'], null),
   (352, array['Electronics','Wearables','Fitness Bands'], null),
   (360, array['Electronics','Cameras'], null),
-  (361, array['Electronics','Cameras','Cameras'], null),
   (362, array['Electronics','Cameras','Lenses'], null),
   (363, array['Electronics','Cameras','Drones'], null),
 
@@ -389,12 +402,12 @@ with recursive nodes as (
     path,
     array_length(path, 1) taxonomy_level,
     path[array_length(path, 1)] name,
-    public.normalize_category_slug(path[array_length(path, 1)]) natural_slug,
+    public.normalize_category_slug(path[array_length(path, 1)]) slug,
     public.normalize_category_slug(array_to_string(path, '-')) path_slug,
     case
       when array_length(path, 1) = 1 then null::text
       else public.normalize_category_slug(array_to_string(path[1:array_length(path, 1) - 1], '-'))
-    end parent_slug,
+    end parent_path_slug,
     coalesce(
       description,
       case
@@ -407,56 +420,42 @@ with recursive nodes as (
     ) description
   from taxonomy_seed
 ),
-existing_categories as (
-  select distinct on (public.normalize_category_slug(name))
-    id,
-    name,
-    slug,
-    public.normalize_category_slug(name) natural_slug
-  from public.categories
-  order by public.normalize_category_slug(name), parent_id nulls first, id
-),
-slugged_nodes as (
-  select
-    nodes.*,
-    coalesce(existing.slug, nodes.path_slug) slug
-  from nodes
-  left join existing_categories existing on existing.natural_slug = nodes.natural_slug
-),
 ranked_nodes as (
   select
-    slugged_nodes.*,
+    nodes.*,
     row_number() over (
-      partition by slug
+      partition by path_slug
       order by taxonomy_level desc, sort_order asc, array_length(path, 1) desc
-    ) slug_rank
-  from slugged_nodes
+    ) path_slug_rank
+  from nodes
 ),
 ordered_nodes as (
   select *
   from ranked_nodes
-  where slug_rank = 1
-  order by taxonomy_level, sort_order, slug
+  where path_slug_rank = 1
+  order by taxonomy_level, sort_order, path_slug
 ),
 parent_categories as (
-  select distinct on (slug) id, slug
+  select distinct on (path_slug) id, path_slug
   from public.categories
-  order by slug, id
+  order by path_slug, id
 )
 select
   insertable_node.name,
   insertable_node.slug,
-  insertable_node.parent_slug,
+  insertable_node.path_slug,
+  insertable_node.parent_path_slug,
   insertable_node.parent_id,
   insertable_node.description,
   insertable_node.sort_order,
   insertable_node.taxonomy_level,
   insertable_node.metadata
 from (
-  select distinct on (node.slug)
+  select distinct on (node.path_slug)
     node.name,
     node.slug,
-    node.parent_slug,
+    node.path_slug,
+    node.parent_path_slug,
     parent.id parent_id,
     node.description,
     node.sort_order,
@@ -466,14 +465,15 @@ from (
       'source', '20260606140000_category_subcategory_taxonomy'
     ) metadata
   from ordered_nodes node
-  left join parent_categories parent on parent.slug = node.parent_slug
+  left join parent_categories parent on parent.path_slug = node.parent_path_slug
   where node.slug is not null and node.slug <> ''
-  order by node.slug, node.taxonomy_level desc, node.sort_order asc
+  order by node.path_slug, node.taxonomy_level desc, node.sort_order asc
 ) insertable_node;
 
 update public.categories category
 set
   name = seed.name,
+  slug = seed.slug,
   parent_id = seed.parent_id,
   description = seed.description,
   is_active = true,
@@ -481,11 +481,12 @@ set
   taxonomy_level = seed.taxonomy_level,
   metadata = category.metadata || seed.metadata
 from category_seed_rows seed
-where category.slug = seed.slug;
+where category.path_slug = seed.path_slug;
 
 insert into public.categories (
   name,
   slug,
+  path_slug,
   parent_id,
   description,
   is_active,
@@ -496,6 +497,7 @@ insert into public.categories (
 select
   seed.name,
   seed.slug,
+  seed.path_slug,
   seed.parent_id,
   seed.description,
   true,
@@ -506,20 +508,28 @@ from category_seed_rows seed
 where not exists (
   select 1
   from public.categories category
-  where category.slug = seed.slug
+  where category.path_slug = seed.path_slug
 );
 
 with parent_categories as (
-  select distinct on (slug) id, slug
+  select distinct on (path_slug) id, path_slug
   from public.categories
-  order by slug, id
+  order by path_slug, id
 )
 update public.categories child
 set parent_id = parent.id
 from category_seed_rows seed
-left join parent_categories parent on parent.slug = seed.parent_slug
-where child.slug = seed.slug
+left join parent_categories parent on parent.path_slug = seed.parent_path_slug
+where child.path_slug = seed.path_slug
   and child.parent_id is distinct from parent.id;
+
+create unique index if not exists categories_root_slug_key
+  on public.categories(slug)
+  where parent_id is null;
+
+create unique index if not exists categories_sibling_slug_key
+  on public.categories(parent_id, slug)
+  where parent_id is not null;
 
 create or replace function public.category_root_id(p_category_id uuid)
 returns uuid
@@ -593,7 +603,10 @@ set search_path = ''
 as $$
   with recursive selected_category as (
     select id from public.categories
-    where slug = public.normalize_category_slug(p_category_slug)
+    where (
+        slug = public.normalize_category_slug(p_category_slug)
+        or path_slug = public.normalize_category_slug(p_category_slug)
+      )
       and is_active = true
     limit 1
   ),
@@ -609,7 +622,10 @@ as $$
     select category.id
     from public.categories category
     where p_subcategory_slug is not null
-      and category.slug = public.normalize_category_slug(p_subcategory_slug)
+      and (
+        category.slug = public.normalize_category_slug(p_subcategory_slug)
+        or category.path_slug = public.normalize_category_slug(p_subcategory_slug)
+      )
       and category.is_active = true
       and category.id in (select id from descendants)
     limit 1
