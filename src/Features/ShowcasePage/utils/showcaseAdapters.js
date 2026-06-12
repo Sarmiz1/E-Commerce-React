@@ -1,8 +1,4 @@
 import { CURATION_DEFINITIONS } from "../../../api/curationFetchLoader";
-import {
-  getProductCategoryOptions,
-  matchesProductCategory,
-} from "../../Product/Hooks/useProductsFilter";
 import { HERO_SLIDES } from "../data";
 import { formatShowcaseTitle } from "./formatShowcaseTitle";
 import { getShowcaseProductImage, normalizeShowcaseProduct } from "./showcaseProduct";
@@ -325,15 +321,12 @@ export const buildCurationIndexSections = (feed, basePath = "/products/curations
   );
 };
 
-export const buildCategoryIndexSections = (products = [], basePath = "/products/categories") => {
-  const options = getProductCategoryOptions(products).filter((category) => category.value !== "All");
-
-  return options.map((category, index) => {
-    const id = slugify(category.value || category.label);
-    const items = products
-      .filter((product) => matchesProductCategory(product, category.value))
+export const buildCategoryIndexSections = (categories = [], basePath = "/products/categories") =>
+  categories.map((category, index) => {
+    const id = slugify(category.path_slug || category.slug || category.name);
+    const items = (category.products || [])
       .slice(0, 5)
-      .map((product, itemIndex) => decorateShowcaseItem(product, itemIndex, category.label));
+      .map((product, itemIndex) => decorateShowcaseItem(product, itemIndex, category.name));
     const accent = ACCENTS[index % ACCENTS.length];
     const hasNewProducts = items.some((item) => {
       if (!item.created_at) return false;
@@ -342,17 +335,16 @@ export const buildCategoryIndexSections = (products = [], basePath = "/products/
 
     return {
       id,
-      label: category.label,
-      topbarLabel: category.label,
+      label: category.name,
+      topbarLabel: category.name,
       tag: hasNewProducts ? "JUST IN" : "ALWAYS ON",
       tagColor: accent,
       accent,
       path: `${basePath}/${encodeURIComponent(id)}`,
       items,
-      description: `Explore ${category.label.toLowerCase()} products across WooSho.`,
+      description: category.description || `Explore ${String(category.name || "").toLowerCase()} products across WooSho.`,
     };
   }).filter((section) => section.items.length);
-};
 
 export const getFirstShowcaseImage = (sections = []) =>
   getShowcaseProductImage(getSectionProducts(sections)[0]);

@@ -16,113 +16,6 @@ function seededNumber(seed, offset = 0) {
   return (Math.sin(hash) + 1) / 2;
 }
 
-function filterProducts(products, config) {
-  if (!products?.length) return [];
-  let filtered = [...products];
-
-  if (config.categorySlug || config.categoryLabel) {
-    const normalizeCategory = (value = "") =>
-      String(value)
-        .trim()
-        .toLowerCase()
-        .replace(/[_-]+/g, " ")
-        .replace(/[^a-z0-9\s]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    const categoryTargets = [config.categorySlug, config.categoryLabel]
-      .filter(Boolean)
-      .map(normalizeCategory);
-
-    filtered = filtered.filter((p) => {
-      const category = p.category;
-      const values = [
-        typeof category === "string" ? category : "",
-        category?.name,
-        category?.slug,
-        p.category_name,
-        p.categoryName,
-        p.category_slug,
-        p.categorySlug,
-        p.category_label,
-        p.categoryLabel,
-        p.subcategory?.name,
-        p.subcategory?.slug,
-        p.subcategory_name,
-        p.subcategoryName,
-        p.subcategory_slug,
-        p.subcategorySlug,
-      ]
-        .filter(Boolean)
-        .map(normalizeCategory);
-
-      return values.some((value) => categoryTargets.includes(value));
-    });
-  }
-
-  if (config.subcategorySlug || config.subcategoryLabel) {
-    const normalizeCategory = (value = "") =>
-      String(value)
-        .trim()
-        .toLowerCase()
-        .replace(/[_-]+/g, " ")
-        .replace(/[^a-z0-9\s]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    const subcategoryTargets = [config.subcategorySlug, config.subcategoryLabel]
-      .filter(Boolean)
-      .map(normalizeCategory);
-
-    filtered = filtered.filter((p) => {
-      const values = [
-        p.subcategory?.name,
-        p.subcategory?.slug,
-        p.subcategory_name,
-        p.subcategoryName,
-        p.subcategory_slug,
-        p.subcategorySlug,
-      ]
-        .filter(Boolean)
-        .map(normalizeCategory);
-
-      return values.some((value) => subcategoryTargets.includes(value));
-    });
-  }
-
-  // Category keyword match
-  if (config.keywords?.length) {
-    filtered = filtered.filter((p) =>
-      config.keywords.some((kw) =>
-        (p.keywords || []).some((pk) => pk.toLowerCase().includes(kw.toLowerCase())) ||
-        (typeof p.category === "string" ? p.category : p.category?.name || "").toLowerCase().includes(kw.toLowerCase()) ||
-        (p.name || "").toLowerCase().includes(kw.toLowerCase())
-      )
-    );
-  }
-
-  // Special filters
-  if (config.onSale) filtered = filtered.filter((p) => p.compare_at_price_minor && p.compare_at_price_minor > p.price_minor);
-  if (config.inStock) filtered = filtered.filter((p) => p.stock_quantity > 0);
-  if (config.sortByNew) filtered = [...filtered].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  if (config.sortByRating) filtered = [...filtered].sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
-  if (config.minRating) filtered = filtered.filter((p) => (p.rating_stars || 0) >= config.minRating);
-  if (config.maxPrice) filtered = filtered.filter((p) => p.price_minor <= config.maxPrice * 100);
-
-  // Fallback: if too few, loosen to show at least something
-  if (filtered.length < 4 && config.keywords?.length) {
-    const loose = products.filter((p) =>
-      config.keywords.some((kw) => JSON.stringify(p).toLowerCase().includes(kw.toLowerCase()))
-    );
-    if (loose.length > filtered.length) filtered = loose;
-  }
-
-  // Final fallback — just show all
-  if (filtered.length === 0 && !config.categorySlug && !config.categoryLabel) {
-    filtered = products.slice(0, PAGE_SIZE);
-  }
-
-  return filtered;
-}
-
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 function AnimatedCount({ value }) {
   const [display, setDisplay] = useState(0);
@@ -273,7 +166,6 @@ export default function CollectionPage({ config }) {
   const isLoading = navigation.state === "loading";
 
   const [sort, setSort] = useState("default");
-  const [activeSubcategory, setActiveSubcategory] = useState("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
   const [quickView, setQuickView] = useState(null);
@@ -286,10 +178,10 @@ export default function CollectionPage({ config }) {
     [config.subcategoryLabel, config.subcategorySlug],
   );
 
-  const baseFiltered = useMemo(() => filterProducts(Array.isArray(allProducts) ? allProducts : [], config), [allProducts, config]);
+  const backendProducts = useMemo(() => Array.isArray(allProducts) ? allProducts : [], [allProducts]);
   const subcategories = useMemo(() => {
     const bySlug = new Map();
-    baseFiltered.forEach((product) => {
+    backendProducts.forEach((product) => {
       const name = product.subcategory?.name || product.subcategory_name || product.subcategoryName;
       const slug = product.subcategory?.slug || product.subcategory_slug || product.subcategorySlug;
       if (!name || !slug) return;
@@ -301,22 +193,17 @@ export default function CollectionPage({ config }) {
       });
     });
     return [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [baseFiltered]);
+  }, [backendProducts]);
   const effectiveActiveSubcategory = useMemo(
     () => {
-      const requested = activeSubcategoryFromConfig || activeSubcategory;
+      const requested = activeSubcategoryFromConfig || "all";
       return subcategories.some((subcategory) => normalizeFilterValue(subcategory.slug) === requested)
         ? requested
         : "all";
     },
-    [activeSubcategory, activeSubcategoryFromConfig, subcategories],
+    [activeSubcategoryFromConfig, subcategories],
   );
-  const filteredBySubcategory = useMemo(() => {
-    if (effectiveActiveSubcategory === "all") return baseFiltered;
-    return baseFiltered.filter((product) =>
-      normalizeFilterValue(product.subcategory?.slug || product.subcategory_slug || product.subcategorySlug) === effectiveActiveSubcategory);
-  }, [effectiveActiveSubcategory, baseFiltered]);
-  const sorted = useMemo(() => sortProducts(filteredBySubcategory, sort), [filteredBySubcategory, sort]);
+  const sorted = useMemo(() => sortProducts(backendProducts, sort), [backendProducts, sort]);
   const visible = sorted.slice(0, visibleCount);
 
   // GSAP stagger on mount / sort change
@@ -339,7 +226,7 @@ export default function CollectionPage({ config }) {
   return (
     <div className="min-h-screen" style={{ background: colors.surface.primary, color: colors.text.primary }}>
       {/* Hero */}
-      <CollectionHero config={config} count={baseFiltered.length} isDark={isDark} colors={colors} />
+      <CollectionHero config={config} count={backendProducts.length} isDark={isDark} colors={colors} />
 
       {/* Sort + Breadcrumb Bar */}
       <div className="sticky top-16 z-40 border-b backdrop-blur-xl" style={{ background: isDark ? "rgba(14,14,16,0.9)" : "rgba(255,255,255,0.9)", borderColor: colors.border.subtle }}>
@@ -368,7 +255,7 @@ export default function CollectionPage({ config }) {
           </div>
 
           <p className="text-[11px] font-medium shrink-0 hidden sm:block" style={{ color: colors.text.tertiary }}>
-            <span className="font-bold" style={{ color: colors.text.primary }}>{baseFiltered.length}</span> items
+            <span className="font-bold" style={{ color: colors.text.primary }}>{backendProducts.length}</span> items
           </p>
         </div>
       </div>
@@ -379,7 +266,6 @@ export default function CollectionPage({ config }) {
             <button
               className="px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all"
               onClick={() => {
-                setActiveSubcategory("all");
                 setVisibleCount(PAGE_SIZE);
                 if (config.categorySlug) navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}`);
               }}
@@ -390,7 +276,7 @@ export default function CollectionPage({ config }) {
               }}
               type="button"
             >
-              All subcategories · {baseFiltered.length}
+              All subcategories · {backendProducts.length}
             </button>
             {subcategories.map((subcategory) => {
               const key = normalizeFilterValue(subcategory.slug);
@@ -400,7 +286,6 @@ export default function CollectionPage({ config }) {
                   className="px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all"
                   key={key}
                   onClick={() => {
-                    setActiveSubcategory(key);
                     setVisibleCount(PAGE_SIZE);
                     if (config.categorySlug) {
                       navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}/${encodeURIComponent(subcategory.slug)}`);

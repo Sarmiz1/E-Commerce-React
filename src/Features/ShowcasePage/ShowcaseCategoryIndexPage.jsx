@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AdminAdvertsAPI } from "../../api/adminAdvertsApi";
-import { ProductsAPI } from "../../api/productsApi";
+import { CategoriesAPI } from "../../api/categoriesApi";
 import ShowcaseIndexPage from "./ShowcaseIndexPage";
 import {
   buildCategoryIndexSections,
@@ -11,8 +11,8 @@ import {
 } from "./utils/showcaseAdapters";
 
 export default function ShowcaseCategoryIndexPage() {
-  const productsQuery = useQuery({
-    ...ProductsAPI.getAll(),
+  const categoriesQuery = useQuery({
+    ...CategoriesAPI.getIndexSections({ limitPerCategory: 5 }),
     staleTime: 1000 * 60 * 5,
   });
   const advertQuery = useQuery({
@@ -24,10 +24,10 @@ export default function ShowcaseCategoryIndexPage() {
     placeholderData: (previousData) => previousData ?? [],
   });
 
-  const products = useMemo(() => productsQuery.data || [], [productsQuery.data]);
+  const categories = useMemo(() => categoriesQuery.data || [], [categoriesQuery.data]);
   const sections = useMemo(
-    () => buildCategoryIndexSections(products, "/products/categories"),
-    [products],
+    () => buildCategoryIndexSections(categories, "/products/categories"),
+    [categories],
   );
   const heroSlides = useMemo(
     () => advertQuery.data?.length ? advertQuery.data : buildShowcaseHeroSlides({
@@ -48,10 +48,9 @@ export default function ShowcaseCategoryIndexPage() {
       basePath="/products/categories"
       emptyMessage="No active category sections are available yet."
       heroSlides={heroSlides}
-      isError={productsQuery.isError}
-      isLoading={productsQuery.isLoading && !sections.length}
-      onRetry={() => productsQuery.refetch()}
-      products={products}
+      isError={categoriesQuery.isError}
+      isLoading={categoriesQuery.isLoading && !sections.length}
+      onRetry={() => categoriesQuery.refetch()}
       sections={sections}
       topbarLabels={buildTopbarLabels(sections)}
       topbarOffset={70}

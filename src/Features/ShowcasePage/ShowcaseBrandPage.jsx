@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { ProductsAPI } from "../../api/productsApi";
@@ -10,27 +9,21 @@ const normalizeSlug = (value = "") =>
   String(value)
     .trim()
     .toLowerCase()
-    .replace(/[_-]+/g, " ")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/[_\s]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
     .trim();
 
 export default function ShowcaseBrandPage() {
   const { brandSlug = "" } = useParams();
+  const normalizedBrandSlug = normalizeSlug(brandSlug);
   const productsQuery = useQuery({
-    ...ProductsAPI.getAll(),
+    ...ProductsAPI.getByBrandSlug(normalizedBrandSlug, 120),
     staleTime: 1000 * 60 * 5,
   });
-  const normalizedBrandSlug = normalizeSlug(brandSlug);
-  const products = useMemo(
-    () =>
-      (productsQuery.data || []).filter(
-        (product) => normalizeSlug(product.brand) === normalizedBrandSlug,
-      ),
-    [normalizedBrandSlug, productsQuery.data],
-  );
+  const products = productsQuery.data || [];
   const title =
-    products.find((product) => normalizeSlug(product.brand) === normalizedBrandSlug)?.brand ||
+    products[0]?.brand ||
     formatShowcaseTitle(brandSlug) ||
     "Brand";
 

@@ -44,6 +44,7 @@ const SEARCH_RESULT_LIMIT = 8;
 const SEARCH_DISCOVERY_LIMIT = 8;
 const MAX_SEARCH_CANDIDATES = 1000;
 const PRODUCT_SEARCH_CANDIDATE_SELECT = "id, click_score, rating_count";
+const COLLECTION_RESULT_LIMIT = 120;
 
 const normalizeSearchTerm = (value = "") =>
   String(value)
@@ -83,6 +84,95 @@ const getQueryData = async (query) => {
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   return data || [];
+};
+
+const clampCollectionLimit = (limit) =>
+  Math.min(Math.max(Number(limit) || COLLECTION_RESULT_LIMIT, 1), 240);
+
+const buildCollectionSearchClause = (keywords = []) => {
+  const terms = [...new Set(
+    (keywords || [])
+      .map((keyword) => normalizeSearchTerm(keyword).toLowerCase())
+      .filter(Boolean),
+  )];
+
+  if (!terms.length) return "";
+
+  return terms.flatMap((term) => {
+    const pattern = `*${term}*`;
+    const slugPattern = `*${term.replace(/\s+/g, "-")}*`;
+
+    return [
+      `name.ilike.${pattern}`,
+      `slug.ilike.${slugPattern}`,
+      `brand.ilike.${pattern}`,
+      `short_description.ilike.${pattern}`,
+      `full_description.ilike.${pattern}`,
+    ];
+  }).join(",");
+};
+
+const applyCollectionOrder = (query, sort = "newest") => {
+  if (sort === "price-asc") {
+    return query.order("price_minor", { ascending: true }).order("created_at", { ascending: false });
+  }
+
+  if (sort === "price-desc") {
+    return query.order("price_minor", { ascending: false }).order("created_at", { ascending: false });
+  }
+
+  if (sort === "rating") {
+    return query.order("rating_stars", { ascending: false, nullsFirst: false }).order("rating_count", { ascending: false, nullsFirst: false });
+  }
+
+  if (sort === "trending") {
+    return query.order("click_score", { ascending: false, nullsFirst: false }).order("rating_count", { ascending: false, nullsFirst: false });
+  }
+
+  return query.order("created_at", { ascending: false }).order("id", { ascending: true });
+};
+
+const fetchCollectionProducts = async ({
+  keywords = [],
+  onSale = false,
+  inStock = false,
+  minRating,
+  maxPrice,
+  sort = "newest",
+  limit = COLLECTION_RESULT_LIMIT,
+} = {}) => {
+  let query = supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("is_active", true);
+
+  const searchClause = buildCollectionSearchClause(keywords);
+  if (searchClause) query = query.or(searchClause);
+  if (onSale) query = query.gt("sale_price_minor", 0).not("sale_price_minor", "is", null);
+  if (inStock) query = query.gt("stock_quantity", 0);
+  if (minRating) query = query.gte("rating_stars", Number(minRating));
+  if (maxPrice) query = query.lte("price_minor", Number(maxPrice) * 100);
+
+  const data = await getQueryData(applyCollectionOrder(query, sort).limit(clampCollectionLimit(limit)));
+  return filterSellableProducts(data);
+};
+
+const fetchBrandProducts = async ({ brandSlug = "", limit = COLLECTION_RESULT_LIMIT } = {}) => {
+  const normalizedBrandSlug = String(brandSlug || "").trim().toLowerCase();
+  if (!normalizedBrandSlug) return [];
+
+  const data = await getQueryData(
+    supabase
+      .from("products")
+      .select(PRODUCT_SELECT)
+      .eq("is_active", true)
+      .eq("brand_slug", normalizedBrandSlug)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .limit(clampCollectionLimit(limit)),
+  );
+
+  return filterSellableProducts(data);
 };
 
 const fetchAllActiveProducts = async () => {
@@ -315,6 +405,16 @@ export const ProductsAPI = {
         ["keywords", "overlaps", keywordsArray],
         ["created_at", "order", { ascending: false }],
       ])),
+  }),
+
+  getCollection: (config = {}) => ({
+    queryKey: ["products", "collection", config],
+    queryFn: () => fetchCollectionProducts(config),
+  }),
+
+  getByBrandSlug: (brandSlug, limit = COLLECTION_RESULT_LIMIT) => ({
+    queryKey: ["products", "brand", brandSlug, limit],
+    queryFn: () => fetchBrandProducts({ brandSlug, limit }),
   }),
 
   search: (searchTerm, limit = SEARCH_RESULT_LIMIT) => ({

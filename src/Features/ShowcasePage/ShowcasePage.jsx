@@ -5,10 +5,6 @@ import ProductDetailModal from "../../Components/Ui/ProductDetailModal";
 import { IconSpinner } from "../../Components/Icons/IconSpinner";
 import { useTheme } from "../../Store/useThemeStore";
 import { getProductImages } from "../../utils/getProductImages";
-import FilterSidebar, {
-  ActiveFilterChips,
-} from "../Product/Components/FilterSidebar";
-import MobileFilterDrawer from "../Product/Components/MobileFilterDrawer";
 import { PG_STYLES } from "../Product/Styles/ProductsPageStyles";
 import ShowcaseAdvert from "./ShowcaseComponents/ShowcaseAdvert";
 import ShowcaseBreadcrumbs from "./ShowcaseComponents/ShowcaseBreadcrumbs";
@@ -19,7 +15,6 @@ import {
   ShowcaseErrorState,
   ShowcaseLoadingState,
 } from "./ShowcaseComponents/ShowcaseStates";
-import { useShowcaseProductsFilter } from "./Hooks/useShowcaseProductsFilter";
 import { useShowcaseProductsCache } from "./Hooks/useShowcaseProductsCache";
 
 const getCanonicalUrl = (canonicalPath) => {
@@ -48,34 +43,12 @@ export default function ShowcasePage({
   advert,
 }) {
   const { colors, isDark } = useTheme();
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const stableProducts = useMemo(() => products || [], [products]);
   const displayHeroImage = heroImage || getProductImages(stableProducts[0])[0];
   const canonicalUrl = getCanonicalUrl(canonicalPath);
 
   useShowcaseProductsCache(stableProducts);
-
-  const {
-    categoryOptions,
-    filteredProducts,
-    filters,
-    maxBudget,
-    resetFilters,
-    selectedCategory,
-    selectedCategoryLabel,
-    selectedCategoryValue,
-    setFilters,
-    setSelectedCategory,
-  } = useShowcaseProductsFilter(stableProducts);
-
-  const hasActiveFilters =
-    selectedCategory !== "All" ||
-    filters.sort !== "default" ||
-    filters.rating !== null ||
-    filters.inStock ||
-    filters.onSale ||
-    filters.budget < maxBudget;
 
   const schema = useMemo(
     () => ({
@@ -103,7 +76,7 @@ export default function ShowcasePage({
   );
 
   useEffect(() => {
-    if (mobileFilterOpen || quickViewProduct) {
+    if (quickViewProduct) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -112,7 +85,7 @@ export default function ShowcasePage({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileFilterOpen, quickViewProduct]);
+  }, [quickViewProduct]);
 
   return (
     <div
@@ -166,88 +139,27 @@ export default function ShowcasePage({
                 </p>
                 <h2 className="mt-2 font-serif text-3xl font-bold">{listTitle}</h2>
                 <p className="mt-2 text-sm" style={{ color: colors.text.tertiary }}>
-                  Showing {filteredProducts.length} of {stableProducts.length} products
+                  Showing {stableProducts.length} products
                   {isFetching && <IconSpinner />}
                 </p>
               </div>
-              <button
-                className="inline-flex items-center justify-center rounded-full border px-5 py-3 text-xs font-black uppercase tracking-wider lg:hidden"
-                onClick={() => setMobileFilterOpen(true)}
-                style={{
-                  background: colors.surface.secondary,
-                  borderColor: colors.border.default,
-                  color: colors.text.primary,
-                }}
-                type="button"
-              >
-                Filters and sort
-              </button>
             </div>
 
-            <div className="flex items-start gap-10">
-              <aside className="hidden w-[280px] flex-shrink-0 self-start lg:sticky lg:top-24 lg:block lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto lg:pb-8 lg:pr-3">
-                <div
-                  className="rounded-[24px] border p-6 shadow-sm"
-                  style={{
-                    background: colors.surface.secondary,
-                    borderColor: colors.border.subtle,
-                  }}
-                >
-                  <FilterSidebar
-                    categoryOptions={categoryOptions}
-                    filters={filters}
-                    matchingCount={filteredProducts.length}
-                    maxBudget={maxBudget}
-                    selectedCategory={selectedCategoryValue}
-                    setFilters={setFilters}
-                    setSelectedCategory={setSelectedCategory}
-                  />
-                </div>
-              </aside>
-
-              <section className="min-w-0 flex-1">
-                <div className="mb-5">
-                  <ActiveFilterChips
-                    filters={filters}
-                    maxBudget={maxBudget}
-                    selectedCategory={selectedCategory}
-                    selectedCategoryLabel={selectedCategoryLabel}
-                    setFilters={setFilters}
-                    setSelectedCategory={setSelectedCategory}
-                  />
-                </div>
-
-                {filteredProducts.length ? (
-                  <ShowcaseProductGrid
-                    onQuickView={setQuickViewProduct}
-                    products={filteredProducts}
-                  />
-                ) : (
-                  <ShowcaseEmptyState
-                    colors={colors}
-                    emptyBody={emptyBody}
-                    emptyLabel={emptyLabel}
-                    filtered={stableProducts.length > 0 && hasActiveFilters}
-                    onReset={resetFilters}
-                    title={title}
-                  />
-                )}
-              </section>
-            </div>
+            {stableProducts.length ? (
+              <ShowcaseProductGrid
+                onQuickView={setQuickViewProduct}
+                products={stableProducts}
+              />
+            ) : (
+              <ShowcaseEmptyState
+                colors={colors}
+                emptyBody={emptyBody}
+                emptyLabel={emptyLabel}
+                filtered={false}
+                title={title}
+              />
+            )}
           </main>
-
-          <MobileFilterDrawer
-            categoryOptions={categoryOptions}
-            colors={colors}
-            filters={filters}
-            isOpen={mobileFilterOpen}
-            matchingCount={filteredProducts.length}
-            maxBudget={maxBudget}
-            onClose={() => setMobileFilterOpen(false)}
-            selectedCategory={selectedCategoryValue}
-            setFilters={setFilters}
-            setSelectedCategory={setSelectedCategory}
-          />
 
           <AnimatePresence>
             {quickViewProduct && (

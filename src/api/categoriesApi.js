@@ -112,5 +112,36 @@ export const CategoriesAPI = {
     staleTime: 1000 * 60 * 5,
   }),
 
+  getIndexSections: ({ limitPerCategory = 5, maxCategories = 24 } = {}) => ({
+    queryKey: ["categories", "index-sections", limitPerCategory, maxCategories],
+    queryFn: async () => {
+      const categories = await CategoriesAPI.listFlat();
+      const roots = categories
+        .filter((category) => !category.parent_id)
+        .slice(0, Math.max(Number(maxCategories) || 24, 1));
+
+      const sections = await Promise.all(
+        roots.map(async (category) => {
+          const { data, error } = await supabase.rpc("get_category_products", {
+            p_category_slug: category.slug,
+            p_subcategory_slug: null,
+            p_limit: Math.max(Number(limitPerCategory) || 5, 1),
+            p_offset: 0,
+          });
+
+          throwQueryError(error);
+
+          return {
+            ...category,
+            products: filterSellableProducts(data || []),
+          };
+        }),
+      );
+
+      return sections.filter((section) => section.products.length);
+    },
+    staleTime: 1000 * 60 * 10,
+  }),
+
   flattenLeafSubcategories,
 };

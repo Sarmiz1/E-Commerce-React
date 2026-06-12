@@ -7,6 +7,7 @@ import {
 // Loaders
 import { fetchProductsLoader } from "../loaders/fetchProductsLoader";
 import { categoryProductsLoader } from "../loaders/categoryProductsLoader";
+import { collectionProductsLoader } from "../loaders/collectionProductsLoader";
 import { productDetailsLoader } from "../loaders/productDetailsLoader";
 
 // Layouts
@@ -454,56 +455,56 @@ const router = createBrowserRouter(
           <Route
             path="new-arrivals"
             element={<NewArrivalsPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("new-arrivals")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="hot-deals"
             element={<HotDealsPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("hot-deals")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="trending"
             element={<TrendingNowPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("trending")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="high-fashion"
             element={<HighFashionPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("high-fashion")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="sneakers"
             element={<SneakersPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("sneakers")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="electronics"
             element={<ElectronicsPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("electronics")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="beauty-care"
             element={<BeautyCarePage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("beauty-care")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="flash-sales"
             element={<FlashSalesPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("flash-sales")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
@@ -511,7 +512,7 @@ const router = createBrowserRouter(
             <Route
               path="members-only"
               element={<MembersOnlyPage />}
-              loader={fetchProductsLoader}
+              loader={collectionProductsLoader("members-only")}
               hydrateFallbackElement={<ProductsSkeleton />}
             />
           </Route>
@@ -519,28 +520,28 @@ const router = createBrowserRouter(
           <Route
             path="categories"
             element={<CategoriesPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("categories")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="black-friday"
             element={<BlackFridayPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("black-friday")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="fashion"
             element={<FashionPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("fashion")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 
           <Route
             path="kids-toys"
             element={<KidsToysPage />}
-            loader={fetchProductsLoader}
+            loader={collectionProductsLoader("kids-toys")}
             hydrateFallbackElement={<ProductsSkeleton />}
           />
 

@@ -1,47 +1,19 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { ProductsAPI } from "../../api/productsApi";
+import { CategoriesAPI } from "../../api/categoriesApi";
 import { getProductImages } from "../../utils/getProductImages";
-import {
-  getProductCategoryOptions,
-  matchesProductCategory,
-} from "../Product/Hooks/useProductsFilter";
 import ShowcasePage from "./ShowcasePage";
 import { formatShowcaseTitle } from "./utils/formatShowcaseTitle";
-
-const normalizeCategory = (value = "") =>
-  String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ");
 
 export default function ShowcaseCategoryPage() {
   const { categorySlug = "" } = useParams();
   const productsQuery = useQuery({
-    ...ProductsAPI.getAll(),
+    ...CategoriesAPI.getProducts({ categorySlug, limit: 120 }),
     staleTime: 1000 * 60 * 5,
   });
 
-  const allProducts = useMemo(() => productsQuery.data || [], [productsQuery.data]);
-  const categoryOptions = useMemo(
-    () => getProductCategoryOptions(allProducts),
-    [allProducts],
-  );
-  const category = useMemo(
-    () =>
-      categoryOptions.find((option) =>
-        normalizeCategory(option.value) === normalizeCategory(categorySlug) ||
-        normalizeCategory(option.label) === normalizeCategory(categorySlug),
-      ),
-    [categoryOptions, categorySlug],
-  );
-  const products = useMemo(
-    () => allProducts.filter((product) => matchesProductCategory(product, category?.value || categorySlug)),
-    [allProducts, category?.value, categorySlug],
-  );
-  const title = category?.label || formatShowcaseTitle(categorySlug) || "Category";
+  const products = productsQuery.data || [];
+  const title = products[0]?.category?.name || formatShowcaseTitle(categorySlug) || "Category";
   const description = `Shop ${title.toLowerCase()} products from independent WooSho marketplace stores.`;
 
   return (
@@ -61,7 +33,7 @@ export default function ShowcaseCategoryPage() {
       isError={productsQuery.isError}
       isFetching={productsQuery.isFetching}
       isLoading={productsQuery.isLoading}
-      noIndex={!productsQuery.isLoading && !category}
+      noIndex={!productsQuery.isLoading && products.length === 0}
       onRetry={() => productsQuery.refetch()}
       parentLabel="Categories"
       parentPath="/products/categories"
