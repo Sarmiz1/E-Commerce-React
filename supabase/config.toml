@@ -395,6 +395,9 @@ verify_jwt = false
 [functions.careers-application]
 verify_jwt = false
 
+[functions.paystack-checkout]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

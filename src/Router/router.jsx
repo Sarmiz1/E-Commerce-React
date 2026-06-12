@@ -36,6 +36,7 @@ import ElectronicsPage from "../Features/Collections/pages/ElectronicsPage";
 import BeautyCarePage from "../Features/Collections/pages/BeautyCarePage";
 import FlashSalesPage from "../Features/Collections/pages/FlashSalesPage";
 import MembersOnlyPage from "../Features/Collections/pages/MembersOnlyPage";
+import { CheckoutLoading } from "../Features/Checkout/Components/CheckoutLoading";
 import CategoriesPage from "../Features/Collections/pages/CategoriesPage";
 import BlackFridayPage from "../Features/Collections/pages/BlackFridayPage";
 import FashionPage from "../Features/Collections/pages/FashionPage";
@@ -322,7 +323,7 @@ const router = createBrowserRouter(
               <Route
                 path="checkout"
                 element={<CheckoutPage />}
-                hydrateFallbackElement={<CartSkeleton />}
+                hydrateFallbackElement={<CheckoutLoading />}
               />
 
               <Route

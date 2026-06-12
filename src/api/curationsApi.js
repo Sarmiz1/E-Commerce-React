@@ -307,6 +307,14 @@ const fetchProductsForCuration = async (curationSlug) => {
   return fetchFallbackProductsForCuration(curation.slug);
 };
 
+const fetchCurationDetail = async (curationSlug) => {
+  const curation = await fetchCurationBySlug(curationSlug);
+  if (!curation) return { curation: null, products: [] };
+
+  const products = await fetchProductsForCuration(curation.slug);
+  return { curation, products };
+};
+
 const isSaleProduct = (product) => {
   const price = Number(product?.price_minor) || 0;
   const salePrice = Number(product?.sale_price_minor) || 0;
@@ -342,20 +350,6 @@ const fetchFallbackProductsForCuration = async (curationSlug) => {
   ) {
     filtered.sort(byRating);
   } else {
-    const feed = await CurationFetchLoaderAPI.getHomeCurations({
-      scope: "curation-detail-fallback",
-      includeAllSections: true,
-      includeSalesStats: true,
-      includeStores: false,
-      includeBrands: false,
-    }).queryFn();
-    const definition = getDefinitionForSlug(resolvedSlug);
-    const feedProducts =
-      feed[definition?.key] ||
-      feed.curationSections?.find((section) => section.slug === resolvedSlug)?.products ||
-      [];
-
-    if (feedProducts.length) return feedProducts;
     filtered.sort(byNewest);
   }
 
@@ -411,6 +405,10 @@ export const CurationsAPI = {
   getProducts: (curationSlug) => ({
     queryKey: ["curation-products", curationSlug],
     queryFn: () => fetchProductsForCuration(curationSlug),
+  }),
+  getDetail: (curationSlug) => ({
+    queryKey: ["curation-detail", curationSlug],
+    queryFn: () => fetchCurationDetail(curationSlug),
   }),
   getIndexSections: () => ({
     queryKey: ["curation-index-sections"],

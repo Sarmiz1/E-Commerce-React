@@ -3,6 +3,28 @@ import { supabase } from "../lib/supabaseClient";
 import { handleResponse } from "./apiClients";
 
 export const OrderAPI = {
+  initializePaystackCheckout: ({ cartId, couponCode = null, shippingTier = "standard", checkout }) =>
+    handleResponse(
+      supabase.functions.invoke("paystack-checkout", {
+        body: {
+          action: "initialize",
+          cartId,
+          couponCode,
+          shippingTier,
+          checkout,
+        },
+      }),
+    ),
+
+  verifyPaystackPayment: (reference) =>
+    handleResponse(
+      supabase.functions.invoke("paystack-checkout", {
+        body: {
+          action: "verify",
+          reference,
+        },
+      }),
+    ),
 
   // Executes the highly-secure PostgreSQL RPC Function we built
   // This bypasses standard INSERTS to natively run the transactional lock and calculations inside the DB.

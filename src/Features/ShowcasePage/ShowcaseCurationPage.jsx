@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { CurationsAPI } from "../../api/curationsApi";
@@ -15,17 +14,14 @@ export default function ShowcaseCurationPage() {
   const slug = showcaseSlug || curationSlug;
   const displayTitle = formatShowcaseTitle(slug) || "Curation";
 
-  const curationQuery = useQuery({
-    ...CurationsAPI.getBySlug(slug),
+  const detailQuery = useQuery({
+    ...CurationsAPI.getDetail(slug),
     enabled: Boolean(slug),
-  });
-  const productsQuery = useQuery({
-    ...CurationsAPI.getProducts(slug),
-    enabled: Boolean(slug),
+    staleTime: 1000 * 60 * 5,
   });
 
-  const curation = curationQuery.data;
-  const products = useMemo(() => productsQuery.data || [], [productsQuery.data]);
+  const curation = detailQuery.data?.curation;
+  const products = detailQuery.data?.products || [];
   const title = curation?.name || displayTitle;
   const description = getDescription(curation, title);
 
@@ -43,14 +39,11 @@ export default function ShowcaseCurationPage() {
       emptyLabel="Curation coming soon"
       eyebrow="WooSho Curations"
       heroImage={getProductImages(products[0])[0]}
-      isError={curationQuery.isError || productsQuery.isError}
-      isFetching={curationQuery.isFetching || productsQuery.isFetching}
-      isLoading={curationQuery.isLoading || productsQuery.isLoading}
-      noIndex={!curation}
-      onRetry={() => {
-        curationQuery.refetch();
-        productsQuery.refetch();
-      }}
+      isError={detailQuery.isError}
+      isFetching={detailQuery.isFetching}
+      isLoading={detailQuery.isLoading}
+      noIndex={!detailQuery.isLoading && !curation}
+      onRetry={() => detailQuery.refetch()}
       parentLabel="Curations"
       parentPath="/products/curations"
       products={products}

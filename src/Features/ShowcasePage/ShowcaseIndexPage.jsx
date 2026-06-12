@@ -75,20 +75,48 @@ export function ShowcaseIndex({
   useEffect(() => {
     if (!safeSections.length) return undefined;
 
-    const observers = safeSections.map((section) => {
-      const el = document.getElementById(section.id);
-      if (!el) return null;
+    const updateActiveSection = () => {
+      const topBoundary = topbarOffset + 96;
+      let closest = safeSections[0]?.id;
+      let closestDistance = Number.POSITIVE_INFINITY;
 
-      const observer = new IntersectionObserver(([entry]) => {
-        if (entry.isIntersecting) setActiveId(section.id);
-      }, { threshold: 0.2, rootMargin: "-20% 0px -60% 0px" });
+      safeSections.forEach((section) => {
+        const el = document.getElementById(section.id);
+        if (!el) return;
 
-      observer.observe(el);
-      return observer;
-    });
+        const rect = el.getBoundingClientRect();
+        const distance = Math.abs(rect.top - topBoundary);
+        const crossesTop = rect.top <= topBoundary && rect.bottom > topBoundary;
 
-    return () => observers.forEach((observer) => observer?.disconnect());
-  }, [safeSections]);
+        if (crossesTop) {
+          closest = section.id;
+          closestDistance = -1;
+          return;
+        }
+
+        if (closestDistance >= 0 && distance < closestDistance) {
+          closest = section.id;
+          closestDistance = distance;
+        }
+      });
+
+      if (closest) setActiveId(closest);
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [safeSections, topbarOffset]);
+
+  useEffect(() => {
+    const activeButton = topbarRef.current?.querySelector(`[data-section-id="${activeId}"]`);
+    activeButton?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [activeId]);
 
   useEffect(() => {
     const handleQuickView = (event) => {
@@ -100,8 +128,13 @@ export function ShowcaseIndex({
   }, []);
 
   const scrollToSection = useCallback((id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
+    setActiveId(id);
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const top = window.scrollY + el.getBoundingClientRect().top - topbarOffset - 72;
+    window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+  }, [topbarOffset]);
 
   const scrollTopbar = useCallback((dir) => {
     topbarRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });

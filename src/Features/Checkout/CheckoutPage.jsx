@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
+import { useSearchParams } from "react-router-dom";
 
 import { OrderAPI } from "../../api/orderApi";
 import { buyerApi } from "../BuyerDashboard/api/buyerApi";
@@ -20,9 +21,38 @@ import { StepBar } from "./Components/StepBar";
 import { SubmitErrorAlert } from "./Components/SubmitErrorAlert";
 import { SuccessScreen } from "./Components/SuccessScreen";
 import { TrustBar } from "./Components/TrustBar";
-import { CO_STYLES, EMPTY_ERRORS, EMPTY_FORM } from "./utils/checkoutConstants";
+import { CO_STYLES, COUNTRY_OPTIONS, EMPTY_ERRORS, EMPTY_FORM } from "./utils/checkoutConstants";
 import { calculateCheckoutTotals } from "./utils/checkoutUtils";
 import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
+
+const COUNTRY_CODE_NAMES = {
+  NG: "Nigeria",
+  US: "United States",
+  GB: "United Kingdom",
+  UK: "United Kingdom",
+  CA: "Canada",
+  DE: "Germany",
+  FR: "France",
+  AU: "Australia",
+  GH: "Ghana",
+  ZA: "South Africa",
+  KE: "Kenya",
+  IN: "India",
+  AE: "UAE",
+};
+
+const normalizeCheckoutCountry = (country) => {
+  const value = String(country || "").trim();
+  if (!value) return "Nigeria";
+  const normalized = COUNTRY_CODE_NAMES[value.toUpperCase()] || value;
+  return COUNTRY_OPTIONS.includes(normalized) ? normalized : "Nigeria";
+};
+
+const pickAddressLine = (address) =>
+  address?.line1 || address?.addressLine1 || address?.address_line1 || address?.address || "";
+
+const pickPostalCode = (address) =>
+  address?.postalCode || address?.postal_code || address?.zip || "";
 
 export default function CheckoutPage() {
   const { user } = useAuth();
@@ -34,6 +64,7 @@ export default function CheckoutPage() {
     cartId,
   } = useCartState();
   const { clearCart } = useCartActions();
+  const [searchParams, setSearchParams] = useSearchParams();
 
 
   useShowErrorBoundary(cartError);
@@ -64,6 +95,7 @@ export default function CheckoutPage() {
   const [orderNumber, setOrderNumber] = useState("");
   const [orderTotal, setOrderTotal] = useState(0);
   const [orderedCartSnapshot, setOrderedCartSnapshot] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
 
   const heroRef = useRef(null);
 
@@ -81,13 +113,38 @@ export default function CheckoutPage() {
     if (!user?.id) return;
 
     let cancelled = false;
-    buyerApi.getAccountSettings()
-      .then((settings) => {
+    Promise.allSettled([
+      buyerApi.getAccountSettings(),
+      buyerApi.getAddresses(),
+      buyerApi.getPaymentMethods(),
+    ])
+      .then(([settingsResult, addressesResult, paymentMethodsResult]) => {
+        const settings = settingsResult.status === "fulfilled" ? settingsResult.value : null;
+        const addresses = addressesResult.status === "fulfilled" ? addressesResult.value || [] : [];
+        const methods = paymentMethodsResult.status === "fulfilled" ? paymentMethodsResult.value || [] : [];
         const defaultPhone = settings?.profile?.phone || userMetadataPhone;
-        if (!cancelled && defaultPhone) {
-          setForm((previous) => previous.phone
-            ? previous
-            : { ...previous, phone: defaultPhone });
+        const defaultAddress = addresses.find((address) => address.isDefault || address.is_default) || addresses[0];
+        const billingAddress = addresses.find((address) =>
+          address.isDefaultBilling || address.is_default_billing || address.type === "billing",
+        );
+
+        if (!cancelled) {
+          setPaymentMethods(methods);
+          setForm((previous) => ({
+            ...previous,
+            phone: previous.phone || defaultPhone || "",
+            name: previous.name || defaultAddress?.name || defaultAddress?.full_name || previous.name,
+            address: previous.address || pickAddressLine(defaultAddress),
+            city: previous.city || defaultAddress?.city || "",
+            zip: previous.zip || pickPostalCode(defaultAddress),
+            country: previous.country || normalizeCheckoutCountry(defaultAddress?.country),
+            billingSameAsShipping: previous.billingSameAsShipping && !billingAddress,
+            billingAddress: previous.billingAddress || pickAddressLine(billingAddress),
+            billingCity: previous.billingCity || billingAddress?.city || "",
+            billingZip: previous.billingZip || pickPostalCode(billingAddress),
+            billingCountry: previous.billingCountry || normalizeCheckoutCountry(billingAddress?.country),
+            paymentMethodId: methods.find((method) => method.isDefault || method.is_default)?.id || methods[0]?.id || previous.paymentMethodId || "new",
+          }));
         }
       })
       .catch(() => {
@@ -103,6 +160,39 @@ export default function CheckoutPage() {
       cancelled = true;
     };
   }, [user?.id, userMetadataPhone]);
+
+  useEffect(() => {
+    const reference = searchParams.get("reference");
+    if (!reference || !user?.id) return;
+
+    let cancelled = false;
+    setSubmitting(true);
+    setSubmitError("");
+
+    OrderAPI.verifyPaystackPayment(reference)
+      .then((result) => {
+        if (cancelled) return;
+        setOrderNumber(result?.orderNumber || result?.orderId || reference);
+        setOrderTotal(calculateCheckoutTotals(cart, selectedShipping, coupon).total);
+        setOrderedCartSnapshot([...cart]);
+        setStep(1);
+        clearCart();
+        toast("Payment confirmed. Order placed successfully!", "success");
+        setSearchParams({}, { replace: true });
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setSubmitError(error?.message || "Payment verification failed. Please contact support.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSubmitting(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart, clearCart, coupon, searchParams, selectedShipping, setSearchParams, user?.id]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -143,23 +233,36 @@ export default function CheckoutPage() {
           throw new Error("Please sign in before placing your order.");
         }
 
-        const totals = calculateCheckoutTotals(cart, selectedShipping, coupon);
-        const result = await OrderAPI.createOrder({
+        const result = await OrderAPI.initializePaystackCheckout({
           cartId,
           couponCode: coupon?.code || null,
           shippingTier: selectedShipping,
+          checkout: {
+            delivery: {
+              name: form.name,
+              email: form.email,
+              phone: form.phone,
+              address: form.address,
+              city: form.city,
+              zip: form.zip,
+              country: form.country,
+            },
+            billingSameAsShipping: form.billingSameAsShipping,
+            billing: form.billingSameAsShipping ? null : {
+              address: form.billingAddress,
+              city: form.billingCity,
+              zip: form.billingZip,
+              country: form.billingCountry,
+            },
+            paymentMethodId: form.paymentMethodId,
+          },
         });
 
-        setOrderNumber(
-          result?.order_number ||
-            result?.id ||
-            `SE-${Date.now().toString(36).toUpperCase()}`,
-        );
-        setOrderTotal(totals.total);
-        setOrderedCartSnapshot([...cart]);
-        setStep(1);
-        clearCart();
-        toast("Order placed successfully!", "success");
+        if (!result?.authorizationUrl) {
+          throw new Error("Paystack did not return an authorization URL.");
+        }
+
+        window.location.assign(result.authorizationUrl);
       } catch (error) {
         setSubmitError(
           error?.message || "Failed to place order. Please try again.",
@@ -168,7 +271,7 @@ export default function CheckoutPage() {
         setSubmitting(false);
       }
     },
-    [cart, cartId, clearCart, coupon, selectedShipping, user?.id, validate],
+    [cart, cartId, coupon, form, selectedShipping, user?.id, validate],
   );
 
   return (
@@ -202,6 +305,7 @@ export default function CheckoutPage() {
                 onSubmit={handleSubmit}
                 selectedShipping={selectedShipping}
                 onShippingChange={setSelectedShipping}
+                paymentMethods={paymentMethods}
               />
             )}
 

@@ -15,6 +15,7 @@ export function DetailsStep({
   onSubmit,
   selectedShipping,
   onShippingChange,
+  paymentMethods,
 }) {
   return (
     <motion.div
@@ -32,7 +33,14 @@ export function DetailsStep({
               Back to Bag
             </motion.button>
           </div>
-          <CheckoutForm form={form} errors={errors} onChange={onChange} onSubmit={onSubmit} loading={submitting} />
+          <CheckoutForm
+            form={form}
+            errors={errors}
+            onChange={onChange}
+            onSubmit={onSubmit}
+            loading={submitting}
+            paymentMethods={paymentMethods}
+          />
         </div>
 
         <div className="lg:col-span-2">

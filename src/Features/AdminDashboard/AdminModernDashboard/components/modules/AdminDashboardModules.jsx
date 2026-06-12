@@ -1132,10 +1132,16 @@ function AnalyticsModule({ data }) {
         <Card title="Category Merchandise Sales" accent={C.amber}>
           <div style={{padding:'1.25rem'}}>
             {categories.length > 0 ? (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={categories} margin={{top:8,right:8,bottom:0,left:-18}}>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={categories} margin={{top:18,right:18,bottom:8,left:36}}>
                   <XAxis dataKey="name" tick={{fontSize:11,fill:C.txt3}} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fontSize:10,fill:C.txt3}} axisLine={false} tickLine={false}/>
+                  <YAxis
+                    tick={{fontSize:10,fill:C.txt3}}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(value)=>formatMoney(value)}
+                    width={72}
+                  />
                   <Tooltip contentStyle={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,fontSize:12}}
                     labelStyle={{color:C.txt}} formatter={(value)=>[formatMoney(value),"Merchandise Sales"]}/>
                   <Bar dataKey="revenue_minor" radius={[5,5,0,0]} fill={C.blue} name="Merchandise Sales"/>

@@ -38,6 +38,7 @@ export default function ShowcaseTopbar({
           {sections.map((section) => (
             <button
               key={section.id}
+              data-section-id={section.id}
               onClick={() => onScrollSection(section.id)}
               style={{
                 flexShrink: 0,

@@ -11,6 +11,7 @@ import {
   TrackingSkeleton,
   CartSkeleton,
 } from "../Components/Fallback";
+import { CheckoutLoading } from "../Features/Checkout/Components/CheckoutLoading";
 
 
 
@@ -33,6 +34,8 @@ function getSkeletonForPath(pathname) {
   if (/^\/tracking\/?/.test(pathname)) return <TrackingSkeleton />;
   // /cart
   if (/^\/cart\/?/.test(pathname)) return <CartSkeleton />;
+  // /checkout
+  if (/^\/checkout\/?/.test(pathname)) return <CheckoutLoading />;
 
   return null;
 }
@@ -46,6 +49,8 @@ export default function RootLayout() {
   const isNavigating = navigation.state === "loading";
 
   useEffect(() => {
+    if (location.pathname.startsWith("/admin")) return;
+
     const page = `${location.pathname}${location.search}${location.hash}`;
     if (lastTrackedPageView === page) return;
 

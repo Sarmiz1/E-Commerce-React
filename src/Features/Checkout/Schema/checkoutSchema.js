@@ -8,7 +8,7 @@ import { sanitizeString } from "../utils/checkoutUtils";
  * Card fields are intentionally excluded — card data must be handled
  * exclusively by your payment provider's hosted fields / tokenization SDK
  * (e.g. Stripe Elements). Your form should only ever submit a payment
- * method token, never raw card numbers or CVVs.
+ * method token/reference, never raw card numbers or CVVs.
  */
 export const checkoutSchema = z.object({
   // Contact
@@ -29,11 +29,7 @@ export const checkoutSchema = z.object({
   billingZip:     z.string().optional().transform((v) => (v ? sanitizeString(v) : v)),
   billingCountry: z.string().optional(),
 
-  // Payment
-  cardNumber: z.string().min(16, "Valid card number required"),
-  expiry: z.string().min(5, "Valid expiry required"),
-  cvv: z.string().min(3, "Valid CVV required"),
-  cardName: z.string().min(2, "Cardholder name required"),
+  paymentMethodId: z.string().min(1, "Choose a payment method"),
 }).superRefine((data, ctx) => {
   if (!data.billingSameAsShipping) {
     if (!data.billingAddress || data.billingAddress.length < 5) {

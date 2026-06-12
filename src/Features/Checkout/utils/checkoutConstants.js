@@ -32,10 +32,7 @@ export const EMPTY_ERRORS = () => ({
   billingCity: "",
   billingZip: "",
   billingCountry: "",
-  cardNumber: "",
-  expiry: "",
-  cvv: "",
-  cardName: "",
+  paymentMethodId: "",
 });
 
 export const EMPTY_FORM = () => ({
@@ -51,10 +48,7 @@ export const EMPTY_FORM = () => ({
   billingCity: "",
   billingZip: "",
   billingCountry: "Nigeria",
-  cardNumber: "",
-  expiry: "",
-  cvv: "",
-  cardName: "",
+  paymentMethodId: "new",
 });
 
 export const COUNTRY_OPTIONS = [
