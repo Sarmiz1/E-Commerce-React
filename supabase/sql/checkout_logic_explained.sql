@@ -144,8 +144,8 @@ DECLARE
   v_discount INTEGER := 0;
   v_tax INTEGER := 0;
   -- Nigerian VAT is 7.5%, but many marketplace platforms exclude it from checkout
-  -- to keep seller revenue (order_items.total_cents) consistent with what buyers pay.
-  -- Set to 0 to make revenue = price_cents × quantity (no hidden tax gap).
+  -- to keep seller revenue (order_items.total_minor) consistent with what buyers pay.
+  -- Set to 0 to make revenue = price_minor × quantity (no hidden tax gap).
   v_tax_rate NUMERIC := 0;
 
   v_coupon RECORD;
@@ -185,7 +185,7 @@ BEGIN
 
   -- 4. Process Cart Items (Loop)
   FOR item IN
-    SELECT ci.*, p.name, p.price_cents, pv.price_cents AS variant_price
+    SELECT ci.*, p.name, p.price_minor, pv.price_minor AS variant_price
     FROM cart_items ci
     JOIN products p ON p.id = ci.product_id
     LEFT JOIN product_variants pv ON pv.id = ci.variant_id
@@ -194,7 +194,7 @@ BEGIN
 
     DECLARE
       -- Variant prices override base product prices if they exist
-      v_price INTEGER := COALESCE(item.variant_price, item.price_cents);
+      v_price INTEGER := COALESCE(item.variant_price, item.price_minor);
       v_line INTEGER := v_price * item.quantity;
     BEGIN
 
@@ -205,7 +205,7 @@ BEGIN
       -- retains exactly what it was named/priced at the time of purchase.
       INSERT INTO order_items (
         order_id, product_id, variant_id,
-        product_name, price_cents, quantity
+        product_name, price_minor, quantity
       )
       VALUES (
         v_order_id, item.product_id, item.variant_id,
@@ -250,11 +250,11 @@ BEGIN
 
   -- 7. Finalize Order Totals
   UPDATE orders
-  SET subtotal_cents = v_total,
+  SET subtotal_minor = v_total,
       discount_cents = v_discount,
       shipping_cents = p_shipping_cents,
       tax_cents = v_tax,
-      total_cents = (v_total - v_discount + p_shipping_cents + v_tax)
+      total_minor = (v_total - v_discount + p_shipping_cents + v_tax)
   WHERE id = v_order_id;
 
   -- Lock the Cart so the user can't keep adding items to it while on the Stripe page.
@@ -302,7 +302,7 @@ BEGIN
     status, amount_cents, paid_at
   )
   SELECT p_order_id, 'stripe', p_reference,
-         'success', total_cents, now()
+         'success', total_minor, now()
   FROM orders WHERE id = p_order_id;
 
   -- D. COMMIT INVENTORY (PERMANENT DEDUCTION)
@@ -361,7 +361,7 @@ BEGIN
     status, amount_cents
   )
   SELECT p_order_id, 'stripe', p_reference,
-         'failed', total_cents
+         'failed', total_minor
   FROM orders WHERE id = p_order_id;
 
   -- INSTANTLY RELEASE INVENTORY

@@ -72,12 +72,12 @@ CREATE TABLE IF NOT EXISTS products (
   full_description TEXT,
   keywords TEXT[] DEFAULT '{}',
   features JSONB DEFAULT '[]',
-  price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
+  price_minor INTEGER NOT NULL CHECK (price_minor >= 0),
   currency TEXT DEFAULT 'USD',
-  sale_price_cents INTEGER,
+  sale_price_minor INTEGER,
   sale_starts_at TIMESTAMPTZ,
   sale_ends_at TIMESTAMPTZ,
-  CHECK (sale_price_cents IS NULL OR sale_price_cents < price_cents),
+  CHECK (sale_price_minor IS NULL OR sale_price_minor < price_minor),
   is_active BOOLEAN DEFAULT true,
   is_featured BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -96,8 +96,8 @@ CREATE TABLE IF NOT EXISTS product_variants (
   sku TEXT UNIQUE,
   color TEXT,
   size TEXT,
-  price_cents INTEGER,
-  sale_price_cents INTEGER,
+  price_minor INTEGER,
+  sale_price_minor INTEGER,
   stock_quantity INTEGER DEFAULT 0 CHECK (stock_quantity >= 0),
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -165,11 +165,11 @@ CREATE TABLE IF NOT EXISTS orders (
   status TEXT DEFAULT 'pending',
   payment_status TEXT DEFAULT 'unpaid',
   currency TEXT DEFAULT 'USD',
-  subtotal_cents INTEGER DEFAULT 0,
+  subtotal_minor INTEGER DEFAULT 0,
   discount_cents INTEGER DEFAULT 0,
   shipping_cents INTEGER DEFAULT 0,
   tax_cents INTEGER DEFAULT 0,
-  total_cents INTEGER DEFAULT 0,
+  total_minor INTEGER DEFAULT 0,
   shipping_address_id UUID REFERENCES addresses(id),
   billing_address_id UUID REFERENCES addresses(id),
   shipping_address JSONB,
@@ -185,9 +185,9 @@ CREATE TABLE IF NOT EXISTS order_items (
   variant_id UUID REFERENCES product_variants(id),
   product_name TEXT NOT NULL,
   variant_label TEXT,
-  price_cents INTEGER NOT NULL,
+  price_minor INTEGER NOT NULL,
   quantity INTEGER NOT NULL CHECK (quantity > 0),
-  total_cents INTEGER NOT NULL,
+  total_minor INTEGER NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -421,7 +421,7 @@ BEGIN
 
   -- process items
   FOR item IN
-    SELECT ci.*, p.name, p.price_cents, pv.price_cents AS variant_price
+    SELECT ci.*, p.name, p.price_minor, pv.price_minor AS variant_price
     FROM cart_items ci
     JOIN products p ON p.id = ci.product_id
     LEFT JOIN product_variants pv ON pv.id = ci.variant_id
@@ -429,7 +429,7 @@ BEGIN
   LOOP
 
     DECLARE
-      v_price INTEGER := COALESCE(item.variant_price, item.price_cents);
+      v_price INTEGER := COALESCE(item.variant_price, item.price_minor);
       v_line INTEGER := v_price * item.quantity;
     BEGIN
 
@@ -438,7 +438,7 @@ BEGIN
       -- snapshot
       INSERT INTO order_items (
         order_id, product_id, variant_id,
-        product_name, price_cents, quantity, total_cents
+        product_name, price_minor, quantity, total_minor
       )
       VALUES (
         v_order_id,
@@ -486,11 +486,11 @@ BEGIN
   v_tax := ((v_total - v_discount + p_shipping_cents) * v_tax_rate)::INTEGER;
 
   UPDATE orders
-  SET subtotal_cents = v_total,
+  SET subtotal_minor = v_total,
       discount_cents = v_discount,
       shipping_cents = p_shipping_cents,
       tax_cents = v_tax,
-      total_cents = (v_total - v_discount + p_shipping_cents + v_tax)
+      total_minor = (v_total - v_discount + p_shipping_cents + v_tax)
   WHERE id = v_order_id;
 
   UPDATE carts SET status = 'checked_out' WHERE id = p_cart_id;
@@ -527,7 +527,7 @@ BEGIN
     status, amount_cents, paid_at
   )
   SELECT p_order_id, 'stripe', p_reference,
-         'success', total_cents, now()
+         'success', total_minor, now()
   FROM orders WHERE id = p_order_id;
 
   -- commit inventory
@@ -576,7 +576,7 @@ BEGIN
     status, amount_cents
   )
   SELECT p_order_id, 'stripe', p_reference,
-         'failed', total_cents
+         'failed', total_minor
   FROM orders WHERE id = p_order_id;
 
   UPDATE inventory_reservations

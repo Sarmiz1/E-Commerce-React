@@ -116,7 +116,7 @@ begin
     select
       p.id as product_id,
       p.created_at,
-      p.price_cents,
+      p.price_minor,
       coalesce(p.rating_stars, 0) as rating_stars,
       coalesce(p.rating_count, 0) as rating_count,
       coalesce(p.is_featured, false) as is_featured,

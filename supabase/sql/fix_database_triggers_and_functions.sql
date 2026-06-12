@@ -117,7 +117,7 @@ LIMIT limit_count;
 $$;
 
 
--- 4. RECREATE refresh_product_curations using price_minor instead of price_cents
+-- 4. RECREATE refresh_product_curations using price_minor
 create or replace function public.refresh_product_curations(target_product_id uuid)
 returns void
 language plpgsql

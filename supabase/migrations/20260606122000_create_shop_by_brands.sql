@@ -117,6 +117,53 @@ begin
 end;
 $$;
 
+alter table public.products
+  add column if not exists brand_slug text;
+
+update public.products
+set brand_slug = nullif(public.normalize_shop_brand_slug(brand), '')
+where brand_slug is distinct from nullif(public.normalize_shop_brand_slug(brand), '');
+
+create index if not exists products_brand_slug_active_idx
+  on public.products(brand_slug, is_active, created_at desc);
+
+create or replace function public.set_product_brand_slug()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.brand_slug := nullif(public.normalize_shop_brand_slug(new.brand), '');
+  return new;
+end;
+$$;
+
+drop trigger if exists set_product_brand_slug on public.products;
+create trigger set_product_brand_slug
+before insert or update of brand on public.products
+for each row
+execute function public.set_product_brand_slug();
+
+create or replace function public.get_shop_brand_products(
+  p_brand_slug text,
+  p_limit integer default 120,
+  p_offset integer default 0
+)
+returns setof public.products
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select product.*
+  from public.products product
+  where product.is_active = true
+    and product.brand_slug = public.normalize_shop_brand_slug(p_brand_slug)
+  order by product.created_at desc, product.id
+  limit greatest(1, least(coalesce(p_limit, 120), 240))
+  offset greatest(0, coalesce(p_offset, 0));
+$$;
+
 create or replace function public.sync_shop_by_brands_from_product()
 returns trigger
 language plpgsql
@@ -198,6 +245,7 @@ alter table public.shop_by_brands enable row level security;
 revoke all on table public.shop_by_brands from public;
 grant select on table public.shop_by_brands to anon, authenticated;
 grant all on table public.shop_by_brands to service_role;
+grant execute on function public.get_shop_brand_products(text, integer, integer) to anon, authenticated, service_role;
 
 drop policy if exists "Active shop by brands are public" on public.shop_by_brands;
 

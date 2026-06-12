@@ -70,14 +70,14 @@ CREATE TABLE IF NOT EXISTS products (
   keywords TEXT[] DEFAULT '{}',
   features JSONB DEFAULT '[]',
 
-  price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
+  price_minor INTEGER NOT NULL CHECK (price_minor >= 0),
   currency TEXT DEFAULT 'USD',
 
-  sale_price_cents INTEGER,
+  sale_price_minor INTEGER,
   sale_starts_at TIMESTAMPTZ,
   sale_ends_at TIMESTAMPTZ,
 
-  CHECK (sale_price_cents IS NULL OR sale_price_cents < price_cents),
+  CHECK (sale_price_minor IS NULL OR sale_price_minor < price_minor),
 
   is_active BOOLEAN DEFAULT TRUE,
   is_featured BOOLEAN DEFAULT FALSE,
@@ -108,8 +108,8 @@ CREATE TABLE IF NOT EXISTS product_variants (
   color TEXT,
   size TEXT,
 
-  price_cents INTEGER,
-  sale_price_cents INTEGER,
+  price_minor INTEGER,
+  sale_price_minor INTEGER,
 
   stock_quantity INTEGER DEFAULT 0 CHECK (stock_quantity >= 0),
 
@@ -197,10 +197,10 @@ CREATE TABLE IF NOT EXISTS orders (
 
   currency TEXT DEFAULT 'USD',
 
-  subtotal_cents INTEGER DEFAULT 0,
+  subtotal_minor INTEGER DEFAULT 0,
   discount_cents INTEGER DEFAULT 0,
   shipping_cents INTEGER DEFAULT 0,
-  total_cents INTEGER DEFAULT 0,
+  total_minor INTEGER DEFAULT 0,
 
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
@@ -217,9 +217,9 @@ CREATE TABLE IF NOT EXISTS order_items (
   product_name TEXT NOT NULL,
   variant_label TEXT,
 
-  price_cents INTEGER NOT NULL,
+  price_minor INTEGER NOT NULL,
   quantity INTEGER NOT NULL CHECK (quantity > 0),
-  total_cents INTEGER NOT NULL,
+  total_minor INTEGER NOT NULL,
 
   created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -457,7 +457,7 @@ select
 
   count(distinct p.id) as total_products,
   count(distinct oi.order_id) as total_orders,
-  coalesce(sum(oi.total_cents), 0) as total_revenue
+  coalesce(sum(oi.total_minor), 0) as total_revenue
 
 from products p
 left join order_items oi on oi.product_id = p.id

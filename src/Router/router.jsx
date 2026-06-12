@@ -655,6 +655,15 @@ const router = createBrowserRouter(
         }
         hydrateFallbackElement={<ProductsSkeleton />}
       />
+
+      <Route
+        path="train"
+        lazy={() =>
+          import("../BackUpFiles/Training").then((m) => ({
+            Component: m.default,
+          }))
+        }
+      />
       {/* Test******************************* */}
 
       {/* 404 */}

@@ -34,7 +34,7 @@ DECLARE
     v_promo_found BOOLEAN := false;
 BEGIN
     -- Calculate subtotal by joining cart_items with product_variants
-    SELECT COALESCE(SUM(ci.quantity * pv.price_cents), 0)
+    SELECT COALESCE(SUM(ci.quantity * pv.price_minor), 0)
     INTO v_subtotal
     FROM public.cart_items ci
     JOIN public.product_variants pv ON ci.variant_id = pv.id

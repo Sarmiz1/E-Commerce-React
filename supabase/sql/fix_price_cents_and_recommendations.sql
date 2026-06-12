@@ -1,5 +1,5 @@
 -- ============================================================
--- Fix: price_cents → price_minor + create get_ranked_similar_products
+-- Fix: price_minor → price_minor + create get_ranked_similar_products
 -- Run this in Supabase SQL Editor
 -- ============================================================
 
@@ -8,7 +8,7 @@ DROP FUNCTION IF EXISTS get_ai_recommendations(uuid, text, vector, int);
 DROP FUNCTION IF EXISTS get_ranked_similar_products(uuid, int);
 DROP FUNCTION IF EXISTS get_ranked_similar_products(uuid, integer);
 
--- 1. Fix get_ai_recommendations: replace price_cents → price_minor
+-- 1. Fix get_ai_recommendations: replace price_minor → price_minor
 CREATE OR REPLACE FUNCTION get_ai_recommendations(
   user_id uuid,
   session_id text,

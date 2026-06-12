@@ -121,10 +121,10 @@ BEGIN
     -- 2. Stats
     'stats', (
       SELECT json_build_object(
-        -- Total revenue = SUM of (price_cents × quantity) for all non-cancelled orders.
+        -- Total revenue = SUM of (price_minor × quantity) for all non-cancelled orders.
         -- This is the gross seller revenue in kobo (minor units). Divide by 100 on the frontend.
         'revenue', (
-          SELECT COALESCE(SUM(oi.price_cents * oi.quantity), 0)
+          SELECT COALESCE(SUM(oi.price_minor * oi.quantity), 0)
           FROM order_items oi
           JOIN products prod ON prod.id = oi.product_id
           JOIN orders o ON o.id = oi.order_id
@@ -133,7 +133,7 @@ BEGIN
         ),
         -- Total units sold = SUM of quantities across all non-cancelled order items.
         -- This is what the seller should compare against to verify revenue:
-        --   productsSold × avg_price_cents / 100 = revenue (in naira)
+        --   productsSold × avg_price_minor / 100 = revenue (in naira)
         'productsSold', (
           SELECT COALESCE(SUM(oi.quantity), 0)
           FROM order_items oi
@@ -197,12 +197,12 @@ BEGIN
           prof.full_name AS customer_name,
           o.status, 
           o.created_at,
-          SUM(oi.total_cents) AS order_total,
+          SUM(oi.total_minor) AS order_total,
           json_agg(json_build_object(
             'id', oi.id,
             'name', oi.product_name,
             'qty', oi.quantity,
-            'price', oi.price_cents
+            'price', oi.price_minor
           )) AS items
         FROM orders o
         JOIN profiles prof ON prof.id = o.user_id
@@ -222,7 +222,7 @@ BEGIN
           'id', p.id,
           'name', p.name,
           'image', p.image,
-          'price', p.price_cents,
+          'price', p.price_minor,
           'stock', COALESCE((SELECT SUM(stock_quantity) FROM product_variants pv WHERE pv.product_id = p.id), 0),
           'sales', COALESCE((SELECT SUM(quantity) FROM order_items oi WHERE oi.product_id = p.id), 0),
           'rating', p.rating_stars,
@@ -284,8 +284,8 @@ BEGIN
         'categoryRevenue', (
           SELECT COALESCE(json_agg(json_build_object('label', cr.label, 'value', cr.value, 'pct', cr.pct)), '[]'::json)
           FROM (
-            SELECT c.name AS label, SUM(oi.total_cents) AS value,
-                   ROUND(SUM(oi.total_cents) * 100.0 / NULLIF(SUM(SUM(oi.total_cents)) OVER (), 0)) AS pct
+            SELECT c.name AS label, SUM(oi.total_minor) AS value,
+                   ROUND(SUM(oi.total_minor) * 100.0 / NULLIF(SUM(SUM(oi.total_minor)) OVER (), 0)) AS pct
             FROM order_items oi
             JOIN products p ON p.id = oi.product_id
             LEFT JOIN categories c ON c.id = p.category_id
@@ -305,7 +305,7 @@ BEGIN
         'metrics', (
           SELECT json_build_array(
             json_build_object('label', 'Conversion Rate', 'value', '3.2%', 'change', '+0.4%', 'icon', 'percent'),
-            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(oi.total_cents)) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
+            json_build_object('label', 'Avg. Order Value', 'value', '₦' || COALESCE((SELECT ROUND(AVG(oi.total_minor)) FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE p.seller_id = p_seller_id), 0)::text, 'change', '+₦1.2K', 'icon', 'trending-up'),
             json_build_object('label', 'Customer Return Rate', 'value', '24%', 'change', '+2%', 'icon', 'refresh'),
             json_build_object('label', 'Cart Abandonment', 'value', '68%', 'change', '-3%', 'icon', 'alert-circle')
           )
@@ -313,7 +313,7 @@ BEGIN
         'performance', (
           SELECT json_build_object(
             'bestSeller', (
-              SELECT json_build_object('name', p.name, 'sales', COALESCE(SUM(oi.quantity), 0), 'revenue', COALESCE(SUM(oi.total_cents), 0))
+              SELECT json_build_object('name', p.name, 'sales', COALESCE(SUM(oi.quantity), 0), 'revenue', COALESCE(SUM(oi.total_minor), 0))
               FROM products p
               LEFT JOIN order_items oi ON oi.product_id = p.id
               WHERE p.seller_id = p_seller_id
