@@ -106,5 +106,26 @@ afterward. It adds the optimized admin payload, paged product moderation, hiring
 vacancies, settings mutations, searchable page-activity details, and passcode-protected
 super-admin promotion.
 
+### Checkout, Paystack, and Delivery Fees
+Apply `supabase/migrations/20260611170000_fix_admin_page_activity_and_checkout_paystack.sql`
+before testing checkout. It adds Paystack payment sessions, tokenized saved-card
+metadata, delivery fee zones, and backend RPCs that calculate/apply delivery fees.
+
+Deploy the Edge Functions after setting Supabase secrets:
+```bash
+supabase secrets set PAYSTACK_SECRET_KEY=sk_live_xxx
+supabase secrets set SITE_URL=https://your-domain.com
+supabase functions deploy
+```
+
+For local CLI database pushes, set the remote database password first:
+```bash
+set SUPABASE_DB_PASSWORD=your_remote_db_password
+supabase db push
+```
+
+Paystack webhooks should point to:
+`https://<project-ref>.supabase.co/functions/v1/paystack-checkout`.
+
 ## 🤝 Contributing
 As an atomic project, ensure that any new feature is broken down into small, reusable components. Keep state logic in custom hooks and UI rendering in functional components. Always document your code extensively for the next developer.

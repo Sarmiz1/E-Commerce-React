@@ -58,6 +58,7 @@ export function ShowcaseIndex({
   const [activeId, setActiveId] = useState(safeSections[0]?.id || "trending");
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const topbarRef = useRef(null);
+  const scrollLockRef = useRef({ id: null, timeoutId: null });
   const cacheProducts = useMemo(
     () => (products?.length ? products : getSectionProducts(safeSections)),
     [products, safeSections],
@@ -76,6 +77,16 @@ export function ShowcaseIndex({
     if (!safeSections.length) return undefined;
 
     const updateActiveSection = () => {
+      const lockedId = scrollLockRef.current.id;
+      if (lockedId) {
+        const target = document.getElementById(lockedId);
+        if (target) {
+          const targetTop = Math.abs(target.getBoundingClientRect().top - topbarOffset - 72);
+          if (targetTop > 18) return;
+        }
+        scrollLockRef.current.id = null;
+      }
+
       const topBoundary = topbarOffset + 96;
       let closest = safeSections[0]?.id;
       let closestDistance = Number.POSITIVE_INFINITY;
@@ -127,8 +138,22 @@ export function ShowcaseIndex({
     return () => window.removeEventListener("open-quickview", handleQuickView);
   }, []);
 
+  useEffect(() => () => {
+    if (scrollLockRef.current.timeoutId) {
+      window.clearTimeout(scrollLockRef.current.timeoutId);
+    }
+  }, []);
+
   const scrollToSection = useCallback((id) => {
     setActiveId(id);
+    if (scrollLockRef.current.timeoutId) {
+      window.clearTimeout(scrollLockRef.current.timeoutId);
+    }
+    scrollLockRef.current.id = id;
+    scrollLockRef.current.timeoutId = window.setTimeout(() => {
+      if (scrollLockRef.current.id === id) scrollLockRef.current.id = null;
+    }, 900);
+
     const el = document.getElementById(id);
     if (!el) return;
 

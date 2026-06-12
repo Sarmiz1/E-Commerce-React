@@ -6,9 +6,9 @@ export const VALID_COUPONS = {
 };
 
 export const SHIPPING_TIERS = [
-  { label: "Standard (5-7 days)", price: 499, id: "standard" },
-  { label: "Express (2-3 days)", price: 999, id: "express" },
-  { label: "Overnight (next day)", price: 1999, id: "overnight" },
+  { label: "Standard delivery", price: 20000, id: "standard" },
+  { label: "Express delivery", price: 40000, id: "express" },
+  // { label: "Overnight (next day)", price: 199900, id: "overnight" },
 ];
 
 export const TAX_RATE = 0.085;
@@ -26,13 +26,16 @@ export const EMPTY_ERRORS = () => ({
   phone: "",
   address: "",
   city: "",
+  state: "",
   zip: "",
   country: "",
   billingAddress: "",
   billingCity: "",
+  billingState: "",
   billingZip: "",
   billingCountry: "",
   paymentMethodId: "",
+  savePaymentMethod: "",
 });
 
 export const EMPTY_FORM = () => ({
@@ -41,14 +44,17 @@ export const EMPTY_FORM = () => ({
   phone: "",
   address: "",
   city: "",
+  state: "",
   zip: "",
   country: "Nigeria",
   billingSameAsShipping: true,
   billingAddress: "",
   billingCity: "",
+  billingState: "",
   billingZip: "",
   billingCountry: "Nigeria",
   paymentMethodId: "new",
+  savePaymentMethod: false,
 });
 
 export const COUNTRY_OPTIONS = [
@@ -64,6 +70,46 @@ export const COUNTRY_OPTIONS = [
   "Kenya",
   "India",
   "UAE",
+];
+
+export const NIGERIA_STATE_OPTIONS = [
+  "Lagos",
+  "Ogun",
+  "Oyo",
+  "Osun",
+  "Ondo",
+  "Ekiti",
+  "Rivers",
+  "Bayelsa",
+  "Akwa Ibom",
+  "Cross River",
+  "Delta",
+  "Edo",
+  "Anambra",
+  "Enugu",
+  "Imo",
+  "Abia",
+  "Ebonyi",
+  "FCT",
+  "Kwara",
+  "Kogi",
+  "Benue",
+  "Nasarawa",
+  "Niger",
+  "Plateau",
+  "Adamawa",
+  "Bauchi",
+  "Borno",
+  "Gombe",
+  "Taraba",
+  "Yobe",
+  "Kaduna",
+  "Kano",
+  "Katsina",
+  "Kebbi",
+  "Jigawa",
+  "Sokoto",
+  "Zamfara",
 ];
 
 export const CHECKOUT_STEPS = ["Checkout", "Order Complete"];

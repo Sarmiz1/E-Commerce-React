@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { COUNTRY_OPTIONS } from "../utils/checkoutConstants";
+import SelectDropdown from "../../../Components/Ui/SelectDropdown";
+import { COUNTRY_OPTIONS, NIGERIA_STATE_OPTIONS } from "../utils/checkoutConstants";
 import { Field } from "./Field";
 import { Icon } from "./CheckoutIcons";
 
@@ -30,29 +31,10 @@ const POSTAL_HINTS = {
   default: { label: "ZIP / Postal Code", placeholder: "Postal code" },
 };
 
-function CustomSelect({ value, options, onChange, className = "" }) {
-  const normalizedOptions = value && !options.includes(value)
-    ? [value, ...options]
-    : options;
-
-  return (
-    <select
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className={`${INPUT_BASE} cursor-pointer appearance-none ${className}`}
-    >
-      {normalizedOptions.map((option) => (
-        <option key={option || "empty"} value={option}>
-          {option || "Select city"}
-        </option>
-      ))}
-    </select>
-  );
-}
-
 function DeliveryFields({ form, errors, onChange }) {
   const cityOptions = CITY_OPTIONS[form.country] || [];
   const postal = POSTAL_HINTS[form.country] || POSTAL_HINTS.default;
+  const needsState = form.country === "Nigeria";
 
   return (
     <div>
@@ -91,14 +73,16 @@ function DeliveryFields({ form, errors, onChange }) {
           />
         </Field>
         <Field label="Country" error={errors.country} required>
-          <CustomSelect
+          <SelectDropdown
             value={form.country}
             options={COUNTRY_OPTIONS}
             onChange={(value) => {
               onChange("country", value);
               onChange("city", "");
+              onChange("state", "");
             }}
-            className={errors.country ? "error" : ""}
+            error={Boolean(errors.country)}
+            placeholder="Select country"
           />
         </Field>
         <Field label="Street Address" error={errors.address} required>
@@ -110,13 +94,25 @@ function DeliveryFields({ form, errors, onChange }) {
           />
         </Field>
         <Field label="City" error={errors.city} required>
-          <CustomSelect
+          <SelectDropdown
             value={form.city}
-            options={["", ...cityOptions]}
+            options={cityOptions}
             onChange={(value) => onChange("city", value)}
-            className={errors.city ? "error" : ""}
+            error={Boolean(errors.city)}
+            placeholder="Select city"
           />
         </Field>
+        {needsState && (
+          <Field label="State" error={errors.state} required>
+            <SelectDropdown
+              value={form.state}
+              options={NIGERIA_STATE_OPTIONS}
+              onChange={(value) => onChange("state", value)}
+              error={Boolean(errors.state)}
+              placeholder="Select state"
+            />
+          </Field>
+        )}
         <Field label={postal.label} error={errors.zip} required>
           <input
             value={form.zip}
@@ -131,6 +127,10 @@ function DeliveryFields({ form, errors, onChange }) {
 }
 
 function PaymentFields({ form, errors, onChange, paymentMethods = [] }) {
+  const billingNeedsState = form.billingCountry === "Nigeria";
+  const savedMethods = paymentMethods.filter((method) => method?.id);
+  const usingNewCard = form.paymentMethodId === "new" || savedMethods.length === 0;
+
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
@@ -146,7 +146,7 @@ function PaymentFields({ form, errors, onChange, paymentMethods = [] }) {
       </div>
 
       <div className="mb-8 space-y-3">
-        {[...paymentMethods, { id: "new", brand: "Paystack", last4: "New card", expiry: "Hosted checkout" }].map((method) => (
+        {savedMethods.map((method) => (
           <label
             key={method.id}
             className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all ${
@@ -164,14 +164,60 @@ function PaymentFields({ form, errors, onChange, paymentMethods = [] }) {
             />
             <span className="flex-1">
               <span className="block text-sm font-black text-gray-900 dark:text-gray-100">
-                {method.id === "new" ? "Use a new card with Paystack" : `${method.brand || "Card"} ending ${method.last4}`}
+                {method.brand || "Card"} ending {method.last4}
               </span>
               <span className="text-xs text-gray-400 dark:text-gray-500">
-                {method.id === "new" ? "Card details are entered securely on Paystack." : `Expires ${method.expiry || "saved"}`}
+                Expires {method.expiry || "saved"}
               </span>
             </span>
           </label>
         ))}
+
+        {savedMethods.length > 0 && (
+          <button
+            type="button"
+            onClick={() => onChange("paymentMethodId", "new")}
+            className={`w-full rounded-2xl border p-4 text-left transition-all ${
+              usingNewCard
+                ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-950/30"
+                : "border-dashed border-gray-200 bg-white hover:border-indigo-200 dark:border-white/10 dark:bg-white/5"
+            }`}
+          >
+            <span className="block text-sm font-black text-gray-900 dark:text-gray-100">
+              Pay with a different card
+            </span>
+            <span className="mt-1 block text-xs text-gray-400 dark:text-gray-500">
+              You will enter card details securely on Paystack.
+            </span>
+          </button>
+        )}
+
+        {usingNewCard && (
+          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 dark:border-indigo-400/20 dark:bg-indigo-950/20">
+            <div className="flex items-start gap-3">
+              <Icon.Lock className="mt-0.5 h-5 w-5 text-indigo-500" />
+              <div>
+                <p className="text-sm font-black text-gray-900 dark:text-gray-100">
+                  New card via Paystack
+                </p>
+                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                  Card number, CVV, and bank authentication are collected on Paystack's secure checkout.
+                </p>
+              </div>
+            </div>
+            <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl bg-white/70 p-3 dark:bg-white/5">
+              <input
+                type="checkbox"
+                checked={Boolean(form.savePaymentMethod)}
+                onChange={(event) => onChange("savePaymentMethod", event.target.checked)}
+                className="h-4 w-4 accent-indigo-600"
+              />
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                Save this card after successful payment
+              </span>
+            </label>
+          </div>
+        )}
         {errors.paymentMethodId && <p className="text-xs text-red-500">{errors.paymentMethodId}</p>}
       </div>
 
@@ -224,15 +270,25 @@ function PaymentFields({ form, errors, onChange, paymentMethods = [] }) {
                   </Field>
                 </div>
                 <Field label="City" error={errors.billingCity} required>
-                  <input
+                  <SelectDropdown
                     value={form.billingCity}
-                    onChange={(event) =>
-                      onChange("billingCity", event.target.value)
-                    }
-                    placeholder="Lagos"
-                    className={`${INPUT_BASE} ${errors.billingCity ? "error" : ""}`}
+                    options={CITY_OPTIONS[form.billingCountry] || []}
+                    onChange={(value) => onChange("billingCity", value)}
+                    error={Boolean(errors.billingCity)}
+                    placeholder="Select city"
                   />
                 </Field>
+                {billingNeedsState && (
+                  <Field label="State" error={errors.billingState} required>
+                    <SelectDropdown
+                      value={form.billingState}
+                      options={NIGERIA_STATE_OPTIONS}
+                      onChange={(value) => onChange("billingState", value)}
+                      error={Boolean(errors.billingState)}
+                      placeholder="Select state"
+                    />
+                  </Field>
+                )}
                 <Field
                   label="ZIP / Postal Code"
                   error={errors.billingZip}
@@ -249,11 +305,16 @@ function PaymentFields({ form, errors, onChange, paymentMethods = [] }) {
                 </Field>
                 <div className="sm:col-span-2">
                   <Field label="Country" error={errors.billingCountry} required>
-                    <CustomSelect
+                    <SelectDropdown
                       value={form.billingCountry}
                       options={COUNTRY_OPTIONS}
-                      onChange={(value) => onChange("billingCountry", value)}
-                      className={errors.billingCountry ? "error" : ""}
+                      onChange={(value) => {
+                        onChange("billingCountry", value);
+                        onChange("billingCity", "");
+                        onChange("billingState", "");
+                      }}
+                      error={Boolean(errors.billingCountry)}
+                      placeholder="Select country"
                     />
                   </Field>
                 </div>

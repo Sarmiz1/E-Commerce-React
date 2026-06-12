@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { SHIPPING_TIERS } from "../utils/checkoutConstants";
 import { CheckoutForm } from "./CheckoutForm";
 import { Icon } from "./CheckoutIcons";
 import { OrderSummary } from "./OrderSummary";
@@ -16,6 +15,7 @@ export function DetailsStep({
   selectedShipping,
   onShippingChange,
   paymentMethods,
+  shippingOptions,
 }) {
   return (
     <motion.div
@@ -47,7 +47,7 @@ export function DetailsStep({
           <OrderSummary
             cart={cart}
             coupon={coupon}
-            shippingOptions={SHIPPING_TIERS}
+            shippingOptions={shippingOptions}
             selectedShipping={selectedShipping}
             onShippingChange={onShippingChange}
             step={1}

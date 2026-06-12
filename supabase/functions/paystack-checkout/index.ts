@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const anonKey = requiredEnv("SUPABASE_ANON_KEY");
     const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
     const paystackSecret = requiredEnv("PAYSTACK_SECRET_KEY");
-    const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || "";
+    const siteUrl = Deno.env.get("SITE_URL") || req.headers.get("origin") || "";
     const authHeader = req.headers.get("Authorization") || "";
     const rawBody = await req.text();
     const body = rawBody ? JSON.parse(rawBody) : {};
@@ -112,6 +112,7 @@ Deno.serve(async (req) => {
 
     const cartId = body.cartId;
     if (!cartId) return json({ error: "Cart is required" }, 400);
+    if (!siteUrl) return json({ error: "SITE_URL is not configured" }, 500);
 
     const orderArgs: Record<string, unknown> = {
       p_cart_id: cartId,
@@ -124,6 +125,17 @@ Deno.serve(async (req) => {
     if (!orderId) {
       return json({ error: "Checkout order could not be initialized" }, 400);
     }
+
+    const delivery = body.checkout?.delivery || {};
+    const { error: deliveryFeeError } = await adminClient.rpc("apply_order_delivery_fee", {
+      p_order_id: orderId,
+      p_country: delivery.country || "Nigeria",
+      p_state: delivery.state || "",
+      p_city: delivery.city || "",
+      p_shipping_tier: body.shippingTier || "standard",
+    });
+
+    if (deliveryFeeError) throw deliveryFeeError;
 
     const { data: order, error: fetchOrderError } = await adminClient
       .from("orders")
@@ -138,7 +150,7 @@ Deno.serve(async (req) => {
     }
 
     const reference = `woosho_${order.id}_${Date.now()}`;
-    const callbackUrl = `${origin}/checkout?reference=${encodeURIComponent(reference)}`;
+    const callbackUrl = `${siteUrl.replace(/\/$/, "")}/checkout?reference=${encodeURIComponent(reference)}`;
     const amountMinor = Number(order.total_minor || 0);
 
     const initializeResponse = await fetch("https://api.paystack.co/transaction/initialize", {
@@ -163,6 +175,16 @@ Deno.serve(async (req) => {
     const initializePayload = await initializeResponse.json();
 
     if (!initializeResponse.ok || !initializePayload?.status) {
+      await adminClient
+        .from("orders")
+        .update({ status: "cancelled", payment_status: "failed" })
+        .eq("id", order.id);
+      await adminClient
+        .from("carts")
+        .update({ status: "active" })
+        .eq("id", cartId)
+        .eq("user_id", user.id);
+
       return json({ error: initializePayload?.message || "Unable to initialize Paystack" }, 400);
     }
 

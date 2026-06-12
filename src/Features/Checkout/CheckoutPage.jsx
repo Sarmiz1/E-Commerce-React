@@ -21,7 +21,7 @@ import { StepBar } from "./Components/StepBar";
 import { SubmitErrorAlert } from "./Components/SubmitErrorAlert";
 import { SuccessScreen } from "./Components/SuccessScreen";
 import { TrustBar } from "./Components/TrustBar";
-import { CO_STYLES, COUNTRY_OPTIONS, EMPTY_ERRORS, EMPTY_FORM } from "./utils/checkoutConstants";
+import { CO_STYLES, COUNTRY_OPTIONS, EMPTY_ERRORS, EMPTY_FORM, SHIPPING_TIERS } from "./utils/checkoutConstants";
 import { calculateCheckoutTotals } from "./utils/checkoutUtils";
 import { hasFormErrors, validateCheckoutForm } from "./Schema/checkoutSchema";
 
@@ -54,6 +54,9 @@ const pickAddressLine = (address) =>
 const pickPostalCode = (address) =>
   address?.postalCode || address?.postal_code || address?.zip || "";
 
+const pickState = (address) =>
+  address?.state || address?.region || address?.province || "";
+
 export default function CheckoutPage() {
   const { user } = useAuth();
   const userMetadataPhone = user?.user_metadata?.phone || "";
@@ -75,6 +78,7 @@ export default function CheckoutPage() {
   );
   const [step, setStep] = useState(0);
   const [selectedShipping, setSelectedShipping] = useState("standard");
+  const [shippingOptions, setShippingOptions] = useState(SHIPPING_TIERS);
   const [coupon] = useState(null);
 
   const [form, setForm] = useState(() => {
@@ -136,11 +140,13 @@ export default function CheckoutPage() {
             name: previous.name || defaultAddress?.name || defaultAddress?.full_name || previous.name,
             address: previous.address || pickAddressLine(defaultAddress),
             city: previous.city || defaultAddress?.city || "",
+            state: previous.state || pickState(defaultAddress),
             zip: previous.zip || pickPostalCode(defaultAddress),
             country: previous.country || normalizeCheckoutCountry(defaultAddress?.country),
             billingSameAsShipping: previous.billingSameAsShipping && !billingAddress,
             billingAddress: previous.billingAddress || pickAddressLine(billingAddress),
             billingCity: previous.billingCity || billingAddress?.city || "",
+            billingState: previous.billingState || pickState(billingAddress),
             billingZip: previous.billingZip || pickPostalCode(billingAddress),
             billingCountry: previous.billingCountry || normalizeCheckoutCountry(billingAddress?.country),
             paymentMethodId: methods.find((method) => method.isDefault || method.is_default)?.id || methods[0]?.id || previous.paymentMethodId || "new",
@@ -162,6 +168,37 @@ export default function CheckoutPage() {
   }, [user?.id, userMetadataPhone]);
 
   useEffect(() => {
+    if (form.country !== "Nigeria" || !form.state || !form.city) {
+      setShippingOptions(SHIPPING_TIERS);
+      return;
+    }
+
+    let cancelled = false;
+    OrderAPI.getDeliveryFeeOptions({
+      country: form.country,
+      state: form.state,
+      city: form.city,
+    })
+      .then((result) => {
+        if (cancelled) return;
+        const options = Array.isArray(result?.options) && result.options.length
+          ? result.options
+          : SHIPPING_TIERS;
+        setShippingOptions(options);
+        if (!options.some((option) => option.id === selectedShipping)) {
+          setSelectedShipping(options[0]?.id || "standard");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setShippingOptions(SHIPPING_TIERS);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.city, form.country, form.state, selectedShipping]);
+
+  useEffect(() => {
     const reference = searchParams.get("reference");
     if (!reference || !user?.id) return;
 
@@ -173,7 +210,7 @@ export default function CheckoutPage() {
       .then((result) => {
         if (cancelled) return;
         setOrderNumber(result?.orderNumber || result?.orderId || reference);
-        setOrderTotal(calculateCheckoutTotals(cart, selectedShipping, coupon).total);
+        setOrderTotal(calculateCheckoutTotals(cart, selectedShipping, coupon, shippingOptions).total);
         setOrderedCartSnapshot([...cart]);
         setStep(1);
         clearCart();
@@ -192,7 +229,7 @@ export default function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [cart, clearCart, coupon, searchParams, selectedShipping, setSearchParams, user?.id]);
+  }, [cart, clearCart, coupon, searchParams, selectedShipping, setSearchParams, shippingOptions, user?.id]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -244,6 +281,7 @@ export default function CheckoutPage() {
               phone: form.phone,
               address: form.address,
               city: form.city,
+              state: form.state,
               zip: form.zip,
               country: form.country,
             },
@@ -251,10 +289,12 @@ export default function CheckoutPage() {
             billing: form.billingSameAsShipping ? null : {
               address: form.billingAddress,
               city: form.billingCity,
+              state: form.billingState,
               zip: form.billingZip,
               country: form.billingCountry,
             },
             paymentMethodId: form.paymentMethodId,
+            savePaymentMethod: Boolean(form.savePaymentMethod),
           },
         });
 
@@ -306,6 +346,7 @@ export default function CheckoutPage() {
                 selectedShipping={selectedShipping}
                 onShippingChange={setSelectedShipping}
                 paymentMethods={paymentMethods}
+                shippingOptions={shippingOptions}
               />
             )}
 

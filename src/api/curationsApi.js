@@ -19,6 +19,7 @@ const CURATION_SLUG_ALIASES = {
   lookbook: "lookbook-products",
 };
 const CURATION_MEMBERSHIP_PAGE_SIZE = 500;
+const CURATION_DETAIL_PRODUCT_LIMIT = 72;
 const FALLBACK_PRODUCT_SELECT = `
   *,
   product_variants(*),
@@ -178,7 +179,7 @@ const fetchActiveCurations = async () => {
   }));
 };
 
-const fetchCurationMemberships = async (curationIdOrIds) => {
+const fetchCurationMemberships = async (curationIdOrIds, { limit } = {}) => {
   const memberships = [];
   const curationIds = Array.isArray(curationIdOrIds)
     ? curationIdOrIds.filter(Boolean)
@@ -195,19 +196,24 @@ const fetchCurationMemberships = async (curationIdOrIds) => {
       query = query.eq("curation_id", curationIdOrIds);
     }
 
+    const pageEnd = limit
+      ? Math.min(from + CURATION_MEMBERSHIP_PAGE_SIZE - 1, limit - 1)
+      : from + CURATION_MEMBERSHIP_PAGE_SIZE - 1;
+
     const { data = [], error } = await query
       .order("sort_order", { ascending: true })
       .order("score", { ascending: false })
-      .range(from, from + CURATION_MEMBERSHIP_PAGE_SIZE - 1);
+      .range(from, pageEnd);
 
     if (isAdminUsersPermissionError(error)) return [];
     throwQueryError(error);
     memberships.push(...data);
 
+    if (limit && memberships.length >= limit) break;
     if (data.length < CURATION_MEMBERSHIP_PAGE_SIZE) break;
   }
 
-  return memberships;
+  return limit ? memberships.slice(0, limit) : memberships;
 };
 
 const groupCurationMemberships = (memberships = []) =>
@@ -267,11 +273,13 @@ const fetchCurationsWithProducts = async () => {
     .filter((curation) => curation.products.length);
 };
 
-const fetchProductsForCuration = async (curationSlug) => {
-  const curation = await fetchCurationBySlug(curationSlug);
+const fetchProductsForCuration = async (curationSlug, knownCuration = null) => {
+  const curation = knownCuration || await fetchCurationBySlug(curationSlug);
   if (!curation) return [];
 
-  const memberships = await fetchCurationMemberships(curation.id);
+  const memberships = await fetchCurationMemberships(curation.id, {
+    limit: CURATION_DETAIL_PRODUCT_LIMIT,
+  });
 
   const productsResult = await fetchCurationProductsByIds(
     memberships.map((membership) => membership.product_id),
@@ -304,14 +312,14 @@ const fetchProductsForCuration = async (curationSlug) => {
 
   if (membershipProducts.length) return membershipProducts;
 
-  return fetchFallbackProductsForCuration(curation.slug);
+  return fetchFallbackProductsForCuration(curation.slug, CURATION_DETAIL_PRODUCT_LIMIT);
 };
 
 const fetchCurationDetail = async (curationSlug) => {
   const curation = await fetchCurationBySlug(curationSlug);
   if (!curation) return { curation: null, products: [] };
 
-  const products = await fetchProductsForCuration(curation.slug);
+  const products = await fetchProductsForCuration(curation.slug, curation);
   return { curation, products };
 };
 
@@ -333,7 +341,7 @@ const byRating = (a, b) =>
   (Number(b.rating_stars || 0) * 10 + Number(b.rating_count || 0)) -
   (Number(a.rating_stars || 0) * 10 + Number(a.rating_count || 0));
 
-const fetchFallbackProductsForCuration = async (curationSlug) => {
+const fetchFallbackProductsForCuration = async (curationSlug, limit = 36) => {
   const resolvedSlug = resolveCurationSlug(curationSlug);
   const products = await fetchFallbackCatalogProducts(resolvedSlug);
   let filtered = [...products];
@@ -353,7 +361,7 @@ const fetchFallbackProductsForCuration = async (curationSlug) => {
     filtered.sort(byNewest);
   }
 
-  return filtered.slice(0, 60);
+  return filtered.slice(0, limit);
 };
 
 const fetchFallbackCatalogProducts = async (resolvedSlug) => {

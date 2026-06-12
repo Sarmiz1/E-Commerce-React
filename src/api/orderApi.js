@@ -3,6 +3,15 @@ import { supabase } from "../lib/supabaseClient";
 import { handleResponse } from "./apiClients";
 
 export const OrderAPI = {
+  getDeliveryFeeOptions: ({ country = "Nigeria", state = "", city = "" } = {}) =>
+    handleResponse(
+      supabase.rpc("get_delivery_fee_options", {
+        p_country: country,
+        p_state: state,
+        p_city: city,
+      }),
+    ),
+
   initializePaystackCheckout: ({ cartId, couponCode = null, shippingTier = "standard", checkout }) =>
     handleResponse(
       supabase.functions.invoke("paystack-checkout", {

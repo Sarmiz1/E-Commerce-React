@@ -7,7 +7,7 @@ import { sanitizeString } from "../utils/checkoutUtils";
  *
  * Card fields are intentionally excluded — card data must be handled
  * exclusively by your payment provider's hosted fields / tokenization SDK
- * (e.g. Stripe Elements). Your form should only ever submit a payment
+ * (e.g. Paystack Checkout). Your form should only ever submit a payment
  * method token/reference, never raw card numbers or CVVs.
  */
 export const checkoutSchema = z.object({
@@ -19,6 +19,7 @@ export const checkoutSchema = z.object({
   // Shipping address
   address: z.string().min(5, "Street address is required").transform(sanitizeString),
   city:    z.string().min(2, "City is required").transform(sanitizeString),
+  state:   z.string().optional().transform((v) => (v ? sanitizeString(v) : v)),
   zip:     z.string().min(3, "ZIP / postal code required").transform(sanitizeString),
   country: z.string().min(2, "Country is required"),
 
@@ -26,11 +27,17 @@ export const checkoutSchema = z.object({
   billingSameAsShipping: z.boolean().default(true),
   billingAddress: z.string().optional().transform((v) => (v ? sanitizeString(v) : v)),
   billingCity:    z.string().optional().transform((v) => (v ? sanitizeString(v) : v)),
+  billingState:   z.string().optional().transform((v) => (v ? sanitizeString(v) : v)),
   billingZip:     z.string().optional().transform((v) => (v ? sanitizeString(v) : v)),
   billingCountry: z.string().optional(),
 
   paymentMethodId: z.string().min(1, "Choose a payment method"),
+  savePaymentMethod: z.boolean().default(false),
 }).superRefine((data, ctx) => {
+  if (data.country === "Nigeria" && (!data.state || data.state.length < 2)) {
+    ctx.addIssue({ path: ["state"], message: "State is required", code: z.ZodIssueCode.custom });
+  }
+
   if (!data.billingSameAsShipping) {
     if (!data.billingAddress || data.billingAddress.length < 5) {
       ctx.addIssue({ path: ["billingAddress"], message: "Billing address is required", code: z.ZodIssueCode.custom });
@@ -43,6 +50,9 @@ export const checkoutSchema = z.object({
     }
     if (!data.billingCountry || data.billingCountry.length < 2) {
       ctx.addIssue({ path: ["billingCountry"], message: "Billing country required", code: z.ZodIssueCode.custom });
+    }
+    if (data.billingCountry === "Nigeria" && (!data.billingState || data.billingState.length < 2)) {
+      ctx.addIssue({ path: ["billingState"], message: "Billing state is required", code: z.ZodIssueCode.custom });
     }
   }
 });
