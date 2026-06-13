@@ -160,6 +160,8 @@ const adminPromoDefaults = {
 
 const toMinor = (value = 0) => Math.round(Number(value || 0) * 100);
 const fromMinor = (value = 0) => Number(value || 0) / 100;
+const toDeliveryFeeMinor = (value = 0) => Math.round(Number(value || 0) * 10);
+const fromDeliveryFeeMinor = (value = 0) => Number(value || 0) / 10;
 const toDateTimeLocal = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -203,6 +205,13 @@ const formatMoney = (minor = 0) =>
     currency: "NGN",
     maximumFractionDigits: 0,
   }).format(Number(minor || 0) / 100);
+
+const formatDeliveryFee = (minor = 0) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(Number(minor || 0) / 10);
 
 const formatCompactMoney = (minor = 0) =>
   new Intl.NumberFormat("en-NG", {
@@ -1524,8 +1533,8 @@ function CheckoutPricingPanel({ checkoutPricingQuery, deliveryMutation, taxMutat
           .split(",")
           .map((item) => item.trim())
           .filter(Boolean),
-        standardFeeMinor: toMinor(deliveryEditor.standardFee),
-        expressFeeMinor: toMinor(deliveryEditor.expressFee),
+        standardFeeMinor: toDeliveryFeeMinor(deliveryEditor.standardFee),
+        expressFeeMinor: toDeliveryFeeMinor(deliveryEditor.expressFee),
       });
       await checkoutPricingQuery.refetch();
       setDeliveryEditor(null);
@@ -1557,8 +1566,8 @@ function CheckoutPricingPanel({ checkoutPricingQuery, deliveryMutation, taxMutat
     name: zone?.name || "",
     description: zone?.description || "",
     locationsText: asArray(zone?.locations).join(", "),
-    standardFee: fromMinor(zone?.standardfee_minor),
-    expressFee: fromMinor(zone?.express_fee_minor),
+    standardFee: fromDeliveryFeeMinor(zone?.standardfee_minor),
+    expressFee: fromDeliveryFeeMinor(zone?.express_fee_minor),
     isActive: zone?.is_active ?? true,
     sortOrder: zone?.sort_order ?? 0,
   });
@@ -1596,8 +1605,8 @@ function CheckoutPricingPanel({ checkoutPricingQuery, deliveryMutation, taxMutat
             rows={deliveryZones.map((zone)=><tr key={zone.id}>
               <Td>{zone.name}<div style={{fontSize:11,color:C.txt3}}>{zone.description}</div></Td>
               <Td>{asArray(zone.locations).join(", ") || "-"}</Td>
-              <Td>{formatMoney(zone.standardfee_minor)}</Td>
-              <Td>{formatMoney(zone.express_fee_minor)}</Td>
+              <Td>{formatDeliveryFee(zone.standardfee_minor)}</Td>
+              <Td>{formatDeliveryFee(zone.express_fee_minor)}</Td>
               <Td><Badge type={zone.is_active ? "active" : "inactive"}/></Td>
               <Td><Btn icon={Edit2} onClick={()=>openDelivery(zone)}>Edit</Btn></Td>
             </tr>)}/>

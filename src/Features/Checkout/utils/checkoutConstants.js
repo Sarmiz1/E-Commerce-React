@@ -5,9 +5,15 @@ export const VALID_COUPONS = {
   FREESHIP: { type: "ship", value: 0, label: "Free shipping" },
 };
 
+export const BASE_DELIVERY_FEE_MINOR = 50000;
+export const DELIVERY_FEE_TO_PAYMENT_MINOR_FACTOR = 10;
+
+export const toCheckoutDeliveryMinor = (deliveryFeeMinor = BASE_DELIVERY_FEE_MINOR) =>
+  Math.max(Math.round(Number(deliveryFeeMinor || 0) * DELIVERY_FEE_TO_PAYMENT_MINOR_FACTOR), 0);
+
 export const SHIPPING_TIERS = [
-  { label: "Standard delivery", price: 20000, id: "standard" },
-  { label: "Express delivery", price: 40000, id: "express" },
+  { label: "Standard delivery", price: toCheckoutDeliveryMinor(BASE_DELIVERY_FEE_MINOR), id: "standard" },
+  { label: "Express delivery", price: toCheckoutDeliveryMinor(BASE_DELIVERY_FEE_MINOR), id: "express" },
   // { label: "Overnight (next day)", price: 199900, id: "overnight" },
 ];
 

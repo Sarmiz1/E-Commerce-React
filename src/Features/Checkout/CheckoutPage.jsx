@@ -169,8 +169,9 @@ export default function CheckoutPage() {
   }, [user?.id, userMetadataPhone]);
 
   useEffect(() => {
+    setShippingOptions(SHIPPING_TIERS);
+
     if (form.country !== "Nigeria" || !form.state || !form.city) {
-      setShippingOptions(SHIPPING_TIERS);
       return;
     }
 
@@ -186,9 +187,11 @@ export default function CheckoutPage() {
           ? result.options
           : SHIPPING_TIERS;
         setShippingOptions(options);
-        if (!options.some((option) => option.id === selectedShipping)) {
-          setSelectedShipping(options[0]?.id || "standard");
-        }
+        setSelectedShipping((current) =>
+          options.some((option) => option.id === current)
+            ? current
+            : options[0]?.id || "standard",
+        );
       })
       .catch(() => {
         if (!cancelled) setShippingOptions(SHIPPING_TIERS);
@@ -197,7 +200,7 @@ export default function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [form.city, form.country, form.state, selectedShipping]);
+  }, [form.city, form.country, form.state]);
 
   useEffect(() => {
     let cancelled = false;

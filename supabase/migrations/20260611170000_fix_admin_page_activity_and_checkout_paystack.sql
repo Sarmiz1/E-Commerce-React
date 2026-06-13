@@ -288,13 +288,13 @@ begin
       jsonb_build_object(
         'id', 'standard',
         'label', 'Standard delivery',
-        'price', selected_zone.standardfee_minor,
+        'price', selected_zone.standardfee_minor * 10,
         'description', selected_zone.description
       ),
       jsonb_build_object(
         'id', 'express',
         'label', 'Express delivery',
-        'price', selected_zone.express_fee_minor,
+        'price', selected_zone.express_fee_minor * 10,
         'description', selected_zone.description
       )
     )
@@ -303,7 +303,8 @@ end;
 $$;
 
 revoke all on function public.get_delivery_fee_options(text, text, text) from public;
-grant execute on function public.get_delivery_fee_options(text, text, text) to anon, authenticated;
+grant usage on schema public to anon, authenticated, service_role;
+grant execute on function public.get_delivery_fee_options(text, text, text) to anon, authenticated, service_role;
 
 create or replace function public.apply_order_delivery_fee(
   p_order_id uuid,
@@ -407,7 +408,7 @@ end;
 $$;
 
 revoke all on function public.get_checkout_tax_options(text) from public;
-grant execute on function public.get_checkout_tax_options(text) to anon, authenticated;
+grant execute on function public.get_checkout_tax_options(text) to anon, authenticated, service_role;
 
 create or replace function public.apply_order_checkout_charges(
   p_order_id uuid,

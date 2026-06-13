@@ -1,5 +1,5 @@
 // ─── Imports (all at top) ────────────────────────────────────────────────────
-import { CARD_PATTERNS, SHIPPING_TIERS } from "./checkoutConstants";
+import { CARD_PATTERNS, SHIPPING_TIERS, toCheckoutDeliveryMinor } from "./checkoutConstants";
 
 // ─── Sanitization ─────────────────────────────────────────────────────────────
 
@@ -104,7 +104,7 @@ export function getCartItemLineTotal(item) {
 function resolveShippingPrice(selectedShipping, shippingOptions) {
   if (selectedShipping === "free") return 0;
   const tier = shippingOptions.find((o) => o.id === selectedShipping);
-  return tier?.price ?? 499;
+  return tier?.price ?? toCheckoutDeliveryMinor();
 }
 
 function applyCoupon(coupon, subtotal, shippingPrice) {

@@ -16,6 +16,20 @@ function seededNumber(seed, offset = 0) {
   return (Math.sin(hash) + 1) / 2;
 }
 
+const normalizeFilterValue = (value = "") =>
+  String(value).trim().toLowerCase()
+    .replace(/[_-]+/g, " ").replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ").trim();
+
+function sortProducts(products, sort) {
+  const p = [...products];
+  if (sort === "price-asc") return p.sort((a, b) => a.price_minor - b.price_minor);
+  if (sort === "price-desc") return p.sort((a, b) => b.price_minor - a.price_minor);
+  if (sort === "rating") return p.sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
+  if (sort === "newest") return p.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return p;
+}
+
 // ─── Animated Counter ─────────────────────────────────────────────────────────
 function AnimatedCount({ value }) {
   const [display, setDisplay] = useState(0);
@@ -32,96 +46,178 @@ function AnimatedCount({ value }) {
   return <span>{display.toLocaleString()}</span>;
 }
 
-// ─── Particle Burst ───────────────────────────────────────────────────────────
-function Particles({ accent }) {
-  const particles = useMemo(() =>
-    Array.from({ length: 18 }, (_, i) => ({
-      id: i,
-      x: seededNumber(accent, i) * 100,
-      y: seededNumber(accent, i + 20) * 100,
-      size: seededNumber(accent, i + 40) * 4 + 1,
-      duration: seededNumber(accent, i + 60) * 6 + 4,
-      delay: seededNumber(accent, i + 80) * 3,
-    })), [accent]);
-
+// ─── Grain Overlay ────────────────────────────────────────────────────────────
+function GrainOverlay() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((p) => (
+    <div
+      className="absolute inset-0 pointer-events-none z-10 opacity-[0.04]"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+        backgroundRepeat: "repeat",
+        backgroundSize: "128px 128px",
+      }}
+    />
+  );
+}
+
+// ─── Orbital Rings ────────────────────────────────────────────────────────────
+function OrbitalDecor({ accent }) {
+  return (
+    <div className="absolute right-0 top-0 w-[520px] h-[520px] pointer-events-none overflow-hidden opacity-20">
+      {[1, 0.65, 0.38].map((scale, i) => (
         <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size, background: accent, opacity: 0.3 }}
-          animate={{ y: [0, -30, 0], opacity: [0.1, 0.5, 0.1], scale: [1, 1.5, 1] }}
-          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
+          key={i}
+          className="absolute rounded-full border"
+          style={{
+            width: `${520 * scale}px`,
+            height: `${520 * scale}px`,
+            borderColor: `${accent}`,
+            right: `${-260 * scale * 0.5}px`,
+            top: `${-260 * scale * 0.5}px`,
+            borderWidth: i === 0 ? "1px" : "0.5px",
+          }}
+          animate={{ rotate: i % 2 === 0 ? 360 : -360 }}
+          transition={{ duration: 30 + i * 15, repeat: Infinity, ease: "linear" }}
         />
       ))}
+      <motion.div
+        className="absolute w-3 h-3 rounded-full"
+        style={{ background: accent, right: "80px", top: "120px", filter: `blur(1px)` }}
+        animate={{ x: [0, 30, 0, -20, 0], y: [0, -20, 30, 10, 0], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
     </div>
   );
 }
 
-// ─── Hero Section ─────────────────────────────────────────────────────────────
+// ─── Hero ─────────────────────────────────────────────────────────────────────
 function CollectionHero({ config, count, isDark, colors }) {
   const heroRef = useRef(null);
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 400], [0, 80]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0.3]);
+  const y = useTransform(scrollY, [0, 500], [0, 100]);
+  const opacity = useTransform(scrollY, [0, 280], [1, 0]);
+  const accent = config.accent;
 
   useEffect(() => {
-    if (!heroRef.current) return;
-    gsap.fromTo(".col-hero-badge", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.4)" });
-    gsap.fromTo(".col-hero-title", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, delay: 0.2, ease: "expo.out" });
-    gsap.fromTo(".col-hero-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, delay: 0.45, ease: "expo.out" });
-    gsap.fromTo(".col-hero-stats", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, delay: 0.65, stagger: 0.1, ease: "expo.out" });
+    gsap.fromTo(".ch-eyebrow", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "expo.out" });
+    gsap.fromTo(".ch-title-word", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 1, delay: 0.1, stagger: 0.07, ease: "expo.out" });
+    gsap.fromTo(".ch-desc", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, delay: 0.4, ease: "expo.out" });
+    gsap.fromTo(".ch-stat", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, delay: 0.55, stagger: 0.08, ease: "back.out(1.6)" });
+    gsap.fromTo(".ch-divider", { scaleX: 0 }, { scaleX: 1, duration: 0.8, delay: 0.3, ease: "expo.out" });
   }, []);
 
+  const words = config.title.split(" ");
+
   return (
-    <div ref={heroRef} className="relative overflow-hidden" style={{ minHeight: 360, background: config.heroBg || (isDark ? "#0E0E10" : "#0E0E10") }}>
-      <Particles accent={config.accent} />
+    <div
+      ref={heroRef}
+      className="relative overflow-hidden"
+      style={{ minHeight: 420, background: "#080809" }}
+    >
+      <GrainOverlay />
+      <OrbitalDecor accent={accent} />
 
-      {/* Gradient overlays */}
-      <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${config.accent}22 0%, transparent 70%)` }} />
-      <div className="absolute bottom-0 left-0 right-0 h-32" style={{ background: `linear-gradient(to top, ${isDark ? colors.surface.primary : colors.surface.primary}, transparent)` }} />
-
-      {/* Animated accent line */}
-      <motion.div
-        className="absolute top-0 left-0 right-0 h-[2px]"
-        style={{ background: `linear-gradient(to right, transparent, ${config.accent}, transparent)` }}
-        animate={{ scaleX: [0, 1, 0], x: ["-100%", "0%", "100%"] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      {/* Radial spotlight */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(ellipse 70% 55% at 30% 50%, ${accent}14 0%, transparent 65%)` }}
       />
 
-      <motion.div style={{ y, opacity }} className="relative z-10 max-w-screen-xl mx-auto px-6 pt-20 pb-16 flex flex-col items-center text-center">
-        {/* Badge */}
-        <motion.div
-          className="col-hero-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest mb-6 border"
-          style={{ background: `${config.accent}18`, color: config.accent, borderColor: `${config.accent}40` }}
-        >
-          <span className="text-base">{config.icon}</span>
-          {config.badge || config.label}
-        </motion.div>
+      {/* Bottom fade */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
+        style={{ background: `linear-gradient(to top, ${isDark ? "#0a0a0c" : "#fafafa"}, transparent)` }}
+      />
 
-        {/* Title */}
-        <h1 className="col-hero-title font-black leading-tight text-white mb-4" style={{ fontSize: "clamp(2.2rem, 6vw, 5rem)", letterSpacing: "-0.03em" }}>
-          {config.title.split(" ").map((word, i) => (
-            <span key={i} style={{ color: i === config.accentWordIndex ? config.accent : "white" }}>{word} </span>
-          ))}
-        </h1>
+      {/* Scanning line */}
+      <motion.div
+        className="absolute left-0 right-0 h-px pointer-events-none"
+        style={{ background: `linear-gradient(to right, transparent 0%, ${accent}80 50%, transparent 100%)` }}
+        animate={{ top: ["0%", "100%", "0%"] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+      />
 
-        {/* Subtitle */}
-        <p className="col-hero-sub text-sm md:text-base max-w-lg mb-10 leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
-          {config.subtitle}
-        </p>
-
-        {/* Stats Row */}
-        <div className="col-hero-stats flex items-center gap-8 flex-wrap justify-center">
-          <div className="text-center">
-            <div className="text-2xl font-black text-white"><AnimatedCount value={count} /></div>
-            <div className="text-[10px] uppercase tracking-widest mt-0.5" style={{ color: config.accent }}>Products</div>
+      <motion.div
+        style={{ y, opacity }}
+        className="relative z-20 max-w-screen-xl mx-auto px-8 md:px-12 pt-24 pb-20 grid md:grid-cols-[1fr_auto] gap-10 items-end"
+      >
+        {/* Left: Text */}
+        <div>
+          {/* Eyebrow */}
+          <div className="ch-eyebrow flex items-center gap-3 mb-6">
+            <div
+              className="w-7 h-7 rounded-md flex items-center justify-center text-sm"
+              style={{ background: `${accent}22`, border: `1px solid ${accent}50` }}
+            >
+              {config.icon}
+            </div>
+            <span
+              className="text-[10px] font-black uppercase tracking-[0.25em]"
+              style={{ color: accent }}
+            >
+              {config.badge || config.label}
+            </span>
+            <div className="ch-divider flex-1 h-px origin-left" style={{ background: `${accent}30` }} />
           </div>
+
+          {/* Title */}
+          <h1
+            className="overflow-hidden mb-5"
+            style={{
+              fontSize: "clamp(2.6rem, 6.5vw, 5.5rem)",
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontWeight: 700,
+              lineHeight: 0.95,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            {words.map((word, i) => (
+              <span
+                key={i}
+                className="ch-title-word inline-block mr-[0.2em]"
+                style={{ color: i === config.accentWordIndex ? accent : "#ffffff" }}
+              >
+                {word}
+              </span>
+            ))}
+          </h1>
+
+          {/* Description */}
+          <p
+            className="ch-desc text-sm md:text-[15px] max-w-md leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.42)", fontFamily: "'DM Sans', sans-serif" }}
+          >
+            {config.subtitle}
+          </p>
+        </div>
+
+        {/* Right: Stats panel */}
+        <div
+          className="ch-stat flex flex-col gap-px rounded-2xl overflow-hidden border shrink-0"
+          style={{ borderColor: `${accent}20`, background: `${accent}08`, minWidth: 200 }}
+        >
+          <div className="px-6 py-4 border-b" style={{ borderColor: `${accent}15` }}>
+            <div
+              className="text-3xl font-black text-white tabular-nums"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              <AnimatedCount value={count} />
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.2em] mt-0.5" style={{ color: accent }}>
+              Products
+            </div>
+          </div>
+
           {config.stats?.map((s, i) => (
-            <div key={i} className="text-center">
-              <div className="text-2xl font-black text-white">{s.value}</div>
-              <div className="text-[10px] uppercase tracking-widest mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{s.label}</div>
+            <div
+              key={i}
+              className="ch-stat px-6 py-4 border-b last:border-b-0"
+              style={{ borderColor: `${accent}15` }}
+            >
+              <div className="text-xl font-bold text-white">{s.value}</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>
+                {s.label}
+              </div>
             </div>
           ))}
         </div>
@@ -130,7 +226,94 @@ function CollectionHero({ config, count, isDark, colors }) {
   );
 }
 
-// ─── Sort Bar ────────────────────────────────────────────────────────────────
+// ─── Subcategory Filter Bar ───────────────────────────────────────────────────
+function SubcategoryBar({ subcategories, active, accent, colors, onSelect, totalCount }) {
+  const scrollRef = useRef(null);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
+
+  const checkFades = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setShowLeftFade(el.scrollLeft > 10);
+    setShowRightFade(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  }, []);
+
+  useEffect(() => {
+    checkFades();
+    const el = scrollRef.current;
+    el?.addEventListener("scroll", checkFades, { passive: true });
+    return () => el?.removeEventListener("scroll", checkFades);
+  }, [checkFades, subcategories]);
+
+  const allItems = [
+    { slug: "all", name: "All", count: totalCount },
+    ...subcategories,
+  ];
+
+  return (
+    <div className="relative border-b" style={{ borderColor: colors.border.subtle, background: colors.surface.primary }}>
+      {/* Left fade */}
+      <AnimatePresence>
+        {showLeftFade && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to right, ${colors.surface.primary}, transparent)` }}
+          />
+        )}
+      </AnimatePresence>
+
+      <div
+        ref={scrollRef}
+        className="max-w-screen-xl mx-auto px-6 py-3 flex gap-2 overflow-x-auto"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {allItems.map((item) => {
+          const isActive = active === normalizeFilterValue(item.slug);
+          return (
+            <motion.button
+              key={item.slug}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onSelect(item.slug)}
+              className="relative flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-colors duration-200 outline-none"
+              style={{
+                background: isActive ? accent : "transparent",
+                color: isActive ? "#fff" : colors.text.secondary,
+                border: `1px solid ${isActive ? accent : colors.border.default}`,
+              }}
+            >
+              {item.name}
+              <span
+                className="text-[9px] px-1.5 py-0.5 rounded-full font-black"
+                style={{
+                  background: isActive ? "rgba(255,255,255,0.2)" : `${accent}18`,
+                  color: isActive ? "#fff" : accent,
+                }}
+              >
+                {item.count}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      {/* Right fade */}
+      <AnimatePresence>
+        {showRightFade && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
+            style={{ background: `linear-gradient(to left, ${colors.surface.primary}, transparent)` }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Sort / Toolbar ───────────────────────────────────────────────────────────
 const SORTS = [
   { value: "default", label: "Best Match" },
   { value: "price-asc", label: "Price ↑" },
@@ -139,25 +322,174 @@ const SORTS = [
   { value: "newest", label: "Newest" },
 ];
 
-function sortProducts(products, sort) {
-  const p = [...products];
-  if (sort === "price-asc") return p.sort((a, b) => a.price_minor - b.price_minor);
-  if (sort === "price-desc") return p.sort((a, b) => b.price_minor - a.price_minor);
-  if (sort === "rating") return p.sort((a, b) => (b.rating_stars || 0) - (a.rating_stars || 0));
-  if (sort === "newest") return p.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  return p;
+function Toolbar({ sort, setSort, count, total, accent, colors, label, configLabel }) {
+  return (
+    <div
+      className="sticky top-16 z-40 border-b backdrop-blur-2xl"
+      style={{
+        background: colors.surface.primary === "#ffffff" || colors.surface.primary === "#fafafa"
+          ? "rgba(255,255,255,0.9)"
+          : "rgba(9,9,11,0.88)",
+        borderColor: colors.border.subtle,
+      }}
+    >
+      <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center gap-4 flex-wrap">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] mr-2">
+          <Link to="/" className="hover:opacity-60 transition-opacity" style={{ color: colors.text.tertiary }}>Home</Link>
+          <span style={{ color: colors.text.tertiary }}>/</span>
+          <span style={{ color: accent }}>{configLabel}</span>
+        </div>
+
+        {/* Divider */}
+        <div className="hidden sm:block w-px h-4 shrink-0" style={{ background: colors.border.default }} />
+
+        {/* Sort pills */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {SORTS.map((s) => (
+            <button
+              key={s.value}
+              onClick={() => setSort(s.value)}
+              className="px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-200 outline-none"
+              style={{
+                background: sort === s.value ? accent : "transparent",
+                color: sort === s.value ? "#fff" : colors.text.secondary,
+                border: `1px solid ${sort === s.value ? accent : colors.border.default}`,
+              }}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Count */}
+        <p className="text-[10px] font-medium hidden sm:block" style={{ color: colors.text.tertiary }}>
+          <span className="font-bold" style={{ color: colors.text.primary }}>{count}</span>
+          {count !== total && <span> of {total}</span>} items
+        </p>
+      </div>
+    </div>
+  );
 }
 
-const normalizeFilterValue = (value = "") =>
-  String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/[_-]+/g, " ")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+// ─── Empty State ──────────────────────────────────────────────────────────────
+function EmptyState({ icon, accent, colors, onReset, onBrowseAll }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center py-36 text-center"
+    >
+      <div className="text-6xl mb-5 grayscale">{icon || "🔍"}</div>
+      <h2 className="text-xl font-bold mb-2" style={{ color: colors.text.primary, fontFamily: "'Cormorant Garamond', serif", fontSize: "1.75rem" }}>
+        Nothing here yet
+      </h2>
+      <p className="text-sm mb-8 max-w-xs leading-relaxed" style={{ color: colors.text.tertiary }}>
+        Try a different filter or explore our full catalog.
+      </p>
+      <div className="flex items-center gap-3">
+        <motion.button
+          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+          onClick={onReset}
+          className="px-6 py-2.5 rounded-full text-sm font-bold border-2 transition-colors"
+          style={{ borderColor: accent, color: accent, background: "transparent" }}
+        >
+          Reset Filters
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+          onClick={onBrowseAll}
+          className="px-6 py-2.5 rounded-full text-sm font-bold"
+          style={{ background: accent, color: "#fff" }}
+        >
+          Browse All
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// ─── Skeleton Grid ────────────────────────────────────────────────────────────
+function SkeletonGrid({ isDark, colors }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: i * 0.04 }}
+          className="rounded-2xl overflow-hidden"
+          style={{ background: colors.surface.secondary }}
+        >
+          <div className="animate-pulse" style={{ paddingTop: "130%", background: isDark ? "#1a1a1e" : "#e5e7eb" }} />
+          <div className="p-4 space-y-2.5">
+            <div className="h-2.5 rounded-full w-3/4 animate-pulse" style={{ background: isDark ? "#222226" : "#d1d5db" }} />
+            <div className="h-2.5 rounded-full w-1/2 animate-pulse" style={{ background: isDark ? "#222226" : "#d1d5db" }} />
+            <div className="h-3 rounded-full w-1/3 animate-pulse mt-3" style={{ background: isDark ? "#2a2a2e" : "#c4c9d4" }} />
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Compare Float Bar ────────────────────────────────────────────────────────
+function CompareBar({ compareList, setShowCompare, clearCompare, accent, colors, isDark }) {
+  return (
+    <AnimatePresence>
+      {compareList.length > 0 && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ type: "spring", damping: 22, stiffness: 300 }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border backdrop-blur-2xl"
+          style={{
+            background: isDark ? "rgba(18,18,22,0.97)" : "rgba(255,255,255,0.97)",
+            borderColor: colors.border.default,
+          }}
+        >
+          <div
+            className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-lg"
+            style={{ background: `${accent}18`, color: accent }}
+          >
+            {compareList.length}/2
+          </div>
+          {compareList.map((p) => (
+            <div
+              key={p.id}
+              className="w-9 h-9 rounded-xl overflow-hidden border-2"
+              style={{ borderColor: accent }}
+            >
+              <img src={p.image} alt="" className="w-full h-full object-cover" />
+            </div>
+          ))}
+          <button
+            onClick={() => setShowCompare(true)}
+            disabled={compareList.length < 2}
+            className="px-5 py-2 rounded-xl text-xs font-black disabled:opacity-30 transition-opacity"
+            style={{ background: accent, color: "#fff" }}
+          >
+            Compare
+          </button>
+          <button
+            onClick={clearCompare}
+            className="text-[11px] font-bold px-2 transition-opacity hover:opacity-60"
+            style={{ color: colors.text.tertiary }}
+          >
+            Clear
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function CollectionPage({ config }) {
   const { isDark, colors } = useTheme();
   const navigate = useNavigate();
@@ -169,16 +501,15 @@ export default function CollectionPage({ config }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
   const [quickView, setQuickView] = useState(null);
+  const [activeSubcat, setActiveSubcat] = useState("all");
   const { compareList, setShowCompare, toggleCompare, clearCompare } = useCompare();
 
   const gridRef = useRef(null);
+  const accent = config.accent || colors.brand.electricBlue;
 
-  const activeSubcategoryFromConfig = useMemo(
-    () => normalizeFilterValue(config.subcategorySlug || config.subcategoryLabel || ""),
-    [config.subcategoryLabel, config.subcategorySlug],
-  );
-
+  // ── Derive data ──────────────────────────────────────────────────────────
   const backendProducts = useMemo(() => Array.isArray(allProducts) ? allProducts : [], [allProducts]);
+
   const subcategories = useMemo(() => {
     const bySlug = new Map();
     backendProducts.forEach((product) => {
@@ -186,211 +517,210 @@ export default function CollectionPage({ config }) {
       const slug = product.subcategory?.slug || product.subcategory_slug || product.subcategorySlug;
       if (!name || !slug) return;
       const key = normalizeFilterValue(slug);
-      bySlug.set(key, {
-        name,
-        slug,
-        count: (bySlug.get(key)?.count || 0) + 1,
-      });
+      bySlug.set(key, { name, slug, count: (bySlug.get(key)?.count || 0) + 1 });
     });
     return [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [backendProducts]);
-  const effectiveActiveSubcategory = useMemo(
-    () => {
-      const requested = activeSubcategoryFromConfig || "all";
-      return subcategories.some((subcategory) => normalizeFilterValue(subcategory.slug) === requested)
-        ? requested
-        : "all";
-    },
-    [activeSubcategoryFromConfig, subcategories],
-  );
-  const sorted = useMemo(() => sortProducts(backendProducts, sort), [backendProducts, sort]);
+
+  // Initialise from config once
+  useEffect(() => {
+    const fromConfig = normalizeFilterValue(config.subcategorySlug || config.subcategoryLabel || "");
+    const valid = subcategories.some((s) => normalizeFilterValue(s.slug) === fromConfig);
+    setActiveSubcat(valid && fromConfig ? fromConfig : "all");
+  }, [config.subcategorySlug, config.subcategoryLabel, subcategories]);
+
+  const filtered = useMemo(() => {
+    if (activeSubcat === "all") return backendProducts;
+    return backendProducts.filter((p) => {
+      const slug = p.subcategory?.slug || p.subcategory_slug || p.subcategorySlug || "";
+      return normalizeFilterValue(slug) === activeSubcat;
+    });
+  }, [backendProducts, activeSubcat]);
+
+  const sorted = useMemo(() => sortProducts(filtered, sort), [filtered, sort]);
   const visible = sorted.slice(0, visibleCount);
 
-  // GSAP stagger on mount / sort change
+  // ── GSAP stagger ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!gridRef.current || isLoading) return;
     const cards = gridRef.current.querySelectorAll(".col-card");
-    gsap.fromTo(cards,
-      { opacity: 0, y: 28, scale: 0.96 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.65, stagger: 0.04, ease: "expo.out", overwrite: "auto" }
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 24, scale: 0.97 },
+      { opacity: 1, y: 0, scale: 1, duration: 0.55, stagger: 0.035, ease: "expo.out", overwrite: "auto" }
     );
   }, [sorted, isLoading]);
 
+  const handleSubcatSelect = useCallback((slug) => {
+    const key = normalizeFilterValue(slug);
+    setActiveSubcat(key === "all" ? "all" : key);
+    setVisibleCount(PAGE_SIZE);
+    // Sync URL if category slug is available
+    if (config.categorySlug) {
+      if (key === "all") {
+        navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}`);
+      } else {
+        const orig = subcategories.find((s) => normalizeFilterValue(s.slug) === key);
+        if (orig) navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}/${encodeURIComponent(orig.slug)}`);
+      }
+    }
+  }, [config.categorySlug, navigate, subcategories]);
+
+  const handleSortChange = useCallback((v) => { setSort(v); setVisibleCount(PAGE_SIZE); }, []);
+
   const handleLoadMore = useCallback(() => {
     setLoadingMore(true);
-    setTimeout(() => { setVisibleCount(v => v + PAGE_SIZE); setLoadingMore(false); }, 500);
+    setTimeout(() => { setVisibleCount((v) => v + PAGE_SIZE); setLoadingMore(false); }, 480);
   }, []);
 
-  const accent = config.accent || colors.brand.electricBlue;
-
   return (
-    <div className="min-h-screen" style={{ background: colors.surface.primary, color: colors.text.primary }}>
-      {/* Hero */}
+    <div
+      className="min-h-screen"
+      style={{
+        background: colors.surface.primary,
+        color: colors.text.primary,
+        fontFamily: "'DM Sans', sans-serif",
+      }}
+    >
+      {/* ── Hero ── */}
       <CollectionHero config={config} count={backendProducts.length} isDark={isDark} colors={colors} />
 
-      {/* Sort + Breadcrumb Bar */}
-      <div className="sticky top-16 z-40 border-b backdrop-blur-xl" style={{ background: isDark ? "rgba(14,14,16,0.9)" : "rgba(255,255,255,0.9)", borderColor: colors.border.subtle }}>
-        <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest" style={{ color: colors.text.tertiary }}>
-            <Link to="/" style={{ color: colors.text.tertiary }} className="hover:opacity-70 transition-opacity">Home</Link>
-            <span>/</span>
-            <span style={{ color: accent }}>{config.label}</span>
-          </div>
+      {/* ── Toolbar (sticky) ── */}
+      <Toolbar
+        sort={sort}
+        setSort={handleSortChange}
+        count={sorted.length}
+        total={backendProducts.length}
+        accent={accent}
+        colors={colors}
+        configLabel={config.label}
+      />
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {SORTS.map(s => (
-              <button
-                key={s.value}
-                onClick={() => { setSort(s.value); setVisibleCount(PAGE_SIZE); }}
-                className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
-                style={{
-                  background: sort === s.value ? accent : "transparent",
-                  color: sort === s.value ? "#fff" : colors.text.secondary,
-                  border: `1.5px solid ${sort === s.value ? accent : colors.border.default}`,
-                }}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-
-          <p className="text-[11px] font-medium shrink-0 hidden sm:block" style={{ color: colors.text.tertiary }}>
-            <span className="font-bold" style={{ color: colors.text.primary }}>{backendProducts.length}</span> items
-          </p>
-        </div>
-      </div>
-
-      {subcategories.length > 1 && (
-        <div className="border-b" style={{ borderColor: colors.border.subtle, background: colors.surface.primary }}>
-          <div className="max-w-screen-xl mx-auto px-6 py-3 flex gap-2 overflow-x-auto">
-            <button
-              className="px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all"
-              onClick={() => {
-                setVisibleCount(PAGE_SIZE);
-                if (config.categorySlug) navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}`);
-              }}
-              style={{
-                background: effectiveActiveSubcategory === "all" ? accent : "transparent",
-                color: effectiveActiveSubcategory === "all" ? "#fff" : colors.text.secondary,
-                border: `1px solid ${effectiveActiveSubcategory === "all" ? accent : colors.border.default}`,
-              }}
-              type="button"
-            >
-              All subcategories · {backendProducts.length}
-            </button>
-            {subcategories.map((subcategory) => {
-              const key = normalizeFilterValue(subcategory.slug);
-              const active = effectiveActiveSubcategory === key;
-              return (
-                <button
-                  className="px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all"
-                  key={key}
-                  onClick={() => {
-                    setVisibleCount(PAGE_SIZE);
-                    if (config.categorySlug) {
-                      navigate(`/products/categories/${encodeURIComponent(config.categorySlug)}/${encodeURIComponent(subcategory.slug)}`);
-                    }
-                  }}
-                  style={{
-                    background: active ? accent : "transparent",
-                    color: active ? "#fff" : colors.text.secondary,
-                    border: `1px solid ${active ? accent : colors.border.default}`,
-                  }}
-                  type="button"
-                >
-                  {subcategory.name} · {subcategory.count}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      {/* ── Subcategory filter (only if > 1) ── */}
+      {subcategories.length > 0 && (
+        <SubcategoryBar
+          subcategories={subcategories}
+          active={activeSubcat}
+          accent={accent}
+          colors={colors}
+          totalCount={backendProducts.length}
+          onSelect={handleSubcatSelect}
+        />
       )}
 
-      {/* Grid */}
+      {/* ── Product Grid ── */}
       <div className="max-w-screen-xl mx-auto px-6 py-12">
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: colors.surface.secondary }}>
-                <div style={{ paddingTop: "130%", background: isDark ? "#1a1a1e" : "#e5e7eb" }} />
-                <div className="p-4 space-y-2">
-                  <div className="h-3 rounded-full w-3/4" style={{ background: isDark ? "#2a2a2e" : "#d1d5db" }} />
-                  <div className="h-3 rounded-full w-1/2" style={{ background: isDark ? "#2a2a2e" : "#d1d5db" }} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <SkeletonGrid isDark={isDark} colors={colors} />
         ) : sorted.length === 0 ? (
-          <div className="flex flex-col items-center py-32 text-center">
-            <div className="text-7xl mb-6">{config.emptyIcon || "🔍"}</div>
-            <h2 className="text-2xl font-bold mb-3" style={{ color: colors.text.primary }}>Nothing here yet</h2>
-            <p className="text-sm mb-8 max-w-xs" style={{ color: colors.text.tertiary }}>Check back soon or explore our full catalog.</p>
-            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => navigate("/products")}
-              className="px-8 py-3 rounded-full font-bold text-sm" style={{ background: accent, color: "#fff" }}>
-              Browse All Products
-            </motion.button>
-          </div>
+          <EmptyState
+            icon={config.emptyIcon}
+            accent={accent}
+            colors={colors}
+            onReset={() => { setActiveSubcat("all"); setSort("default"); }}
+            onBrowseAll={() => navigate("/products")}
+          />
         ) : (
           <>
-            <div ref={gridRef} className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Result meta line */}
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={activeSubcat + sort}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="text-[11px] font-semibold mb-7 uppercase tracking-[0.15em]"
+                style={{ color: colors.text.tertiary }}
+              >
+                {activeSubcat !== "all" && (
+                  <span style={{ color: accent }}>
+                    {subcategories.find((s) => normalizeFilterValue(s.slug) === activeSubcat)?.name}
+                    {" · "}
+                  </span>
+                )}
+                {sorted.length} result{sorted.length !== 1 ? "s" : ""}
+              </motion.p>
+            </AnimatePresence>
+
+            <div ref={gridRef} className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
               {visible.map((product) => (
                 <div key={product.id} className="col-card">
                   <ProductCard
                     product={product}
                     onQuickView={setQuickView}
                     onToggleCompare={toggleCompare}
-                    isCompared={compareList.some(c => c.id === product.id)}
+                    isCompared={compareList.some((c) => c.id === product.id)}
                     canAdd={compareList.length < 2}
                   />
                 </div>
               ))}
             </div>
 
-            {/* Load More */}
-            <div className="flex justify-center mt-14">
+            {/* ── Load More ── */}
+            <div className="flex flex-col items-center mt-16 gap-3">
               {visibleCount >= sorted.length ? (
-                <p className="text-sm font-medium" style={{ color: colors.text.tertiary }}>All {sorted.length} products shown</p>
+                <div className="flex items-center gap-4">
+                  <div className="h-px w-16" style={{ background: colors.border.default }} />
+                  <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: colors.text.tertiary }}>
+                    All {sorted.length} shown
+                  </p>
+                  <div className="h-px w-16" style={{ background: colors.border.default }} />
+                </div>
               ) : (
-                <motion.button
-                  whileHover={{ scale: 1.04, boxShadow: `0 0 30px ${accent}44` }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                  className="px-12 py-4 rounded-full font-black text-sm border-2 transition-all"
-                  style={{ borderColor: accent, color: accent, background: "transparent" }}
-                >
-                  {loadingMore ? "Loading…" : `Load More · ${sorted.length - visibleCount} remaining`}
-                </motion.button>
+                <>
+                  {/* Progress bar */}
+                  <div className="w-48 h-0.5 rounded-full overflow-hidden" style={{ background: colors.border.subtle }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ background: accent }}
+                      animate={{ width: `${(visibleCount / sorted.length) * 100}%` }}
+                      transition={{ duration: 0.4 }}
+                    />
+                  </div>
+                  <p className="text-[10px] font-medium" style={{ color: colors.text.tertiary }}>
+                    {visibleCount} of {sorted.length}
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.03, boxShadow: `0 0 28px ${accent}35` }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="mt-2 px-10 py-3.5 rounded-full font-black text-sm border-2 transition-all duration-200 disabled:opacity-50"
+                    style={{ borderColor: accent, color: accent, background: "transparent", letterSpacing: "0.05em" }}
+                  >
+                    {loadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                          className="inline-block w-3.5 h-3.5 border-2 rounded-full"
+                          style={{ borderColor: `${accent}40`, borderTopColor: accent }}
+                        />
+                        Loading…
+                      </span>
+                    ) : (
+                      `Load ${Math.min(PAGE_SIZE, sorted.length - visibleCount)} More`
+                    )}
+                  </motion.button>
+                </>
               )}
             </div>
           </>
         )}
       </div>
 
-      {/* Compare float bar */}
-      <AnimatePresence>
-        {compareList.length > 0 && (
-          <motion.div
-            initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border backdrop-blur-xl"
-            style={{ background: isDark ? "rgba(30,30,34,0.95)" : "rgba(255,255,255,0.95)", borderColor: colors.border.default }}
-          >
-            <span className="text-xs font-bold" style={{ color: colors.text.secondary }}>{compareList.length}/2</span>
-            {compareList.map(p => (
-              <div key={p.id} className="w-9 h-9 rounded-lg overflow-hidden border" style={{ borderColor: colors.border.default }}>
-                <img src={p.image} alt="" className="w-full h-full object-cover" />
-              </div>
-            ))}
-            <button onClick={() => setShowCompare(true)} disabled={compareList.length < 2}
-              className="px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-40" style={{ background: accent, color: "#fff" }}>
-              Compare
-            </button>
-            <button onClick={clearCompare} className="text-xs font-bold" style={{ color: colors.text.tertiary }}>Clear</button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Compare Float Bar ── */}
+      <CompareBar
+        compareList={compareList}
+        setShowCompare={setShowCompare}
+        clearCompare={clearCompare}
+        accent={accent}
+        colors={colors}
+        isDark={isDark}
+      />
 
-      {/* Quick View Modal */}
+      {/* ── Quick View Modal ── */}
       <AnimatePresence>
         {quickView && <ProductDetailModal product={quickView} onClose={() => setQuickView(null)} />}
       </AnimatePresence>

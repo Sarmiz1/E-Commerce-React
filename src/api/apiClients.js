@@ -11,6 +11,21 @@
  * This wrapper bridges the gap. It unwraps the Supabase `data` on success,
  * and cleanly throws a real Javascript `Error` if the DB query fails.
  */
+const readErrorContext = async (context) => {
+  if (!context) return null;
+  if (typeof context.json === "function") return context.json();
+  if (typeof context.text === "function") {
+    const text = await context.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { message: text };
+    }
+  }
+  if (typeof context === "object") return context;
+  return null;
+};
+
 export const handleResponse = async (queryPromise) => {
   const { data, error } = await queryPromise;
 
@@ -18,7 +33,7 @@ export const handleResponse = async (queryPromise) => {
     console.error("Supabase API Error:", error);
     if (error.context) {
       try {
-        const details = await error.context.json();
+        const details = await readErrorContext(error.context);
         throw new Error(details?.error || details?.message || error.message || "Supabase Request failed");
       } catch (contextError) {
         if (contextError?.message && contextError.message !== "Unexpected end of JSON input") {

@@ -10,6 +10,21 @@ const unwrap = async (request) => {
   return data;
 };
 
+const readErrorContext = async (context) => {
+  if (!context) return null;
+  if (typeof context.json === 'function') return context.json();
+  if (typeof context.text === 'function') {
+    const text = await context.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { message: text };
+    }
+  }
+  if (typeof context === 'object') return context;
+  return null;
+};
+
 const invokeEdgeFunction = async (name, body) => {
   const { data, error } = await supabase.functions.invoke(name, { body });
   if (!error) return data;
@@ -17,8 +32,8 @@ const invokeEdgeFunction = async (name, body) => {
   let message = data?.error || error.message;
   if (error.context) {
     try {
-      const details = await error.context.json();
-      message = details?.error || message;
+      const details = await readErrorContext(error.context);
+      message = details?.error || details?.message || message;
     } catch {
       // Keep the Edge Function error when its response body is not JSON.
     }
