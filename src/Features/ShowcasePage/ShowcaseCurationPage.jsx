@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { CurationsAPI } from "../../api/curationsApi";
 import { getProductImages } from "../../utils/getProductImages";
@@ -14,14 +14,16 @@ export default function ShowcaseCurationPage() {
   const slug = showcaseSlug || curationSlug;
   const displayTitle = formatShowcaseTitle(slug) || "Curation";
 
-  const detailQuery = useQuery({
-    ...CurationsAPI.getDetail(slug),
+  const detailQuery = useInfiniteQuery({
+    ...CurationsAPI.getDetailPage(slug, { pageSize: 24 }),
     enabled: Boolean(slug),
     staleTime: 1000 * 60 * 5,
   });
 
-  const curation = detailQuery.data?.curation;
-  const products = detailQuery.data?.products || [];
+  const pages = detailQuery.data?.pages || [];
+  const firstPage = pages[0];
+  const curation = firstPage?.curation;
+  const products = pages.flatMap((page) => page.products || []);
   const title = curation?.name || displayTitle;
   const description = getDescription(curation, title);
 
@@ -42,7 +44,10 @@ export default function ShowcaseCurationPage() {
       isError={detailQuery.isError}
       isFetching={detailQuery.isFetching}
       isLoading={detailQuery.isLoading}
+      isLoadingMore={detailQuery.isFetchingNextPage}
+      hasMore={detailQuery.hasNextPage}
       noIndex={!detailQuery.isLoading && !curation}
+      onLoadMore={() => detailQuery.fetchNextPage()}
       onRetry={() => detailQuery.refetch()}
       parentLabel="Curations"
       parentPath="/products/curations"

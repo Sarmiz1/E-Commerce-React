@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import SelectDropdown from "../../../Components/Ui/SelectDropdown";
-import { COUNTRY_OPTIONS, NIGERIA_STATE_OPTIONS } from "../utils/checkoutConstants";
+import { getNigeriaAreaOptions, NIGERIA_STATE_OPTIONS } from "../../../utils/nigeriaLocations";
+import { COUNTRY_OPTIONS } from "../utils/checkoutConstants";
 import { Field } from "./Field";
 import { Icon } from "./CheckoutIcons";
 
@@ -32,9 +33,11 @@ const POSTAL_HINTS = {
 };
 
 function DeliveryFields({ form, errors, onChange }) {
-  const cityOptions = CITY_OPTIONS[form.country] || [];
-  const postal = POSTAL_HINTS[form.country] || POSTAL_HINTS.default;
   const needsState = form.country === "Nigeria";
+  const cityOptions = needsState
+    ? getNigeriaAreaOptions(form.state)
+    : CITY_OPTIONS[form.country] || [];
+  const postal = POSTAL_HINTS[form.country] || POSTAL_HINTS.default;
 
   return (
     <div>
@@ -85,6 +88,20 @@ function DeliveryFields({ form, errors, onChange }) {
             placeholder="Select country"
           />
         </Field>
+        {needsState && (
+          <Field label="State" error={errors.state} required>
+            <SelectDropdown
+              value={form.state}
+              options={NIGERIA_STATE_OPTIONS}
+              onChange={(value) => {
+                onChange("state", value);
+                onChange("city", "");
+              }}
+              error={Boolean(errors.state)}
+              placeholder="Select state"
+            />
+          </Field>
+        )}
         <Field label="Street Address" error={errors.address} required>
           <input
             value={form.address}
@@ -93,26 +110,16 @@ function DeliveryFields({ form, errors, onChange }) {
             className={`${INPUT_BASE} ${errors.address ? "error" : ""}`}
           />
         </Field>
-        <Field label="City" error={errors.city} required>
+        <Field label={needsState ? "City / Area" : "City"} error={errors.city} required>
           <SelectDropdown
             value={form.city}
             options={cityOptions}
             onChange={(value) => onChange("city", value)}
             error={Boolean(errors.city)}
-            placeholder="Select city"
+            disabled={needsState && !form.state}
+            placeholder={needsState && !form.state ? "Select state first" : "Select city / area"}
           />
         </Field>
-        {needsState && (
-          <Field label="State" error={errors.state} required>
-            <SelectDropdown
-              value={form.state}
-              options={NIGERIA_STATE_OPTIONS}
-              onChange={(value) => onChange("state", value)}
-              error={Boolean(errors.state)}
-              placeholder="Select state"
-            />
-          </Field>
-        )}
         <Field label={postal.label} error={errors.zip} required>
           <input
             value={form.zip}
@@ -128,6 +135,9 @@ function DeliveryFields({ form, errors, onChange }) {
 
 function PaymentFields({ form, errors, onChange, paymentMethods = [] }) {
   const billingNeedsState = form.billingCountry === "Nigeria";
+  const billingCityOptions = billingNeedsState
+    ? getNigeriaAreaOptions(form.billingState)
+    : CITY_OPTIONS[form.billingCountry] || [];
   const savedMethods = paymentMethods.filter((method) => method?.id);
   const usingNewCard = form.paymentMethodId === "new" || savedMethods.length === 0;
 
@@ -269,26 +279,30 @@ function PaymentFields({ form, errors, onChange, paymentMethods = [] }) {
                     />
                   </Field>
                 </div>
-                <Field label="City" error={errors.billingCity} required>
-                  <SelectDropdown
-                    value={form.billingCity}
-                    options={CITY_OPTIONS[form.billingCountry] || []}
-                    onChange={(value) => onChange("billingCity", value)}
-                    error={Boolean(errors.billingCity)}
-                    placeholder="Select city"
-                  />
-                </Field>
                 {billingNeedsState && (
                   <Field label="State" error={errors.billingState} required>
                     <SelectDropdown
                       value={form.billingState}
                       options={NIGERIA_STATE_OPTIONS}
-                      onChange={(value) => onChange("billingState", value)}
+                      onChange={(value) => {
+                        onChange("billingState", value);
+                        onChange("billingCity", "");
+                      }}
                       error={Boolean(errors.billingState)}
                       placeholder="Select state"
                     />
                   </Field>
                 )}
+                <Field label={billingNeedsState ? "City / Area" : "City"} error={errors.billingCity} required>
+                  <SelectDropdown
+                    value={form.billingCity}
+                    options={billingCityOptions}
+                    onChange={(value) => onChange("billingCity", value)}
+                    error={Boolean(errors.billingCity)}
+                    disabled={billingNeedsState && !form.billingState}
+                    placeholder={billingNeedsState && !form.billingState ? "Select state first" : "Select city / area"}
+                  />
+                </Field>
                 <Field
                   label="ZIP / Postal Code"
                   error={errors.billingZip}

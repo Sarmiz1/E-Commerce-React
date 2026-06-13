@@ -57,6 +57,7 @@ import {
 import {
   useAdminDashboard,
   useAdminAdverts,
+  useAdminCheckoutPricing,
   useAdminBuyers,
   useAdminDealsOfDay,
   useAdminDeactivatedBuyers,
@@ -82,9 +83,11 @@ import {
   useSaveAdminIntegration,
   useSaveAdminAdvert,
   useSaveAdminCareerQuestion,
+  useSaveAdminDeliveryFeeZone,
   useSaveAdminDealOfDay,
   useSaveAdminPromoCode,
   useSaveAdminSetting,
+  useSaveAdminTaxRule,
   useSetAdminJobOpeningStatus,
   useSetAdminOrderStatus,
   useSetAdminProductActive,
@@ -1505,7 +1508,164 @@ function HiringModule({ hiringQuery, jobMutation, jobStatusMutation, mutation, t
   );
 }
 
-function SettingsModule({ data, deleteIntegrationMutation, deleteSettingMutation, integrationMutation, settingMutation, toast }) {
+function CheckoutPricingPanel({ checkoutPricingQuery, deliveryMutation, taxMutation, toast }) {
+  const [deliveryEditor, setDeliveryEditor] = useState(null);
+  const [taxEditor, setTaxEditor] = useState(null);
+  const pricing = checkoutPricingQuery.data || {};
+  const deliveryZones = asArray(pricing.deliveryZones);
+  const taxRules = asArray(pricing.taxRules);
+
+  const saveDelivery = async (event) => {
+    event.preventDefault();
+    try {
+      await deliveryMutation.mutateAsync({
+        ...deliveryEditor,
+        locations: String(deliveryEditor.locationsText || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        standardFeeMinor: toMinor(deliveryEditor.standardFee),
+        expressFeeMinor: toMinor(deliveryEditor.expressFee),
+      });
+      await checkoutPricingQuery.refetch();
+      setDeliveryEditor(null);
+      toast("Delivery zone saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  const saveTax = async (event) => {
+    event.preventDefault();
+    try {
+      await taxMutation.mutateAsync({
+        ...taxEditor,
+        oldTaxRate: Number(taxEditor.oldTaxPercent || 0) / 100,
+        currentTaxRate: Number(taxEditor.currentTaxPercent || 0) / 100,
+        fixedAmountMinor: toMinor(taxEditor.fixedAmount || 0),
+      });
+      await checkoutPricingQuery.refetch();
+      setTaxEditor(null);
+      toast("Tax rule saved", C.green);
+    } catch (error) {
+      toast(error.message, C.red);
+    }
+  };
+
+  const openDelivery = (zone = null) => setDeliveryEditor({
+    id: zone?.id || null,
+    name: zone?.name || "",
+    description: zone?.description || "",
+    locationsText: asArray(zone?.locations).join(", "),
+    standardFee: fromMinor(zone?.standardfee_minor),
+    expressFee: fromMinor(zone?.express_fee_minor),
+    isActive: zone?.is_active ?? true,
+    sortOrder: zone?.sort_order ?? 0,
+  });
+
+  const openTax = (rule = null) => setTaxEditor({
+    id: rule?.id || null,
+    countryCode: rule?.country_code || "NG",
+    countryName: rule?.country_name || "Nigeria",
+    region: rule?.region || "national",
+    taxType: rule?.tax_type || "vat",
+    displayName: rule?.display_name || "V.A.T",
+    description: rule?.description || "",
+    oldTaxPercent: Number(rule?.old_tax_rate || 0) * 100,
+    currentTaxPercent: Number(rule?.current_tax_rate ?? 0.075) * 100,
+    appliesTo: rule?.applies_to || "order_subtotal",
+    calculationMethod: rule?.calculation_method || "percentage",
+    fixedAmount: fromMinor(rule?.fixed_amount_minor),
+    currency: rule?.currency || "NGN",
+    priority: rule?.priority ?? 100,
+    isActive: rule?.is_active ?? true,
+  });
+
+  return (
+    <Card title="Checkout Pricing: Delivery & Tax" actions={
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+        <Btn icon={Plus} variant="success" onClick={()=>openDelivery()}>Add Delivery Zone</Btn>
+        <Btn icon={Plus} variant="success" onClick={()=>openTax()}>Add Tax Rule</Btn>
+      </div>
+    }>
+      <PanelMessage>These backend rules are used by checkout and the Paystack Edge Function before payment is initialized.</PanelMessage>
+      {checkoutPricingQuery.isLoading ? <PanelMessage>Loading checkout pricing...</PanelMessage> : (
+        <div style={{display:"grid",gap:14}}>
+          <Table columns={["Zone","Locations","Standard","Express","Status","Actions"]}
+            emptyMessage="No delivery zones configured."
+            rows={deliveryZones.map((zone)=><tr key={zone.id}>
+              <Td>{zone.name}<div style={{fontSize:11,color:C.txt3}}>{zone.description}</div></Td>
+              <Td>{asArray(zone.locations).join(", ") || "-"}</Td>
+              <Td>{formatMoney(zone.standardfee_minor)}</Td>
+              <Td>{formatMoney(zone.express_fee_minor)}</Td>
+              <Td><Badge type={zone.is_active ? "active" : "inactive"}/></Td>
+              <Td><Btn icon={Edit2} onClick={()=>openDelivery(zone)}>Edit</Btn></Td>
+            </tr>)}/>
+          <Table columns={["Country","Tax","Old","Current","Applies To","Status","Actions"]}
+            emptyMessage="No tax rules configured."
+            rows={taxRules.map((rule)=><tr key={rule.id}>
+              <Td>{rule.country_name}<div style={{fontSize:11,color:C.txt3}}>{rule.country_code} · {rule.region}</div></Td>
+              <Td>{rule.display_name}<div style={{fontSize:11,color:C.txt3}}>{rule.tax_type}</div></Td>
+              <Td>{(Number(rule.old_tax_rate || 0) * 100).toFixed(2)}%</Td>
+              <Td>{(Number(rule.current_tax_rate || 0) * 100).toFixed(2)}%</Td>
+              <Td>{titleCase(rule.applies_to || "")}</Td>
+              <Td><Badge type={rule.is_active ? "active" : "inactive"}/></Td>
+              <Td><Btn icon={Edit2} onClick={()=>openTax(rule)}>Edit</Btn></Td>
+            </tr>)}/>
+        </div>
+      )}
+
+      {deliveryEditor && (
+        <AdminModal title={deliveryEditor.id ? "Edit Delivery Zone" : "Add Delivery Zone"} onClose={()=>setDeliveryEditor(null)}>
+          <form onSubmit={saveDelivery} style={{padding:"1.2rem",display:"grid",gap:12}}>
+            <Field label="Name"><input required value={deliveryEditor.name} onChange={(event)=>setDeliveryEditor({...deliveryEditor,name:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Description"><input value={deliveryEditor.description} onChange={(event)=>setDeliveryEditor({...deliveryEditor,description:event.target.value})} style={inputStyle}/></Field>
+            <Field label="Locations (comma-separated)"><textarea rows="3" value={deliveryEditor.locationsText} onChange={(event)=>setDeliveryEditor({...deliveryEditor,locationsText:event.target.value})} style={{...inputStyle,resize:"vertical"}}/></Field>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
+              <Field label="Standard Fee (NGN)"><input min="0" type="number" value={deliveryEditor.standardFee} onChange={(event)=>setDeliveryEditor({...deliveryEditor,standardFee:event.target.value})} style={inputStyle}/></Field>
+              <Field label="Express Fee (NGN)"><input min="0" type="number" value={deliveryEditor.expressFee} onChange={(event)=>setDeliveryEditor({...deliveryEditor,expressFee:event.target.value})} style={inputStyle}/></Field>
+              <Field label="Sort Order"><input type="number" value={deliveryEditor.sortOrder} onChange={(event)=>setDeliveryEditor({...deliveryEditor,sortOrder:event.target.value})} style={inputStyle}/></Field>
+            </div>
+            <label style={{display:"flex",gap:8,alignItems:"center",fontSize:12,color:C.txt2}}><input checked={deliveryEditor.isActive} onChange={(event)=>setDeliveryEditor({...deliveryEditor,isActive:event.target.checked})} type="checkbox"/> Active</label>
+            <div style={{display:"flex",justifyContent:"flex-end",gap:8}}><Btn onClick={()=>setDeliveryEditor(null)}>Cancel</Btn><Btn disabled={deliveryMutation.isPending} icon={deliveryMutation.isPending?Loader2:Check} iconSpin={deliveryMutation.isPending} type="submit" variant="success">Save Delivery Zone</Btn></div>
+          </form>
+        </AdminModal>
+      )}
+
+      {taxEditor && (
+        <AdminModal title={taxEditor.id ? "Edit Tax Rule" : "Add Tax Rule"} onClose={()=>setTaxEditor(null)}>
+          <form onSubmit={saveTax} style={{padding:"1.2rem",display:"grid",gap:12}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
+              <Field label="Country Code"><input required value={taxEditor.countryCode} onChange={(event)=>setTaxEditor({...taxEditor,countryCode:event.target.value.toUpperCase()})} style={inputStyle}/></Field>
+              <Field label="Country Name"><input required value={taxEditor.countryName} onChange={(event)=>setTaxEditor({...taxEditor,countryName:event.target.value})} style={inputStyle}/></Field>
+              <Field label="Region"><input value={taxEditor.region} onChange={(event)=>setTaxEditor({...taxEditor,region:event.target.value})} style={inputStyle}/></Field>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
+              <Field label="Tax Type"><input required value={taxEditor.taxType} onChange={(event)=>setTaxEditor({...taxEditor,taxType:event.target.value})} style={inputStyle}/></Field>
+              <Field label="Display Name"><input required value={taxEditor.displayName} onChange={(event)=>setTaxEditor({...taxEditor,displayName:event.target.value})} style={inputStyle}/></Field>
+              <Field label="Currency"><input value={taxEditor.currency} onChange={(event)=>setTaxEditor({...taxEditor,currency:event.target.value.toUpperCase()})} style={inputStyle}/></Field>
+            </div>
+            <Field label="Description"><input value={taxEditor.description} onChange={(event)=>setTaxEditor({...taxEditor,description:event.target.value})} style={inputStyle}/></Field>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
+              <Field label="Old Tax (%)"><input min="0" step="0.01" type="number" value={taxEditor.oldTaxPercent} onChange={(event)=>setTaxEditor({...taxEditor,oldTaxPercent:event.target.value})} style={inputStyle}/></Field>
+              <Field label="Current Tax (%)"><input min="0" step="0.01" type="number" value={taxEditor.currentTaxPercent} onChange={(event)=>setTaxEditor({...taxEditor,currentTaxPercent:event.target.value})} style={inputStyle}/></Field>
+              <Field label="Priority"><input type="number" value={taxEditor.priority} onChange={(event)=>setTaxEditor({...taxEditor,priority:event.target.value})} style={inputStyle}/></Field>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10}}>
+              <Field label="Applies To"><select value={taxEditor.appliesTo} onChange={(event)=>setTaxEditor({...taxEditor,appliesTo:event.target.value})} style={inputStyle}>{["order_subtotal","shipping","order_total"].map((value)=><option key={value} value={value}>{titleCase(value)}</option>)}</select></Field>
+              <Field label="Calculation"><select value={taxEditor.calculationMethod} onChange={(event)=>setTaxEditor({...taxEditor,calculationMethod:event.target.value})} style={inputStyle}>{["percentage","fixed"].map((value)=><option key={value} value={value}>{titleCase(value)}</option>)}</select></Field>
+              <Field label="Fixed Amount (NGN)"><input min="0" type="number" value={taxEditor.fixedAmount} onChange={(event)=>setTaxEditor({...taxEditor,fixedAmount:event.target.value})} style={inputStyle}/></Field>
+            </div>
+            <label style={{display:"flex",gap:8,alignItems:"center",fontSize:12,color:C.txt2}}><input checked={taxEditor.isActive} onChange={(event)=>setTaxEditor({...taxEditor,isActive:event.target.checked})} type="checkbox"/> Active</label>
+            <div style={{display:"flex",justifyContent:"flex-end",gap:8}}><Btn onClick={()=>setTaxEditor(null)}>Cancel</Btn><Btn disabled={taxMutation.isPending} icon={taxMutation.isPending?Loader2:Check} iconSpin={taxMutation.isPending} type="submit" variant="success">Save Tax Rule</Btn></div>
+          </form>
+        </AdminModal>
+      )}
+    </Card>
+  );
+}
+
+function SettingsModule({ checkoutPricingQuery, data, deleteIntegrationMutation, deleteSettingMutation, deliveryMutation, integrationMutation, settingMutation, taxMutation, toast }) {
   const [integrationEditor, setIntegrationEditor] = useState(null);
   const [settingEditor, setSettingEditor] = useState(null);
   const saveIntegration = async (event) => {
@@ -1549,6 +1709,12 @@ function SettingsModule({ data, deleteIntegrationMutation, deleteSettingMutation
           rows={(data.admins || []).map((admin) => <tr key={admin.id}><Td>{admin.full_name || "-"}</Td><Td>{admin.email}</Td>
             <Td>{ADMIN_ROLES[admin.role]?.label || titleCase(admin.role)}</Td><Td><Badge type={admin.is_active?"active":"inactive"}/></Td></tr>)}/>
       </Card>
+      <CheckoutPricingPanel
+        checkoutPricingQuery={checkoutPricingQuery}
+        deliveryMutation={deliveryMutation}
+        taxMutation={taxMutation}
+        toast={toast}
+      />
       <Card title="Platform Integrations" actions={
         <Btn icon={Plus} variant="success" onClick={()=>setIntegrationEditor({name:"",service:"",environment:"",status:"inactive"})}>Add Integration</Btn>
       }>
@@ -2153,6 +2319,9 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
   const deleteIntegrationMutation = useDeleteAdminIntegration();
   const settingMutation = useSaveAdminSetting();
   const deleteSettingMutation = useDeleteAdminSetting();
+  const checkoutPricingQuery = useAdminCheckoutPricing(moduleId === "settings");
+  const deliveryMutation = useSaveAdminDeliveryFeeZone();
+  const taxMutation = useSaveAdminTaxRule();
   const promoCodesQuery = useAdminPromoCodes(moduleId === "promos");
   const adminAdvertsQuery = useAdminAdverts(moduleId === "commercial");
   const adminDealsQuery = useAdminDealsOfDay(moduleId === "commercial");
@@ -2187,7 +2356,9 @@ export function AdminDashboardModules({ addToast, moduleId, user }) {
     hiring: <HiringModule {...shared} hiringQuery={hiringQuery} jobMutation={jobMutation}
       jobStatusMutation={jobStatusMutation} mutation={hiringMutation}/>,
     settings: <SettingsModule {...shared} deleteIntegrationMutation={deleteIntegrationMutation}
-      deleteSettingMutation={deleteSettingMutation} integrationMutation={integrationMutation} settingMutation={settingMutation}/>,
+      deleteSettingMutation={deleteSettingMutation} checkoutPricingQuery={checkoutPricingQuery}
+      deliveryMutation={deliveryMutation} integrationMutation={integrationMutation}
+      settingMutation={settingMutation} taxMutation={taxMutation}/>,
     commercial: <CommercialModule advertsQuery={adminAdvertsQuery} dealsQuery={adminDealsQuery}
       deleteAdvertMutation={deleteAdminAdvertMutation} deleteDealMutation={deleteAdminDealMutation}
       saveAdvertMutation={saveAdminAdvertMutation} saveDealMutation={saveAdminDealMutation}

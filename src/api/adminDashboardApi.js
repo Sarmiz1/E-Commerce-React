@@ -6,6 +6,8 @@ async function runRpc(name, args) {
   return data;
 }
 
+const firstDefined = (...values) => values.find((value) => value !== undefined && value !== null);
+
 export const adminDashboardApi = {
   getDashboard: () => runRpc("get_admin_dashboard_optimized"),
   getBuyers: () => runRpc("get_admin_buyers"),
@@ -143,6 +145,36 @@ export const adminDashboardApi = {
     }),
   deletePromoCode: (code) =>
     runRpc("admin_delete_promo_code", { p_code: code }),
+  getCheckoutPricing: () => runRpc("get_admin_checkout_pricing"),
+  saveDeliveryFeeZone: (zone) =>
+    runRpc("admin_upsert_delivery_fee_zone", {
+      p_id: zone.id || null,
+      p_name: zone.name,
+      p_description: zone.description || "",
+      p_locations: zone.locations || [],
+      p_standard_fee_minor: Number(firstDefined(zone.standardFeeMinor, zone.standardfeeMinor, zone.standardfee_minor, 0)),
+      p_express_fee_minor: Number(firstDefined(zone.expressFeeMinor, zone.express_fee_minor, 0)),
+      p_is_active: zone.isActive ?? zone.is_active ?? true,
+      p_sort_order: Number(zone.sortOrder ?? zone.sort_order ?? 0),
+    }),
+  saveTaxRule: (rule) =>
+    runRpc("admin_upsert_tax_rule", {
+      p_id: rule.id || null,
+      p_country_code: rule.countryCode || rule.country_code || "NG",
+      p_country_name: rule.countryName || rule.country_name || "Nigeria",
+      p_region: rule.region || "national",
+      p_tax_type: rule.taxType || rule.tax_type || "vat",
+      p_display_name: rule.displayName || rule.display_name || "V.A.T",
+      p_description: rule.description || "",
+      p_old_tax_rate: Number(rule.oldTaxRate ?? rule.old_tax_rate ?? 0),
+      p_current_tax_rate: Number(rule.currentTaxRate ?? rule.current_tax_rate ?? 0),
+      p_applies_to: rule.appliesTo || rule.applies_to || "order_subtotal",
+      p_calculation_method: rule.calculationMethod || rule.calculation_method || "percentage",
+      p_fixed_amount_minor: Number(rule.fixedAmountMinor ?? rule.fixed_amount_minor ?? 0),
+      p_currency: rule.currency || "NGN",
+      p_priority: Number(rule.priority ?? 100),
+      p_is_active: rule.isActive ?? rule.is_active ?? true,
+    }),
   promoteAdmin: async (admin) => {
     const result = await runRpc("admin_promote_user", {
       target_email: admin.email,

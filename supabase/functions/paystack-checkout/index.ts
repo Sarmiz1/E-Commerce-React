@@ -113,6 +113,31 @@ Deno.serve(async (req) => {
     const cartId = body.cartId;
     if (!cartId) return json({ error: "Cart is required" }, 400);
     if (!siteUrl) return json({ error: "SITE_URL is not configured" }, 500);
+    const delivery = body.checkout?.delivery || {};
+
+    const { error: deliveryPreflightError } = await adminClient.rpc("get_delivery_fee_options", {
+      p_country: delivery.country || "Nigeria",
+      p_state: delivery.state || "",
+      p_city: delivery.city || "",
+    });
+    if (deliveryPreflightError) {
+      return json({
+        error: deliveryPreflightError.message?.includes("Could not find the function")
+          ? "Checkout pricing migration is not applied. Missing delivery fee RPC."
+          : deliveryPreflightError.message || "Delivery pricing is unavailable.",
+      }, 400);
+    }
+
+    const { error: taxPreflightError } = await adminClient.rpc("get_checkout_tax_options", {
+      p_country: delivery.country || "Nigeria",
+    });
+    if (taxPreflightError) {
+      return json({
+        error: taxPreflightError.message?.includes("Could not find the function")
+          ? "Checkout pricing migration is not applied. Missing tax rules RPC."
+          : taxPreflightError.message || "Tax pricing is unavailable.",
+      }, 400);
+    }
 
     const orderArgs: Record<string, unknown> = {
       p_cart_id: cartId,
@@ -126,8 +151,7 @@ Deno.serve(async (req) => {
       return json({ error: "Checkout order could not be initialized" }, 400);
     }
 
-    const delivery = body.checkout?.delivery || {};
-    const { error: deliveryFeeError } = await adminClient.rpc("apply_order_delivery_fee", {
+    const { error: checkoutChargesError } = await adminClient.rpc("apply_order_checkout_charges", {
       p_order_id: orderId,
       p_country: delivery.country || "Nigeria",
       p_state: delivery.state || "",
@@ -135,7 +159,7 @@ Deno.serve(async (req) => {
       p_shipping_tier: body.shippingTier || "standard",
     });
 
-    if (deliveryFeeError) throw deliveryFeeError;
+    if (checkoutChargesError) throw checkoutChargesError;
 
     const { data: order, error: fetchOrderError } = await adminClient
       .from("orders")

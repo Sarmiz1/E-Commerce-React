@@ -16,6 +16,7 @@ export function DetailsStep({
   onShippingChange,
   paymentMethods,
   shippingOptions,
+  taxRules,
 }) {
   return (
     <motion.div
@@ -51,6 +52,7 @@ export function DetailsStep({
             selectedShipping={selectedShipping}
             onShippingChange={onShippingChange}
             step={1}
+            taxRules={taxRules}
           />
         </div>
       </div>

@@ -1,5 +1,5 @@
 // ─── Imports (all at top) ────────────────────────────────────────────────────
-import { CARD_PATTERNS, SHIPPING_TIERS, TAX_RATE } from "./checkoutConstants";
+import { CARD_PATTERNS, SHIPPING_TIERS } from "./checkoutConstants";
 
 // ─── Sanitization ─────────────────────────────────────────────────────────────
 
@@ -115,24 +115,46 @@ function applyCoupon(coupon, subtotal, shippingPrice) {
   return 0;
 }
 
-function calcTax(taxableAmount) {
-  return Math.round(Math.max(taxableAmount, 0) * TAX_RATE);
+function calcTaxRows(taxableAmount, shippingPrice, taxRules = []) {
+  return taxRules.map((rule) => {
+    const appliesTo = rule.appliesTo || rule.applies_to || "order_subtotal";
+    const calculationMethod = rule.calculationMethod || rule.calculation_method || "percentage";
+    const currentTaxRate = Number(rule.currentTaxRate ?? rule.current_tax_rate ?? 0);
+    const fixedAmountMinor = Number(rule.fixedAmountMinor ?? rule.fixed_amount_minor ?? 0);
+    const base = appliesTo === "shipping"
+      ? shippingPrice
+      : appliesTo === "order_total"
+        ? taxableAmount + shippingPrice
+        : taxableAmount;
+    const amount = calculationMethod === "fixed"
+      ? fixedAmountMinor
+      : Math.round(Math.max(base, 0) * currentTaxRate);
+    return {
+      ...rule,
+      amount,
+      base,
+      label: rule.displayName || rule.display_name || rule.taxType || rule.tax_type || "Tax",
+      rate: currentTaxRate,
+    };
+  }).filter((row) => row.amount > 0 || row.rate > 0);
 }
 
 export function calculateCheckoutTotals(
   cart = [],
   selectedShipping = "standard",
   coupon = null,
-  shippingOptions = SHIPPING_TIERS
+  shippingOptions = SHIPPING_TIERS,
+  taxRules = []
 ) {
   const subtotal = cart.reduce((sum, item) => sum + getCartItemLineTotal(item), 0);
   const shippingPrice = resolveShippingPrice(selectedShipping, shippingOptions);
   const couponDiscount = applyCoupon(coupon, subtotal, shippingPrice);
 
   const taxable = Math.max(subtotal - couponDiscount, 0);
-  const tax = calcTax(taxable);
   const shipping = coupon?.type === "ship" ? 0 : shippingPrice;
+  const taxRows = calcTaxRows(taxable, shipping, taxRules);
+  const tax = taxRows.reduce((sum, row) => sum + row.amount, 0);
   const total = taxable + shipping + tax;
 
-  return { subtotal, shipping, couponDiscount, taxable, tax, total };
+  return { subtotal, shipping, couponDiscount, taxable, tax, taxRows, total };
 }

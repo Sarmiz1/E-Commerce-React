@@ -41,6 +41,9 @@ export default function ShowcasePage({
   emptyLabel = "Showcase coming soon",
   emptyBody,
   advert,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
 }) {
   const { colors, isDark } = useTheme();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -146,10 +149,24 @@ export default function ShowcasePage({
             </div>
 
             {stableProducts.length ? (
-              <ShowcaseProductGrid
-                onQuickView={setQuickViewProduct}
-                products={stableProducts}
-              />
+              <>
+                <ShowcaseProductGrid
+                  onQuickView={setQuickViewProduct}
+                  products={stableProducts}
+                />
+                {hasMore && (
+                  <div className="mt-10 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={onLoadMore}
+                      disabled={isLoadingMore}
+                      className="rounded-full border border-gray-200 bg-white px-6 py-3 text-sm font-black text-gray-900 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-gray-100"
+                    >
+                      {isLoadingMore ? "Loading more..." : "Load more"}
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <ShowcaseEmptyState
                 colors={colors}

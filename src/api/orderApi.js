@@ -11,6 +11,12 @@ export const OrderAPI = {
         p_city: city,
       }),
     ),
+  getTaxOptions: ({ country = "Nigeria" } = {}) =>
+    handleResponse(
+      supabase.rpc("get_checkout_tax_options", {
+        p_country: country,
+      }),
+    ),
 
   initializePaystackCheckout: ({ cartId, couponCode = null, shippingTier = "standard", checkout }) =>
     handleResponse(

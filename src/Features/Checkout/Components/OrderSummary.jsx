@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { formatMoneyMinor } from "../../../utils/formatMoneyMinor";
-import { TAX_RATE } from "../utils/checkoutConstants";
 import {
   calculateCheckoutTotals,
   getCartItemImage,
@@ -71,7 +70,11 @@ function PriceBreakdown({ totals, coupon }) {
     { label: "Subtotal", value: totals.subtotal, style: "" },
     { label: "Shipping", value: totals.shipping, style: "", zero: "Free" },
     ...(totals.couponDiscount > 0 ? [{ label: `Coupon (${coupon.label})`, value: -totals.couponDiscount, style: "text-emerald-600" }] : []),
-    { label: `Tax (${(TAX_RATE * 100).toFixed(1)}%)`, value: totals.tax, style: "text-gray-400 dark:text-gray-500" },
+    ...(totals.taxRows || []).map((row) => ({
+      label: `${row.label}${row.rate ? ` (${(row.rate * 100).toFixed(2)}%)` : ""}`,
+      value: row.amount,
+      style: "text-gray-400 dark:text-gray-500",
+    })),
   ];
 
   return (
@@ -136,9 +139,9 @@ function SummaryContent({ cart, coupon, shippingOptions, selectedShipping, onShi
   );
 }
 
-export function OrderSummary({ cart, coupon, shippingOptions, selectedShipping, onShippingChange, step }) {
+export function OrderSummary({ cart, coupon, shippingOptions, selectedShipping, onShippingChange, step, taxRules = [] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const totals = calculateCheckoutTotals(cart, selectedShipping, coupon, shippingOptions);
+  const totals = calculateCheckoutTotals(cart, selectedShipping, coupon, shippingOptions, taxRules);
 
   return (
     <>

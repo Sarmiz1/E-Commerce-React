@@ -11,8 +11,6 @@ export const SHIPPING_TIERS = [
   // { label: "Overnight (next day)", price: 199900, id: "overnight" },
 ];
 
-export const TAX_RATE = 0.085;
-
 export const CARD_PATTERNS = {
   visa: /^4/,
   mastercard: /^5[1-5]/,
@@ -70,46 +68,6 @@ export const COUNTRY_OPTIONS = [
   "Kenya",
   "India",
   "UAE",
-];
-
-export const NIGERIA_STATE_OPTIONS = [
-  "Lagos",
-  "Ogun",
-  "Oyo",
-  "Osun",
-  "Ondo",
-  "Ekiti",
-  "Rivers",
-  "Bayelsa",
-  "Akwa Ibom",
-  "Cross River",
-  "Delta",
-  "Edo",
-  "Anambra",
-  "Enugu",
-  "Imo",
-  "Abia",
-  "Ebonyi",
-  "FCT",
-  "Kwara",
-  "Kogi",
-  "Benue",
-  "Nasarawa",
-  "Niger",
-  "Plateau",
-  "Adamawa",
-  "Bauchi",
-  "Borno",
-  "Gombe",
-  "Taraba",
-  "Yobe",
-  "Kaduna",
-  "Kano",
-  "Katsina",
-  "Kebbi",
-  "Jigawa",
-  "Sokoto",
-  "Zamfara",
 ];
 
 export const CHECKOUT_STEPS = ["Checkout", "Order Complete"];

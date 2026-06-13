@@ -143,6 +143,88 @@ on public.delivery_fee_zones
 for select
 using (is_active = true);
 
+create table if not exists public.tax_rules (
+  id uuid primary key default gen_random_uuid(),
+  country_code text not null,
+  country_name text not null,
+  region text not null default 'national',
+  tax_type text not null,
+  display_name text not null,
+  description text not null default '',
+  old_tax_rate numeric(8,4) not null default 0 check (old_tax_rate >= 0),
+  current_tax_rate numeric(8,4) not null default 0 check (current_tax_rate >= 0),
+  applies_to text not null default 'order_subtotal'
+    check (applies_to in ('order_subtotal', 'shipping', 'order_total')),
+  calculation_method text not null default 'percentage'
+    check (calculation_method in ('percentage', 'fixed')),
+  fixed_amount_minor integer not null default 0 check (fixed_amount_minor >= 0),
+  currency text not null default 'NGN',
+  priority integer not null default 100,
+  is_active boolean not null default true,
+  effective_from timestamptz not null default timezone('utc'::text, now()),
+  effective_to timestamptz,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default timezone('utc'::text, now()),
+  updated_at timestamptz not null default timezone('utc'::text, now()),
+  unique(country_code, tax_type, region)
+);
+
+insert into public.tax_rules (
+  country_code,
+  country_name,
+  region,
+  tax_type,
+  display_name,
+  description,
+  old_tax_rate,
+  current_tax_rate,
+  applies_to,
+  calculation_method,
+  fixed_amount_minor,
+  currency,
+  priority,
+  metadata
+)
+values (
+  'NG',
+  'Nigeria',
+  'national',
+  'vat',
+  'V.A.T',
+  'Nigeria Value Added Tax. Active checkout tax rule.',
+  0.0750,
+  0.0750,
+  'order_subtotal',
+  'percentage',
+  0,
+  'NGN',
+  10,
+  jsonb_build_object('source', 'Federal Inland Revenue Service', 'adminControlled', true)
+)
+on conflict (country_code, tax_type, region)
+do update
+set country_name = excluded.country_name,
+    display_name = excluded.display_name,
+    description = excluded.description,
+    old_tax_rate = excluded.old_tax_rate,
+    current_tax_rate = excluded.current_tax_rate,
+    applies_to = excluded.applies_to,
+    calculation_method = excluded.calculation_method,
+    fixed_amount_minor = excluded.fixed_amount_minor,
+    currency = excluded.currency,
+    priority = excluded.priority,
+    metadata = excluded.metadata,
+    is_active = true,
+    updated_at = timezone('utc'::text, now());
+
+alter table public.tax_rules enable row level security;
+
+drop policy if exists "Tax rules are publicly viewable" on public.tax_rules;
+create policy "Tax rules are publicly viewable"
+on public.tax_rules
+for select
+using (is_active = true);
+
 create or replace function public.get_delivery_fee_options(
   p_country text default 'Nigeria',
   p_state text default null,
@@ -277,6 +359,335 @@ revoke all on function public.apply_order_delivery_fee(uuid, text, text, text, t
   from public, anon, authenticated;
 grant execute on function public.apply_order_delivery_fee(uuid, text, text, text, text)
   to service_role;
+
+create or replace function public.get_checkout_tax_options(
+  p_country text default 'Nigeria'
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  normalized_country text := lower(trim(coalesce(p_country, 'Nigeria')));
+  normalized_country_code text;
+begin
+  normalized_country_code := case normalized_country
+    when 'nigeria' then 'NG'
+    when 'ng' then 'NG'
+    else upper(normalized_country)
+  end;
+
+  return coalesce((
+    select jsonb_agg(
+      jsonb_build_object(
+        'id', rule.id,
+        'countryCode', rule.country_code,
+        'countryName', rule.country_name,
+        'taxType', rule.tax_type,
+        'displayName', rule.display_name,
+        'description', rule.description,
+        'oldTaxRate', rule.old_tax_rate,
+        'currentTaxRate', rule.current_tax_rate,
+        'appliesTo', rule.applies_to,
+        'calculationMethod', rule.calculation_method,
+        'fixedAmountMinor', rule.fixed_amount_minor,
+        'currency', rule.currency
+      )
+      order by rule.priority, rule.display_name
+    )
+    from public.tax_rules rule
+    where rule.is_active = true
+      and rule.country_code = normalized_country_code
+      and rule.effective_from <= timezone('utc'::text, now())
+      and (rule.effective_to is null or rule.effective_to > timezone('utc'::text, now()))
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function public.get_checkout_tax_options(text) from public;
+grant execute on function public.get_checkout_tax_options(text) to anon, authenticated;
+
+create or replace function public.apply_order_checkout_charges(
+  p_order_id uuid,
+  p_country text,
+  p_state text,
+  p_city text,
+  p_shipping_tier text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  fee_options jsonb;
+  selected_option jsonb;
+  tax_rules jsonb;
+  tax_rule jsonb;
+  fee_minor integer;
+  taxable_minor integer;
+  v_tax_minor integer := 0;
+  tax_breakdown jsonb := '[]'::jsonb;
+begin
+  fee_options := public.get_delivery_fee_options(p_country, p_state, p_city);
+
+  select option
+  into selected_option
+  from jsonb_array_elements(fee_options -> 'options') option
+  where option ->> 'id' = p_shipping_tier
+  limit 1;
+
+  if selected_option is null then
+    raise exception 'Invalid delivery option.';
+  end if;
+
+  fee_minor := (selected_option ->> 'price')::integer;
+
+  select greatest(coalesce(order_row.subtotal_minor, 0) - coalesce(order_row.discount_minor, 0), 0)
+  into taxable_minor
+  from public.orders order_row
+  where order_row.id = p_order_id
+  for update;
+
+  if not found then
+    raise exception 'Order not found.';
+  end if;
+
+  tax_rules := public.get_checkout_tax_options(p_country);
+
+  for tax_rule in select value from jsonb_array_elements(tax_rules)
+  loop
+    declare
+      base_minor integer := taxable_minor;
+      line_tax_minor integer := 0;
+    begin
+      if tax_rule ->> 'appliesTo' = 'shipping' then
+        base_minor := fee_minor;
+      elsif tax_rule ->> 'appliesTo' = 'order_total' then
+        base_minor := taxable_minor + fee_minor;
+      end if;
+
+      if tax_rule ->> 'calculationMethod' = 'fixed' then
+        line_tax_minor := coalesce((tax_rule ->> 'fixedAmountMinor')::integer, 0);
+      else
+        line_tax_minor := round(base_minor * coalesce((tax_rule ->> 'currentTaxRate')::numeric, 0))::integer;
+      end if;
+
+      v_tax_minor := v_tax_minor + line_tax_minor;
+      tax_breakdown := tax_breakdown || jsonb_build_array(
+        tax_rule || jsonb_build_object('amountMinor', line_tax_minor, 'baseMinor', base_minor)
+      );
+    end;
+  end loop;
+
+  update public.orders
+  set shipping_minor = fee_minor,
+      tax_minor = v_tax_minor,
+      total_minor = taxable_minor + fee_minor + v_tax_minor
+  where id = p_order_id;
+
+  return jsonb_build_object(
+    'shippingMinor', fee_minor,
+    'taxMinor', v_tax_minor,
+    'taxBreakdown', tax_breakdown,
+    'options', fee_options -> 'options',
+    'zone', fee_options -> 'zone'
+  );
+end;
+$$;
+
+revoke all on function public.apply_order_checkout_charges(uuid, text, text, text, text)
+  from public, anon, authenticated;
+grant execute on function public.apply_order_checkout_charges(uuid, text, text, text, text)
+  to service_role;
+
+create or replace function public.get_admin_checkout_pricing()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform private.assert_admin_role(array['super_admin', 'finance_manager']);
+
+  return jsonb_build_object(
+    'deliveryZones', coalesce((
+      select jsonb_agg(to_jsonb(zone) order by zone.sort_order, zone.name)
+      from public.delivery_fee_zones zone
+    ), '[]'::jsonb),
+    'taxRules', coalesce((
+      select jsonb_agg(to_jsonb(rule) order by rule.country_name, rule.priority, rule.display_name)
+      from public.tax_rules rule
+    ), '[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function public.get_admin_checkout_pricing() from public, anon;
+grant execute on function public.get_admin_checkout_pricing() to authenticated;
+
+create or replace function public.admin_upsert_delivery_fee_zone(
+  p_id uuid default null,
+  p_name text default null,
+  p_description text default '',
+  p_locations text[] default '{}'::text[],
+  p_standard_fee_minor integer default 0,
+  p_express_fee_minor integer default 0,
+  p_is_active boolean default true,
+  p_sort_order integer default 0
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  saved_zone public.delivery_fee_zones%rowtype;
+begin
+  perform private.assert_admin_role(array['super_admin', 'finance_manager']);
+
+  if nullif(trim(coalesce(p_name, '')), '') is null then
+    raise exception 'Delivery zone name is required.';
+  end if;
+
+  insert into public.delivery_fee_zones (
+    id,
+    name,
+    description,
+    locations,
+    standardfee_minor,
+    express_fee_minor,
+    is_active,
+    sort_order,
+    updated_at
+  )
+  values (
+    coalesce(p_id, gen_random_uuid()),
+    trim(p_name),
+    coalesce(p_description, ''),
+    coalesce(p_locations, '{}'::text[]),
+    greatest(coalesce(p_standard_fee_minor, 0), 0),
+    greatest(coalesce(p_express_fee_minor, 0), 0),
+    coalesce(p_is_active, true),
+    coalesce(p_sort_order, 0),
+    timezone('utc'::text, now())
+  )
+  on conflict (name)
+  do update
+  set description = excluded.description,
+      locations = excluded.locations,
+      standardfee_minor = excluded.standardfee_minor,
+      express_fee_minor = excluded.express_fee_minor,
+      is_active = excluded.is_active,
+      sort_order = excluded.sort_order,
+      updated_at = timezone('utc'::text, now())
+  returning * into saved_zone;
+
+  return to_jsonb(saved_zone);
+end;
+$$;
+
+revoke all on function public.admin_upsert_delivery_fee_zone(uuid, text, text, text[], integer, integer, boolean, integer)
+  from public, anon;
+grant execute on function public.admin_upsert_delivery_fee_zone(uuid, text, text, text[], integer, integer, boolean, integer)
+  to authenticated;
+
+create or replace function public.admin_upsert_tax_rule(
+  p_id uuid default null,
+  p_country_code text default 'NG',
+  p_country_name text default 'Nigeria',
+  p_region text default 'national',
+  p_tax_type text default 'vat',
+  p_display_name text default 'V.A.T',
+  p_description text default '',
+  p_old_tax_rate numeric default 0,
+  p_current_tax_rate numeric default 0,
+  p_applies_to text default 'order_subtotal',
+  p_calculation_method text default 'percentage',
+  p_fixed_amount_minor integer default 0,
+  p_currency text default 'NGN',
+  p_priority integer default 100,
+  p_is_active boolean default true
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  saved_rule public.tax_rules%rowtype;
+begin
+  perform private.assert_admin_role(array['super_admin', 'finance_manager']);
+
+  if nullif(trim(coalesce(p_country_code, '')), '') is null then
+    raise exception 'Country code is required.';
+  end if;
+  if nullif(trim(coalesce(p_tax_type, '')), '') is null then
+    raise exception 'Tax type is required.';
+  end if;
+
+  insert into public.tax_rules (
+    id,
+    country_code,
+    country_name,
+    region,
+    tax_type,
+    display_name,
+    description,
+    old_tax_rate,
+    current_tax_rate,
+    applies_to,
+    calculation_method,
+    fixed_amount_minor,
+    currency,
+    priority,
+    is_active,
+    updated_at
+  )
+  values (
+    coalesce(p_id, gen_random_uuid()),
+    upper(trim(p_country_code)),
+    trim(p_country_name),
+    lower(trim(coalesce(p_region, 'national'))),
+    lower(trim(p_tax_type)),
+    trim(p_display_name),
+    coalesce(p_description, ''),
+    greatest(coalesce(p_old_tax_rate, 0), 0),
+    greatest(coalesce(p_current_tax_rate, 0), 0),
+    p_applies_to,
+    p_calculation_method,
+    greatest(coalesce(p_fixed_amount_minor, 0), 0),
+    upper(trim(coalesce(p_currency, 'NGN'))),
+    coalesce(p_priority, 100),
+    coalesce(p_is_active, true),
+    timezone('utc'::text, now())
+  )
+  on conflict (country_code, tax_type, region)
+  do update
+  set country_name = excluded.country_name,
+      display_name = excluded.display_name,
+      description = excluded.description,
+      old_tax_rate = excluded.old_tax_rate,
+      current_tax_rate = excluded.current_tax_rate,
+      applies_to = excluded.applies_to,
+      calculation_method = excluded.calculation_method,
+      fixed_amount_minor = excluded.fixed_amount_minor,
+      currency = excluded.currency,
+      priority = excluded.priority,
+      is_active = excluded.is_active,
+      updated_at = timezone('utc'::text, now())
+  returning * into saved_rule;
+
+  return to_jsonb(saved_rule);
+end;
+$$;
+
+revoke all on function public.admin_upsert_tax_rule(uuid, text, text, text, text, text, text, numeric, numeric, text, text, integer, text, integer, boolean)
+  from public, anon;
+grant execute on function public.admin_upsert_tax_rule(uuid, text, text, text, text, text, text, numeric, numeric, text, text, integer, text, integer, boolean)
+  to authenticated;
 
 -- Paystack payment sessions map provider references back to pending checkout orders.
 create table if not exists public.checkout_payment_sessions (

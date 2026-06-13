@@ -106,10 +106,17 @@ afterward. It adds the optimized admin payload, paged product moderation, hiring
 vacancies, settings mutations, searchable page-activity details, and passcode-protected
 super-admin promotion.
 
-### Checkout, Paystack, and Delivery Fees
+### Checkout, Paystack, Delivery Fees, and Taxes
 Apply `supabase/migrations/20260611170000_fix_admin_page_activity_and_checkout_paystack.sql`
 before testing checkout. It adds Paystack payment sessions, tokenized saved-card
-metadata, delivery fee zones, and backend RPCs that calculate/apply delivery fees.
+metadata, delivery fee zones, checkout tax rules, and backend RPCs that calculate
+and apply delivery/tax charges before Paystack is initialized.
+
+Delivery fees and tax rules are controlled from the Admin Dashboard Settings module.
+The frontend reads available delivery and tax options from Supabase RPCs, and the
+`paystack-checkout` Edge Function recalculates the order from the same database
+rules before sending the final amount to Paystack. Nigeria is seeded with V.A.T at
+7.5% and delivery zones are seeded from the current Woosho Nigeria fee table.
 
 Deploy the Edge Functions after setting Supabase secrets:
 ```bash

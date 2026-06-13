@@ -79,6 +79,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(0);
   const [selectedShipping, setSelectedShipping] = useState("standard");
   const [shippingOptions, setShippingOptions] = useState(SHIPPING_TIERS);
+  const [taxRules, setTaxRules] = useState([]);
   const [coupon] = useState(null);
 
   const [form, setForm] = useState(() => {
@@ -199,6 +200,21 @@ export default function CheckoutPage() {
   }, [form.city, form.country, form.state, selectedShipping]);
 
   useEffect(() => {
+    let cancelled = false;
+    OrderAPI.getTaxOptions({ country: form.country || "Nigeria" })
+      .then((rules) => {
+        if (!cancelled) setTaxRules(Array.isArray(rules) ? rules : []);
+      })
+      .catch(() => {
+        if (!cancelled) setTaxRules([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.country]);
+
+  useEffect(() => {
     const reference = searchParams.get("reference");
     if (!reference || !user?.id) return;
 
@@ -210,7 +226,7 @@ export default function CheckoutPage() {
       .then((result) => {
         if (cancelled) return;
         setOrderNumber(result?.orderNumber || result?.orderId || reference);
-        setOrderTotal(calculateCheckoutTotals(cart, selectedShipping, coupon, shippingOptions).total);
+        setOrderTotal(calculateCheckoutTotals(cart, selectedShipping, coupon, shippingOptions, taxRules).total);
         setOrderedCartSnapshot([...cart]);
         setStep(1);
         clearCart();
@@ -229,7 +245,7 @@ export default function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [cart, clearCart, coupon, searchParams, selectedShipping, setSearchParams, shippingOptions, user?.id]);
+  }, [cart, clearCart, coupon, searchParams, selectedShipping, setSearchParams, shippingOptions, taxRules, user?.id]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -347,6 +363,7 @@ export default function CheckoutPage() {
                 onShippingChange={setSelectedShipping}
                 paymentMethods={paymentMethods}
                 shippingOptions={shippingOptions}
+                taxRules={taxRules}
               />
             )}
 

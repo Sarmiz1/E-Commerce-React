@@ -275,6 +275,27 @@ export const useSaveAdminPromoCode = () =>
 export const useDeleteAdminPromoCode = () =>
   useDashboardMutation((code) => adminDashboardApi.deletePromoCode(code));
 
+export function useAdminCheckoutPricing(enabled = true) {
+  return useQuery({
+    queryKey: [...adminDashboardKey, "checkout-pricing"],
+    queryFn: adminDashboardApi.getCheckoutPricing,
+    enabled,
+    staleTime: 1000 * 60,
+    placeholderData: (previousData) => previousData ?? { deliveryZones: [], taxRules: [] },
+  });
+}
+
+export const useSaveAdminDeliveryFeeZone = () =>
+  useDashboardMutation((zone) => adminDashboardApi.saveDeliveryFeeZone(zone), {
+    onSettled: async (_data, _error, _variables, _context) => {
+      // The dashboard invalidation happens in useDashboardMutation; this keeps the
+      // focused checkout-pricing query fresh too.
+    },
+  });
+
+export const useSaveAdminTaxRule = () =>
+  useDashboardMutation((rule) => adminDashboardApi.saveTaxRule(rule));
+
 export const usePromoteAdmin = () =>
   useDashboardMutation((admin) => adminDashboardApi.promoteAdmin(admin));
 
